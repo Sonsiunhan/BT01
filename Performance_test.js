@@ -19,7 +19,7 @@ export const options = {
 // 2. Hàm chạy chính của mỗi Virtual User
 export default function () {
     // Thay đổi URL theo địa chỉ thực tế của server cần test
-    const res = http.get('http://localhost:3000');
+    const res = http.get('http://localhost:8000');
 
     check(res, {
         'Status code là 200': (r) => r.status === 200,
