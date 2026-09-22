@@ -34,6 +34,10 @@ let selectedPieceId = null;
 // Emoji map
 const emojiMap = { 'R': '✊', 'P': '✋', 'S': '✌️' };
 
+function canBeat(t1, t2) {
+  return (t1 === 'R' && t2 === 'S') || (t1 === 'S' && t2 === 'P') || (t1 === 'P' && t2 === 'R');
+}
+
 // Initialize Board UI (10x10 Grid with Coordinates)
 function initBoardUI() {
   boardEl.innerHTML = '';
@@ -50,7 +54,7 @@ function initBoardUI() {
     boardEl.appendChild(coord);
   }
 
-  for (let y = 8; y >= 0; y--) { // Y=8 is top
+  for (let y = 8; y >= 0; y--) { // Y=8 is top row (Row 9)
     // Left coordinate (9-1)
     const rowCoord = document.createElement('div');
     rowCoord.className = 'coord-cell';
@@ -65,9 +69,17 @@ function initBoardUI() {
       cell.dataset.x = x;
       cell.dataset.y = y;
       
-      // Goal cells
-      if (x === 0 && y === 0) cell.dataset.goal = 'red'; // Red target (a1)
-      if (x === 8 && y === 8) cell.dataset.goal = 'blue'; // Blue target (i9)
+      // Target goals:
+      // a1 (x=0, y=0) is target for Phe Do (red)
+      // i9 (x=8, y=8) is target for Phe Xanh (blue)
+      if (x === 0 && y === 0) {
+        cell.dataset.goal = 'red';
+        cell.title = 'Mục tiêu căn cứ của Phe Đỏ (a1)';
+      }
+      if (x === 8 && y === 8) {
+        cell.dataset.goal = 'blue';
+        cell.title = 'Mục tiêu căn cứ của Phe Xanh (i9)';
+      }
       
       cell.addEventListener('click', () => handleCellClick(x, y));
       boardEl.appendChild(cell);
@@ -77,7 +89,11 @@ function initBoardUI() {
 
 function updateForcesCount(pieces) {
   const counts = { p1: { R: 0, P: 0, S: 0 }, p2: { R: 0, P: 0, S: 0 } };
-  Object.values(pieces).forEach(p => counts[p.owner][p.type]++);
+  Object.values(pieces).forEach(p => {
+    if (counts[p.owner] && counts[p.owner][p.type] !== undefined) {
+      counts[p.owner][p.type]++;
+    }
+  });
   
   // Blue (P1)
   document.getElementById('p1-rock').innerText = counts.p1.R;
@@ -94,7 +110,7 @@ function renderPieces(pieces) {
   document.querySelectorAll('.cell').forEach(c => {
     const p = c.querySelector('.piece');
     if (p) p.remove();
-    c.classList.remove('valid-move');
+    c.classList.remove('valid-move', 'valid-capture');
   });
   
   for (const [id, p] of Object.entries(pieces)) {
@@ -120,16 +136,30 @@ function showValidMoves(piece) {
     const nx = piece.x + dx;
     const ny = piece.y + dy;
     if (nx >= 0 && nx <= 8 && ny >= 0 && ny <= 8) {
+      let occ = null;
+      for (const op of Object.values(currentPieces)) {
+        if (op.x === nx && op.y === ny) {
+          occ = op;
+          break;
+        }
+      }
+      
       const cell = document.querySelector(`.cell[data-x="${nx}"][data-y="${ny}"]`);
-      if (cell) cell.classList.add('valid-move');
+      if (!cell) continue;
+
+      if (!occ) {
+        cell.classList.add('valid-move');
+      } else if (occ.owner !== piece.owner && occ.type !== piece.type && canBeat(piece.type, occ.type)) {
+        cell.classList.add('valid-capture');
+      }
     }
   }
 }
 
 function handleCellClick(x, y) {
   let activeRole = (isLocal || isBotMode) ? currentTurn : myRole;
-  if (isBotMode && activeRole === 'p2') return; // Cannot move bot pieces
-  if (currentTurn !== activeRole) return;
+  if (isBotMode && activeRole === 'p2') return; // Bot's turn
+  if (currentTurn !== activeRole) return; // Not your turn
   
   let clickedPiece = null;
   for (const p of Object.values(currentPieces)) {
@@ -139,10 +169,15 @@ function handleCellClick(x, y) {
     }
   }
   
+  // Click own piece to select
   if (clickedPiece && clickedPiece.owner === activeRole) {
     selectedPieceId = clickedPiece.id;
     renderPieces(currentPieces);
-  } else if (selectedPieceId) {
+    return;
+  }
+  
+  // If piece selected, try to move
+  if (selectedPieceId) {
     const p = currentPieces[selectedPieceId];
     const dx = Math.abs(x - p.x);
     const dy = Math.abs(y - p.y);
@@ -181,6 +216,7 @@ function setupGameRoom(roomId, roleText) {
 
 function returnHome() {
   gameOverOverlay.classList.add('hidden');
+  countdownOverlay.classList.add('hidden');
   gameRoom.classList.add('hidden');
   homepage.classList.remove('hidden');
   btnRandomMatch.disabled = false;
@@ -189,6 +225,11 @@ function returnHome() {
   myRole = null;
   isLocal = false;
   isBotMode = false;
+  selectedPieceId = null;
+  if (timerDisplay) {
+    timerDisplay.innerText = '(30s)';
+    timerDisplay.classList.remove('timer-warning');
+  }
 }
 
 // Socket Events
@@ -232,21 +273,22 @@ btnRestartRoom.addEventListener('click', () => {
   if (currentRoom) socket.emit('RESTART_ROOM', currentRoom);
 });
 
-socket.on('ROOM_CREATED', ({ roomId, isLocal: _isLocal, isBot: _isBot }) => {
-  myRole = 'p1';
-  isLocal = _isLocal || false;
-  isBotMode = _isBot || false;
-  let roleText = 'Bạn là Phe Xanh (P1)';
-  if (isLocal) roleText = 'Local Mode (P1 & P2)';
-  if (isBotMode) roleText = 'Bạn vs Máy';
-  setupGameRoom(roomId, roleText);
-});
-
-socket.on('MATCH_FOUND', ({ roomId }) => {
-  myRole = 'p2';
+// Room waiting for player 2 in random match
+socket.on('ROOM_WAITING', ({ roomId, role, roleText }) => {
+  myRole = role || 'p1';
   isLocal = false;
   isBotMode = false;
-  setupGameRoom(roomId, 'Bạn là Phe Đỏ (P2)');
+  setupGameRoom(roomId, roleText || 'Bạn là Phe Xanh (P1) - Đang chờ đối thủ...');
+  turnDisplay.innerText = 'ĐANG ĐỢI...';
+  turnDisplay.style.color = '#94a3b8';
+});
+
+// Match started (both players assigned explicitly)
+socket.on('MATCH_STARTED', ({ roomId, role, roleText, isLocal: _isLocal, isBot: _isBot }) => {
+  myRole = role;
+  isLocal = _isLocal || false;
+  isBotMode = _isBot || false;
+  setupGameRoom(roomId, roleText);
 });
 
 socket.on('COUNTDOWN', (count) => {
@@ -256,16 +298,24 @@ socket.on('COUNTDOWN', (count) => {
 });
 
 function updateTurnDisplay(turn) {
-  let activeRole = (isLocal || isBotMode) ? currentTurn : myRole;
-  turnDot.style.backgroundColor = turn === 'p1' ? 'var(--team-blue)' : 'var(--team-red)';
+  const isP1 = (turn === 'p1');
+  const teamName = isP1 ? 'PHE XANH' : 'PHE ĐỎ';
+  const teamColor = isP1 ? 'var(--team-blue)' : 'var(--team-red)';
   
-  if (isLocal || isBotMode) {
-    turnDisplay.innerText = turn === 'p1' ? 'PHE XANH' : 'PHE ĐỎ';
-    turnDisplay.style.color = turn === 'p1' ? 'var(--team-blue)' : 'var(--team-red)';
-  } else {
-    turnDisplay.innerText = turn === myRole ? 'BẠN' : 'ĐỐI PHƯƠNG';
-    turnDisplay.style.color = turn === myRole ? 'var(--team-blue)' : 'var(--team-red)';
+  turnDot.style.backgroundColor = teamColor;
+  turnDot.style.boxShadow = `0 0 10px ${teamColor}`;
+  
+  let extraLabel = '';
+  if (!isLocal) {
+    if (isBotMode) {
+      extraLabel = isP1 ? ' (Bạn)' : ' (Máy)';
+    } else {
+      extraLabel = (turn === myRole) ? ' (Bạn)' : ' (Đối thủ)';
+    }
   }
+  
+  turnDisplay.innerText = `${teamName}${extraLabel}`;
+  turnDisplay.style.color = teamColor;
 }
 
 function applyState(pieces, turn) {
@@ -285,8 +335,23 @@ socket.on('STATE_UPDATE', ({ pieces, turn }) => {
   applyState(pieces, turn);
 });
 
+socket.on('TIMER_TICK', ({ timeLeft }) => {
+  if (timerDisplay) {
+    timerDisplay.innerText = `(${timeLeft}s)`;
+    if (timeLeft <= 5) {
+      timerDisplay.classList.add('timer-warning');
+    } else {
+      timerDisplay.classList.remove('timer-warning');
+    }
+  }
+});
+
 socket.on('GAME_OVER', ({ winner, reason }) => {
   gameOverOverlay.classList.remove('hidden');
+  if (timerDisplay) {
+    timerDisplay.innerText = '(Kết thúc)';
+    timerDisplay.classList.remove('timer-warning');
+  }
   
   let winMsg = '';
   let winColor = '';

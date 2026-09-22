@@ -24,11 +24,11 @@ function initBoard() {
   const pattern = ['R', 'P', 'S', 'R', 'P', 'S', 'R', 'P', 'S'];
   
   let idCounter = 1;
-  // P1 pieces (row 0)
+  // P1 pieces (row 0 - Blue / Phe Xanh, bottom row)
   for (let x = 0; x <= 8; x++) {
     pieces[`p${idCounter++}`] = { id: `p${idCounter-1}`, owner: 'p1', type: pattern[x], x, y: 0 };
   }
-  // P2 pieces (row 8)
+  // P2 pieces (row 8 - Red / Phe Do, top row)
   for (let x = 0; x <= 8; x++) {
     pieces[`p${idCounter++}`] = { id: `p${idCounter-1}`, owner: 'p2', type: pattern[x], x, y: 8 };
   }
@@ -37,9 +37,12 @@ function initBoard() {
 
 function checkWin(roomId) {
   const room = rooms[roomId];
+  if (!room || !room.pieces) return null;
   const pieces = Object.values(room.pieces);
   
   // Check corner win
+  // Phe Xanh (p1) reaches i9 (x=8, y=8)
+  // Phe Do (p2) reaches a1 (x=0, y=0)
   for (const p of pieces) {
     if (p.owner === 'p1' && p.x === 8 && p.y === 8) return 'p1';
     if (p.owner === 'p2' && p.x === 0 && p.y === 0) return 'p2';
@@ -68,6 +71,43 @@ function getWaitingRooms() {
   return waiting;
 }
 
+function stopTurnTimer(roomId) {
+  const room = rooms[roomId];
+  if (room && room.turnTimer) {
+    clearInterval(room.turnTimer);
+    room.turnTimer = null;
+  }
+}
+
+function resetTurnTimer(roomId) {
+  const room = rooms[roomId];
+  if (!room || room.status !== 'playing') return;
+  stopTurnTimer(roomId);
+
+  room.timeLeft = 30;
+  io.to(roomId).emit('TIMER_TICK', { timeLeft: room.timeLeft });
+
+  room.turnTimer = setInterval(() => {
+    if (!rooms[roomId] || rooms[roomId].status !== 'playing') {
+      stopTurnTimer(roomId);
+      return;
+    }
+    room.timeLeft--;
+    io.to(roomId).emit('TIMER_TICK', { timeLeft: room.timeLeft });
+
+    if (room.timeLeft <= 0) {
+      // Switch turn automatically on timeout
+      room.turn = room.turn === 'p1' ? 'p2' : 'p1';
+      io.to(roomId).emit('STATE_UPDATE', { pieces: room.pieces, turn: room.turn });
+      resetTurnTimer(roomId);
+
+      if (room.isBot && room.turn === 'p2') {
+        setTimeout(() => makeBotMove(roomId), 800);
+      }
+    }
+  }, 1000);
+}
+
 function makeBotMove(roomId) {
   const room = rooms[roomId];
   if (!room || room.status !== 'playing' || room.turn !== 'p2' || !room.isBot) return;
@@ -94,15 +134,21 @@ function makeBotMove(roomId) {
       }
       
       if (!targetPiece) {
-        validMoves.push({ piece: p, tx, ty });
+        // Prioritize moving towards target (0,0)
+        const dist = Math.hypot(tx, ty);
+        validMoves.push({ piece: p, tx, ty, weight: 10 - dist });
       } else if (targetPiece.owner === 'p1' && winsAgainst(p.type, targetPiece.type)) {
-        validMoves.push({ piece: p, tx, ty, capture: targetPiece.id });
+        validMoves.push({ piece: p, tx, ty, capture: targetPiece.id, weight: 25 });
       }
     }
   }
 
   if (validMoves.length > 0) {
-    const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+    // Sort by weight descending, pick among top moves
+    validMoves.sort((a, b) => b.weight - a.weight);
+    const topChoices = validMoves.slice(0, Math.min(3, validMoves.length));
+    const move = topChoices[Math.floor(Math.random() * topChoices.length)];
+    
     move.piece.x = move.tx;
     move.piece.y = move.ty;
     if (move.capture) delete room.pieces[move.capture];
@@ -111,16 +157,20 @@ function makeBotMove(roomId) {
   const winner = checkWin(roomId);
   if (winner) {
     room.status = 'ended';
+    stopTurnTimer(roomId);
     io.to(roomId).emit('STATE_UPDATE', { pieces: room.pieces, turn: room.turn });
     io.to(roomId).emit('GAME_OVER', { winner });
   } else {
     room.turn = 'p1';
     io.to(roomId).emit('STATE_UPDATE', { pieces: room.pieces, turn: room.turn });
+    resetTurnTimer(roomId);
   }
 }
 
 function startRoomCountdown(roomId) {
   const room = rooms[roomId];
+  if (!room) return;
+  stopTurnTimer(roomId);
   room.status = 'countdown';
   let count = 5;
   const interval = setInterval(() => {
@@ -128,11 +178,12 @@ function startRoomCountdown(roomId) {
     count--;
     if (count < 0) {
       clearInterval(interval);
-      if (rooms[roomId]) { // double check if room still exists
+      if (rooms[roomId]) {
         room.status = 'playing';
         room.pieces = initBoard();
         room.turn = 'p1';
         io.to(roomId).emit('GAME_START', { pieces: room.pieces, turn: room.turn });
+        resetTurnTimer(roomId);
       }
     }
   }, 1000);
@@ -146,7 +197,7 @@ io.on('connection', (socket) => {
   socket.on('JOIN_RANDOM', () => {
     let joinedRoom = null;
     for (const [id, r] of Object.entries(rooms)) {
-      if (r.status === 'waiting') {
+      if (r.status === 'waiting' && r.p1 !== socket.id) {
         joinedRoom = id;
         break;
       }
@@ -155,9 +206,25 @@ io.on('connection', (socket) => {
     if (joinedRoom) {
       const room = rooms[joinedRoom];
       room.p2 = socket.id;
+      room.status = 'countdown';
       socket.join(joinedRoom);
       
-      io.to(joinedRoom).emit('MATCH_FOUND', { roomId: joinedRoom });
+      // Send role explicitly to both players so they never conflict
+      io.to(room.p1).emit('MATCH_STARTED', { 
+        roomId: joinedRoom, 
+        role: 'p1', 
+        roleText: 'Bạn là Phe Xanh (P1)',
+        isLocal: false,
+        isBot: false
+      });
+      socket.emit('MATCH_STARTED', { 
+        roomId: joinedRoom, 
+        role: 'p2', 
+        roleText: 'Bạn là Phe Đỏ (P2)',
+        isLocal: false,
+        isBot: false
+      });
+      
       io.emit('ROOMS_LIST', getWaitingRooms());
       startRoomCountdown(joinedRoom);
       
@@ -165,7 +232,11 @@ io.on('connection', (socket) => {
       const newRoomId = 'room_' + Math.floor(Math.random() * 10000);
       rooms[newRoomId] = { id: newRoomId, p1: socket.id, p2: null, status: 'waiting' };
       socket.join(newRoomId);
-      socket.emit('ROOM_CREATED', { roomId: newRoomId });
+      socket.emit('ROOM_WAITING', { 
+        roomId: newRoomId,
+        role: 'p1',
+        roleText: 'Bạn là Phe Xanh (P1) - Đang chờ đối thủ...'
+      });
       io.emit('ROOMS_LIST', getWaitingRooms());
     }
   });
@@ -174,7 +245,13 @@ io.on('connection', (socket) => {
     const newRoomId = 'bot_' + Math.floor(Math.random() * 10000);
     rooms[newRoomId] = { id: newRoomId, p1: socket.id, p2: 'bot', status: 'countdown', isBot: true };
     socket.join(newRoomId);
-    socket.emit('ROOM_CREATED', { roomId: newRoomId, isBot: true });
+    socket.emit('MATCH_STARTED', { 
+      roomId: newRoomId, 
+      role: 'p1', 
+      roleText: 'Bạn vs Máy (Bot)',
+      isBot: true,
+      isLocal: false
+    });
     startRoomCountdown(newRoomId);
   });
 
@@ -182,7 +259,13 @@ io.on('connection', (socket) => {
     const newRoomId = 'local_' + Math.floor(Math.random() * 10000);
     rooms[newRoomId] = { id: newRoomId, p1: socket.id, p2: socket.id, status: 'countdown', isLocal: true };
     socket.join(newRoomId);
-    socket.emit('ROOM_CREATED', { roomId: newRoomId, isLocal: true });
+    socket.emit('MATCH_STARTED', { 
+      roomId: newRoomId, 
+      role: 'p1', 
+      roleText: 'Chơi 2 Người (Local)',
+      isLocal: true,
+      isBot: false
+    });
     startRoomCountdown(newRoomId);
   });
 
@@ -195,9 +278,9 @@ io.on('connection', (socket) => {
 
   socket.on('LEAVE_ROOM', (roomId) => {
     if (rooms[roomId]) {
+      stopTurnTimer(roomId);
       socket.leave(roomId);
       rooms[roomId].status = 'ended';
-      // notify other players if any
       io.to(roomId).emit('GAME_OVER', { winner: rooms[roomId].p1 === socket.id ? 'p2' : 'p1', reason: 'disconnect' });
       delete rooms[roomId];
       io.emit('ROOMS_LIST', getWaitingRooms());
@@ -240,7 +323,7 @@ io.on('connection', (socket) => {
       if (winsAgainst(piece.type, targetPiece.type)) {
         delete room.pieces[targetPiece.id]; // Capture
       } else {
-        return; // Attempting suicide
+        return; // Attempting losing matchup
       }
     }
     
@@ -251,11 +334,13 @@ io.on('connection', (socket) => {
     const winner = checkWin(roomId);
     if (winner) {
       room.status = 'ended';
+      stopTurnTimer(roomId);
       io.to(roomId).emit('STATE_UPDATE', { pieces: room.pieces, turn: room.turn });
       io.to(roomId).emit('GAME_OVER', { winner });
     } else {
       room.turn = room.turn === 'p1' ? 'p2' : 'p1';
       io.to(roomId).emit('STATE_UPDATE', { pieces: room.pieces, turn: room.turn });
+      resetTurnTimer(roomId);
       
       // Trigger Bot move if needed
       if (room.isBot && room.turn === 'p2') {
@@ -268,6 +353,7 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
     for (const [id, r] of Object.entries(rooms)) {
       if (r.p1 === socket.id || r.p2 === socket.id) {
+        stopTurnTimer(id);
         r.status = 'ended';
         io.to(id).emit('GAME_OVER', { winner: r.p1 === socket.id ? 'p2' : 'p1', reason: 'disconnect' });
         delete rooms[id];

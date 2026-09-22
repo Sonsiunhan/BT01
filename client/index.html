@@ -7,7 +7,7 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <!-- playhtml.fun integration for cursors as requested -->
   <script src="https://unpkg.com/playhtml@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- BACKGROUND LOGO -->
@@ -48,11 +48,15 @@
           <small>CHIẾN THUẬT 9x9</small>
           <h2>OẲN TÙ TÌ v2</h2>
         </div>
-        <div class="room-info">Phòng: <span id="room-id-display"></span> <br><small id="player-role"></small></div>
+        <div class="room-info">
+          Phòng: <span id="room-id-display"></span><br>
+          <small id="player-role"></small>
+        </div>
         <div class="game-turn">
           <span class="turn-dot" id="turn-dot"></span>
-          LƯỢT: <strong id="turn-display">CHỜ...</strong>
-          <span id="timer-display" style="margin-left: 10px; font-size: 14px; opacity: 0.5;">(30s)</span>
+          <span class="turn-label">LƯỢT:</span>
+          <span id="turn-display">PHE XANH</span>
+          <span id="timer-display" class="timer-badge">(30s)</span>
         </div>
         <button id="btn-leave-room" class="btn outline-danger">Thoát</button>
       </div>
@@ -62,18 +66,71 @@
         
         <!-- LEFT: RULES -->
         <div class="col-left card rules-card">
-          <h3>📖 LUẬT CHIẾN THUẬT</h3>
-          <div class="rps-circle">
-            VÒNG TRÒN KHẮC CHẾ<br>
-            <strong>✊ ĐẤM ➔ ✌️ KÉO ➔ ✋ LÁ ➔ ✊</strong>
+          <div class="card-header-bar">
+            <h3>📖 LUẬT CHIẾN THUẬT</h3>
           </div>
-          <ul class="rules-list">
-            <li><span>01</span> <strong>Di chuyển:</strong> Đi 1 ô theo 8 hướng xung quanh (như Vua cờ vua).</li>
-            <li><span>02</span> <strong>Cản trở:</strong> Hai quân cùng loại không thể ăn nhau, chỉ đứng chặn đường.</li>
-            <li><span>03</span> <strong>Ăn quân:</strong> Chỉ được đi vào ô quân địch nếu quân của bạn thắng theo luật Oẳn Tù Tì.</li>
-            <li><span>04</span> <strong>Căn cứ:</strong> Đỏ thắng nếu chiếm ô <code>i9</code> (góc trên-phải). Xanh thắng nếu chiếm ô <code>a1</code> (góc dưới-trái).</li>
-            <li><span>05</span> <strong>Diệt chủng:</strong> Thắng ngay nếu ăn sạch toàn bộ 1 loại quân của đối thủ.</li>
-          </ul>
+          
+          <div class="rps-diagram">
+            <div class="rps-diagram-title">VÒNG TRÒN KHẮC CHẾ</div>
+            <div class="rps-cycle">
+              <span class="rps-item">✊ ĐẤM</span>
+              <span class="rps-arrow">➔</span>
+              <span class="rps-item">✌️ KÉO</span>
+              <span class="rps-arrow">➔</span>
+              <span class="rps-item">✋ LÁ</span>
+              <span class="rps-arrow">➔</span>
+              <span class="rps-item">✊</span>
+            </div>
+          </div>
+
+          <div class="rules-stack">
+            <div class="rule-card">
+              <div class="rule-num">01</div>
+              <div class="rule-body">
+                <div class="rule-head">Di chuyển</div>
+                <div class="rule-text">Đi 1 ô theo 8 hướng xung quanh (như quân Vua).</div>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-num">02</div>
+              <div class="rule-body">
+                <div class="rule-head">Cản trở</div>
+                <div class="rule-text">Hai quân cùng loại không thể ăn nhau, chỉ đứng chặn đường.</div>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-num">03</div>
+              <div class="rule-body">
+                <div class="rule-head">Ăn quân</div>
+                <div class="rule-text">Chỉ ăn được khi thắng Oẳn Tù Tì (Đấm &gt; Kéo &gt; Lá).</div>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-num">04</div>
+              <div class="rule-body">
+                <div class="rule-head">Căn cứ đối phương</div>
+                <div class="rule-targets">
+                  <div class="target-item blue-bg">
+                    <span class="badge blue">Phe Xanh</span> chiếm <strong>i9</strong> (trên-phải)
+                  </div>
+                  <div class="target-item red-bg">
+                    <span class="badge red">Phe Đỏ</span> chiếm <strong>a1</strong> (dưới-trái)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-num">05</div>
+              <div class="rule-body">
+                <div class="rule-head">Diệt chủng</div>
+                <div class="rule-text">Thắng ngay nếu ăn sạch toàn bộ 1 loại quân của đối thủ.</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- CENTER: BOARD -->
@@ -93,12 +150,14 @@
 
         <!-- RIGHT: FORCES -->
         <div class="col-right card forces-card">
-          <h3>⚔️ LỰC LƯỢNG HAI PHE</h3>
+          <div class="card-header-bar">
+            <h3>⚔️ LỰC LƯỢNG HAI PHE</h3>
+          </div>
           
           <!-- P1 Blue (Bottom) -->
           <div class="force-team blue-team">
             <h4>PHE XANH (Phòng thủ a1)</h4>
-            <div class="target">Mục tiêu: Chiếm <strong>i9</strong></div>
+            <div class="target">Mục tiêu: Chiếm căn cứ <strong>i9</strong></div>
             <div class="stats-row">
               <div class="stat"><span class="icon">✊</span> <strong id="p1-rock">3</strong></div>
               <div class="stat"><span class="icon">✋</span> <strong id="p1-paper">3</strong></div>
@@ -111,7 +170,7 @@
           <!-- P2 Red (Top) -->
           <div class="force-team red-team">
             <h4>PHE ĐỎ (Phòng thủ i9)</h4>
-            <div class="target">Mục tiêu: Chiếm <strong>a1</strong></div>
+            <div class="target">Mục tiêu: Chiếm căn cứ <strong>a1</strong></div>
             <div class="stats-row">
               <div class="stat"><span class="icon">✊</span> <strong id="p2-rock">3</strong></div>
               <div class="stat"><span class="icon">✋</span> <strong id="p2-paper">3</strong></div>
