@@ -1,14 +1,14 @@
 /**
  * OTTv2 Rules & Board State Engine
- * Quy ước tọa độ:
+ * Tọa độ bàn cờ:
  * a1 = [row: 8, col: 0] (Góc dưới cùng bên trái)
  * i9 = [row: 0, col: 8] (Góc trên cùng bên phải)
  */
 
 export const PIECE_TYPES = {
-    ROCK: 'rock',       // Đấm (Búa) 🪨
-    PAPER: 'paper',     // Lá (Bao) 📄
-    SCISSORS: 'scissors'// Kéo ✂️
+    ROCK: 'rock',       // Búa / Chùy 🔨
+    PAPER: 'paper',     // Bao / Khiên 🛡️
+    SCISSORS: 'scissors'// Kéo / Kiếm ⚔️
 };
 
 export const TEAMS = {
@@ -32,10 +32,10 @@ export class OTTGame {
     }
 
     initPieces() {
-        // Cắt chéo bàn cờ theo đường r = c:
-        // Đội Xanh ở nửa trên - phải (c > r), bảo vệ ô i9 [0, 8]
-        // Đội Đỏ ở nửa dưới - trái (r > c), bảo vệ ô a1 [8, 0]
-        // Hai bên lùi lại tạo vùng đệm ở giữa (cách ranh giới 2 ô), tránh va chạm ngay lượt đầu
+        // Cắt chéo bàn cờ: Đường phân cách r = c
+        // Đội Xanh ở nửa trên - phải (c > r), bảo vệ căn cứ i9 [0, 8]
+        // Đội Đỏ ở nửa dưới - trái (r > c), bảo vệ căn cứ a1 [8, 0]
+        // Bố trí 3 hàng chéo cách quãng, tạo vùng đệm ở giữa tránh va chạm ngay lượt đầu
 
         // 1. PHE XANH (Nửa trên - phải: c - r >= 2)
         const blueCoords = [
@@ -49,7 +49,7 @@ export class OTTGame {
             { r: 2, c: 5, type: PIECE_TYPES.SCISSORS },
             { r: 3, c: 6, type: PIECE_TYPES.ROCK },
 
-            // Tuyến hậu (c - r = 4, bảo kê căn cứ i9)
+            // Tuyến hậu (c - r = 4, bảo vệ i9)
             { r: 1, c: 5, type: PIECE_TYPES.SCISSORS },
             { r: 2, c: 6, type: PIECE_TYPES.ROCK },
             { r: 3, c: 7, type: PIECE_TYPES.PAPER }
@@ -67,7 +67,7 @@ export class OTTGame {
             { r: 5, c: 2, type: PIECE_TYPES.SCISSORS },
             { r: 6, c: 3, type: PIECE_TYPES.ROCK },
 
-            // Tuyến hậu (r - c = 4, bảo kê căn cứ a1)
+            // Tuyến hậu (r - c = 4, bảo vệ a1)
             { r: 5, c: 1, type: PIECE_TYPES.SCISSORS },
             { r: 6, c: 2, type: PIECE_TYPES.ROCK },
             { r: 7, c: 3, type: PIECE_TYPES.PAPER }
@@ -83,7 +83,7 @@ export class OTTGame {
     }
 
     canBeat(attackerType, defenderType) {
-        if (attackerType === defenderType) return false; // Cùng loại chặn nhau
+        if (attackerType === defenderType) return false; // Cùng loại chặn đường
         return (
             (attackerType === PIECE_TYPES.SCISSORS && defenderType === PIECE_TYPES.PAPER) ||
             (attackerType === PIECE_TYPES.PAPER && defenderType === PIECE_TYPES.ROCK) ||
@@ -91,7 +91,7 @@ export class OTTGame {
         );
     }
 
-    // 8 hướng xung quanh như quân vua
+    // Đi 1 ô theo 8 hướng như quân vua cờ vua
     getValidMoves(r, c) {
         if (this.isGameOver) return [];
         const piece = this.board[r][c];
@@ -111,10 +111,10 @@ export class OTTGame {
             if (nr >= 0 && nr < this.boardSize && nc >= 0 && nc < this.boardSize) {
                 const target = this.board[nr][nc];
                 if (!target) {
-                    // Ô trống: Đi được
+                    // Ô trống
                     moves.push({ r: nr, c: nc, isCapture: false });
                 } else if (target.team !== piece.team && this.canBeat(piece.type, target.type)) {
-                    // Quân đối phương: Chỉ đi được nếu ăn được
+                    // Ô quân địch mà quân mình ăn được
                     moves.push({ r: nr, c: nc, isCapture: true });
                 }
             }
@@ -131,21 +131,20 @@ export class OTTGame {
         this.board[toR][toC] = piece;
         this.board[fromR][fromC] = null;
 
-        // 1. Kiểm tra thắng cuộc do chạm đích (a1 hoặc i9)
-        // Phe Đỏ đến i9 [0, 8] hoặc Phe Xanh đến a1 [8, 0]
+        // 1. Kiểm tra thắng cuộc khi chiếm căn cứ đối phương
         if (piece.team === TEAMS.RED && toR === 0 && toC === 8) {
-            this.setWin(TEAMS.RED, "Đỏ đã đưa quân chiếm căn cứ i9!");
+            this.setWin(TEAMS.RED, "Đỏ đã đưa quân chiếm căn cứ i9 của đối phương!");
             return true;
         }
         if (piece.team === TEAMS.BLUE && toR === 8 && toC === 0) {
-            this.setWin(TEAMS.BLUE, "Xanh đã đưa quân chiếm căn cứ a1!");
+            this.setWin(TEAMS.BLUE, "Xanh đã đưa quân chiếm căn cứ a1 của đối phương!");
             return true;
         }
 
-        // 2. Kiểm tra điều kiện thắng do ăn sạch 1 loại quân của đối phương
+        // 2. Kiểm tra điều kiện thắng do ăn sạch 1 loại quân của đối thủ
         const opponentTeam = piece.team === TEAMS.RED ? TEAMS.BLUE : TEAMS.RED;
         if (this.checkExtinctionWin(opponentTeam)) {
-            this.setWin(piece.team, `Đã tiêu diệt sạch hoàn toàn 1 loại quân của đối thủ!`);
+            this.setWin(piece.team, `Đã tiêu diệt sạch hoàn toàn 1 loại quân của đối phương!`);
             return true;
         }
 
@@ -164,7 +163,6 @@ export class OTTGame {
                 }
             }
         }
-        // Thắng nếu đối phương có ít nhất 1 loại quân bị về 0
         return counts[PIECE_TYPES.ROCK] === 0 || counts[PIECE_TYPES.PAPER] === 0 || counts[PIECE_TYPES.SCISSORS] === 0;
     }
 

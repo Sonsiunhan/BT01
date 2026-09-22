@@ -1,8 +1,17 @@
+/* ================= TÙY BIẾN THEME (MẶC ĐỊNH: DARK MODE) ================= */
 :root {
+    --bg-gradient: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #0b0f19 70%);
     --bg-main: #0b0f19;
     --bg-surface: #111827;
     --bg-surface-elevated: #1f293d;
     --border-color: rgba(255, 255, 255, 0.08);
+
+    --board-bg: #070b13;
+    --board-frame-bg: #0f1422;
+    --cell-bg: #141c2e;
+    --cell-hover: #1f2b45;
+    --cell-border: rgba(255, 255, 255, 0.04);
+    --diagonal-split: #101726;
 
     --primary-red: #f43f5e;
     --red-glow: rgba(244, 63, 94, 0.4);
@@ -17,6 +26,38 @@
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
+    --shadow-main: rgba(0, 0, 0, 0.5);
+}
+
+/* ================= CHẾ ĐỘ SÁNG (LIGHT / WHITE MODE) ================= */
+[data-theme="light"] {
+    --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    --bg-main: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f8fafc;
+    --border-color: #e2e8f0;
+
+    --board-bg: #cbd5e1;
+    --board-frame-bg: #ffffff;
+    --cell-bg: #f8fafc;
+    --cell-hover: #e2e8f0;
+    --cell-border: #cbd5e1;
+    --diagonal-split: #e2e8f0;
+
+    --primary-red: #e11d48;
+    --red-glow: rgba(225, 29, 72, 0.25);
+    --red-border: #f43f5e;
+
+    --primary-blue: #0284c7;
+    --blue-glow: rgba(2, 132, 199, 0.25);
+    --blue-border: #0369a1;
+
+    --accent-gold: #d97706;
+    --accent-green: #059669;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --shadow-main: rgba(100, 116, 139, 0.15);
 }
 
 * {
@@ -27,13 +68,14 @@
 
 body {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, var(--bg-main) 70%);
+    background: var(--bg-gradient);
     color: var(--text-primary);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 16px;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
@@ -49,12 +91,12 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(17, 24, 39, 0.7);
-    backdrop-filter: blur(12px);
+    background: var(--bg-surface);
     border: 1px solid var(--border-color);
     padding: 14px 24px;
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px var(--shadow-main);
+    transition: all 0.3s ease;
 }
 
 .logo-box h1 {
@@ -80,6 +122,12 @@ body {
 .highlight-v2 {
     color: var(--primary-blue);
     text-shadow: 0 0 12px var(--blue-glow);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .match-status {
@@ -116,6 +164,15 @@ body {
     box-shadow: 0 0 16px var(--blue-glow);
 }
 
+[data-theme="light"] .turn-chip.turn-red {
+    color: #e11d48;
+    background: rgba(244, 63, 94, 0.1);
+}
+[data-theme="light"] .turn-chip.turn-blue {
+    color: #0284c7;
+    background: rgba(6, 182, 212, 0.1);
+}
+
 .pulse-dot {
     width: 8px;
     height: 8px;
@@ -135,6 +192,31 @@ body {
     color: var(--text-secondary);
 }
 
+.btn-theme {
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px var(--shadow-main);
+}
+
+.btn-theme:hover {
+    transform: scale(1.08);
+    border-color: var(--primary-blue);
+}
+
+.sun-icon { display: none; }
+.moon-icon { display: inline-block; }
+[data-theme="light"] .sun-icon { display: inline-block; }
+[data-theme="light"] .moon-icon { display: none; }
+
 /* ================= LAYOUT 3 CỘT ================= */
 .game-layout {
     display: grid;
@@ -148,7 +230,8 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 18px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px var(--shadow-main);
+    transition: all 0.3s ease;
 }
 
 .panel-header {
@@ -163,14 +246,14 @@ body {
 .panel-header h2 {
     font-family: 'Chakra Petch', sans-serif;
     font-size: 1.05rem;
-    color: #e2e8f0;
+    color: var(--text-primary);
     letter-spacing: 0.8px;
 }
 
 /* HƯỚNG DẪN */
 .cycle-box {
     background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border: 1px dashed var(--border-color);
     border-radius: 10px;
     padding: 10px;
     text-align: center;
@@ -208,13 +291,16 @@ body {
     color: var(--text-secondary);
 }
 
-.rule-list li strong { color: #f1f5f9; }
+.rule-list li strong { color: var(--text-primary); }
 .rule-list li code {
     background: rgba(255, 255, 255, 0.08);
     color: var(--accent-gold);
     padding: 1px 5px;
     border-radius: 4px;
     font-family: monospace;
+}
+[data-theme="light"] .rule-list li code {
+    background: #e2e8f0;
 }
 
 .r-num {
@@ -234,11 +320,12 @@ body {
 }
 
 .board-frame {
-    background: #0f1422;
+    background: var(--board-frame-bg);
     padding: 14px;
     border-radius: 20px;
-    border: 2px solid #1e293b;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(6, 182, 212, 0.05);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 20px 50px var(--shadow-main);
+    transition: all 0.3s ease;
 }
 
 .col-labels {
@@ -270,7 +357,7 @@ body {
     color: var(--text-muted);
 }
 
-/* CỐ ĐỊNH KÍCH THƯỚC Ô */
+/* CỐ ĐỊNH KÍCH THƯỚC Ô TRÁNH LỖI CO RÚT */
 .board {
     display: grid;
     grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -278,7 +365,7 @@ body {
     gap: 5px;
     width: min(72vw, 540px);
     height: min(72vw, 540px);
-    background-color: #070b13;
+    background-color: var(--board-bg);
     padding: 6px;
     border-radius: 12px;
 }
@@ -288,8 +375,8 @@ body {
     aspect-ratio: 1 / 1;
     min-width: 0;
     min-height: 0;
-    background: #141c2e;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--cell-bg);
+    border: 1px solid var(--cell-border);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -300,19 +387,17 @@ body {
 }
 
 .cell:hover {
-    background-color: #1f2b45;
-    border-color: rgba(255, 255, 255, 0.15);
+    background-color: var(--cell-hover);
+    border-color: var(--text-muted);
 }
 
-/* Đường ranh giới giữa sân (r = c) */
 .cell.diagonal-split {
-    background-color: #101726;
-    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.4);
+    background-color: var(--diagonal-split);
 }
 
 /* Căn cứ đặc biệt */
 .cell.special-a1 {
-    background: radial-gradient(circle, rgba(244, 63, 94, 0.25) 0%, #141c2e 80%);
+    background: radial-gradient(circle, rgba(244, 63, 94, 0.25) 0%, var(--cell-bg) 80%);
     border: 1.5px dashed var(--primary-red) !important;
 }
 .cell.special-a1::before {
@@ -327,7 +412,7 @@ body {
 }
 
 .cell.special-i9 {
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, #141c2e 80%);
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, var(--cell-bg) 80%);
     border: 1.5px dashed var(--primary-blue) !important;
 }
 .cell.special-i9::before {
@@ -368,7 +453,7 @@ body {
     to { box-shadow: 0 0 18px var(--red-glow); }
 }
 
-/* ================= QUÂN CỜ HIỆN ĐẠI (SVG GLOW) ================= */
+/* ================= QUÂN CỜ KHÍ GIỚI ================= */
 .piece {
     width: 82%;
     height: 82%;
@@ -396,11 +481,18 @@ body {
     box-shadow: 0 4px 12px rgba(3, 105, 161, 0.6);
 }
 
+[data-theme="light"] .piece.red {
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+[data-theme="light"] .piece.blue {
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
 .piece svg {
     width: 62%;
     height: 62%;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
     color: #ffffff;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 
 /* ================= BẢNG THỐNG KÊ (STATS PANEL) ================= */
@@ -430,8 +522,8 @@ body {
     font-size: 0.85rem;
     display: block;
 }
-.team-card-blue .team-name { color: #67e8f9; }
-.team-card-red .team-name { color: #fca5a5; }
+.team-card-blue .team-name { color: var(--primary-blue); }
+.team-card-red .team-name { color: var(--primary-red); }
 
 .base-target {
     font-size: 0.72rem;
@@ -446,25 +538,42 @@ body {
 }
 
 .count-pill {
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     padding: 6px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+}
+[data-theme="light"] .count-pill {
+    background: #ffffff;
 }
 
 .count-pill .mini-icon {
-    font-size: 1rem;
-    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-bottom: 3px;
+    color: var(--text-secondary);
 }
+
+.count-pill .mini-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.count-pill.pill-rock .mini-icon { color: var(--accent-gold); }
+.count-pill.pill-paper .mini-icon { color: var(--primary-blue); }
+.count-pill.pill-scissors .mini-icon { color: var(--primary-red); }
 
 .count-pill .val {
     font-family: 'Chakra Petch', sans-serif;
     font-weight: 700;
     font-size: 1rem;
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 .vs-divider {
@@ -493,7 +602,7 @@ body {
 
 .intel-box {
     margin-top: 14px;
-    background: rgba(251, 191, 36, 0.06);
+    background: rgba(251, 191, 36, 0.08);
     border: 1px solid rgba(251, 191, 36, 0.2);
     border-radius: 10px;
     padding: 10px;
@@ -515,24 +624,23 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #1e293b;
-    border: 1px solid #334155;
-    color: #f1f5f9;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
     padding: 10px 20px;
     border-radius: 10px;
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
+    box-shadow: 0 4px 14px var(--shadow-main);
     transition: all 0.2s;
 }
 .btn-action:hover {
-    background: #334155;
-    border-color: #475569;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    background: var(--bg-surface-elevated);
+    border-color: var(--primary-blue);
 }
 
-/* RESPONSIVE CHO LAPTOP & MÀN HÌNH NHỎ */
 @media (max-width: 1080px) {
     .game-layout {
         grid-template-columns: 1fr;
@@ -540,29 +648,3 @@ body {
     }
     .panel { width: 100%; max-width: 560px; }
 }
-/* Định dạng icon SVG thu nhỏ ở bảng đếm số lượng */
-.count-pill .mini-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    margin-bottom: 3px;
-    color: #cbd5e1;
-}
-# 1. Kéo code về và cho phép gộp 2 lịch sử commit khác nhau
-git pull origin main --allow-unrelated-histories
-
-# 2. Đẩy lại lên GitHub
-git push -u origin main
-
-.count-pill .mini-icon svg {
-    width: 100%;
-    height: 100%;
-    stroke: currentColor;
-}
-
-/* Đổi màu nhẹ theo loại vũ khí khi hover */
-.count-pill.pill-rock .mini-icon { color: #f59e0b; }
-.count-pill.pill-paper .mini-icon { color: #38bdf8; }
-.count-pill.pill-scissors .mini-icon { color: #f43f5e; }

@@ -18,12 +18,21 @@
                 <span class="logo-badge">CHIẾN THUẬT 9X9</span>
                 <h1>OẰN TÙ TÌ <span class="highlight-v2">v2</span></h1>
             </div>
-            <div class="match-status" id="match-status">
-                <div class="turn-chip" id="turn-chip">
-                    <span class="pulse-dot"></span>
-                    <span id="turn-text">LƯỢT: PHE ĐỎ</span>
+
+            <div class="header-right">
+                <div class="match-status" id="match-status">
+                    <div class="turn-chip" id="turn-chip">
+                        <span class="pulse-dot"></span>
+                        <span id="turn-text">LƯỢT: PHE ĐỎ</span>
+                    </div>
+                    <div class="status-msg" id="status-message">Chọn một quân cờ để bắt đầu di chuyển</div>
                 </div>
-                <div class="status-msg" id="status-message">Chọn một quân cờ để bắt đầu di chuyển</div>
+
+                <!-- Nút chuyển Dark/Light Mode -->
+                <button id="theme-toggle" class="btn-theme" title="Chuyển đổi giao diện Sáng / Tối">
+                    <span class="theme-icon sun-icon">☀️</span>
+                    <span class="theme-icon moon-icon">🌙</span>
+                </button>
             </div>
         </header>
 
@@ -69,7 +78,7 @@
                         </li>
                         <li>
                             <span class="r-num">05</span>
-                            <div><strong>Diệt chủng:</strong> Thắng ngay nếu <strong>ăn sạch toàn bộ 1 loại quân</strong> của địch.</div>
+                            <div><strong>Diệt chủng:</strong> Thắng ngay nếu <strong>ăn sạch toàn bộ 1 loại quân</strong> của đối thủ.</div>
                         </li>
                     </ul>
                 </div>
@@ -103,7 +112,6 @@
             </section>
 
             <!-- CỘT PHẢI: QUẢN LÝ LỰC LƯỢNG 2 PHE -->
-            <!-- CỘT PHẢI: QUẢN LÝ LỰC LƯỢNG 2 PHE -->
             <aside class="panel stats-panel">
                 <div class="panel-header">
                     <div class="panel-icon">⚔️</div>
@@ -117,8 +125,7 @@
                         <span class="base-target">Mục tiêu: Chiếm <strong>a1</strong></span>
                     </div>
                     <div class="piece-counts" id="blue-counts">
-                        <!-- Búa / Chùy -->
-                        <div class="count-pill pill-rock" title="Búa">
+                        <div class="count-pill pill-rock" title="Búa / Chùy">
                             <span class="mini-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M15 4l4 4-2.5 2.5-4-4L15 4z" fill="currentColor" fill-opacity="0.3"/>
@@ -128,8 +135,7 @@
                             </span>
                             <span class="val" id="cnt-blue-rock">3</span>
                         </div>
-                        <!-- Bao / Khiên -->
-                        <div class="count-pill pill-paper" title="Bao (Khiên)">
+                        <div class="count-pill pill-paper" title="Bao / Khiên">
                             <span class="mini-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fill-opacity="0.25"/>
@@ -138,8 +144,7 @@
                             </span>
                             <span class="val" id="cnt-blue-paper">3</span>
                         </div>
-                        <!-- Kéo / Song Kiếm -->
-                        <div class="count-pill pill-scissors" title="Kéo (Kiếm)">
+                        <div class="count-pill pill-scissors" title="Kéo / Kiếm">
                             <span class="mini-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M19 5l-8.5 8.5"/><path d="M20 4l-4 1 3 3 1-4z" fill="currentColor"/><path d="M9 15l2 2"/><circle cx="6.5" cy="18.5" r="1.5"/>
@@ -160,8 +165,7 @@
                         <span class="base-target">Mục tiêu: Chiếm <strong>i9</strong></span>
                     </div>
                     <div class="piece-counts" id="red-counts">
-                        <!-- Búa / Chùy -->
-                        <div class="count-pill pill-rock" title="Búa">
+                        <div class="count-pill pill-rock" title="Búa / Chùy">
                             <span class="mini-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M15 4l4 4-2.5 2.5-4-4L15 4z" fill="currentColor" fill-opacity="0.3"/>
@@ -171,8 +175,7 @@
                             </span>
                             <span class="val" id="cnt-red-rock">3</span>
                         </div>
-                        <!-- Bao / Khiên -->
-                        <div class="count-pill pill-paper" title="Bao (Khiên)">
+                        <div class="count-pill pill-paper" title="Bao / Khiên">
                             <span class="mini-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fill-opacity="0.25"/>
@@ -181,8 +184,7 @@
                             </span>
                             <span class="val" id="cnt-red-paper">3</span>
                         </div>
-                        <!-- Kéo / Song Kiếm -->
-                        <div class="count-pill pill-scissors" title="Kéo (Kiếm)">
+                        <div class="count-pill pill-scissors" title="Kéo / Kiếm">
                             <span class="mini-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M19 5l-8.5 8.5"/><path d="M20 4l-4 1 3 3 1-4z" fill="currentColor"/><path d="M9 15l2 2"/><circle cx="6.5" cy="18.5" r="1.5"/>
@@ -205,4 +207,4 @@
     <!-- Script chia module -->
     <script type="module" src="js/main.js"></script>
 </body>
-</html>
+</html> 
