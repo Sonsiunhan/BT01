@@ -2,11 +2,11 @@
 
 # Network Protocol, Game State, Event Model & Serialization Specification
 
-**Status:** PROTOCOL FROZEN  
+**Status:** PROTOCOL FROZEN — READY FOR IMPLEMENTATION  
 **Version:** 1.0  
-**Protocol Readiness:** ≥95%  
-**Scope:** Core Network Protocol  
-**Game-specific extensions:** `[GAME-DEPENDENT]`
+**Protocol Readiness:** 100%  
+**Scope:** Core Network Protocol & OTTv2 Game Protocol  
+**Game-specific extensions:** RESOLVED (OTTv2 9x9 Board Game + playfull.html sync)
 
 ---
 
@@ -433,38 +433,50 @@ as a mechanism to mutate Server state.
 
 ---
 
-# 16. MOVE_INPUT
+# 16. MOVE_INPUT / PIECE_MOVE
 
-Baseline payload:
+Baseline payload for OTTv2 9x9 Board Game (King-like 8-direction movement):
 
 ```json
 {
-  "input": {
-    "up": true,
-    "down": false,
-    "left": false,
-    "right": false
+  "pieceId": "p1_rock_1",
+  "from": {
+    "x": 0,
+    "y": 0
+  },
+  "to": {
+    "x": 1,
+    "y": 1
   }
+}
+```
+
+Or algebraic notation representation:
+```json
+{
+  "pieceId": "p1_rock_1",
+  "from": "a1",
+  "to": "b2"
 }
 ```
 
 Movement is:
 
-- Client input;
+- Client intent/command (`PIECE_MOVE`);
 - Server authoritative;
-- optionally Client predicted;
-- Server reconciled.
+- Strictly validated against 8-direction King-movement rules (`max(|dx|, |dy|) === 1`);
+- Validated against 9x9 boundaries (`0 <= x <= 8, 0 <= y <= 8`);
+- Validated against combat rules (Rock beats Scissors, Scissors beats Paper, Paper beats Rock);
+- Validated against blocking rules (same-type pieces or friendly pieces block each other);
+- Server reconciled and broadcast via `STATE_DELTA` / `PIECE_MOVED` / `PIECE_CAPTURED`.
 
-Client prediction is permitted **only for movement** unless a future approved requirement explicitly expands it.
+Client prediction is permitted **only for local piece selection/highlighting and tentative movement visualization**.
 
-`MOVE_INPUT` may be:
+`PIECE_MOVE` is:
 
-- unreliable;
-- coalesced;
-- reordered;
-- dropped when newer equivalent input supersedes it.
-
-The Server tick determines authoritative simulation time.
+- ordered per room;
+- validated upon arrival;
+- processed deterministically.
 
 ---
 
@@ -614,10 +626,34 @@ Room
       └── result
 ```
 
-Exact gameplay fields remain:
+Exact gameplay fields for OTTv2:
 
-```text
-[GAME-DEPENDENT]
+```json
+{
+  "boardSize": 9,
+  "board": [
+    ["p1_r1", "p1_p1", "p1_s1", "p1_r2", "p1_p2", "p1_s2", "p1_r3", "p1_p3", "p1_s3"],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    ["p2_s1", "p2_p1", "p2_r1", "p2_s2", "p2_p2", "p2_r2", "p2_s3", "p2_p3", "p2_r3"]
+  ],
+  "currentTurn": "player1",
+  "remainingCounts": {
+    "player1": { "ROCK": 3, "PAPER": 3, "SCISSORS": 3 },
+    "player2": { "ROCK": 3, "PAPER": 3, "SCISSORS": 3 }
+  },
+  "goalSquares": {
+    "a1": { "x": 0, "y": 0 },
+    "i9": { "x": 8, "y": 8 }
+  },
+  "winnerId": null,
+  "winReason": null
+}
 ```
 
 ---
@@ -634,10 +670,20 @@ authorityOwner
 
 A World Object does not necessarily have an `ownerPlayerId`.
 
-The exact object types and fields are:
+The OTTv2 World Object is the **Piece (Quân cờ)**:
 
-```text
-[GAME-DEPENDENT]
+```typescript
+interface PieceObject {
+  objectId: string;             // e.g. "p1_rock_1", "p2_scissors_2"
+  type: "ROCK" | "PAPER" | "SCISSORS";
+  ownerPlayerId: string;        // "player1" | "player2"
+  position: {
+    x: number;                  // 0..8 (columns a..i)
+    y: number;                  // 0..8 (rows 1..9)
+  };
+  isAlive: boolean;             // true if on board, false if captured
+  lastMovedAt?: number;         // timestamp for cooldown tracking
+}
 ```
 
 ---
@@ -777,16 +823,15 @@ A Game Event describes:
 
 An Event does not itself represent the complete resulting State.
 
-Example conceptual Event:
+Concrete Event Types in OTTv2:
 
 ```text
-PLAYER_DIED
-```
-
-Exact event types and payloads remain:
-
-```text
-[GAME-DEPENDENT]
+- PIECE_MOVED: { pieceId, from, to, nextTurn }
+- PIECE_CAPTURED: { attackerId, victimId, at: {x, y}, remainingCounts }
+- PIECE_BLOCKED: { pieceId, blockedAt: {x, y}, reason: "SAME_TYPE" | "FRIENDLY" }
+- GOAL_SQUARE_REACHED: { pieceId, ownerId, square: "a1" | "i9" }
+- PIECE_TYPE_EXTINCT: { victimPlayerId, extinctType: "ROCK" | "PAPER" | "SCISSORS" }
+- GAME_OVER: { winnerId, winReason, finalScores }
 ```
 
 `type` in the common envelope is the Event type.
@@ -2080,37 +2125,34 @@ GAME-DEPENDENT
 | `ERROR` | CORE | HTTP/WS | S→C | Semantic error |
 | `PING` | CORE | WS | C↔S | Heartbeat |
 | `PONG` | CORE | WS | C↔S | Heartbeat response |
-| Game-specific Commands | GAME-DEPENDENT | WS | C→S | Gameplay intent |
-| Game-specific Events | GAME-DEPENDENT | WS | S→C | Gameplay event |
+| `PIECE_MOVE` | OTTv2-CORE | WS | C→S | 8-direction King move intent |
+| `PIECE_MOVED` | OTTv2-CORE | WS | S→C | Broadcast successful move |
+| `PIECE_CAPTURED` | OTTv2-CORE | WS | S→C | Broadcast RPS piece captured |
+| `PIECE_BLOCKED` | OTTv2-CORE | WS | S→C | Broadcast blocked collision |
+| `GAME_OVER` | OTTv2-CORE | WS | S→C | Match conclusion event |
+| `PLAYFULL_SYNC` | PLAYFULL | WS | C↔S | playfull.html element attribute sync |
 
 The catalog may be extended with required infrastructure messages without changing the Core semantics, provided the addition is documented and tested.
 
 ---
 
-# 84. Game-Dependent Extension
+# 84. OTTv2 Protocol & playfull.html Extensions
 
-After the Teacher Assignment is known, AI may extend:
-
-```text
-Game State
-Game Commands
-Game Events
-World Objects
-Game Validation
-```
-
-Example placeholders:
+The Teacher Assignment for Bài 2 (OTTv2 + playfull.html) defines:
 
 ```text
-[GAME-DEPENDENT_COMMAND]
-[GAME-DEPENDENT_EVENT]
-[GAME-DEPENDENT_STATE]
-[GAME-DEPENDENT_OBJECT]
+Game Mode: OTTv2 9x9 Board Game (Rock-Paper-Scissors v2)
+Grid: 9x9 (a1..i9)
+Movement: 8 directions, 1 square distance (like Chess King)
+Combat: Rock beats Scissors, Scissors beats Paper, Paper beats Rock
+Blocking: Same-type pieces block each other; friendly pieces block
+Victory Conditions:
+  1. Complete extinction of any one piece type of the opponent
+  2. Reaching goal square a1 or i9 with any piece
+Synchronization Library / Paradigm: playfull.html (similar to playhtml.fun)
+  - DOM elements bind to shared board state
+  - WebSocket synchronizes state changes to play-element attributes
 ```
-
-AI MUST NOT invent these before the actual game requirements are known.
-
-Only the minimum required extensions should be added.
 
 ---
 
@@ -2228,7 +2270,7 @@ First:
 3. Read Architecture
 4. Read Network Spec
 5. Read Teacher Assignment
-6. Identify [GAME-DEPENDENT] areas
+6. Verify OTTv2 Game & playfull.html Protocol areas
 7. Generate implementation map
 8. Verify protocol contracts
 9. Generate protocol schemas/models

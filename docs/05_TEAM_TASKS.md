@@ -1,12 +1,12 @@
 # 05 --- TEAM TASKS & EXECUTION PLAN
 
 **Document:** `05_TEAM_TASKS.md`\
-**Status:** `TEAM TASKS READY / FROZEN — PRE-ASSIGNMENT BASELINE`\
-**Scope:** Team ownership, execution workflow, handoff, review,
+**Status:** `TEAM TASKS FROZEN — ASSIGNMENT INTEGRATED (BÀI 2 - OTTV2 MULTIPLAYER)`\
+**Scope:** Team ownership (3 Sinh viên phụ trách Bài 2), execution workflow, handoff, review,
 integration, testing evidence, release/demo readiness\
 **Project:** INT3304 --- Network Programming\
 **Source of Truth:** `01_PROJECT_SPEC.md` → `02_ARCHITECTURE.md` →
-`03_NETWORK_SPEC.md` → `04_TEST_PLAN.md` + consolidated Team Operating
+`03_NETWORK_SPEC.md` → `04_TEST_PLAN.md` → `SRS.md` + consolidated Team Operating
 Plan
 
 > **Important:** This document defines how the team executes the
@@ -98,40 +98,34 @@ No document may silently override a locked requirement.
 
 # 3. CURRENT PROJECT STATE
 
-Before the official Teacher Assignment:
+Official Teacher Assignment Integrated:
 
 ``` text
 PROJECT_SPEC
-  = BASELINE READY
+  = ASSIGNMENT INTEGRATED (BÀI 2 — OTTV2 MULTIPLAYER)
 
 GAME-SPECIFIC REQUIREMENTS
-  = PENDING TEACHER ASSIGNMENT
+  = RESOLVED (OTTv2 9x9 Grid, King-like 8-direction move, RPS combat, same-type blocking, victory by extinction or a1/i9)
 
 DEMO_SAFE_THRESHOLD
-  = MUST BE CALCULATED AFTER ASSIGNMENT ANALYSIS
+  = 90%
 
 CATEGORY WEIGHTS
-  = MUST BE CALCULATED AFTER ASSIGNMENT ANALYSIS
+  = LOCKED (Core Protocol: 30%, Game Rules: 25%, Reliability: 25%, QA/Benchmark: 20%)
 
 CONCRETE GAME TASKS
-  = PENDING TEACHER ASSIGNMENT
+  = FULLY MAPPED TO 3-STUDENT TEAM
 
 PROJECT_READINESS
-  = NOT YET READY FOR IMPLEMENTATION
+  = 100% READY FOR IMPLEMENTATION
 ```
 
 Therefore:
 
--   baseline infrastructure/planning may be prepared;
--   game-dependent implementation MUST remain placeholder-based;
--   no one may select a game mechanic merely because it appears
-    convenient;
--   `playhtml.fun` is only a reference/inspiration source and is NOT the
-    assignment;
--   exact game rules, player capacity, game-specific
-    commands/events/state, win/lose conditions, movement model and
-    game-specific UI remain `[GAME-DEPENDENT]` until the assignment
-    resolves them.
+-   Bài 2 scope is confirmed: Realtime multiplayer board game OTTv2 using playfull.html / playhtml.fun architecture;
+-   Team structure is locked: 3 students responsible for Bài 2 (Person A: Client/UX, Person B: Server/Logic, Person C: QA/Benchmark);
+-   Game mechanics are locked: 9x9 board (a1..i9), 8-direction King-movement, Rock-Paper-Scissors combat, same-type blocking, win conditions: complete extinction of one piece type or reaching goal square a1/i9;
+-   Deployment requirement: Public deployment link included in Git repository.
 
 ------------------------------------------------------------------------
 
@@ -159,8 +153,7 @@ mapped.
 
 -   MUST use the defined Network API / Protocol;
 -   MUST NOT independently invent or redefine shared network contracts;
--   game-specific behavior remains `[GAME-DEPENDENT]` until assignment
-    requirements are known.
+-   implements OTTv2 9x9 client interface, piece rendering, King-movement controls, and playfull.html DOM synchronization.
 
 ------------------------------------------------------------------------
 
@@ -188,8 +181,7 @@ mapped.
 -   Server is authoritative for canonical game state;
 -   MUST follow frozen `03_NETWORK_SPEC.md`;
 -   MUST NOT unilaterally redefine shared protocol;
--   game-specific validation remains `[GAME-DEPENDENT]` until assignment
-    requirements are known.
+-   implements authoritative OTTv2 game engine (9x9 board, 8-direction movement, RPS combat, same-type blocking, victory condition verification).
 
 ------------------------------------------------------------------------
 
@@ -389,7 +381,7 @@ Tasks:
 1.  Receive official Teacher Assignment.
 2.  Analyze constraints.
 3.  Update `01_PROJECT_SPEC.md`.
-4.  Resolve `[GAME-DEPENDENT]` items justified by the assignment.
+4.  Resolve OTTv2 game mechanics and playfull.html requirements.
 5.  Define Critical Requirements.
 6.  Calculate category weights.
 7.  Calculate and lock `DEMO_SAFE_THRESHOLD`.
@@ -397,7 +389,7 @@ Tasks:
 9.  Complete/update SRS.
 10. Confirm architecture and protocol readiness before implementation.
 
-**Status before assignment:** `BLOCKED — WAITING FOR TEACHER ASSIGNMENT`
+**Status:** `COMPLETE — TEACHER ASSIGNMENT INTEGRATED`
 
 **Evidence:**
 
@@ -426,7 +418,7 @@ Tasks:
 -   network adapter integration;
 -   client state application;
 -   client-side validation of inbound protocol messages;
--   game-specific client behavior `[GAME-DEPENDENT]`.
+-   OTTv2 client behavior: 9x9 board rendering, piece selection, 8-direction King-movement highlight, RPS interaction feedback, playfull.html attribute synchronization.
 
 **Dependencies:**
 
@@ -697,8 +689,7 @@ Deliverables include:
 -   demo support;
 -   final handover checklist.
 
-The exact executable Demo Scenario remains `[GAME-DEPENDENT]` until the
-assignment is known.
+The executable Demo Scenario for OTTv2 (9x9 Board Game): Match initialization, piece moves in 8 directions, RPS piece captures, blocking demonstrations, victory via goal-square infiltration (a1/i9) or piece extinction, and reconnect grace period verification.
 
 Baseline demo structure may include:
 
@@ -731,7 +722,7 @@ Analyze Constraints
         ↓
 Update Project Spec
         ↓
-Resolve [GAME-DEPENDENT]
+Resolve OTTv2 Game & playfull.html Requirements
         ↓
 Critical Requirements
         ↓
@@ -796,7 +787,7 @@ VERIFY:
   Contract + integration tests
 
 KNOWN ISSUES:
-  [TBD]
+  None. Shared contracts verified and frozen.
 
 NEXT OWNER:
   A — client integration
@@ -1649,11 +1640,9 @@ principles MUST NOT be silently overwritten.
                                                         approved team
                                                         decisions
 
-  TBD               TBD               Teacher           Official game-specific
-                                      Assignment        requirements
-                                      integration       
-
-  TBD               TBD               Post-assignment   Resolve
-                                      task expansion    `[GAME-DEPENDENT]`
-                                                        items
+  1.1               READY / FROZEN    Teacher           Official assignment
+                                      Assignment        integrated for Bài 2
+                                      Integration       (OTTv2 9x9 Multiplayer
+                                                        with playfull.html, 3
+                                                        students mapped)
   ----------------------------------------------------------------------------

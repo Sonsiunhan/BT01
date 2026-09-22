@@ -1,9 +1,9 @@
 # 01_PROJECT_SPEC.md
 
-> **Document status:** ASSIGNMENT-INTEGRATED DRAFT — BÀI 2 ONLY  
+> **Document status:** PROJECT SPECIFICATION  
 > **Purpose:** Define the project identity, objectives, scope, feature boundaries, user journey, success criteria, completion model, demo safety, and readiness gates at project level.  
 > **Detailed technical requirements:** `SRS.md`  
-> **Important:** This document is a project-level contract. The official teacher assignment below is now the authoritative source for Bài 2 game-specific scope. Where the assignment is silent, this document keeps `[TBD]` / `[GAME-DEPENDENT]` rather than inventing rules.
+> **Important:** This document is a project-level contract. It must not silently invent game-specific requirements before the teacher provides the official assignment.
 
 ---
 
@@ -91,44 +91,11 @@ The system must visibly demonstrate:
 
 ## 1.3 Game Concept
 
-**Status:** `ASSIGNMENT RECEIVED — BÀI 2`
+**Status:** `[GAME-DEPENDENT]`
 
-Bài 1 (OTTv2 cho 2 người bằng JavaScript) is intentionally excluded from this project scope. This document covers **Bài 2 only**, implemented by the 3-person Bài 2 team.
+The official game concept, rules, mechanics and game-specific constraints must be filled after the teacher provides the assignment.
 
-### Official Bài 2 Assignment
-
-> Dùng thư viện `playfull.html` để cho phép có server, nhiều người chơi cùng lúc.
-
-The assignment describes Bài 2 as following the multiplayer mechanism/reference of `playhtml.fun`. The exact teacher-provided library/package identity remains a verification item and must not be silently changed in the project contract.
-
-### Bài 2 Game Rules — Directly Derived from the Assignment
-
-The game-specific rules that are explicitly known are:
-
-- Board: **9×9**.
-- Pieces: **Đấm / Lá / Kéo** are the game piece types.
-- Movement: each piece moves **exactly 1 square per move**, in any of the **8 directions**, analogous to a chess king's movement.
-- Same-type interaction: **two pieces of the same type cannot capture each other**; they block each other's path/space according to the assignment wording.
-- Win condition 1: a side wins when it has **completely captured one type of the opponent's pieces**.
-- Win condition 2: a side wins when it **moves a piece to a1 or i9**.
-
-### Assignment Ambiguities That Must Remain Explicit
-
-The assignment does **not** explicitly define:
-
-- the capture relationship between different piece types (e.g. which of Đấm/Lá/Kéo can capture which);
-- initial board layout and initial number of each piece type;
-- whether both players have the same piece counts;
-- whether a move onto an occupied square is always a capture when the types permit it;
-- whether a1/i9 are both valid goal squares for either side or are side-specific;
-- what happens when a player has no legal move;
-- draw/stalemate rules;
-- whether players may join after a match has started;
-- exact room/session flow;
-- exact UI/visual requirements;
-- the exact teacher-provided meaning of `playfull.html` if it differs from the public `playhtml` project.
-
-These items are **[TBD]**, not AI assumptions. They must be resolved before SRS/protocol freeze if they affect implementation or acceptance.
+AI MUST NOT invent the final game concept before the official assignment is available.
 
 ---
 
@@ -262,20 +229,6 @@ The project must demonstrate:
 
 ---
 
-# 5.3.1 ASSIGNMENT-SPECIFIC SCOPE LOCK — BÀI 2
-
-The following rules govern interpretation of the generic baseline in this document:
-
-1. **Bài 1 is out of scope for this project file.**
-2. The required game is the **9×9 Đấm–Lá–Kéo board game** described above.
-3. The required multiplayer property is **multiple players playing concurrently through the assigned library/server mechanism**.
-4. `playhtml.fun` is a reference to the multiplayer/collaborative mechanism, not a substitute for the teacher's exact library wording.
-5. Generic baseline capabilities such as Quick Play, rematch, custom room configuration, replay, persistence, or advanced authentication are **not automatically teacher requirements** unless required by the actual library integration or later clarified by the teacher.
-6. Generic Network Programming requirements remain project objectives where they are compatible with the assigned library and useful for proving the course outcomes.
-7. Any technical capability that the assigned library already provides must not be reimplemented unnecessarily as a second competing networking layer.
-
----
-
 # 6. PROJECT SCOPE
 
 ## 6.1 Core Scope
@@ -358,26 +311,24 @@ Rules:
 
 ## 6.3 Game-Dependent Scope
 
-The official assignment resolves the following previously game-dependent items for Bài 2:
+The following are intentionally unresolved until the official assignment is received:
 
-- game: 9×9 Đấm–Lá–Kéo board game;
-- piece types: Đấm / Lá / Kéo;
-- movement: 1 square, 8 directions;
-- same-type interaction: cannot capture each other;
-- win conditions: eliminate one complete opponent piece type OR reach a1/i9.
+- game genre;
+- game rules;
+- player count;
+- exact win/lose conditions;
+- game-specific mechanics;
+- game-specific world objects;
+- movement requirements;
+- player abilities;
+- scoring model;
+- room configuration parameters;
+- game-specific UI;
+- spectator/late-join behavior;
+- exact critical requirements;
+- exact demo scenario.
 
-The following remain unresolved and must stay explicit as `[TBD]` until clarified:
-
-- capture relationship between different piece types;
-- initial board setup and piece counts;
-- side ownership of a1/i9;
-- exact turn/order semantics;
-- legal-move rules around occupied cells;
-- draw/stalemate/no-move behavior;
-- player join/leave behavior during a match;
-- room/session UX;
-- exact UI requirements;
-- exact library/package identity if the teacher's `playfull.html` wording differs from `playhtml`.
+Every unresolved item must use `[GAME-DEPENDENT]` or `[TBD]`.
 
 ## 6.4 Explicit Out of Scope
 
@@ -403,23 +354,23 @@ The final Out-of-Scope list must be adapted to the teacher assignment.
 
 ## 7.1 Room and Match
 
-The Bài 2 system must provide the multiplayer/session flow required to let multiple users enter the same game instance and play concurrently.
-
-A concrete room flow is **not locked by the teacher assignment**. If the assigned library provides rooms/identity/presence, the implementation should use those capabilities rather than inventing a parallel room system.
-
-Minimum project-level flow:
+The system supports, subject to game-specific rules:
 
 ```text
-Enter multiplayer space
-        ↓
-Identify players / presence
-        ↓
-Enter the same game instance
-        ↓
-Play concurrently
-        ↓
-Observe shared result
+Create Room
+    ↓
+Waiting
+    ↓
+Join / Quick Play
+    ↓
+Player List
+    ↓
+Ready
+    ↓
+Playing
 ```
+
+Room configuration may be game-dependent.
 
 ## 7.2 Player Identity
 
@@ -467,27 +418,29 @@ The exact lifecycle may be extended for game-specific requirements but must not 
 
 ## 8.1 Happy Path
 
-For Bài 2, the minimum teacher-aligned journey is:
+The player experience should follow:
 
 ```text
-Open deployed game
+Open Game
    ↓
-Enter multiplayer space / game instance
+Enter Guest Name
    ↓
-Multiple players are present
+Create / Join / Quick Play
    ↓
-Receive shared 9×9 board state
+Waiting Room
    ↓
-Take turns / perform legal moves
+Ready
    ↓
-Shared state updates for all players
+Play
    ↓
-A win condition is reached
+Realtime Interaction
    ↓
-All clients observe the same result
+Win / Lose / Objective Complete
+   ↓
+Result
+   ↓
+Rematch
 ```
-
-Exact room creation/join/ready UX remains `[TBD]` until the library/teacher requirements are confirmed.
 
 ## 8.2 Failure Path
 
@@ -559,27 +512,40 @@ Continue
 
 # 10. NETWORK JOURNEY
 
-The network journey must be adapted to the actual capabilities of the assigned multiplayer library. The project must verify those capabilities from the teacher-provided library/API before locking the detailed network contract.
-
-Project-level flow:
+High-level network flow:
 
 ```text
-Browser Client A ─┐
-                  ├── Assigned Multiplayer/Sync Mechanism ── Shared Game State
-Browser Client B ─┘
-                                      │
-                                      ├── Player Presence / Identity
-                                      ├── Board State
-                                      ├── Legal Game Actions
-                                      ├── Result / Win State
-                                      └── Recovery / Resync where supported
+HTTP
+ │
+ ├── Create Room
+ ├── Join Room
+ ├── Room Metadata
+ └── Health Check
+ │
+ ▼
+WebSocket
+ │
+ ├── Session Established
+ ├── Full Snapshot
+ ├── Realtime Events
+ ├── Delta Updates
+ ├── Presence
+ └── Sequence Tracking
+ │
+ ├── Normal Flow
+ │
+ └── Disconnect
+       ↓
+   Reconnect
+       ↓
+   Replay Missing Messages
+       ↓
+   Full Snapshot Fallback
+       ↓
+   State Verification
 ```
 
-Important boundary:
-
-- The project must **not assume a custom HTTP + WebSocket server** if the assigned library already supplies the multiplayer synchronization infrastructure.
-- The project must still test and document the actual network behavior used by the application.
-- Detailed protocol/synchronization rules belong in `SRS.md` / `03_NETWORK_SPEC.md` after the exact library integration is confirmed.
+Detailed protocol rules are defined in `SRS.md` and, if created, `NETWORK_SPEC.md`.
 
 ---
 
@@ -626,12 +592,11 @@ The project is successful when it demonstrates three dimensions simultaneously.
 
 ## 12.1 Functional Success
 
-- The 9×9 game is playable.
-- Players can move pieces according to the 1-square/8-direction rule.
-- Multiple players can participate in the same live game instance.
-- Shared board state is synchronized.
-- The match can finish through an assignment-defined win condition.
-- Result/rematch behavior is implemented if required by the final clarified flow.
+- The game is playable.
+- The core game loop works.
+- Multiplayer interaction works.
+- The match can finish.
+- Rematch works where applicable.
 
 ## 12.2 Network Success
 
@@ -693,28 +658,19 @@ The final category weights must be recorded in this document after assignment an
 
 ## 13.3 Critical Requirements
 
-`CRITICAL_REQUIREMENTS` is now defined for Bài 2 as follows. Requirements marked `[TBD]` cannot be considered fully resolved until clarified.
+A separate `CRITICAL_REQUIREMENTS` list must exist.
 
-### CRITICAL — Assignment-Confirmed
+Baseline critical requirements include:
 
-- **CR-01:** The application implements Bài 2 only; Bài 1 is excluded from this project scope.
-- **CR-02:** The application uses the assigned multiplayer library/mechanism specified by the teacher.
-- **CR-03:** Multiple players can be present and interact in the same live game instance.
-- **CR-04:** The shared board is exactly **9×9**.
-- **CR-05:** A piece moves exactly **one square in any of 8 directions**.
-- **CR-06:** Same-type pieces cannot capture each other.
-- **CR-07:** A player wins when they completely eliminate one type of the opponent's pieces.
-- **CR-08:** A player wins when they move a piece to **a1 or i9**, subject to the unresolved side-specific goal interpretation.
-- **CR-09:** All participating clients observe a consistent shared game result.
-- **CR-10:** No critical failure prevents the primary demo scenario.
+- multiplayer works;
+- client-server communication works;
+- shared state synchronization works;
+- one complete match can be played;
+- critical actions are server-validated;
+- no critical crash prevents the demo;
+- the primary demo scenario can execute.
 
-### CRITICAL — Must Resolve Before SRS Freeze
-
-- **CR-TBD-01:** Capture relationship between different piece types.
-- **CR-TBD-02:** Initial board setup and piece counts.
-- **CR-TBD-03:** Ownership/meaning of a1 and i9.
-- **CR-TBD-04:** Exact turn/order semantics and conflict resolution.
-- **CR-TBD-05:** Exact library/package identity represented by teacher wording `playfull.html`.
+Game-specific critical requirements must be added after the teacher assignment is known.
 
 ## 13.4 Demo-Safe Threshold
 
@@ -781,28 +737,31 @@ The project must explicitly report:
 
 # 14. DEMO SCENARIO
 
-A concrete Bài 2 demo scenario is now defined at project level, while unresolved rule details remain `[TBD]`.
+A concrete demo scenario is mandatory.
+
+The final scenario must be created after the teacher assignment is known.
+
+Baseline structure:
 
 ```text
-1. Open the deployed Bài 2 application
-2. Enter the multiplayer space / game instance
-3. Connect multiple players
-4. Show that players share the same 9×9 board
-5. Show player presence/identity if provided by the assigned library
-6. Perform legal one-square, 8-direction moves
-7. Show the same board-state change on multiple clients
-8. Demonstrate a capture involving different piece types once the capture relation is clarified
-9. Demonstrate the same-type no-capture rule
-10. Demonstrate a win condition: eliminate one opponent piece type OR reach a1/i9
-11. Show the same final result on all participating clients
-12. Demonstrate at least one supported failure/recovery scenario
-13. Show automated test evidence
-14. Show load/benchmark evidence required by the project baseline
+1. Launch server
+2. Launch multiple clients
+3. Create / Join Room
+4. Show room/player state
+5. Start match
+6. Demonstrate realtime interaction
+7. Demonstrate shared-state synchronization
+8. Demonstrate a game-critical action
+9. Complete the match
+10. Show result / rematch
+11. Demonstrate at least one reliability scenario
+12. Show automated test evidence
+13. Show benchmark/load-test evidence
 ```
 
-The exact executable demo must be finalized after the unresolved game rules and library integration are confirmed.
+The exact demo must be adapted to the actual game.
 
-A detailed procedure may be maintained in `DEMO_PLAN.md`.
+A detailed executable procedure may be maintained in `DEMO_PLAN.md`.
 
 ---
 
@@ -811,21 +770,21 @@ A detailed procedure may be maintained in `DEMO_PLAN.md`.
 The project may move from Project Spec into detailed SRS/Architecture work only when the following gate passes:
 
 ```text
-[x] Teacher requirements understood for Bài 2
-[x] Teacher constraints mapped for Bài 2
+[ ] Teacher requirements understood
+[ ] Teacher constraints mapped
 [ ] Project purpose locked
 [ ] Project objectives locked
 [ ] Core Scope identified
 [ ] Optional Scope identified
-[x] Game-Dependent Scope identified
-[x] Out-of-Scope identified
+[ ] Game-Dependent Scope identified
+[ ] Out-of-Scope identified
 [ ] User Journey defined
 [ ] Network Journey defined
-[x] Critical Requirements identified (with explicit unresolved items)
-[x] Completion model defined
+[ ] Critical Requirements identified
+[ ] Completion model defined
 [ ] Category weights calculated
 [ ] DEMO_SAFE_THRESHOLD calculated and locked
-[x] Demo scenario defined at high level
+[ ] Demo scenario defined at high level
 [ ] No unresolved critical ambiguity
 [ ] No unresolved critical requirement conflict
 ```
@@ -915,20 +874,20 @@ Detailed Vibe Coding workflow is maintained separately in `TEAM_WORKFLOW.md`.
 
 # 18. DEPENDENCY ON TEACHER ASSIGNMENT
 
-The official teacher assignment is the authoritative source for game-specific requirements. The Bài 2 assignment has now been received and integrated; unresolved items remain explicitly `[TBD]`.
+The official teacher assignment is the authoritative source for game-specific requirements.
 
-For this assignment, AI processes the remaining work in this order:
+When the assignment is received, AI must process it in this order:
 
 ```text
 Teacher Assignment
         ↓
 Analyze Constraints
         ↓
-Update Project Spec (DONE for known Bài 2 scope)
+Update Project Spec
         ↓
-Resolve remaining [TBD] game rules + library identity
+Resolve [GAME-DEPENDENT]
         ↓
-Define/finalize Critical Requirements
+Define Critical Requirements
         ↓
 Calculate Category Weights
         ↓
@@ -962,7 +921,7 @@ If a new assignment requirement conflicts with a locked principle, AI must surfa
 | Date | Change | Reason | Impact | Decision |
 |---|---|---|---|---|
 | TBD | Initial Project Spec created | Project planning | Baseline | LOCKED |
-| 2026-09-22 | Bài 2 assignment integrated | Official teacher assignment received | 9×9 multiplayer game scope, rules, library constraint | IN PROGRESS — critical rule ambiguities remain |
+| TBD | Teacher assignment integrated | Official assignment received | Game-specific scope | TBD |
 
 AI must append meaningful changes here.
 
@@ -1125,63 +1084,15 @@ GAME-DEPENDENT → INVENT
 
 ---
 
-# 22.1 BÀI 2 ASSIGNMENT ANALYSIS RECORD
-
-## A. Confirmed from the Teacher Assignment
-
-| ID | Requirement | Status |
-|---|---|---|
-| B2-01 | Bài 2 only for this project file | CONFIRMED |
-| B2-02 | Multiple players concurrently | CONFIRMED |
-| B2-03 | Use teacher-specified `playfull.html` library/mechanism | CONFIRMED, exact identity TBD |
-| B2-04 | 9×9 board | CONFIRMED |
-| B2-05 | Three piece types: Đấm, Lá, Kéo | CONFIRMED |
-| B2-06 | Move 1 square in 8 directions | CONFIRMED |
-| B2-07 | Same type cannot capture same type | CONFIRMED |
-| B2-08 | Win by eliminating one complete opponent piece type | CONFIRMED |
-| B2-09 | Win by reaching a1/i9 | CONFIRMED, side semantics TBD |
-| B2-10 | Submit Git link with deployment link | CONFIRMED as delivery requirement |
-
-## B. Unresolved Critical Items
-
-| ID | Ambiguity | Why it blocks final SRS/protocol |
-|---|---|---|
-| B2-TBD-01 | Capture relation between Đấm/Lá/Kéo | Determines legal moves, game engine, validation and tests |
-| B2-TBD-02 | Initial board layout and piece counts | Determines starting state and win feasibility |
-| B2-TBD-03 | a1/i9 ownership/goal semantics | Determines legal win condition |
-| B2-TBD-04 | Turn/order and concurrent action semantics | Determines synchronization/conflict resolution |
-| B2-TBD-05 | Exact `playfull.html` library/package identity | Determines integration API and network architecture |
-
-## C. Delivery Requirement
-
-Final Git submission must contain:
-
-- source code;
-- project documentation required by the team;
-- a deployable version;
-- a Git link to the project;
-- a deployment link inside the Git repository/project documentation as required by the teacher.
-
-The exact repository structure and deployment provider remain implementation decisions unless separately specified by the teacher.
-
----
-
 # 23. DOCUMENT STATUS
 
-Current status after receiving the official Bài 2 assignment:
+Current status before official teacher assignment:
 
 ```text
-PROJECT_SCOPE = BÀI 2 ONLY
-GAME = 9×9 ĐẤM–LÁ–KÉO
-MULTIPLAYER = REQUIRED
-ASSIGNED_LIBRARY = "playfull.html" (EXACT IDENTITY TO VERIFY)
-GAME_RULES = PARTIALLY RESOLVED
-CRITICAL_AMBIGUITIES = PRESENT
-CATEGORY_WEIGHTS = PENDING FINAL SCOPE RESOLUTION
-DEMO_SAFE_THRESHOLD = PENDING FINAL SCOPE RESOLUTION
+PROJECT_SPEC = BASELINE READY
+GAME_SPECIFIC_REQUIREMENTS = PENDING TEACHER ASSIGNMENT
+DEMO_SAFE_THRESHOLD = MUST BE CALCULATED AFTER ASSIGNMENT ANALYSIS
 PROJECT_READINESS = NOT YET READY FOR IMPLEMENTATION
 ```
 
-Reason for `NOT YET READY`: the teacher assignment does not explicitly define the capture relationship between different piece types, initial board setup, a1/i9 ownership, exact turn/conflict semantics, or the exact library/package identity. The AI must not invent these details.
-
-The document is therefore **ASSIGNMENT-INTEGRATED / NOT YET FROZEN**. Once the remaining critical ambiguities are resolved, rerun the Project Readiness Gate before implementation.
+After the teacher assignment is received, this document must be updated and the Project Readiness Gate must be rerun before implementation begins.

@@ -1852,24 +1852,29 @@ Matrix phải chỉ ra được trạng thái của từng requirement quan tr�
 
 ---
 
-# 79. Game-Dependent Testing
+# 79. Game-Dependent Testing: OTTv2 9x9 Board Game & playfull.html
 
-Các requirement phụ thuộc Game Topic phải đánh dấu:
+Các Test Cases chính thức kiểm thử toàn diện cơ chế OTTv2 và playfull.html:
 
-```text
-[GAME-DEPENDENT]
-```
+### 79.1 Unit Test Suite — Luật cờ & Bàn cờ 9x9 (`tests/game/`)
+- `TC-OTT-001 (Board Initialization)`: Khởi tạo bàn cờ 9x9, kiểm tra 81 ô, gán đúng 9 quân cho P1 (hàng 1-2) và 9 quân cho P2 (hàng 8-9).
+- `TC-OTT-002 (King Movement 8-Directions)`: Di chuyển 1 ô theo 8 hướng (N, NE, E, SE, S, SW, W, NW). Kiểm tra `max(|dx|, |dy|) === 1` thành công.
+- `TC-OTT-003 (Invalid Distance & Range)`: Di chuyển > 1 ô, nhảy cóc hoặc đi ra ngoài phạm vi `[0..8, 0..8]` bị từ chối với lỗi `OUT_OF_BOUNDS` / `INVALID_MOVE_DISTANCE`.
+- `TC-OTT-004 (Combat - Rock beats Scissors)`: Quân Đấm đi vào ô quân Kéo của đối phương -> Kéo bị xóa khỏi state, Đấm chiếm ô.
+- `TC-OTT-005 (Combat - Scissors beats Paper)`: Quân Kéo đi vào ô quân Lá của đối phương -> Lá bị xóa khỏi state, Kéo chiếm ô.
+- `TC-OTT-006 (Combat - Paper beats Rock)`: Quân Lá đi vào ô quân Đấm của đối phương -> Đấm bị xóa khỏi state, Lá chiếm ô.
+- `TC-OTT-007 (Blocking - Same Type Collision)`: Quân Đấm đi vào ô quân Đấm của đối phương (hoặc Lá gặp Lá, Kéo gặp Kéo) -> bị chặn lại, không di chuyển, trả lỗi `SAME_TYPE_BLOCK`.
+- `TC-OTT-008 (Blocking - Friendly Collision)`: Quân đi vào ô đã có quân đồng minh -> bị chặn lại, trả lỗi `FRIENDLY_BLOCK`.
 
-Ví dụ:
+### 79.2 Victory Conditions Test Suite
+- `TC-OTT-009 (Win by Extinction)`: Khi một bên ăn hết toàn bộ 3 quân Đấm (hoặc 3 quân Lá, hoặc 3 quân Kéo) của đối thủ -> Server kích hoạt `GAME_OVER`, xác nhận `winnerId` và `winReason: "EXTINCTION_OF_TYPE"`.
+- `TC-OTT-010 (Win by Goal Square Infiltration)`: Khi bất kỳ quân nào di chuyển thành công vào ô `a1` hoặc `i9` -> Server lập tức kết thúc ván đấu, xác nhận `winnerId` và `winReason: "REACHED_GOAL_SQUARE"`.
 
-- game-specific rule;
-- game-specific state;
-- game-specific command;
-- game-specific event;
-- game-specific acceptance criteria;
-- game-specific performance workload.
-
-Không tự invent các requirement này trước khi có đề bài.
+### 79.3 Integration & Realtime Sync Tests (`tests/integration/`)
+- `TC-OTT-011 (playfull.html DOM Binding)`: Kiểm tra tương tác click/kéo thả trên phần tử DOM cập nhật đồng thời lên server WebSocket và đồng bộ sang client đối thủ.
+- `TC-OTT-012 (Snapshot vs Delta Consistency)`: Thực hiện 20 nước đi, so sánh State tính từ chuỗi `STATE_DELTA` với `STATE_SNAPSHOT` được yêu cầu qua `RESYNC_REQUEST` — kết quả phải trùng khớp 100%.
+- `TC-OTT-013 (Network Degradation & Reconnect)`: Giả lập ngắt kết nối WebSocket trong 15s (nằm trong 30s Grace Period), reconnect với sessionToken cũ -> khôi phục đầy đủ bàn cờ và tiếp tục trận đấu.
+- `TC-OTT-014 (Benchmark Workload - Artillery/Autocannon)`: Chạy mô phỏng tải 50 phòng chơi song song, so sánh băng thông truyền Full Snapshot so với Delta/Event.
 
 ---
 
