@@ -2,8 +2,8 @@
 
 # System Architecture
 
-> **Document Status:** LOCKED BASELINE  
-> **Implementation Status:** Ready for implementation after team confirmation  
+> **Document Status:** ASSIGNMENT-INTEGRATED / NOT YET FROZEN  
+> **Implementation Status:** Architecture baseline ready; game-specific implementation blocked by unresolved critical assignment items  
 > **Architecture Readiness Target:** ≥95%  
 > **Source of Truth:** This document + `SRS.md` + `01_PROJECT_SPEC.md`
 
@@ -174,7 +174,9 @@ AI MUST NOT infer hidden responsibilities from implementation details.
 
 # 4. Architecture Overview
 
-The system uses a **Modular Monolith** for the main Game Server.
+The baseline architecture uses a **Modular Monolith / authoritative game-server boundary**, but the exact transport/server topology MUST be adapted to the teacher-specified `playfull.html` mechanism after its exact API/package identity is verified.
+
+The architecture therefore separates the **game-domain responsibilities** from the **multiplayer transport provider**. If `playfull.html` already supplies room, session, synchronization, or server functionality, the project MUST use an adapter around those capabilities rather than build a competing networking layer.
 
 External clients are used for:
 
@@ -189,10 +191,9 @@ High-level structure:
 flowchart TB
     Client["Game Client"]
 
-    HTTP["HTTP API Gateway"]
-    WS["WebSocket Gateway"]
+    MP["playfull.html / Assigned Multiplayer Mechanism"]
 
-    Server["Modular Monolith<br/>Game Server"]
+    Server["Game Domain / Authoritative Server Boundary"]
 
     Protocol["Protocol"]
     Session["Session Manager"]
@@ -212,11 +213,8 @@ flowchart TB
     Tests["Automated Test Clients"]
     Load["Load / Benchmark Clients"]
 
-    Client --> HTTP
-    Client --> WS
-
-    HTTP --> Server
-    WS --> Server
+    Client --> MP
+    MP --> Server
 
     Server --> Protocol
     Server --> Session
@@ -233,11 +231,8 @@ flowchart TB
     Persistence --> Repository
     Repository --> DB
 
-    Tests --> HTTP
-    Tests --> WS
-
-    Load --> HTTP
-    Load --> WS
+    Tests --> MP
+    Load --> MP
 ```
 
 The main diagram is intentionally kept at system/module level.
@@ -251,9 +246,9 @@ Detailed flows are documented separately below.
 The server follows a hybrid layered + module-based architecture.
 
 ```text
-Transport
+Multiplayer Transport / Assigned Library Adapter
     ↓
-Protocol
+Protocol / Contract Adapter
     ↓
 Session / Room
     ↓
@@ -285,9 +280,11 @@ Game / Application
       ↓
 Client State
       ↓
-Network Adapter
+Network / Multiplayer Adapter
       ↓
-HTTP / WebSocket
+Assigned `playfull.html` mechanism
+      ↓
+Transport supplied by the library (exact API TBD)
 ```
 
 ## 6.1 Presentation
@@ -329,50 +326,68 @@ Stores:
 
 ---
 
-## 6.4 Network Adapter
+## 6.4 Network / Multiplayer Adapter
 
-Provides a controlled interface to:
-
-- HTTP API;
-- WebSocket Gateway.
-
-Gameplay code should not scatter raw WebSocket calls throughout the client.
-
----
-
-# 7. HTTP API Gateway
-
-HTTP is used primarily for request/response operations.
-
-Typical responsibilities:
-
-- create room;
-- join room;
-- room metadata;
-- health check;
-- other non-realtime control operations.
-
-HTTP is part of the control plane.
-
----
-
-# 8. WebSocket Gateway
-
-WebSocket is used for realtime communication.
+Provides a controlled interface to the teacher-assigned multiplayer mechanism.
 
 Responsibilities:
 
-- establish realtime connection;
-- receive commands/input;
-- transmit realtime events;
-- transmit state updates;
-- presence updates;
-- connection-level error handling;
-- detect transport disconnects.
+- connection/session interaction supported by the library;
+- room/player interaction supported by the library;
+- send game commands/intents;
+- receive authoritative state/events;
+- expose connection/recovery status to application code.
 
-WebSocket is part of the realtime data plane.
+The client MUST NOT couple gameplay code directly to `playfull.html` implementation details.
 
-The WebSocket Gateway MUST NOT contain core game rules.
+If the verified library exposes HTTP/WebSocket internally, those transports remain implementation details of the adapter unless the teacher/API contract explicitly requires direct use.
+
+---
+
+# 7. Assigned Multiplayer Mechanism Boundary
+
+The teacher explicitly requires `playfull.html` for the multiplayer/server capability.
+
+Until the exact teacher-provided library/package/API is verified, the architecture MUST NOT lock:
+
+- a custom HTTP API as mandatory;
+- a custom WebSocket server as mandatory;
+- a second competing room/session system;
+- a duplicate synchronization infrastructure.
+
+The project will integrate through an adapter boundary:
+
+```text
+Game Client / Test Client
+          ↓
+Multiplayer Adapter
+          ↓
+Verified playfull.html API / mechanism
+          ↓
+Teacher-supported transport/server capability
+          ↓
+Authoritative Game Domain
+```
+
+The adapter must expose only the capabilities actually required by the game and the verified library.
+
+---
+
+# 8. Transport Boundary
+
+The concrete transport is **TBD until `playfull.html` is verified**.
+
+Possible HTTP/WebSocket behavior may be documented after verification, but this architecture does not assume that the project must implement a separate custom HTTP + WebSocket server if the assigned library already provides the required multiplayer infrastructure.
+
+The transport boundary is responsible for:
+
+- connection establishment;
+- message/event delivery;
+- connection-level errors;
+- disconnect detection where supported;
+- transport serialization where owned by the library/adapter.
+
+Core game rules MUST remain outside the transport layer.
 
 ---
 
@@ -380,7 +395,7 @@ The WebSocket Gateway MUST NOT contain core game rules.
 
 The Protocol layer defines the communication contract.
 
-Messages use the common envelope defined in `SRS.md`:
+Messages/events MUST follow the project contract defined in `SRS.md` and `03_NETWORK_SPEC.md`. The exact wire envelope depends on the verified `playfull.html` API and must not be invented before integration confirmation:
 
 ```json
 {
@@ -532,7 +547,25 @@ Canonical Game State
 
 The Game State Store represents the authoritative state used to calculate gameplay results.
 
-The exact fields are game-dependent and must be defined after the teacher's game requirements are known.
+For Bài 2, the architecture now knows the following domain-level state constraints:
+
+- board dimensions = 9×9;
+- three piece types = Đấm / Lá / Kéo;
+- one-square movement in 8 directions;
+- same-type pieces cannot capture each other;
+- win condition includes eliminating one complete opponent piece type;
+- win condition includes reaching a1/i9.
+
+The following remain `[TBD]` and MUST be resolved before SRS/protocol freeze:
+
+- cross-type capture relation;
+- initial board layout and piece counts;
+- side ownership of a1/i9;
+- exact occupied-cell/legal-move semantics;
+- no-move/draw behavior;
+- player capacity and join/leave semantics during a match.
+
+The detailed field-level State Ownership Matrix remains the responsibility of `SRS.md`.
 
 The detailed ownership of individual fields is defined in the State Ownership Matrix in `SRS.md`.
 
@@ -544,15 +577,13 @@ Clients do not directly submit authoritative state.
 
 Clients submit commands or intents.
 
-Example:
+Conceptual example only; the exact message shape is NOT frozen yet:
 
-```json
-{
-  "type": "MOVE",
-  "payload": {
-    "direction": "LEFT"
-  }
-}
+```text
+Player Command / Intent
+  → identify piece + destination (or equivalent library-supported action)
+  → server/game-domain validation
+  → authoritative state transition
 ```
 
 The server determines the resulting authoritative state.
@@ -583,11 +614,7 @@ Canonical State
 
 The system must provide deterministic conflict resolution.
 
-The default rule from `SRS.md` is:
-
-> first valid request received by the server wins, unless the game-specific rule defines otherwise.
-
-The exact ordering semantics may differ by message type as specified by the protocol.
+The architecture requires deterministic conflict resolution, but the exact ordering mechanism is **TBD** until the verified multiplayer mechanism and game turn semantics are confirmed. `SRS.md` / `03_NETWORK_SPEC.md` MUST define whether the game is strictly turn-based and how simultaneous/duplicate commands are handled. The architecture must not silently assume a first-arrival rule while `B2-TBD-04` remains unresolved.
 
 ---
 
@@ -1216,21 +1243,17 @@ The project must document both:
 ```text
 Client
   ↓
-HTTP API
+Multiplayer Adapter
   ↓
-Session Validation
+Assigned `playfull.html` mechanism
   ↓
-Room Manager
+Session / Room capability (library or project adapter)
   ↓
-Create Room
+Create Room / Game Instance
   ↓
-HTTP Response
+Initial authoritative state
   ↓
-WebSocket Connection
-  ↓
-Session Validation
-  ↓
-Full Snapshot
+Client receives initial snapshot/state
 ```
 
 ---
@@ -1240,19 +1263,17 @@ Full Snapshot
 ```text
 Client
   ↓
-HTTP API
+Multiplayer Adapter
   ↓
-Session + Room Authorization
+Assigned `playfull.html` mechanism
   ↓
-Room Manager
+Session + Room capability
   ↓
-Join Room
+Join Game Instance
   ↓
-WebSocket
+Authoritative state / presence update
   ↓
-Session Validation
-  ↓
-Full Snapshot
+Client receives initial snapshot/state
 ```
 
 ---
@@ -1262,23 +1283,23 @@ Full Snapshot
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant W as WebSocket
-    participant P as Protocol
+    participant M as Multiplayer Mechanism / Adapter
+    participant P as Protocol / Contract
     participant V as Validation
     participant O as Ordering
     participant G as Game Engine
     participant S as State Store
     participant Y as Sync Engine
 
-    C->>W: Command / Intent
-    W->>P: Parse Message
+    C->>M: Command / Intent
+    M->>P: Parse / Adapt Message
     P->>V: Protocol Validation
     V->>O: Valid Command
     O->>G: Ordered Command
     G->>S: Update Canonical State
     S->>Y: State Change
-    Y->>W: Delta / Event
-    W->>C: Realtime Update
+    Y->>M: Delta / Event / Snapshot
+    M->>C: Realtime Update
 ```
 
 ---
@@ -1293,7 +1314,7 @@ Sync Engine
       ├── Event
       └── Snapshot
              ↓
-        WebSocket
+Assigned Multiplayer Mechanism / Adapter
              ↓
            Clients
 ```
@@ -1321,11 +1342,11 @@ Player B ── Command ──┤
 ## 40.6 Disconnect
 
 ```text
-Transport Disconnect
+Transport / Library Disconnect
         ↓
-WebSocket Gateway
+Multiplayer Adapter / Library Capability
         ↓
-Session Manager
+Session Manager or equivalent session boundary
         ↓
 Disconnected State
         ↓
@@ -1610,26 +1631,33 @@ AI MUST NOT simply choose the easier implementation.
 
 ---
 
-# 47. Game-Dependent Areas
+# 47. Bài 2 Game-Specific Architecture Constraints
 
-The following remain explicitly game-dependent:
+The assignment resolves these architecture-level facts:
 
-- exact game rules;
-- exact player capacity;
-- exact Player State fields;
-- exact World Object fields;
-- exact Game State fields;
-- exact gameplay commands;
-- win/lose conditions;
-- game-specific validation;
-- movement model;
-- game-specific state transitions;
-- spectator behavior;
-- late-join behavior where applicable.
+- game is a 9×9 board game;
+- pieces are Đấm / Lá / Kéo;
+- each piece moves one square in any of 8 directions;
+- same-type pieces cannot capture each other;
+- win by completely eliminating one opponent piece type;
+- win by reaching a1 or i9;
+- multiple players must interact in the same live game instance;
+- `playfull.html` is the teacher-specified multiplayer mechanism, exact identity/API still requiring verification.
 
-AI MUST NOT invent these values before the teacher's assignment/game concept provides sufficient information.
+The following remain explicitly `[TBD]`:
 
----
+- cross-type capture relation;
+- initial board setup and piece counts;
+- a1/i9 ownership;
+- turn/order and concurrent command semantics;
+- occupied-cell/legal-move edge cases;
+- draw/stalemate/no-move behavior;
+- player capacity;
+- late join/spectator behavior;
+- exact room/session lifecycle;
+- exact library integration API.
+
+AI MUST NOT invent these values.
 
 # 48. Architecture Readiness Gate
 
@@ -1654,6 +1682,10 @@ Before implementation begins, AI must verify:
 - [ ] Security boundaries are defined.
 - [ ] Dependency rules are defined.
 - [ ] Game-dependent areas are explicitly marked.
+- [ ] Exact `playfull.html` library/package/API has been verified or explicitly remains TBD.
+- [ ] No competing custom multiplayer layer has been introduced without an accepted architecture decision.
+- [ ] Bài 2 board/game constraints are mapped into the Game Engine boundary.
+- [ ] All five critical Bài 2 ambiguities are resolved before implementation readiness is declared PASS.
 - [ ] No unnecessary infrastructure has been introduced.
 - [ ] Architecture is consistent with `SRS.md`.
 - [ ] Architecture is consistent with `01_PROJECT_SPEC.md`.
@@ -1759,7 +1791,7 @@ If a requirement cannot be implemented without violating this architecture:
 | ADR-003 | Hybrid Authority |
 | ADR-004 | Client/Server responsibility split |
 | ADR-005 | Persistence allowed but not a hard live-game dependency |
-| ADR-006 | Separate HTTP API and WebSocket Gateway |
+| ADR-006 | Transport is abstracted behind the assigned multiplayer mechanism; HTTP/WebSocket are not mandatory until `playfull.html` is verified |
 | ADR-007 | Test/Load architecture shown at high level |
 | ADR-008 | Local + Docker Compose deployment baseline |
 | ADR-009 | Module-level main diagram + supporting sub-diagrams |
@@ -1811,18 +1843,82 @@ If a requirement cannot be implemented without violating this architecture:
 
 ---
 
+# 52. Cross-Document Consistency Note — Bài 2
+
+A material conflict is now identified between the Bài 2 assignment interpretation and the current frozen baseline of `03_NETWORK_SPEC.md`:
+
+- `02_ARCHITECTURE.md` now treats the teacher-assigned `playfull.html` mechanism as the transport/multiplayer integration boundary and does **not** assume a separate custom HTTP/WebSocket server.
+- The current `03_NETWORK_SPEC.md` still contains a frozen message catalog whose baseline transport is explicitly HTTP/WebSocket.
+
+This is a **STOP + SURFACE** conflict, not something to resolve silently inside Architecture.
+
+Required resolution order:
+
+```text
+Verify exact playfull.html library/API
+        ↓
+Determine which network capabilities are supplied by the library
+        ↓
+Resolve whether HTTP/WebSocket remain project-owned or library-owned
+        ↓
+Update 03_NETWORK_SPEC.md through the approved change process
+        ↓
+Re-run Architecture + Network consistency audit
+        ↓
+Freeze both contracts
+```
+
+Until that decision is made, `02_ARCHITECTURE.md` is **not implementation-frozen**.
+
+---
+
 # 52. Document Status
 
-**Architecture Discovery:** COMPLETE
+**Architecture Discovery:** COMPLETE — BASELINE ADAPTED TO BÀI 2
 
-**Q1–Q67:** LOCKED
+**Assignment Scope:** BÀI 2 ONLY
 
-**Architecture Readiness:** PASS — ≥95%
+**Architecture Readiness:** NOT READY / BLOCKED BY CRITICAL TBDs
 
 **Implementation:** NOT YET STARTED
 
-**Remaining external dependency:**
+**Resolved architecture constraints:**
 
-> Teacher/game-specific requirements must be inserted into `[GAME-DEPENDENT]` areas before implementation of game-specific logic.
+- 9×9 board domain;
+- Đấm / Lá / Kéo piece model;
+- 1-square / 8-direction movement boundary;
+- same-type non-capture rule boundary;
+- assignment win-condition boundary;
+- multiplayer shared-state boundary;
+- assigned-library adapter boundary;
+- authoritative game-state ownership boundary.
 
-The architectural foundation itself is ready for implementation.
+**Remaining blockers:**
+
+1. Cross-type capture relation.
+2. Initial board layout and piece counts.
+3. a1/i9 ownership semantics.
+4. Turn/order/concurrency semantics.
+5. Exact `playfull.html` library/package/API identity.
+
+Until these are resolved, this document is **ASSIGNMENT-INTEGRATED / ARCHITECTURE BASELINE / NOT FROZEN**.
+
+The next mandatory step is to resolve the five blockers, then rerun the Architecture Readiness Gate and only then freeze the architecture for implementation.
+
+---
+
+# 53. Bài 2 Architecture Decision Addendum
+
+| ID | Decision | Status |
+|---|---|---|
+| B2-ARCH-01 | Bài 1 is excluded from this architecture | LOCKED |
+| B2-ARCH-02 | Game domain is a 9×9 Đấm–Lá–Kéo board game | LOCKED |
+| B2-ARCH-03 | Movement domain constraint is 1 square / 8 directions | LOCKED |
+| B2-ARCH-04 | Same-type capture is forbidden | LOCKED |
+| B2-ARCH-05 | Win-state engine must support both assignment-defined win conditions | LOCKED, details TBD |
+| B2-ARCH-06 | Multiplayer infrastructure must integrate with teacher-assigned `playfull.html` mechanism | LOCKED |
+| B2-ARCH-07 | Custom HTTP/WebSocket infrastructure is not assumed until library verification | LOCKED |
+| B2-ARCH-08 | Game Engine remains independent from transport/library implementation | LOCKED |
+| B2-ARCH-09 | Canonical game state remains authoritative at the game-domain/server boundary | LOCKED |
+| B2-ARCH-10 | Cross-type capture, setup, goal ownership, turn semantics and library API remain TBD | LOCKED AS TBD |
+
