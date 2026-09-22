@@ -1,0 +1,391 @@
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary: #facc15;
+  --bg-color: #f4f7fb;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --board-dark: #e2e8f0;
+  --board-light: #f8fafc;
+  --board-border: #cbd5e1;
+  
+  /* Team Colors */
+  --team-blue: #0ea5e9;
+  --team-blue-light: #e0f2fe;
+  --team-red: #ef4444;
+  --team-red-light: #fee2e2;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text-main);
+  margin: 0;
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.bg-logo {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url('https://uet.vnu.edu.vn/wp-content/uploads/2017/02/logo-uet.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 40%;
+  opacity: 0.05;
+  z-index: -1;
+}
+
+#app {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.hidden { display: none !important; }
+
+/* ------------------- CARDS ------------------- */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 1);
+  padding: 20px;
+}
+
+/* ------------------- BUTTONS ------------------- */
+.btn {
+  display: inline-block;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.btn.primary { background-color: var(--primary); color: white; }
+.btn.primary:hover { background-color: var(--primary-hover); }
+
+.btn.secondary { background-color: white; color: var(--text-main); border: 1px solid #e2e8f0; }
+.btn.secondary:hover { background-color: #f8fafc; }
+
+.btn.outline { background-color: transparent; border: 2px solid var(--text-muted); color: var(--text-muted); }
+.btn.outline:hover { border-color: var(--text-main); color: var(--text-main); }
+
+.btn.outline-danger { background-color: transparent; border: 2px solid var(--team-red); color: var(--team-red); }
+.btn.outline-danger:hover { background-color: var(--team-red); color: white; }
+
+/* ------------------- HOMEPAGE ------------------- */
+.home-layout {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+.home-main {
+  flex: 2;
+  padding: 40px;
+}
+.home-main h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  color: var(--text-muted);
+}
+.home-main h1 span {
+  color: var(--primary);
+  font-size: 4rem;
+}
+.home-main .subtitle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+.btn-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 300px;
+}
+
+.home-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.home-side h3 {
+  margin-top: 0;
+  color: var(--primary);
+  font-size: 1.2rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 10px;
+}
+ul { list-style: none; padding: 0; margin: 0; }
+ul li {
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.95rem;
+}
+ul li:last-child { border-bottom: none; }
+
+/* ------------------- GAME ROOM HEADER ------------------- */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  margin-bottom: 20px;
+  border-radius: 20px;
+}
+.game-title small { color: var(--secondary); font-weight: 800; font-size: 0.8rem; }
+.game-title h2 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+.room-info { text-align: center; font-weight: 600; color: var(--text-muted); }
+
+.game-turn {
+  background: var(--bg-color);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e2e8f0;
+}
+.turn-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+}
+
+/* ------------------- GAME LAYOUT (3 COLS) ------------------- */
+.game-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* LEFT: RULES */
+.col-left {
+  flex: 1;
+  max-width: 280px;
+}
+.col-left h3 { margin-top: 0; color: var(--text-main); font-size: 1.1rem; }
+.rps-circle {
+  background: #fff7ed;
+  border: 1px dashed #fdba74;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #c2410c;
+  margin-bottom: 20px;
+}
+.rules-list li {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+.rules-list li span {
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.rules-list li strong { color: var(--text-main); }
+
+/* RIGHT: FORCES */
+.col-right {
+  flex: 1;
+  max-width: 280px;
+}
+.col-right h3 { margin-top: 0; color: var(--text-main); font-size: 1.1rem; }
+
+.force-team {
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.force-team h4 { margin: 0 0 5px 0; font-size: 0.95rem; }
+.force-team .target { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; }
+.stats-row { display: flex; justify-content: space-around; }
+.stat { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.stat .icon { font-size: 1.5rem; }
+.stat strong { font-size: 1.2rem; }
+
+.blue-team { background-color: var(--team-blue-light); border: 1px solid #bae6fd; }
+.blue-team h4 { color: var(--team-blue); }
+
+.red-team { background-color: var(--team-red-light); border: 1px solid #fecaca; }
+.red-team h4 { color: var(--team-red); }
+
+.vs-divider {
+  border: 0;
+  height: 1px;
+  background: #e2e8f0;
+  margin: 20px 0;
+  position: relative;
+}
+.vs-divider::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card-bg);
+  padding: 0 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+.forces-hint {
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #ca8a04;
+  margin-top: 20px;
+}
+
+/* CENTER: BOARD */
+.col-center {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#board-container {
+  background: var(--card-bg);
+  padding: 10px 20px 20px 10px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+#board {
+  display: grid;
+  grid-template-columns: 30px repeat(9, 50px);
+  grid-template-rows: 30px repeat(9, 50px);
+  gap: 2px;
+}
+
+.coord-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.cell {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.cell.light { background-color: var(--board-light); }
+.cell.dark { background-color: var(--board-dark); }
+.cell:hover { filter: brightness(0.95); }
+
+/* Goal Cells styling */
+.cell[data-goal="red"] {
+  border: 2px dashed var(--team-red);
+  background-color: var(--team-red-light);
+}
+.cell[data-goal="red"]::after {
+  content: "ĐÍCH ĐỎ";
+  position: absolute;
+  font-size: 8px;
+  color: var(--team-red);
+  font-weight: bold;
+  opacity: 0.5;
+}
+.cell[data-goal="blue"] {
+  border: 2px dashed var(--team-blue);
+  background-color: var(--team-blue-light);
+}
+.cell[data-goal="blue"]::after {
+  content: "ĐÍCH XANH";
+  position: absolute;
+  font-size: 8px;
+  color: var(--team-blue);
+  font-weight: bold;
+  opacity: 0.5;
+}
+
+/* PIECES */
+.piece {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+.piece:hover { transform: scale(1.1); }
+.piece.selected { box-shadow: 0 0 0 4px #fbbf24; }
+.cell.valid-move {
+  background-color: rgba(16, 185, 129, 0.2);
+  border: 2px solid #10b981;
+}
+
+.piece.red {
+  background-color: var(--team-red);
+  border: 2px solid #fca5a5;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+.piece.blue {
+  background-color: var(--team-blue);
+  border: 2px solid #7dd3fc;
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+}
+
+.bottom-actions {
+  margin-top: 20px;
+}
+
+#playhtml-zone {
+  margin-top: 20px;
+  padding: 10px 30px;
+  font-size: 0.85rem;
+  background: var(--card-bg);
+  border-radius: 20px;
+  color: var(--text-muted);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* OVERLAYS */
+.overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+#countdown-text { font-size: 8rem; color: var(--primary); }
+#game-over-text { font-size: 4rem; margin-bottom: 2rem; color: var(--text-main); }

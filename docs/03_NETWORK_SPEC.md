@@ -6,7 +6,7 @@
 **Version:** 1.0  
 **Protocol Readiness:** 100%  
 **Scope:** Core Network Protocol & OTTv2 Game Protocol  
-**Game-specific extensions:** RESOLVED (OTTv2 9x9 Board Game + playfull.html sync)
+**Game-specific extensions:** RESOLVED (OTTv2 9x9 Board Game + playhtml.fun sync)
 
 ---
 
@@ -2130,15 +2130,15 @@ GAME-DEPENDENT
 | `PIECE_CAPTURED` | OTTv2-CORE | WS | S→C | Broadcast RPS piece captured |
 | `PIECE_BLOCKED` | OTTv2-CORE | WS | S→C | Broadcast blocked collision |
 | `GAME_OVER` | OTTv2-CORE | WS | S→C | Match conclusion event |
-| `PLAYFULL_SYNC` | PLAYFULL | WS | C↔S | playfull.html element attribute sync |
+| `PLAYFULL_SYNC` | PLAYFULL | WS | C↔S | playhtml.fun element attribute sync |
 
 The catalog may be extended with required infrastructure messages without changing the Core semantics, provided the addition is documented and tested.
 
 ---
 
-# 84. OTTv2 Protocol & playfull.html Extensions
+# 84. OTTv2 Protocol & playhtml.fun Extensions
 
-The Teacher Assignment for Bài 2 (OTTv2 + playfull.html) defines:
+The Teacher Assignment for Bài 2 (OTTv2 + playhtml.fun) defines:
 
 ```text
 Game Mode: OTTv2 9x9 Board Game (Rock-Paper-Scissors v2)
@@ -2149,7 +2149,7 @@ Blocking: Same-type pieces block each other; friendly pieces block
 Victory Conditions:
   1. Complete extinction of any one piece type of the opponent
   2. Reaching goal square a1 or i9 with any piece
-Synchronization Library / Paradigm: playfull.html (similar to playhtml.fun)
+Synchronization Library / Paradigm: playhtml.fun (similar to playhtml.fun)
   - DOM elements bind to shared board state
   - WebSocket synchronizes state changes to play-element attributes
 ```
@@ -2270,7 +2270,7 @@ First:
 3. Read Architecture
 4. Read Network Spec
 5. Read Teacher Assignment
-6. Verify OTTv2 Game & playfull.html Protocol areas
+6. Verify OTTv2 Game & playhtml.fun Protocol areas
 7. Generate implementation map
 8. Verify protocol contracts
 9. Generate protocol schemas/models
@@ -2368,6 +2368,7 @@ This is the Core Network Contract for the project.
 | Version | Status | Description |
 |---|---|---|
 | 1.0 | PROTOCOL FROZEN | Initial Core Network Protocol after Q1–Q191 discovery and final consistency audit |
+| 1.1 | PROTOCOL FROZEN | Teacher Assignment Integrated — OTTv2 game-specific protocol extensions resolved |
 
 ---
 
@@ -2389,6 +2390,6 @@ Implementation
 
 **Core Protocol Status: FROZEN**
 
-**Game-specific extensions: PENDING TEACHER ASSIGNMENT**
+**Game-specific extensions: RESOLVED (OTTv2 9x9 + playhtml.fun)**
 
-**Implementation may proceed only within the frozen contract above.**
+**Implementation may proceed for both Core Protocol and Game-specific extensions.**

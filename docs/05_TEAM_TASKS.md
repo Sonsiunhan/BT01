@@ -122,7 +122,7 @@ PROJECT_READINESS
 
 Therefore:
 
--   Bài 2 scope is confirmed: Realtime multiplayer board game OTTv2 using playfull.html / playhtml.fun architecture;
+-   Bài 2 scope is confirmed: Realtime multiplayer board game OTTv2 using playhtml.fun / playhtml.fun architecture;
 -   Team structure is locked: 3 students responsible for Bài 2 (Person A: Client/UX, Person B: Server/Logic, Person C: QA/Benchmark);
 -   Game mechanics are locked: 9x9 board (a1..i9), 8-direction King-movement, Rock-Paper-Scissors combat, same-type blocking, win conditions: complete extinction of one piece type or reaching goal square a1/i9;
 -   Deployment requirement: Public deployment link included in Git repository.
@@ -153,7 +153,7 @@ mapped.
 
 -   MUST use the defined Network API / Protocol;
 -   MUST NOT independently invent or redefine shared network contracts;
--   implements OTTv2 9x9 client interface, piece rendering, King-movement controls, and playfull.html DOM synchronization.
+-   implements OTTv2 9x9 client interface, piece rendering, King-movement controls, and playhtml.fun DOM synchronization.
 
 ------------------------------------------------------------------------
 
@@ -381,7 +381,7 @@ Tasks:
 1.  Receive official Teacher Assignment.
 2.  Analyze constraints.
 3.  Update `01_PROJECT_SPEC.md`.
-4.  Resolve OTTv2 game mechanics and playfull.html requirements.
+4.  Resolve OTTv2 game mechanics and playhtml.fun requirements.
 5.  Define Critical Requirements.
 6.  Calculate category weights.
 7.  Calculate and lock `DEMO_SAFE_THRESHOLD`.
@@ -418,7 +418,7 @@ Tasks:
 -   network adapter integration;
 -   client state application;
 -   client-side validation of inbound protocol messages;
--   OTTv2 client behavior: 9x9 board rendering, piece selection, 8-direction King-movement highlight, RPS interaction feedback, playfull.html attribute synchronization.
+-   OTTv2 client behavior: 9x9 board rendering, piece selection, 8-direction King-movement highlight, RPS interaction feedback, playhtml.fun attribute synchronization.
 
 **Dependencies:**
 
@@ -716,43 +716,35 @@ Launch server
 The default execution order is:
 
 ``` text
-Teacher Assignment
-        ↓
-Analyze Constraints
-        ↓
-Update Project Spec
-        ↓
-Resolve OTTv2 Game & playfull.html Requirements
-        ↓
-Critical Requirements
-        ↓
-Category Weights
-        ↓
-DEMO_SAFE_THRESHOLD
-        ↓
-Project Readiness Gate
-        ↓
-SRS
-        ↓
-Protocol / Architecture Confirmation
-        ↓
-Protocol Freeze
-        ↓
-A: Client          B: Server/Network          C: Test Infrastructure
-        │                 │                         │
-        └─────────────────┼─────────────────────────┘
-                          ↓
-                      Integration
-                          ↓
-                  Functional / Network Tests
-                          ↓
-                  Reliability / Concurrency
-                          ↓
-                    Load / Benchmark
-                          ↓
-                 Evidence / Traceability
-                          ↓
-                 Demo / Release Candidate
+Phase 1: GAME FOUNDATION (Person A — Client/Game)
+  ├── Xây dựng bàn cờ 9x9 UI
+  ├── Implement luật di chuyển 8 hướng (client-side)
+  ├── Implement hiển thị quân cờ Đấm-Lá-Kéo
+  ├── Implement click-to-move / drag-and-drop
+  └── Implement animation ăn quân / chặn / thắng
+
+Phase 2: NETWORK & SERVER (Person B — Network/Server) — Leader
+  ├── Server Node.js + WebSocket Gateway
+  ├── Session Manager + Room Manager
+  ├── Authoritative Game Engine (luật OTTv2 server-side)
+  ├── Protocol Implementation (Envelope, Sequence, Delta/Snapshot)
+  ├── Reconnect / Resync / Grace Period
+  ├── playhtml.fun sync integration
+  └── Rate Limiting + Validation
+
+Phase 3: QA & BENCHMARK (Person C — QA/Performance)
+  ├── Unit Test luật cờ (TC-OTT-001 → TC-OTT-010)
+  ├── Integration Test (Client ↔ Server)
+  ├── Concurrency Test (2-player conflicts)
+  ├── Network Degradation (latency, packet loss, disconnect)
+  ├── Load Test (Artillery/Autocannon — 50+ phòng)
+  ├── Benchmark (Snapshot vs Delta/Event)
+  └── Documentation / README / Deploy link
+
+Overlap cho phép:
+  - Person B bắt đầu server infra (HTTP/WS/Session/Room) song song Phase 1
+  - Person C bắt đầu test infrastructure song song Phase 1-2
+  - Nhưng integration test chỉ chạy sau khi Phase 2 hoàn thành baseline
 ```
 
 Dependencies are recorded at contract/milestone level rather than
@@ -1305,7 +1297,7 @@ Overall %
 The actual category weights are:
 
 ``` text
-[TBD — calculate after Teacher Assignment]
+LOCKED (Core Protocol: 30%, Game Rules: 25%, Reliability: 25%, QA/Benchmark: 20%)
 ```
 
 Do not use raw file count, line count or task count as the final
@@ -1318,25 +1310,25 @@ completion metric.
 The following remain unresolved until the Teacher Assignment:
 
 ``` text
-[GAME-DEPENDENT_GAME_GENRE]
-[GAME-DEPENDENT_GAME_RULES]
-[GAME-DEPENDENT_PLAYER_COUNT]
-[GAME-DEPENDENT_WIN_LOSE_CONDITIONS]
-[GAME-DEPENDENT_MECHANICS]
-[GAME-DEPENDENT_WORLD_OBJECTS]
-[GAME-DEPENDENT_MOVEMENT]
-[GAME-DEPENDENT_ABILITIES]
-[GAME-DEPENDENT_SCORING]
-[GAME-DEPENDENT_ROOM_CONFIGURATION]
-[GAME-DEPENDENT_UI]
-[GAME-DEPENDENT_SPECTATOR_BEHAVIOR]
-[GAME-DEPENDENT_LATE_JOIN]
-[GAME-DEPENDENT_COMMAND]
-[GAME-DEPENDENT_EVENT]
-[GAME-DEPENDENT_STATE]
-[GAME-DEPENDENT_CRITICAL_REQUIREMENT]
-[GAME-DEPENDENT_DEMO_SCENARIO]
-[GAME-DEPENDENT_PERFORMANCE_WORKLOAD]
+[GAME-DEPENDENT_GAME_GENRE] -> RESOLVED: 9x9 Board Game (OTTv2)
+[GAME-DEPENDENT_GAME_RULES] -> RESOLVED: 8-direction movement, RPS combat, same-type blocking
+[GAME-DEPENDENT_PLAYER_COUNT] -> RESOLVED: 2 players (Host vs Guest) + Spectators
+[GAME-DEPENDENT_WIN_LOSE_CONDITIONS] -> RESOLVED: Win by Extinction or Reaching a1/i9
+[GAME-DEPENDENT_MECHANICS] -> RESOLVED: playhtml.fun realtime piece cooldown / turn-based
+[GAME-DEPENDENT_WORLD_OBJECTS] -> RESOLVED: Rock, Paper, Scissors pieces
+[GAME-DEPENDENT_MOVEMENT] -> RESOLVED: 1 square in 8 directions (King-like)
+[GAME-DEPENDENT_ABILITIES] -> RESOLVED: RPS Capture rules
+[GAME-DEPENDENT_SCORING] -> RESOLVED: Piece count tracking
+[GAME-DEPENDENT_ROOM_CONFIGURATION] -> RESOLVED: Turn-based or Realtime options
+[GAME-DEPENDENT_UI] -> RESOLVED: 9x9 Grid with playhtml.fun DOM binding
+[GAME-DEPENDENT_SPECTATOR_BEHAVIOR] -> RESOLVED: Receive full state sync, no actions allowed
+[GAME-DEPENDENT_LATE_JOIN] -> RESOLVED: Spectator mode if match is ongoing
+[GAME-DEPENDENT_COMMAND] -> RESOLVED: PIECE_MOVE (from: {x,y}, to: {x,y})
+[GAME-DEPENDENT_EVENT] -> RESOLVED: PIECE_CAPTURED, MOVE_REJECTED
+[GAME-DEPENDENT_STATE] -> RESOLVED: board 9x9 matrix, 18 pieces records, piece counts
+[GAME-DEPENDENT_CRITICAL_REQUIREMENT] -> RESOLVED: Realtime sync and 8-direction rules
+[GAME-DEPENDENT_DEMO_SCENARIO] -> RESOLVED: Board init -> Moves -> Combat -> Victory -> Reconnect
+[GAME-DEPENDENT_PERFORMANCE_WORKLOAD] -> RESOLVED: 50+ concurrent rooms simulation
 ```
 
 These placeholders MUST be replaced only when justified by the official
@@ -1612,12 +1604,12 @@ AI_AUTHORITY = FROZEN
 INTEGRATION_MODEL = FROZEN
 DEMO_GATE_MODEL = FROZEN
 
-GAME_SPECIFIC_TASKS = PENDING TEACHER ASSIGNMENT
-DEMO_SAFE_THRESHOLD = PENDING TEACHER ASSIGNMENT
-CATEGORY_WEIGHTS = PENDING TEACHER ASSIGNMENT
+GAME_SPECIFIC_TASKS = RESOLVED (OTTv2 9x9 + playhtml.fun)
+DEMO_SAFE_THRESHOLD = 90%
+CATEGORY_WEIGHTS = LOCKED (Core Protocol: 30%, Game Rules: 25%, Reliability: 25%, QA/Benchmark: 20%)
 
 FINAL_CONSISTENCY_AUDIT = PASS
-DOCUMENT_STATUS = READY / FROZEN — PRE-ASSIGNMENT BASELINE
+DOCUMENT_STATUS = READY / FROZEN — ASSIGNMENT INTEGRATED
 ```
 
 **Freeze meaning:** the team-task governance baseline is frozen. It does
@@ -1643,6 +1635,6 @@ principles MUST NOT be silently overwritten.
   1.1               READY / FROZEN    Teacher           Official assignment
                                       Assignment        integrated for Bài 2
                                       Integration       (OTTv2 9x9 Multiplayer
-                                                        with playfull.html, 3
+                                                        with playhtml.fun, 3
                                                         students mapped)
   ----------------------------------------------------------------------------

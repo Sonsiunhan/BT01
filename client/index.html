@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>OTTv2 - Multiplayer Board Game</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- playhtml.fun integration for cursors as requested -->
+  <script src="https://unpkg.com/playhtml@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- BACKGROUND LOGO -->
+  <div class="bg-logo"></div>
+
+  <div id="app">
+    <!-- HOMEPAGE -->
+    <div id="homepage">
+      <div class="home-layout">
+        <div class="home-main">
+          <h1>CHIẾN THUẬT 9x9<br><span>OẲN TÙ TÌ v2</span></h1>
+          <p class="subtitle">Bàn cờ chiến thuật thời gian thực dựa trên luật Oẳn Tù Tì kinh điển.</p>
+          <div class="btn-group-vertical">
+            <button id="btn-random-match" class="btn primary">🎲 GHÉP NGẪU NHIÊN</button>
+            <button id="btn-bot-match" class="btn secondary">🤖 ĐẤU VỚI MÁY</button>
+            <button id="btn-local-match" class="btn secondary">👥 ĐẤU LOCAL (2 NGƯỜI)</button>
+          </div>
+        </div>
+        <div class="home-side">
+          <div class="card rooms-card">
+            <h3>Phòng đang chờ (1/2)</h3>
+            <ul id="waiting-rooms-list"></ul>
+          </div>
+          <div class="card history-card">
+            <h3>Lịch sử ván đấu</h3>
+            <ul id="match-history-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME ROOM -->
+    <div id="game-room" class="hidden">
+      
+      <!-- TOP HEADER -->
+      <div class="game-header card">
+        <div class="game-title">
+          <small>CHIẾN THUẬT 9x9</small>
+          <h2>OẲN TÙ TÌ v2</h2>
+        </div>
+        <div class="room-info">Phòng: <span id="room-id-display"></span> <br><small id="player-role"></small></div>
+        <div class="game-turn">
+          <span class="turn-dot" id="turn-dot"></span>
+          LƯỢT: <strong id="turn-display">CHỜ...</strong>
+          <span id="timer-display" style="margin-left: 10px; font-size: 14px; opacity: 0.5;">(30s)</span>
+        </div>
+        <button id="btn-leave-room" class="btn outline-danger">Thoát</button>
+      </div>
+
+      <!-- MAIN 3 COLUMNS -->
+      <div class="game-layout">
+        
+        <!-- LEFT: RULES -->
+        <div class="col-left card rules-card">
+          <h3>📖 LUẬT CHIẾN THUẬT</h3>
+          <div class="rps-circle">
+            VÒNG TRÒN KHẮC CHẾ<br>
+            <strong>✊ ĐẤM ➔ ✌️ KÉO ➔ ✋ LÁ ➔ ✊</strong>
+          </div>
+          <ul class="rules-list">
+            <li><span>01</span> <strong>Di chuyển:</strong> Đi 1 ô theo 8 hướng xung quanh (như Vua cờ vua).</li>
+            <li><span>02</span> <strong>Cản trở:</strong> Hai quân cùng loại không thể ăn nhau, chỉ đứng chặn đường.</li>
+            <li><span>03</span> <strong>Ăn quân:</strong> Chỉ được đi vào ô quân địch nếu quân của bạn thắng theo luật Oẳn Tù Tì.</li>
+            <li><span>04</span> <strong>Căn cứ:</strong> Đỏ thắng nếu chiếm ô <code>i9</code> (góc trên-phải). Xanh thắng nếu chiếm ô <code>a1</code> (góc dưới-trái).</li>
+            <li><span>05</span> <strong>Diệt chủng:</strong> Thắng ngay nếu ăn sạch toàn bộ 1 loại quân của đối thủ.</li>
+          </ul>
+        </div>
+
+        <!-- CENTER: BOARD -->
+        <div class="col-center">
+          <div class="board-wrapper">
+            <!-- Coordinates added via JS -->
+            <div id="board-container">
+              <div id="board"></div>
+            </div>
+          </div>
+          <div class="bottom-actions">
+            <button id="btn-restart-room" class="btn outline hidden">🔄 Khởi động lại ván cờ</button>
+          </div>
+          <!-- playhtml element -->
+          <div id="playhtml-zone" can-move>🕹️ (Kéo thả tôi) playhtml cursor sync</div>
+        </div>
+
+        <!-- RIGHT: FORCES -->
+        <div class="col-right card forces-card">
+          <h3>⚔️ LỰC LƯỢNG HAI PHE</h3>
+          
+          <!-- P1 Blue (Bottom) -->
+          <div class="force-team blue-team">
+            <h4>PHE XANH (Phòng thủ a1)</h4>
+            <div class="target">Mục tiêu: Chiếm <strong>i9</strong></div>
+            <div class="stats-row">
+              <div class="stat"><span class="icon">✊</span> <strong id="p1-rock">3</strong></div>
+              <div class="stat"><span class="icon">✋</span> <strong id="p1-paper">3</strong></div>
+              <div class="stat"><span class="icon">✌️</span> <strong id="p1-scissors">3</strong></div>
+            </div>
+          </div>
+
+          <hr class="vs-divider" data-text="V.S">
+
+          <!-- P2 Red (Top) -->
+          <div class="force-team red-team">
+            <h4>PHE ĐỎ (Phòng thủ i9)</h4>
+            <div class="target">Mục tiêu: Chiếm <strong>a1</strong></div>
+            <div class="stats-row">
+              <div class="stat"><span class="icon">✊</span> <strong id="p2-rock">3</strong></div>
+              <div class="stat"><span class="icon">✋</span> <strong id="p2-paper">3</strong></div>
+              <div class="stat"><span class="icon">✌️</span> <strong id="p2-scissors">3</strong></div>
+            </div>
+          </div>
+
+          <div class="forces-hint">
+            ⚡ CHIẾN THUẬT NHANH<br>Nếu bạn tiêu diệt sạch cả 3 quân cùng 1 loại của địch, bạn thắng ngay lập tức!
+          </div>
+        </div>
+
+      </div>
+
+      <!-- OVERLAYS -->
+      <div id="countdown-overlay" class="overlay hidden">
+        <h1 id="countdown-text">5</h1>
+      </div>
+      <div id="game-over-overlay" class="overlay hidden">
+        <h1 id="game-over-text"></h1>
+        <button id="btn-back-home" class="btn primary">Về trang chủ</button>
+      </div>
+
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

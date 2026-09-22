@@ -4,7 +4,7 @@
 > **Document Status:** IMPLEMENTATION READY (≥95%)  
 > **Version:** 1.0  
 > **Course:** INT3304 — Lập trình mạng (Network Programming)  
-> **Assignment:** Bài tập lớn — Bài số 2 (Multiplayer Client-Server OTTv2 với playfull.html / cơ chế playhtml.fun)  
+> **Assignment:** Bài tập lớn — Bài số 2 (Multiplayer Client-Server OTTv2 với playhtml.fun / cơ chế playhtml.fun)  
 > **Language:** Vietnamese  
 > **Target Git Delivery:** Git Repository bao gồm Source Code, Docs, Tests, Benchmarks và Live Deploy URL.  
 
@@ -16,7 +16,7 @@
 Tài liệu này là **Software Requirements Specification (SRS)** chính thức cho dự án **Bài 2: Game cờ Oẳn Tù Tì v2 (OTTv2) Real-time Multiplayer**.
 
 Tài liệu được chuyển đổi từ khung baseline sau khi tiếp nhận đề bài chính thức từ giảng viên:
-- **Đề bài Bài 2:** Xây dựng hệ thống nhiều người chơi cùng lúc trên môi trường Web, có server quản lý logic và trạng thái, áp dụng thư viện/cơ chế `playfull.html` (tương tự cơ chế đồng bộ realtime của `playhtml.fun`).
+- **Đề bài Bài 2:** Xây dựng hệ thống nhiều người chơi cùng lúc trên môi trường Web, có server quản lý logic và trạng thái, áp dụng thư viện/cơ chế `playhtml.fun` (tương tự cơ chế đồng bộ realtime của `playhtml.fun`).
 - **Luật chơi OTTv2:** Bàn cờ 9x9 (tọa độ a1 đến i9). Ba loại quân: Đấm (Rock), Lá/Bao (Paper), Kéo (Scissors).
 - **Quy tắc di chuyển:** Mỗi quân di chuyển 1 ô theo 8 hướng (ngang, dọc, chéo) tương tự quân Vua trong cờ vua.
 - **Quy tắc ăn quân:** Đấm ăn Kéo, Kéo ăn Lá, Lá ăn Đấm. Hai quân cùng loại không thể ăn nhau mà đứng chặn đường nhau. Quân cùng phe không ăn nhau và không thể đi vào ô đã có quân đồng minh.
@@ -48,14 +48,14 @@ Tài liệu được chuyển đổi từ khung baseline sau khi tiếp nhận �
 ## 1.3 Cơ cấu nhóm Bài 2 (3 Sinh viên)
 | Vai trò | Thành viên phụ trách | Trách nhiệm chính |
 |---|---|---|
-| **Person A** | Sinh viên 1 (Client / UX Lead) | Xây dựng Game Interface, bàn cờ 9x9, hiển thị quân cờ Đấm-Lá-Kéo, drag-and-drop / click-to-move 8 hướng, tích hợp cơ chế đồng bộ client playfull.html, animation ăn quân / chặn đường / thắng cuộc. |
+| **Person A** | Sinh viên 1 (Client / UX Lead) | Xây dựng Game Interface, bàn cờ 9x9, hiển thị quân cờ Đấm-Lá-Kéo, drag-and-drop / click-to-move 8 hướng, tích hợp cơ chế đồng bộ client playhtml.fun, animation ăn quân / chặn đường / thắng cuộc. |
 | **Person B** | Sinh viên 2 (Network / Server Lead) | Xây dựng Server Node.js/TypeScript, WebSocket Gateway, Session/Room Manager, Authoritative OTTv2 Game Engine (luật 8 hướng, ăn quân RPS, chặn cùng loại, check thắng ô a1/i9 hoặc sạch 1 loại quân), Delta/Snapshot Sync, Reconnect/Resync. |
 | **Person C** | Sinh viên 3 (QA / Performance Lead) | Xây dựng Test Suite (Unit test cờ, Integration, Concurrency), Network Degradation simulation (lag, rớt gói, mất kết nối), Load testing & Benchmark (Artillery/Autocannon), Deployment CI/CD và tài liệu bàn giao. |
 
 ## 1.4 Mục tiêu học thuật & Kỹ thuật
 Dự án chứng minh năng lực toàn diện trong môn Lập trình mạng thông qua:
 1. Thiết kế và cài đặt hệ thống Client-Server realtime cho board game đối kháng nhiều người chơi.
-2. Áp dụng cơ chế chia sẻ phần tử tương tác thời gian thực theo phong cách `playhtml.fun` / thư viện `playfull.html`.
+2. Áp dụng cơ chế chia sẻ phần tử tương tác thời gian thực theo phong cách `playhtml.fun` / thư viện `playhtml.fun`.
 3. Quản lý trạng thái phân tán, phân định quyền tác tử (Server Authority), đồng bộ Snapshot + Delta.
 4. Xử lý đồng thời (Concurrency), tranh chấp nước đi, ngắt kết nối và khôi phục ván đấu (Reconnect & Resync).
 5. Thực hiện đo kiểm định lượng, benchmark hiệu năng băng thông/tần số truyền tin, stress test nhiều phòng chơi đồng thời.
@@ -74,7 +74,7 @@ Dự án chứng minh năng lực toàn diện trong môn Lập trình mạng th
   - Di chuyển 1 ô theo 8 hướng (N, NE, E, SE, S, SW, W, NW).
   - Ăn quân theo chu trình Búa-Kéo-Bao; chặn đường nếu gặp quân cùng loại hoặc quân đồng minh.
   - Kiểm tra điều kiện thắng tức thì: hết 1 loại quân hoặc đưa bất kỳ quân nào vào ô `a1` hoặc `i9`.
-- **Cơ chế realtime playfull.html:**
+- **Cơ chế realtime playhtml.fun:**
   - Đồng bộ DOM elements / board state theo thời gian thực giữa các client qua Server WebSocket.
   - Khả năng nhiều phòng đấu diễn ra độc lập song song (Multi-room capacity).
 - **Độ tin cậy mạng (Reliability):**
@@ -150,7 +150,7 @@ Một người chơi được công nhận **THẮNG CUỘC NGAY LẬP TỨC** k
    - Đối thủ đầu hàng hoặc ngắt kết nối quá thời gian Grace Period (30s) mà không kết nối lại.
 
 ## 3.6 Chế độ chơi và Nhịp độ (Turn vs Realtime Cooldown)
-Để phù hợp với cơ chế `playhtml.fun` / `playfull.html`, hệ thống hỗ trợ 2 chế độ nhịp điệu (tùy cấu hình phòng):
+Để phù hợp với cơ chế `playhtml.fun` / `playhtml.fun`, hệ thống hỗ trợ 2 chế độ nhịp điệu (tùy cấu hình phòng):
 - **Chế độ Lượt (Turn-based):** Hai bên lần lượt đi nước cờ (mỗi lượt có thời gian giới hạn, ví dụ 30s).
 - **Chế độ Thời gian thực có Cooldown (Real-time Action with Piece Cooldown):** Người chơi có thể di chuyển quân tự do, mỗi quân cờ sau khi di chuyển có thời gian hồi chiêu ngắn (ví dụ 1-2 giây) trước khi có thể đi tiếp, đem lại trải nghiệm tương tác trực tiếp nhiều người chơi sôi động chuẩn phong cách `playhtml`.
 
@@ -423,7 +423,7 @@ interface OTTGameState {
 | **REQ-OTT-004** | Chặn đường quân cùng loại | `server/game/combat.ts` | `TC-BLOCK-001` | Cùng loại không ăn được nhau, đứng chặn đường nhau. |
 | **REQ-OTT-005** | Thắng khi hết 1 loại quân | `server/game/winCheck.ts` | `TC-WIN-001` | Đối thủ hết sạch Đấm/Lá/Kéo -> Phát sự kiện thắng. |
 | **REQ-OTT-006** | Thắng khi chiếm ô đích a1 hoặc i9 | `server/game/winCheck.ts` | `TC-WIN-002` | Quân bất kỳ di chuyển vào a1 hoặc i9 -> Thắng ngay. |
-| **REQ-OTT-007** | Đồng bộ thời gian thực playfull.html | `client/sync/playfull.ts` | `TC-SYNC-001` | DOM bàn cờ 9x9 cập nhật ngay khi server gửi delta. |
+| **REQ-OTT-007** | Đồng bộ thời gian thực playhtml.fun | `client/sync/playfull.ts` | `TC-SYNC-001` | DOM bàn cờ 9x9 cập nhật ngay khi server gửi delta. |
 | **REQ-OTT-008** | Reconnect & Grace period 30s | `server/network/session.ts` | `TC-RECON-001` | Mất mạng 15s kết nối lại phục hồi nguyên vẹn trạng thái. |
 | **REQ-OTT-009** | Benchmark Snapshot vs Delta | `benchmarks/loadTest.ts` | `TC-PERF-001` | Có bảng so sánh thông lượng và biểu đồ báo cáo. |
 
@@ -432,7 +432,7 @@ interface OTTGameState {
 # 13. Deployment & Delivery
 
 - **Mã nguồn Git:**
-  - `client/`: Giao diện Web cờ OTTv2, playfull.html binding, asset quân cờ.
+  - `client/`: Giao diện Web cờ OTTv2, playhtml.fun binding, asset quân cờ.
   - `server/`: Server Node.js / TypeScript, WebSocket, Game Engine, Room/Session.
   - `shared/`: Protocol schemas, TypeScript types dùng chung.
   - `tests/`: Bộ test tự động (Vitest / Jest / Playwright).
@@ -444,7 +444,7 @@ interface OTTGameState {
 ---
 
 # 14. Implementation-Readiness Audit
-- [x] Đề bài OTTv2 và thư viện/cơ chế playfull.html đã được đặc tả chi tiết.
+- [x] Đề bài OTTv2 và thư viện/cơ chế playhtml.fun đã được đặc tả chi tiết.
 - [x] Bàn cờ 9x9, luật di chuyển 8 hướng, luật ăn quân RPS, luật chặn đường được định nghĩa rõ ràng.
 - [x] Hai điều kiện thắng (sạch 1 loại quân hoặc chiếm a1/i9) đã có ID và thuật toán kiểm tra.
 - [x] Danh mục gói tin WebSocket, định dạng Payload và State Model hoàn tất 100%.

@@ -1852,9 +1852,9 @@ Matrix phải chỉ ra được trạng thái của từng requirement quan tr�
 
 ---
 
-# 79. Game-Dependent Testing: OTTv2 9x9 Board Game & playfull.html
+# 79. Game-Dependent Testing: OTTv2 9x9 Board Game & playhtml.fun
 
-Các Test Cases chính thức kiểm thử toàn diện cơ chế OTTv2 và playfull.html:
+Các Test Cases chính thức kiểm thử toàn diện cơ chế OTTv2 và playhtml.fun:
 
 ### 79.1 Unit Test Suite — Luật cờ & Bàn cờ 9x9 (`tests/game/`)
 - `TC-OTT-001 (Board Initialization)`: Khởi tạo bàn cờ 9x9, kiểm tra 81 ô, gán đúng 9 quân cho P1 (hàng 1-2) và 9 quân cho P2 (hàng 8-9).
@@ -1871,7 +1871,7 @@ Các Test Cases chính thức kiểm thử toàn diện cơ chế OTTv2 và play
 - `TC-OTT-010 (Win by Goal Square Infiltration)`: Khi bất kỳ quân nào di chuyển thành công vào ô `a1` hoặc `i9` -> Server lập tức kết thúc ván đấu, xác nhận `winnerId` và `winReason: "REACHED_GOAL_SQUARE"`.
 
 ### 79.3 Integration & Realtime Sync Tests (`tests/integration/`)
-- `TC-OTT-011 (playfull.html DOM Binding)`: Kiểm tra tương tác click/kéo thả trên phần tử DOM cập nhật đồng thời lên server WebSocket và đồng bộ sang client đối thủ.
+- `TC-OTT-011 (playhtml.fun DOM Binding)`: Kiểm tra tương tác click/kéo thả trên phần tử DOM cập nhật đồng thời lên server WebSocket và đồng bộ sang client đối thủ.
 - `TC-OTT-012 (Snapshot vs Delta Consistency)`: Thực hiện 20 nước đi, so sánh State tính từ chuỗi `STATE_DELTA` với `STATE_SNAPSHOT` được yêu cầu qua `RESYNC_REQUEST` — kết quả phải trùng khớp 100%.
 - `TC-OTT-013 (Network Degradation & Reconnect)`: Giả lập ngắt kết nối WebSocket trong 15s (nằm trong 30s Grace Period), reconnect với sessionToken cũ -> khôi phục đầy đủ bàn cờ và tiếp tục trận đấu.
 - `TC-OTT-014 (Benchmark Workload - Artillery/Autocannon)`: Chạy mô phỏng tải 50 phòng chơi song song, so sánh băng thông truyền Full Snapshot so với Delta/Event.
@@ -2192,7 +2192,7 @@ Không tự động override một frozen requirement.
 │ Completion Criteria       : FROZEN          │
 │ Evidence Policy           : FROZEN          │
 │ Traceability              : FROZEN          │
-│ Game-specific Extension   : OPEN            │
+│ Game-specific Extension   : RESOLVED (OTTv2)      │
 └─────────────────────────────────────────────┘
 ```
 
