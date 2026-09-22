@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTTv2 - Đấu Trí Oẳn Tù Tì Chiến Thuật</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts phong cách Gaming & Hiện đại -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="game-header">
+            <div class="logo-box">
+                <span class="logo-badge">CHIẾN THUẬT 9X9</span>
+                <h1>OẰN TÙ TÌ <span class="highlight-v2">v2</span></h1>
+            </div>
+            <div class="match-status" id="match-status">
+                <div class="turn-chip" id="turn-chip">
+                    <span class="pulse-dot"></span>
+                    <span id="turn-text">LƯỢT: PHE ĐỎ</span>
+                </div>
+                <div class="status-msg" id="status-message">Chọn một quân cờ để bắt đầu di chuyển</div>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT 3 CỘT: TRÁI (HƯỚNG DẪN) - GIỮA (BÀN CỜ) - PHẢI (LỰC LƯỢNG) -->
+        <main class="game-layout">
+            <!-- CỘT TRÁI: HƯỚNG DẪN & QUY TẮC -->
+            <aside class="panel rules-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">📖</div>
+                    <h2>LUẬT CHIẾN THUẬT</h2>
+                </div>
+                
+                <div class="rules-body">
+                    <div class="cycle-box">
+                        <div class="cycle-title">VÒNG TRÒN KHẮC CHẾ</div>
+                        <div class="cycle-diagram">
+                            <span class="c-item c-rock">🔨 BÚA</span>
+                            <span class="c-arrow">➔</span>
+                            <span class="c-item c-scissors">⚔️ KIẾM</span>
+                            <span class="c-arrow">➔</span>
+                            <span class="c-item c-paper">🛡️ KHIÊN</span>
+                            <span class="c-arrow">➔</span>
+                            <span class="c-item c-rock">🔨</span>
+                        </div>
+                    </div>
+
+                    <ul class="rule-list">
+                        <li>
+                            <span class="r-num">01</span>
+                            <div><strong>Di chuyển:</strong> Đi <strong>1 ô theo 8 hướng</strong> xung quanh (như Vua cờ vua).</div>
+                        </li>
+                        <li>
+                            <span class="r-num">02</span>
+                            <div><strong>Cản trở:</strong> Hai quân <strong>cùng loại</strong> không thể ăn nhau, chỉ đứng chặn đường.</div>
+                        </li>
+                        <li>
+                            <span class="r-num">03</span>
+                            <div><strong>Ăn quân:</strong> Chỉ được đi vào ô quân địch nếu quân của bạn thắng theo luật Oẳn Tù Tì.</div>
+                        </li>
+                        <li>
+                            <span class="r-num">04</span>
+                            <div><strong>Căn cứ:</strong> Đỏ thắng nếu chiếm ô <code>i9</code> (góc trên-phải). Xanh thắng nếu chiếm ô <code>a1</code> (góc dưới-trái).</div>
+                        </li>
+                        <li>
+                            <span class="r-num">05</span>
+                            <div><strong>Diệt chủng:</strong> Thắng ngay nếu <strong>ăn sạch toàn bộ 1 loại quân</strong> của địch.</div>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- CỘT GIỮA: BÀN CỜ CHIẾN ĐẤU -->
+            <section class="board-container">
+                <div class="board-frame">
+                    <!-- Tọa độ cột a -> i -->
+                    <div class="col-labels">
+                        <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span>
+                    </div>
+
+                    <div class="board-middle-row">
+                        <!-- Tọa độ hàng 9 -> 1 -->
+                        <div class="row-labels">
+                            <span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                        </div>
+
+                        <!-- Lưới 9x9 -->
+                        <div id="board" class="board"></div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button id="btn-reset" class="btn-action">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Khởi động lại ván cờ
+                    </button>
+                </div>
+            </section>
+
+            <!-- CỘT PHẢI: QUẢN LÝ LỰC LƯỢNG 2 PHE -->
+            <!-- CỘT PHẢI: QUẢN LÝ LỰC LƯỢNG 2 PHE -->
+            <aside class="panel stats-panel">
+                <div class="panel-header">
+                    <div class="panel-icon">⚔️</div>
+                    <h2>LỰC LƯỢNG HAI PHE</h2>
+                </div>
+
+                <!-- Đội Xanh -->
+                <div class="team-card team-card-blue">
+                    <div class="team-meta">
+                        <span class="team-name">PHE XANH (PHÒNG THỦ i9)</span>
+                        <span class="base-target">Mục tiêu: Chiếm <strong>a1</strong></span>
+                    </div>
+                    <div class="piece-counts" id="blue-counts">
+                        <!-- Búa / Chùy -->
+                        <div class="count-pill pill-rock" title="Búa">
+                            <span class="mini-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4l4 4-2.5 2.5-4-4L15 4z" fill="currentColor" fill-opacity="0.3"/>
+                                    <path d="M13.5 2.5l5 5"/><path d="M11 5l5 5"/><path d="M12.5 6.5L4 15l2 2 8.5-8.5"/>
+                                    <circle cx="3.5" cy="18.5" r="1.5" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span class="val" id="cnt-blue-rock">3</span>
+                        </div>
+                        <!-- Bao / Khiên -->
+                        <div class="count-pill pill-paper" title="Bao (Khiên)">
+                            <span class="mini-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fill-opacity="0.25"/>
+                                    <path d="M12 6v10"/><path d="M8 10h8"/>
+                                </svg>
+                            </span>
+                            <span class="val" id="cnt-blue-paper">3</span>
+                        </div>
+                        <!-- Kéo / Song Kiếm -->
+                        <div class="count-pill pill-scissors" title="Kéo (Kiếm)">
+                            <span class="mini-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 5l-8.5 8.5"/><path d="M20 4l-4 1 3 3 1-4z" fill="currentColor"/><path d="M9 15l2 2"/><circle cx="6.5" cy="18.5" r="1.5"/>
+                                    <path d="M5 5l8.5 8.5"/><path d="M4 4l4 1-3 3-1-4z" fill="currentColor"/><path d="M15 15l-2 2"/><circle cx="17.5" cy="18.5" r="1.5"/>
+                                </svg>
+                            </span>
+                            <span class="val" id="cnt-blue-scissors">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vs-divider"><span>V.S</span></div>
+
+                <!-- Đội Đỏ -->
+                <div class="team-card team-card-red">
+                    <div class="team-meta">
+                        <span class="team-name">PHE ĐỎ (PHÒNG THỦ a1)</span>
+                        <span class="base-target">Mục tiêu: Chiếm <strong>i9</strong></span>
+                    </div>
+                    <div class="piece-counts" id="red-counts">
+                        <!-- Búa / Chùy -->
+                        <div class="count-pill pill-rock" title="Búa">
+                            <span class="mini-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4l4 4-2.5 2.5-4-4L15 4z" fill="currentColor" fill-opacity="0.3"/>
+                                    <path d="M13.5 2.5l5 5"/><path d="M11 5l5 5"/><path d="M12.5 6.5L4 15l2 2 8.5-8.5"/>
+                                    <circle cx="3.5" cy="18.5" r="1.5" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span class="val" id="cnt-red-rock">3</span>
+                        </div>
+                        <!-- Bao / Khiên -->
+                        <div class="count-pill pill-paper" title="Bao (Khiên)">
+                            <span class="mini-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fill-opacity="0.25"/>
+                                    <path d="M12 6v10"/><path d="M8 10h8"/>
+                                </svg>
+                            </span>
+                            <span class="val" id="cnt-red-paper">3</span>
+                        </div>
+                        <!-- Kéo / Song Kiếm -->
+                        <div class="count-pill pill-scissors" title="Kéo (Kiếm)">
+                            <span class="mini-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 5l-8.5 8.5"/><path d="M20 4l-4 1 3 3 1-4z" fill="currentColor"/><path d="M9 15l2 2"/><circle cx="6.5" cy="18.5" r="1.5"/>
+                                    <path d="M5 5l8.5 8.5"/><path d="M4 4l4 1-3 3-1-4z" fill="currentColor"/><path d="M15 15l-2 2"/><circle cx="17.5" cy="18.5" r="1.5"/>
+                                </svg>
+                            </span>
+                            <span class="val" id="cnt-red-scissors">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="intel-box">
+                    <span class="intel-title">⚡ CHIẾN THUẬT NHANH</span>
+                    <p>Nếu bạn tiêu diệt sạch cả 3 quân cùng 1 loại của địch, bạn thắng ngay lập tức!</p>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Script chia module -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
