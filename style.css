@@ -550,6 +550,11 @@ body {
     margin-bottom: 3px;
     color: #cbd5e1;
 }
+# 1. Kéo code về và cho phép gộp 2 lịch sử commit khác nhau
+git pull origin main --allow-unrelated-histories
+
+# 2. Đẩy lại lên GitHub
+git push -u origin main
 
 .count-pill .mini-icon svg {
     width: 100%;
