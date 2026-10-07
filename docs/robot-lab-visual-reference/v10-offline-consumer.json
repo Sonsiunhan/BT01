@@ -1,0 +1,75 @@
+{
+  "measuredAt": "2026-10-05T14:33:13.543Z",
+  "origin": "http://127.0.0.1:4176",
+  "consumer": "production build UI",
+  "fixedFixturesOnly": true,
+  "playerCodeExecuted": false,
+  "cases": [
+    {
+      "name": "builtUiActualIsolatedPreflightBothSlots",
+      "pass": true
+    },
+    {
+      "name": "builtUiSingleMoveCheckpoint",
+      "pass": true
+    },
+    {
+      "name": "coldOfflineNewDocumentRestorePreflightStep",
+      "pass": true
+    },
+    {
+      "name": "coldPendingPersistenceWithoutNextTurn",
+      "pass": true
+    },
+    {
+      "name": "restoredPendingRunPauseOwnTurnActivation",
+      "pass": true
+    },
+    {
+      "name": "builtUiAuthorFaultLossTerminalMemoryCleanup",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "status": "PASS_FIXED_FIXTURE_CONSUMER_SCOPE",
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+  ],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:4176/health",
+      "error": "net::ERR_INTERNET_DISCONNECTED"
+    },
+    {
+      "url": "http://127.0.0.1:4176/auth/me",
+      "error": "net::ERR_INTERNET_DISCONNECTED"
+    },
+    {
+      "url": "http://127.0.0.1:4176/health",
+      "error": "net::ERR_INTERNET_DISCONNECTED"
+    },
+    {
+      "url": "http://127.0.0.1:4176/health",
+      "error": "net::ERR_INTERNET_DISCONNECTED"
+    },
+    {
+      "url": "http://127.0.0.1:4176/auth/me",
+      "error": "net::ERR_INTERNET_DISCONNECTED"
+    },
+    {
+      "url": "http://127.0.0.1:4176/health",
+      "error": "net::ERR_INTERNET_DISCONNECTED"
+    }
+  ]
+}

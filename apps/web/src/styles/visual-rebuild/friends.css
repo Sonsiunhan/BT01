@@ -1,0 +1,49 @@
+/* V6 Robot Lab social surface. Prioritise names, role and safe actions. */
+.friends-visual-shell {
+  display: grid;
+  gap: 1.1rem;
+  width: min(70rem, 100%);
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 2rem) 0 3rem;
+}
+.friends-visual-shell.friends-error { min-height: 18rem; align-content: center; justify-items: start; }
+.friends-visual-shell .friends-header { align-items: center; padding: 1.1rem 1.25rem; border: 1px solid color-mix(in srgb, var(--system-cyan) 38%, var(--border)); border-radius: var(--radius-lg, 1.2rem); background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 96%, var(--system-cyan)), var(--surface)); box-shadow: 0 5px 0 color-mix(in srgb, var(--text-primary) 15%, transparent), var(--shadow-raised); }
+.friends-visual-shell .friends-header h1 { margin: .3rem 0 .5rem; font-size: clamp(2.25rem, 5vw, 4.2rem); }
+.friends-visual-shell .friends-header .form-intro { margin: 0; color: var(--text-secondary); }
+.friends-visual-shell .friends-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .35rem; padding: .35rem; border-color: color-mix(in srgb, var(--system-cyan) 26%, var(--border)); background: var(--surface-raised); }
+.friends-visual-shell .friends-tab { min-height: 2.8rem; color: var(--text-secondary); border: 1px solid transparent; border-radius: .55rem; background: transparent; font-size: .72rem; transition: background 190ms ease, color 190ms ease, transform 190ms ease; }
+.friends-visual-shell .friends-tab:hover, .friends-visual-shell .friends-tab.active { color: var(--ink-on-accent, #07141c); background: var(--system-cyan); box-shadow: 0 3px 0 color-mix(in srgb, var(--text-primary) 18%, transparent); }
+.friends-visual-shell .friends-tab:active { transform: translateY(2px); box-shadow: none; }
+.friends-visual-shell .friend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.friends-visual-shell .social-card, .friends-visual-shell .request-row, .friends-visual-shell .invite-row { min-width: 0; border-color: color-mix(in srgb, var(--system-cyan) 20%, var(--border)); background: var(--surface-raised); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 13%, transparent), var(--shadow-raised); transition: border-color 190ms ease, transform 190ms ease; }
+.friends-visual-shell .social-card:hover, .friends-visual-shell .request-row:hover, .friends-visual-shell .invite-row:hover { border-color: var(--system-cyan); transform: translateY(-2px); }
+.friends-visual-shell .social-card-copy a { font-family: var(--font-display, sans-serif); font-size: 1rem; }
+.friends-visual-shell .social-card-copy span { color: var(--text-secondary); }
+.friends-visual-shell .presence { font-size: .7rem; }
+.friends-visual-shell .social-card-actions { align-items: center; }
+.friends-visual-shell .social-card-actions .button { min-height: 2.5rem; }
+.friends-visual-shell .social-empty { min-height: 15rem; align-content: center; padding: 2rem; border-color: color-mix(in srgb, var(--system-cyan) 32%, var(--border)); background: var(--surface-raised); }
+.friends-visual-shell .social-empty-robot { width: 3.2rem; height: 3.2rem; color: var(--system-cyan); border-color: var(--system-cyan); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 14%, transparent); }
+.friends-visual-shell .social-empty h2 { font-size: 1.45rem; }
+.friends-visual-shell .social-empty p { max-width: 32rem; margin: 0; color: var(--text-secondary); }
+.friends-visual-shell .social-panel, .friends-visual-shell .invite-inbox { padding: 1rem; border: 1px solid color-mix(in srgb, var(--system-cyan) 25%, var(--border)); border-radius: var(--radius-md, .8rem); background: var(--surface); }
+.friends-visual-shell .social-search input { min-height: 3rem; background: var(--surface-raised); }
+.friends-visual-shell .social-stale { border-color: color-mix(in srgb, var(--warning) 55%, var(--border)); }
+.friends-visual-shell .invite-token { border-color: color-mix(in srgb, var(--system-cyan) 50%, var(--border)); background: color-mix(in srgb, var(--system-cyan) 8%, var(--surface)); }
+.friends-visual-shell .friend-action-menu > div { border-color: color-mix(in srgb, var(--system-cyan) 38%, var(--border)); background: var(--surface-raised); }
+
+@media (max-width: 800px) {
+  .friends-visual-shell { width: min(100% - 1rem, 70rem); }
+  .friends-visual-shell .friends-header { align-items: stretch; flex-direction: column; }
+  .friends-visual-shell .friends-header-actions { justify-content: flex-start; }
+  .friends-visual-shell .friends-tabs { overflow-x: auto; grid-template-columns: repeat(4, minmax(8rem, 1fr)); }
+}
+@media (max-width: 620px) {
+  .friends-visual-shell .friend-grid { grid-template-columns: 1fr; }
+  .friends-visual-shell .social-card { grid-template-columns: auto minmax(0, 1fr); }
+  .friends-visual-shell .social-card-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .friends-visual-shell .friends-tab, .friends-visual-shell .social-card, .friends-visual-shell .request-row, .friends-visual-shell .invite-row { transition: none; }
+  .friends-visual-shell .social-card:hover, .friends-visual-shell .request-row:hover, .friends-visual-shell .invite-row:hover { transform: none; }
+}

@@ -1,0 +1,46 @@
+{
+  "measuredAt": "2026-10-05T12:55:16.771Z",
+  "consumer": "production build + real local API + disposable PostgreSQL + pinned WASI",
+  "database": "ottv2_r20_acceptance_1791186049609",
+  "fixedFixturesOnly": true,
+  "productionMutation": false,
+  "cases": [
+    {
+      "name": "guestBotQueueUiCancelAuthoritative",
+      "pass": true
+    },
+    {
+      "name": "twoGuestLocalLibrariesOnlinePreflight",
+      "pass": true
+    },
+    {
+      "name": "customGuestUiDiscoveryJoinAttachReloadOwnerPin",
+      "pass": true
+    },
+    {
+      "name": "liveOwnerRevisionUploadActualWasi",
+      "pass": true
+    },
+    {
+      "name": "candidateActivatesAtOwnTurn",
+      "pass": true
+    },
+    {
+      "name": "inFlightReloadAfterLoginKeepsGuestOwner",
+      "pass": true
+    },
+    {
+      "name": "guestTerminalResultDeviceHistoryAfterLogin",
+      "pass": true
+    },
+    {
+      "name": "unauthenticatedGuestCanReadDeviceBotHistory",
+      "pass": true
+    },
+    {
+      "name": "explicitBotGuestImportPreviewRetryDedupeNoRankedEffect",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

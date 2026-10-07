@@ -1,0 +1,35 @@
+{
+  "fixtures": true,
+  "evidence": [
+    {
+      "tab": "account",
+      "themeRetained": true,
+      "seriousCritical": 0
+    },
+    {
+      "tab": "privacy",
+      "themeRetained": true,
+      "seriousCritical": 0
+    },
+    {
+      "tab": "blocked",
+      "themeRetained": true,
+      "seriousCritical": 0
+    },
+    {
+      "motion": {
+        "idle": {
+          "transform": "none",
+          "transition": "0.16s",
+          "animation": "none"
+        },
+        "hover": "matrix(1, 0, 0, 1, 0, -4)"
+      }
+    },
+    {
+      "recoveryAcknowledgment": true,
+      "toastDoesNotCoverCTA": true,
+      "seriousCritical": 0
+    }
+  ]
+}

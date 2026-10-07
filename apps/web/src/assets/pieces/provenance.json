@@ -1,0 +1,55 @@
+{
+  "source": "C:\\Users\\Admin\\.codex\\visualizations\\2026\\09\\26\\01a0dc09-a9e7-7943-a3ec-1b2dcbe866e2\\ott-robot-lab-board-v02.html",
+  "sourceSha256": "518227e9fc32c5fab578b16301d642ff0c5b8855ad09b9eca415aaedc44242b8",
+  "extraction": "Original demo Segoe UI Emoji rendering frozen at 4x DPI; no live font, emoji filter or network dependency in application",
+  "files": [
+    {
+      "name": "white-glove-fist.png",
+      "sha256": "8e5bc5b28e953b85d8a3d4fbc80cb4e26da41b91e187cc9450065ba210b5c39f",
+      "width": 160,
+      "height": 160,
+      "glyph": "✊",
+      "token": false
+    },
+    {
+      "name": "white-glove-fist-token.png",
+      "sha256": "00581487b3486fe40c4fea0f736afcbbed62f277d18f7806b1b235cc097e17e0",
+      "width": 208,
+      "height": 208,
+      "glyph": "✊",
+      "token": true
+    },
+    {
+      "name": "white-glove-palm.png",
+      "sha256": "fc6b6ccdb3ef5ca6521866837d040efa0942ec2e3474d081f92a6d543d1e1daa",
+      "width": 160,
+      "height": 160,
+      "glyph": "✋",
+      "token": false
+    },
+    {
+      "name": "white-glove-palm-token.png",
+      "sha256": "caf9848cef67150ada0d4499c2820a22573ed5a015fd0ce88cdfed20d78cf71f",
+      "width": 208,
+      "height": 208,
+      "glyph": "✋",
+      "token": true
+    },
+    {
+      "name": "white-glove-peace.png",
+      "sha256": "896fffc7af355e959ab6091f472c8877472b076d68f3df68f626f49c281df2be",
+      "width": 160,
+      "height": 160,
+      "glyph": "✌️",
+      "token": false
+    },
+    {
+      "name": "white-glove-peace-token.png",
+      "sha256": "0b9b901d5cd2910515d71614963d00615a27d4aae9020da7b876eda38120a1ff",
+      "width": 208,
+      "height": 208,
+      "glyph": "✌️",
+      "token": true
+    }
+  ]
+}

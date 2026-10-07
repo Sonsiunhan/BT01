@@ -1,0 +1,74 @@
+[
+  {
+    "family": "Be Vietnam Pro",
+    "weight": 400,
+    "url": "https://fonts.gstatic.com/s/bevietnampro/v12/QdVPSTAyLFyeg_IDWvOJmVES_Eww.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/be-vietnam-pro-400.ttf",
+    "sha256": "4ad53eac036092be79a34b5fa0aa32d0ebb3c7e5df4bc058764f5614fbf148a0",
+    "bytes": 120228
+  },
+  {
+    "family": "Be Vietnam Pro",
+    "weight": 500,
+    "url": "https://fonts.gstatic.com/s/bevietnampro/v12/QdVMSTAyLFyeg_IDWvOJmVES_HTEJl8y.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/be-vietnam-pro-500.ttf",
+    "sha256": "557a1c42a7f8eb83f84255d475017b1235c1101b899367f974a1cbfa19cd7c3d",
+    "bytes": 122644
+  },
+  {
+    "family": "Be Vietnam Pro",
+    "weight": 600,
+    "url": "https://fonts.gstatic.com/s/bevietnampro/v12/QdVMSTAyLFyeg_IDWvOJmVES_HToIV8y.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/be-vietnam-pro-600.ttf",
+    "sha256": "cbf437bf71c8536a7aaed632dce2583ea5ec97c07efffc625c31991d1027ba3b",
+    "bytes": 123064
+  },
+  {
+    "family": "Be Vietnam Pro",
+    "weight": 700,
+    "url": "https://fonts.gstatic.com/s/bevietnampro/v12/QdVMSTAyLFyeg_IDWvOJmVES_HSMIF8y.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/be-vietnam-pro-700.ttf",
+    "sha256": "aef76cd15b8c9faa1ff21951bb71963a774aa381526c557e5a52f38d430c4650",
+    "bytes": 126228
+  },
+  {
+    "family": "Be Vietnam Pro",
+    "weight": 800,
+    "url": "https://fonts.gstatic.com/s/bevietnampro/v12/QdVMSTAyLFyeg_IDWvOJmVES_HSQI18y.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/be-vietnam-pro-800.ttf",
+    "sha256": "116124d76142998ec6b49b76b0024314d5f0ef910e8898fa75a5dc38f6f03c6a",
+    "bytes": 126024
+  },
+  {
+    "family": "Be Vietnam Pro",
+    "weight": 900,
+    "url": "https://fonts.gstatic.com/s/bevietnampro/v12/QdVMSTAyLFyeg_IDWvOJmVES_HS0Il8y.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/be-vietnam-pro-900.ttf",
+    "sha256": "fb27d0c1639b85d19e2532ecc7c26f4ba8c18d62e6c4da57a11917bc5ab25331",
+    "bytes": 128136
+  },
+  {
+    "family": "Space Grotesk",
+    "weight": 500,
+    "url": "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gOoraIAEj7aUUsj.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/space-grotesk-500.ttf",
+    "sha256": "3e699ead1876244fa392243054ddefe7cf631b488438828a8a100731a22ab995",
+    "bytes": 69416
+  },
+  {
+    "family": "Space Grotesk",
+    "weight": 600,
+    "url": "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gOoraIAEj42Vksj.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/space-grotesk-600.ttf",
+    "sha256": "6c0346b8d297ebdc225832833e03e884a26ad99d265ecd3924d46e1ba285ea87",
+    "bytes": 69356
+  },
+  {
+    "family": "Space Grotesk",
+    "weight": 700,
+    "url": "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gOoraIAEj4PVksj.ttf",
+    "file": "docs/robot-lab-visual-reference/fonts/space-grotesk-700.ttf",
+    "sha256": "3e756954468ff1cb302dae0414262e72f76a67d87bef3fa1f3226cd0fb9b2d85",
+    "bytes": 69308
+  }
+]

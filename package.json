@@ -1,29 +1,53 @@
 {
-  "name": "bt01",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
+  "name": "ottv2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=12.6.0"
   },
   "scripts": {
-    "start": "node server/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "corepack pnpm run build:packages && corepack pnpm --parallel --filter @ottv2/web --filter @ottv2/server dev",
+    "build:packages": "corepack pnpm --filter @ottv2/contracts build && corepack pnpm --filter @ottv2/game-rules build && corepack pnpm --filter @ottv2/bot-sdk build",
+    "build": "corepack pnpm -r --if-present build",
+    "typecheck": "corepack pnpm run build:packages && corepack pnpm -r --if-present typecheck",
+    "lint": "corepack pnpm -r --if-present lint",
+    "test": "vitest run tests/unit tests/contract tests/integration",
+    "test:unit": "vitest run tests/unit",
+    "test:contract": "vitest run --passWithNoTests tests/contract",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "test:load": "k6 run tests/load/smoke.js",
+    "visual:v0": "node scripts/robot-lab-v0-harness.mjs",
+    "visual:v0:verify": "node scripts/robot-lab-v0-verify.mjs",
+    "visual:v1:browser": "node scripts/robot-lab-v1-browser-gate.mjs",
+    "visual:v2:browser": "node scripts/robot-lab-v2-browser-gate.mjs",
+    "visual:v3-v6:browser": "node scripts/robot-lab-v3-v6-browser-gate.mjs",
+    "visual:v4-v8:browser": "node scripts/robot-lab-v4-v8-browser-gate.mjs",
+    "visual:v5-v7:browser": "node scripts/robot-lab-v5-v7-browser-gate.mjs",
+    "visual:gestures:test": "node --test scripts/robot-lab-gesture-assets.test.mjs",
+    "visual:gestures:verify": "node scripts/robot-lab-freeze-gestures.mjs --check",
+    "visual:v9:browser": "node scripts/robot-lab-v9-browser-gate.mjs",
+    "visual:v9:interaction": "node scripts/robot-lab-v9-interaction-gate.mjs",
+    "visual:v9:offline-assets": "node scripts/robot-lab-v9-offline-assets.mjs",
+    "visual:v10:cache": "node --test scripts/robot-lab-shell-cache.test.mjs",
+    "visual:v10:database": "node scripts/robot-lab-v10-isolated-db.mjs",
+    "generate:audio": "node scripts/generate-bgm.mjs",
+    "release:gate": "node scripts/b14-release-gate.mjs",
+    "smoke:production": "node scripts/w12-production-smoke.mjs",
+    "db:generate": "corepack pnpm --filter @ottv2/server db:generate",
+    "db:migrate": "corepack pnpm --filter @ottv2/server db:migrate",
+    "db:deploy": "corepack pnpm --filter @ottv2/server db:deploy",
+    "db:status": "corepack pnpm --filter @ottv2/server db:status"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Sonsiunhan/BT01.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Sonsiunhan/BT01/issues"
-  },
-  "homepage": "https://github.com/Sonsiunhan/BT01#readme",
-  "dependencies": {
-    "express": "^5.2.1",
-    "socket.io": "^4.8.3"
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@prisma/client": "^6.19.3",
+    "playwright": "^1.55.0",
+    "prisma": "^6.19.3",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.4"
   }
 }

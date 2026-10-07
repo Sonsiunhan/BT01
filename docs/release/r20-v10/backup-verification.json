@@ -1,0 +1,27 @@
+{
+  "gate": "F1",
+  "status": "BLOCKED_NO_PRODUCTION_BACKUP",
+  "recordedAt": "2026-10-06T00:54:37+07:00",
+  "targetInspection": {
+    "envFile": ".env",
+    "databaseHost": "127.0.0.1",
+    "databaseName": "ottv2_dev",
+    "classification": "LOCAL_DEVELOPMENT_ONLY",
+    "productionMutation": false
+  },
+  "backup": {
+    "backupId": null,
+    "sha256": null,
+    "bytes": null,
+    "restoreTarget": null,
+    "restoreStatus": "NOT_RUN"
+  },
+  "reason": "No production connection or verified backup artifact was available to this F1 run. The local .env target was not used for backup or migration.",
+  "requiredNext": [
+    "Operator provides a privately configured production connection outside chat/repository.",
+    "Run pg_dump custom-format against the verified Render database identity.",
+    "Record file SHA-256, pg_restore --list and a successful restore into a separate local PostgreSQL target.",
+    "Attach the backup ID/hash to the exact approved migration set before any production mutation."
+  ],
+  "secretsPolicy": "No database URL, password, dump or private source is stored in Git or emitted to chat."
+}

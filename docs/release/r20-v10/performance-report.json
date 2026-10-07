@@ -1,0 +1,35 @@
+{
+  "gate": "F2",
+  "status": "PARTIAL_LOCAL_CWV_FIXTURE_SCOPE",
+  "recordedAt": "2026-10-06T00:54:37+07:00",
+  "environment": {
+    "build": "apps/web production Vite preview",
+    "url": "http://127.0.0.1:4173",
+    "browser": "Playwright Chromium 1.63.0",
+    "physicalDevices": "WAIVED_BY_USER"
+  },
+  "cwv": {
+    "evidence": "docs/robot-lab-visual-reference/cwv-report.json",
+    "samples": 102,
+    "themes": ["dark", "light"],
+    "viewports": ["375x812", "768x1024", "1440x900"],
+    "routes": 17,
+    "localThresholdResult": "PASS",
+    "productionCrux": "NOT_MEASURED",
+    "methodNote": "Existing gate measures route hydration after the shell boundary and reports local fixture evidence; it is not a production LCP/CLS/INP claim."
+  },
+  "budget": {
+    "evidence": "scripts/b14-release-gate.mjs",
+    "status": "PASS",
+    "initialJsGzipKb": 153.4,
+    "totalJsGzipKb": 257.5,
+    "vfxAudioSourceBudgetGzipKb": 9.0,
+    "lazyBgmKb": 689.1
+  },
+  "limitations": [
+    "No Render production cold-start measurement was possible in this local run.",
+    "No independent QA signature is attached.",
+    "Null or unsupported field CWV must remain NOT_MEASURED, not PASS."
+  ],
+  "verdict": "F2 local performance evidence passes within fixture scope; final performance acceptance remains REVIEW_REQUIRED."
+}

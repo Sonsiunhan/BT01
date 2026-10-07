@@ -1,0 +1,646 @@
+{
+  "fixtures": "API 401/health only; not real-service acceptance or Python runtime proof",
+  "evidence": [
+    {
+      "label": "settings",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "settings",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "dark",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "settings",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "settings",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "settings",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "settings",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "settings",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "settings",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "diagnostics",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "local-data",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "login",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "register",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "recovery",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "guest",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    },
+    {
+      "label": "404",
+      "theme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "seriousCritical": []
+    }
+  ],
+  "failures": []
+}

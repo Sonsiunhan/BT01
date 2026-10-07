@@ -1,0 +1,548 @@
+{
+  "generatedAt": "2026-10-05T18:27:04.926Z",
+  "fields": [
+    "feature",
+    "taskIds",
+    "routes",
+    "states",
+    "apiOrModules",
+    "tests",
+    "ownerWave"
+  ],
+  "records": [
+    {
+      "feature": "Guest principal + account login giữa trận",
+      "taskIds": [
+        "HOME-01",
+        "AUTH-01",
+        "LOCAL-01"
+      ],
+      "routes": [
+        "/",
+        "/guest",
+        "/guest/play"
+      ],
+      "states": [
+        "anonymous",
+        "guest-persistent",
+        "account"
+      ],
+      "apiOrModules": [
+        "guestApi",
+        "authApi",
+        "clientIdentity",
+        "localGameStorage"
+      ],
+      "tests": [
+        "AuthPages.test.tsx",
+        "localData.test.ts"
+      ],
+      "ownerWave": "V2/V9"
+    },
+    {
+      "feature": "Cancel vs match commit, reconnect/resync",
+      "taskIds": [
+        "QUEUE-01",
+        "QUEUE-02",
+        "QUEUE-03",
+        "QUEUE-04"
+      ],
+      "routes": [
+        "/queue"
+      ],
+      "states": [
+        "searching",
+        "cancelling",
+        "matched",
+        "reconnecting"
+      ],
+      "apiOrModules": [
+        "matchmakingApi",
+        "queueAdmission",
+        "queueState"
+      ],
+      "tests": [
+        "QueuePage.test.tsx",
+        "r1-queue-recovery.spec.ts"
+      ],
+      "ownerWave": "V3"
+    },
+    {
+      "feature": "Active match / Bot owner rời tab",
+      "taskIds": [
+        "ROOM-05",
+        "BOTON-05"
+      ],
+      "routes": [
+        "/phong/:roomId",
+        "/game/:roomId",
+        "/dau-chuong-trinh/online"
+      ],
+      "states": [
+        "pregame",
+        "active",
+        "resume",
+        "conflict"
+      ],
+      "apiOrModules": [
+        "activeMatchHint",
+        "matchApi",
+        "botOnlineApi"
+      ],
+      "tests": [
+        "activeMatchHint.test.ts",
+        "r10-bot-restart-probe.mjs"
+      ],
+      "ownerWave": "V2/V5"
+    },
+    {
+      "feature": "Custom Manual/Bot + Ref/Spec độc lập",
+      "taskIds": [
+        "ROOM-01",
+        "ROOM-02",
+        "ROOM-03",
+        "ROOM-04"
+      ],
+      "routes": [
+        "/phong/:roomId",
+        "/room/:roomId"
+      ],
+      "states": [
+        "create",
+        "waiting",
+        "ready",
+        "locked-config"
+      ],
+      "apiOrModules": [
+        "roomApi",
+        "WaitingRoom",
+        "CreateRoomForm"
+      ],
+      "tests": [
+        "WaitingRoom.test.tsx",
+        "r8-manual-referee.spec.ts"
+      ],
+      "ownerWave": "V3"
+    },
+    {
+      "feature": "Ref pause/resume/replacement",
+      "taskIds": [
+        "REF-01",
+        "REF-02",
+        "REF-03",
+        "REF-04"
+      ],
+      "routes": [
+        "/game/:roomId",
+        "/spectate/:roomId"
+      ],
+      "states": [
+        "running",
+        "paused",
+        "resuming",
+        "blocked"
+      ],
+      "apiOrModules": [
+        "matchApi",
+        "RefereePauseOverlay",
+        "RefereeReplacementPanel"
+      ],
+      "tests": [
+        "referee.route.unit.test.ts",
+        "r8-manual-referee.spec.ts"
+      ],
+      "ownerWave": "V4"
+    },
+    {
+      "feature": "Online bot hot-update",
+      "taskIds": [
+        "BOTON-02",
+        "BOTON-03"
+      ],
+      "routes": [
+        "/dau-chuong-trinh/online"
+      ],
+      "states": [
+        "active",
+        "pending",
+        "invalid",
+        "terminal"
+      ],
+      "apiOrModules": [
+        "botOnlineApi",
+        "bot-online contracts"
+      ],
+      "tests": [
+        "bot-online.service.unit.test.ts"
+      ],
+      "ownerWave": "V5"
+    },
+    {
+      "feature": "Bot budgets/fault/capacity",
+      "taskIds": [
+        "BOTON-04",
+        "BOTON-05"
+      ],
+      "routes": [
+        "/dau-chuong-trinh/online"
+      ],
+      "states": [
+        "preset",
+        "thinking",
+        "quota",
+        "author-fault",
+        "infrastructure-recovery"
+      ],
+      "apiOrModules": [
+        "botOnlineApi",
+        "bot-sdk",
+        "server snapshot"
+      ],
+      "tests": [
+        "wasmtime.adapter.unit.test.ts",
+        "r10-bot-restart-probe.mjs"
+      ],
+      "ownerWave": "V5"
+    },
+    {
+      "feature": "Private library",
+      "taskIds": [
+        "BOTLIB-01",
+        "BOTLIB-02",
+        "BOTLIB-03",
+        "BOTLIB-04"
+      ],
+      "routes": [
+        "/bot-lab"
+      ],
+      "states": [
+        "empty",
+        "uploading",
+        "checking",
+        "ready",
+        "test-failed",
+        "delete"
+      ],
+      "apiOrModules": [
+        "botLibraryApi"
+      ],
+      "tests": [
+        "bot-library.route.unit.test.ts",
+        "BotWorkbenchPage.test.tsx"
+      ],
+      "ownerWave": "V5"
+    },
+    {
+      "feature": "Guest Bot/local library",
+      "taskIds": [
+        "LOCAL-03",
+        "LOCAL-04",
+        "LOCAL-05"
+      ],
+      "routes": [
+        "/bot-lab",
+        "/dau-chuong-trinh/online"
+      ],
+      "states": [
+        "guest-local",
+        "sample",
+        "revision",
+        "ownership-denied"
+      ],
+      "apiOrModules": [
+        "localData",
+        "bot-library",
+        "guestApi"
+      ],
+      "tests": [
+        "localData.test.ts",
+        "VIS-FUNC-01 harness"
+      ],
+      "ownerWave": "V5"
+    },
+    {
+      "feature": "Offline runtime/cache",
+      "taskIds": [
+        "LOCAL-03",
+        "LOCAL-04",
+        "LOCAL-05"
+      ],
+      "routes": [
+        "/dau-chuong-trinh/offline",
+        "/offline"
+      ],
+      "states": [
+        "download",
+        "ready",
+        "missing",
+        "evicted",
+        "paused-restore"
+      ],
+      "apiOrModules": [
+        "botOfflineRunner",
+        "offlineKit",
+        "localData"
+      ],
+      "tests": [
+        "BotOfflinePage.test.tsx",
+        "offlineKit tests"
+      ],
+      "ownerWave": "V5/V9"
+    },
+    {
+      "feature": "Invitations/privacy",
+      "taskIds": [
+        "FRIEND-01",
+        "FRIEND-02",
+        "FRIEND-03",
+        "FRIEND-04"
+      ],
+      "routes": [
+        "/ban-be",
+        "/friends",
+        "/phong/:roomId"
+      ],
+      "states": [
+        "incoming",
+        "sent",
+        "expired",
+        "blocked",
+        "guest-link"
+      ],
+      "apiOrModules": [
+        "socialApi",
+        "roomApi"
+      ],
+      "tests": [
+        "FriendsPage.test.tsx",
+        "social.route.unit.test.ts"
+      ],
+      "ownerWave": "V6/V8"
+    },
+    {
+      "feature": "Replay/audit/NPM",
+      "taskIds": [
+        "RESULT-01",
+        "RESULT-02",
+        "HIST-01",
+        "HIST-02",
+        "HIST-03",
+        "HIST-04"
+      ],
+      "routes": [
+        "/lich-su",
+        "/history",
+        "/history/:matchId"
+      ],
+      "states": [
+        "list",
+        "replay",
+        "pause-timeline",
+        "legacy-final-only",
+        "audit"
+      ],
+      "apiOrModules": [
+        "historyApi",
+        "ReplayPanel",
+        "resultMetrics"
+      ],
+      "tests": [
+        "ReplayPanel.test.tsx",
+        "history.route.unit.test.ts"
+      ],
+      "ownerWave": "V4/V7"
+    },
+    {
+      "feature": "Local/account data boundaries",
+      "taskIds": [
+        "HIST-04",
+        "PROF-03",
+        "SET-03"
+      ],
+      "routes": [
+        "/lich-su",
+        "/ho-so",
+        "/cai-dat"
+      ],
+      "states": [
+        "local",
+        "account",
+        "export",
+        "clear-confirmation",
+        "active-guard"
+      ],
+      "apiOrModules": [
+        "localData",
+        "localGameStorage",
+        "authApi"
+      ],
+      "tests": [
+        "localData.test.ts",
+        "localGameStorage.test.ts"
+      ],
+      "ownerWave": "V7/V9"
+    },
+    {
+      "feature": "Auth/failure paths",
+      "taskIds": [
+        "AUTH-01",
+        "AUTH-02",
+        "AUTH-03",
+        "FALL-01"
+      ],
+      "routes": [
+        "/login",
+        "/register",
+        "/forgot-password",
+        "*"
+      ],
+      "states": [
+        "expired",
+        "forbidden",
+        "retry",
+        "return",
+        "missing-cache",
+        "outage"
+      ],
+      "apiOrModules": [
+        "httpClient",
+        "apiError",
+        "returnUrl",
+        "authApi"
+      ],
+      "tests": [
+        "AuthPages.test.tsx",
+        "NotFoundPage.test.tsx"
+      ],
+      "ownerWave": "V9"
+    },
+    {
+      "feature": "Home / direct and program tabs",
+      "taskIds": [
+        "HOME-01",
+        "HOME-02",
+        "HOME-03",
+        "HOME-04",
+        "HOME-05",
+        "HOME-06"
+      ],
+      "routes": [
+        "/",
+        "/home",
+        "/phong-online"
+      ],
+      "states": [
+        "direct",
+        "program",
+        "resume",
+        "rooms",
+        "friends"
+      ],
+      "apiOrModules": [
+        "home route",
+        "queue",
+        "bot-online",
+        "bot-offline"
+      ],
+      "tests": [
+        "HomePage.test.tsx",
+        "frontend.smoke.spec.ts"
+      ],
+      "ownerWave": "V2"
+    },
+    {
+      "feature": "Manual/AI/Offline shared board/HUD",
+      "taskIds": [
+        "GAME-01",
+        "GAME-02"
+      ],
+      "routes": [
+        "/game/:roomId",
+        "/ai",
+        "/offline"
+      ],
+      "states": [
+        "blue-bottom",
+        "red-bottom",
+        "selected",
+        "legal",
+        "capture",
+        "last-move"
+      ],
+      "apiOrModules": [
+        "game-rules",
+        "matchApi",
+        "localGameStorage"
+      ],
+      "tests": [
+        "GameBoard.test.tsx",
+        "LocalGamePage.test.tsx"
+      ],
+      "ownerWave": "V4"
+    },
+    {
+      "feature": "Spectator and public events",
+      "taskIds": [
+        "SPEC-01",
+        "SPEC-02"
+      ],
+      "routes": [
+        "/spectate/:roomId"
+      ],
+      "states": [
+        "canonical",
+        "leave",
+        "reconnect",
+        "private-log-hidden"
+      ],
+      "apiOrModules": [
+        "matchApi",
+        "roomApi"
+      ],
+      "tests": [
+        "SpectatorPage.test.tsx"
+      ],
+      "ownerWave": "V4"
+    },
+    {
+      "feature": "Friends / profile / settings pages",
+      "taskIds": [
+        "FRIEND-01",
+        "FRIEND-02",
+        "FRIEND-03",
+        "FRIEND-04",
+        "PROF-01",
+        "PROF-02",
+        "PROF-03",
+        "SET-01",
+        "SET-02",
+        "SET-03"
+      ],
+      "routes": [
+        "/friends",
+        "/profile/:username",
+        "/settings"
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "public",
+        "self",
+        "guest",
+        "theme",
+        "motion"
+      ],
+      "apiOrModules": [
+        "socialApi",
+        "authApi",
+        "localData"
+      ],
+      "tests": [
+        "FriendsPage.test.tsx",
+        "ProfilePage.test.tsx",
+        "SettingsPage.test.tsx"
+      ],
+      "ownerWave": "V6/V8/V9"
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+/* V7 · History is a readable evidence surface, not a dense admin table. */
+.robot-lab-history-page {
+  min-height: 68rem;
+  width: min(76rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.2rem) 0 3rem;
+}
+
+.robot-lab-history-page .history-header,
+.robot-lab-history-page .history-summary > div,
+.robot-lab-history-page .history-filters,
+.robot-lab-history-page .history-card,
+.robot-lab-history-page .history-detail > *,
+.robot-lab-replay-panel {
+  border-color: color-mix(in srgb, var(--system-cyan) 34%, var(--border));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 94%, var(--system-cyan)), var(--surface));
+  box-shadow: var(--lab-bevel), var(--shadow-raised);
+}
+
+.robot-lab-history-page .history-header {
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--system-cyan) 42%, var(--border));
+  border-radius: var(--radius-md);
+}
+
+.robot-lab-history-page .history-summary > div {
+  transition: transform var(--motion-fast), border-color var(--motion-fast);
+}
+
+.robot-lab-history-page .history-summary > div:hover,
+.robot-lab-history-page .history-card:hover {
+  border-color: var(--data-accent);
+  transform: translateY(-2px);
+}
+
+.robot-lab-history-page .history-filters {
+  gap: .75rem;
+  border-radius: var(--radius-md);
+}
+
+.robot-lab-history-page .filter-group {
+  padding: .35rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+
+.robot-lab-history-page .filter-group:last-child {
+  border-bottom: 0;
+}
+
+.robot-lab-history-page .filter-chip {
+  min-height: 2.45rem;
+  transition: color var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast), transform var(--motion-fast);
+}
+
+.robot-lab-history-page .filter-chip:hover {
+  transform: translateY(-1px);
+}
+
+.robot-lab-history-page .history-card {
+  transition: transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
+}
+
+.robot-lab-history-page .history-state,
+.robot-lab-history-page .local-history-section {
+  border-color: color-mix(in srgb, var(--system-cyan) 35%, var(--border));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 94%, var(--system-cyan)), var(--surface));
+  box-shadow: var(--lab-bevel), var(--shadow-raised);
+}
+
+.robot-lab-history-page .history-state-region {
+  min-height: 26rem;
+  contain: layout;
+}
+
+.robot-lab-history-page .history-local-region {
+  min-height: 7rem;
+  contain: layout;
+}
+
+.robot-lab-history-page .history-source-badge {
+  color: var(--data-accent);
+  background: color-mix(in srgb, var(--data-accent) 9%, var(--surface));
+}
+
+.robot-lab-replay-panel {
+  border-radius: var(--radius-md);
+  transition: border-color var(--motion-fast), transform var(--motion-fast);
+}
+
+.robot-lab-replay-panel:hover {
+  border-color: var(--data-accent);
+}
+
+.robot-lab-replay-panel .history-replay-controls .button {
+  min-height: 2.75rem;
+}
+
+.robot-lab-replay-panel .history-replay-timeline {
+  max-height: 12rem;
+  padding-right: .2rem;
+  scrollbar-color: var(--data-accent) var(--surface);
+}
+
+.robot-lab-replay-panel .history-replay-timeline li {
+  border-color: color-mix(in srgb, var(--system-cyan) 28%, var(--border));
+  background: color-mix(in srgb, var(--surface-raised) 88%, var(--system-cyan));
+}
+
+.robot-lab-history-page .final-position {
+  border-color: color-mix(in srgb, var(--system-cyan) 36%, var(--border));
+  box-shadow: var(--lab-bevel), var(--shadow-raised);
+}
+
+@media (max-width: 700px) {
+  .robot-lab-history-page .history-summary {
+    min-height: 18.5rem;
+  }
+
+  .robot-lab-history-page .history-state-region {
+    min-height: 52.5rem;
+  }
+
+  .robot-lab-history-page .history-header {
+    align-items: stretch;
+  }
+
+  .robot-lab-history-page .history-header > .button {
+    width: 100%;
+  }
+
+  .robot-lab-history-page .filter-group {
+    align-items: stretch;
+  }
+
+  .robot-lab-history-page .filter-chip {
+    align-self: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-lab-history-page .history-summary > div,
+  .robot-lab-history-page .history-card,
+  .robot-lab-history-page .filter-chip,
+  .robot-lab-replay-panel {
+    transition: none;
+    transform: none;
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "wave": "R20/V10",
+  "phase": "F0",
+  "status": "F0_DONE_LOCAL_RELEASE_NOT_READY",
+  "recordedAt": "2026-10-06T00:00:00+07:00",
+  "scope": {
+    "sourceDigestExcludes": [
+      "docs/release/r20-v10/candidate.json",
+      "node_modules/**",
+      ".git/**",
+      ".worktrees/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/*.{png,jpg,jpeg,gif,mp4,zip,db}"
+    ],
+    "productionMutation": false,
+    "push": false,
+    "deploy": false,
+    "playerPythonExecuted": false
+  },
+  "git": {
+    "branch": "main",
+    "headSha": "8c6fed2201295ecb310999691cf2c85cb80ef47a",
+    "originMainSha": "8c6fed2201295ecb310999691cf2c85cb80ef47a",
+    "candidateSha": null,
+    "workingTree": {
+      "modifiedTrackedFiles": 102,
+      "untrackedEntries": 124,
+      "deletedFiles": 0,
+      "diffCheck": "PASS_WITH_WINDOWS_EOL_WARNINGS",
+      "workingDiffDigest": "d0aeca55950548c5f31cf85928526b8541b572830af39b6e29f5f40b6783fc58",
+      "trackedIndexDigest": "b668bf61900ccb86fd0fc92c0cd2337d6571667d2001bd2585ddae45c1390958",
+      "statusInventoryDigest": "9c8487929620de5d3c608ba335054794d01736c9f64abd4a2f9f4ce9117447ba"
+    },
+    "candidateSourceDigest": {
+      "algorithm": "SHA-256",
+      "digest": "ff9fe53ed3ec44bb4de22dfc4cc1c9f3b5613f3d3e811544654dc2903fb257d",
+      "fileCount": 730,
+      "scope": "working tree files excluding manifest, dependencies, VCS metadata, worktrees, build/coverage output and large binary assets"
+    },
+    "worktreesObserved": [
+      "C:/Users/Admin/.codex/worktrees/b3-frontend/ott-v2",
+      "C:/Users/Admin/.codex/worktrees/b4-frontend/ott-v2",
+      "D:/ott-v2/.worktrees/b3-frontend",
+      "D:/ott-v2-b3-worktree (prunable)",
+      "D:/ott-v2-b4 (prunable)"
+    ]
+  },
+  "toolchain": {
+    "node": "v24.13.0",
+    "pnpm": "12.6.0",
+    "prisma": "6.19.3",
+    "postgresClient": "17.7",
+    "playwright": "1.63.0",
+    "typescript": "5.9.3",
+    "lockfiles": {
+      "pnpm-lock.yaml": "fb6b7eab9e993ee509fab1014f20ee8246ffa92d2056331784f56d948eaca424",
+      "package.json": "e4493a413eb92ab9be368096e5beb31258a524640ac1d7cf2af045caf629ee43",
+      "apps/web/package.json": "b9ec9b5c6fc17b3cbc899e86280d903448ae8973e560f728b61d25f05e25b97d",
+      "apps/server/package.json": "b9bd94ad100d1165bf670b17e1cc935a7de5393a7c456bfff53c97d3cf70ffde",
+      "prisma/schema.prisma": "c718bbf9f403ebd8620c1cedfa9bdc7505a88ea0214555991652201e95ca1927"
+    }
+  },
+  "migrations": [
+    {
+      "name": "20261003000000_r4_match_lifecycle",
+      "sql": "prisma/migrations/20261003000000_r4_match_lifecycle/migration.sql",
+      "sha256": "f972aeeed45e86192f9149dfa80b9fd1afd165ace1d53e13b37a5548052f1897",
+      "approval": "previously approved conditionally; backup and rehearsal required"
+    },
+    {
+      "name": "20261004000000_r9_bot_library",
+      "sql": "prisma/migrations/20261004000000_r9_bot_library/migration.sql",
+      "sha256": "5b64b99562adb38a486bc6952c5e46dd3d5b04827e15e2c2cead2c2b623ba8d1",
+      "approval": "previously approved conditionally; backup and rehearsal required"
+    },
+    {
+      "name": "20261004093000_r13_history_replay",
+      "sql": "prisma/migrations/20261004093000_r13_history_replay/migration.sql",
+      "sha256": "84d2cbfd5293df6b528ad69e3dba2a3defa817d81aea74996e0411d167efcdab",
+      "approval": "previously approved conditionally; backup and rehearsal required"
+    },
+    {
+      "name": "20261005000000_guest_bot_online",
+      "sql": "prisma/migrations/20261005000000_guest_bot_online/migration.sql",
+      "sha256": "fc7b84db090c01f84a294b1ee65d3202a9d0a33c414a4007e2dea49285889238",
+      "approval": "requires exact-scope confirmation before production"
+    },
+    {
+      "name": "20261005000100_guest_bot_name_index",
+      "sql": "prisma/migrations/20261005000100_guest_bot_name_index/migration.sql",
+      "sha256": "09112eaf5ab3c076c0cae8cc4df0ffa6899972945e3749bae6be3645464f2d0f",
+      "approval": "requires exact-scope confirmation before production; CREATE INDEX CONCURRENTLY"
+    },
+    {
+      "name": "20261005000200_guest_bot_updated_index",
+      "sql": "prisma/migrations/20261005000200_guest_bot_updated_index/migration.sql",
+      "sha256": "44f8451fa500c9b350b637744dbaae2aa16ac8ca2ec6d9f10b3f8f97a5c44bd3",
+      "approval": "requires exact-scope confirmation before production; CREATE INDEX CONCURRENTLY"
+    }
+  ],
+  "approvedReferences": [
+    {
+      "file": "C:/Users/Admin/.codex/visualizations/2026/09/26/01a0dc09-a9e7-7943-a3ec-1b2dcbe866e2/ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "variant": "Robot Lab / OTT Robotics"
+    },
+    {
+      "file": "C:/Users/Admin/.codex/visualizations/2026/09/26/01a0dc09-a9e7-7943-a3ec-1b2dcbe866e2/ott-robot-lab-board-v02.html",
+      "sha256": "518227e9fc32c5fab578b16301d642ff0c5b8855ad09b9eca415aaedc44242b8",
+      "variant": "Găng trắng · minh họa"
+    },
+    {
+      "file": "C:/Users/Admin/.codex/visualizations/2026/09/26/01a0dc09-a9e7-7943-a3ec-1b2dcbe866e2/ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "variant": "Phòng có Trọng tài / Chuẩn bị phòng"
+    }
+  ],
+  "render": {
+    "config": "render.yaml",
+    "service": "ottv2-api",
+    "healthCheckPath": "/health",
+    "buildCommandIncludesMigration": true,
+    "deployedCommitSha": null,
+    "deployId": null,
+    "healthEvidence": null,
+    "note": "Actual Dashboard configuration and deployed SHA must be captured in F3/F5/F6; this manifest does not infer them from YAML."
+  },
+  "evidencePaths": [
+    "docs/r20_v10_final_release_handoff.md",
+    "docs/r20-final-acceptance-evidence.md",
+    "docs/robot-lab-visual-rebuild-status.json",
+    "docs/robot_lab_wave_status.json",
+    "docs/robot-lab-visual-reference/manifest.json",
+    "docs/robot-lab-visual-reference/cwv-report.json",
+    "docs/robot-lab-visual-reference/v10-isolated-db.json",
+    "docs/robot-lab-visual-reference/v10-independent-review.md",
+    "docs/r20-desktop-baselines/manifest.json"
+  ],
+  "ownershipNext": {
+    "F1": "DB agent — SQL review, backup/restore and populated migration rehearsal",
+    "F2": "Visual/performance agent — approved reference diff and full-lifecycle CWV method",
+    "F3": "Release agent — provenance, semantic health and Render configuration/runbook",
+    "F4": "Independent QA — read-only closure review and cleanup audit",
+    "F5": "Integrator/release operator — approved production migration and candidate push/deploy",
+    "F6": "Independent QA + integrator — exact SHA, production health and final R20/V10 closure"
+  },
+  "openGates": [
+    "F1 backup artifact with SHA256 and successful private restore",
+    "F1 exact approval for the three Guest migrations after SQL review",
+    "F2 approved reference diff and full lifecycle CWV evidence",
+    "F3 semantic production health/provenance checks",
+    "F5/F6 Render deployed SHA and matching production health evidence",
+    "Independent final review after candidate source/evidence are frozen"
+  ]
+}

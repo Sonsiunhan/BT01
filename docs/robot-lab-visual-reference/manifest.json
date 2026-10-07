@@ -1,0 +1,1208 @@
+{
+  "capturedAt": "2026-10-05T18:27:04.926Z",
+  "scope": "V0 Robot Lab reference, route inventory and read-only before-layout capture; not functional acceptance",
+  "approvedDesign": "Robot Lab; dark default; white-glove board; fixed side orientation; original full-body robot",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "sources": [
+    {
+      "id": "home",
+      "file": "ott-robotic-directions.html",
+      "source": "C:\\Users\\Admin\\.codex\\visualizations\\2026\\09\\26\\01a0dc09-a9e7-7943-a3ec-1b2dcbe866e2\\ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "bytes": 66923,
+      "originalUntouched": true
+    },
+    {
+      "id": "board",
+      "file": "ott-robot-lab-board-v02.html",
+      "source": "C:\\Users\\Admin\\.codex\\visualizations\\2026\\09\\26\\01a0dc09-a9e7-7943-a3ec-1b2dcbe866e2\\ott-robot-lab-board-v02.html",
+      "sha256": "518227e9fc32c5fab578b16301d642ff0c5b8855ad09b9eca415aaedc44242b8",
+      "bytes": 15846,
+      "originalUntouched": true
+    },
+    {
+      "id": "referee",
+      "file": "ott-robot-lab-referee.html",
+      "source": "C:\\Users\\Admin\\.codex\\visualizations\\2026\\09\\26\\01a0dc09-a9e7-7943-a3ec-1b2dcbe866e2\\ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "bytes": 26339,
+      "originalUntouched": true
+    }
+  ],
+  "entries": [
+    {
+      "kind": "reference",
+      "id": "home",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "computed": {
+        "background": "rgb(11, 20, 33)",
+        "colorScheme": "dark",
+        "fontFamily": "\"Be Vietnam Pro\", system-ui, sans-serif"
+      },
+      "fontCheck": {
+        "beVietnamPro": true,
+        "spaceGrotesk": true,
+        "status": "loaded"
+      },
+      "viewport": "1440x900",
+      "screenshot": "home-dark-1440x900.png",
+      "network": "DENIED except pinned data fonts",
+      "selectedVariant": "Robot Lab"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-home",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "selectedVariant": "Robot Lab",
+      "page": "home",
+      "screenshot": "home-dark-home-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-lab",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "selectedVariant": "Robot Lab",
+      "page": "lab",
+      "screenshot": "home-dark-lab-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-game",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "selectedVariant": "Robot Lab",
+      "page": "game",
+      "screenshot": "home-dark-game-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-friends",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "selectedVariant": "Robot Lab",
+      "page": "friends",
+      "screenshot": "home-dark-friends-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-history",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "selectedVariant": "Robot Lab",
+      "page": "history",
+      "screenshot": "home-dark-history-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-profile",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "selectedVariant": "Robot Lab",
+      "page": "profile",
+      "screenshot": "home-dark-profile-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-state",
+      "id": "home-bot-tab",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "dark",
+      "selectedVariant": "Robot Lab",
+      "state": "Đấu chương trình tab",
+      "screenshot": "home-dark-bot-tab-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference",
+      "id": "home",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "computed": {
+        "background": "rgb(234, 240, 245)",
+        "colorScheme": "light",
+        "fontFamily": "\"Be Vietnam Pro\", system-ui, sans-serif"
+      },
+      "fontCheck": {
+        "beVietnamPro": true,
+        "spaceGrotesk": true,
+        "status": "loaded"
+      },
+      "viewport": "1440x900",
+      "screenshot": "home-light-1440x900.png",
+      "network": "DENIED except pinned data fonts",
+      "selectedVariant": "Robot Lab"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-home",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "selectedVariant": "Robot Lab",
+      "page": "home",
+      "screenshot": "home-light-home-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-lab",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "selectedVariant": "Robot Lab",
+      "page": "lab",
+      "screenshot": "home-light-lab-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-game",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "selectedVariant": "Robot Lab",
+      "page": "game",
+      "screenshot": "home-light-game-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-friends",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "selectedVariant": "Robot Lab",
+      "page": "friends",
+      "screenshot": "home-light-friends-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-history",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "selectedVariant": "Robot Lab",
+      "page": "history",
+      "screenshot": "home-light-history-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-route",
+      "id": "home-profile",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "selectedVariant": "Robot Lab",
+      "page": "profile",
+      "screenshot": "home-light-profile-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-state",
+      "id": "home-bot-tab",
+      "source": "ott-robotic-directions.html",
+      "sha256": "31e961d0bcda2b929302758c06b6d91c0dbd5ca6a5e4a032bf2435b508b49290",
+      "theme": "light",
+      "selectedVariant": "Robot Lab",
+      "state": "Đấu chương trình tab",
+      "screenshot": "home-light-bot-tab-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference",
+      "id": "board",
+      "source": "ott-robot-lab-board-v02.html",
+      "sha256": "518227e9fc32c5fab578b16301d642ff0c5b8855ad09b9eca415aaedc44242b8",
+      "theme": "dark",
+      "computed": {
+        "background": "rgb(14, 28, 41)",
+        "colorScheme": "dark",
+        "fontFamily": "\"Be Vietnam Pro\", system-ui, sans-serif"
+      },
+      "fontCheck": {
+        "beVietnamPro": true,
+        "spaceGrotesk": false,
+        "status": "loaded"
+      },
+      "viewport": "1440x900",
+      "screenshot": "board-dark-1440x900.png",
+      "network": "DENIED except pinned data fonts",
+      "selectedVariant": "Găng trắng · minh họa"
+    },
+    {
+      "kind": "reference",
+      "id": "board",
+      "source": "ott-robot-lab-board-v02.html",
+      "sha256": "518227e9fc32c5fab578b16301d642ff0c5b8855ad09b9eca415aaedc44242b8",
+      "theme": "light",
+      "computed": {
+        "background": "rgb(237, 243, 247)",
+        "colorScheme": "light",
+        "fontFamily": "\"Be Vietnam Pro\", system-ui, sans-serif"
+      },
+      "fontCheck": {
+        "beVietnamPro": true,
+        "spaceGrotesk": false,
+        "status": "loaded"
+      },
+      "viewport": "1440x900",
+      "screenshot": "board-light-1440x900.png",
+      "network": "DENIED except pinned data fonts",
+      "selectedVariant": "Găng trắng · minh họa"
+    },
+    {
+      "kind": "reference",
+      "id": "referee",
+      "source": "ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "theme": "dark",
+      "computed": {
+        "background": "rgb(12, 27, 40)",
+        "colorScheme": "dark",
+        "fontFamily": "\"Be Vietnam Pro\", system-ui, sans-serif"
+      },
+      "fontCheck": {
+        "beVietnamPro": true,
+        "spaceGrotesk": false,
+        "status": "loaded"
+      },
+      "viewport": "1440x900",
+      "screenshot": "referee-dark-1440x900.png",
+      "network": "DENIED except pinned data fonts",
+      "selectedVariant": "Chuẩn bị phòng"
+    },
+    {
+      "kind": "reference-state",
+      "id": "referee-paused",
+      "source": "ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "theme": "dark",
+      "selectedVariant": "Trọng tài",
+      "state": "paused; observer is fixed to PLAYER/Red bottom",
+      "screenshot": "referee-view-dark-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-state",
+      "id": "observer-paused",
+      "source": "ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "theme": "dark",
+      "selectedVariant": "Người chơi / Khán giả",
+      "state": "paused; observer is fixed to PLAYER/Red bottom",
+      "screenshot": "observer-view-dark-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference",
+      "id": "referee",
+      "source": "ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "theme": "light",
+      "computed": {
+        "background": "rgb(234, 241, 245)",
+        "colorScheme": "light",
+        "fontFamily": "\"Be Vietnam Pro\", system-ui, sans-serif"
+      },
+      "fontCheck": {
+        "beVietnamPro": true,
+        "spaceGrotesk": false,
+        "status": "loaded"
+      },
+      "viewport": "1440x900",
+      "screenshot": "referee-light-1440x900.png",
+      "network": "DENIED except pinned data fonts",
+      "selectedVariant": "Chuẩn bị phòng"
+    },
+    {
+      "kind": "reference-state",
+      "id": "referee-paused",
+      "source": "ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "theme": "light",
+      "selectedVariant": "Trọng tài",
+      "state": "paused; observer is fixed to PLAYER/Red bottom",
+      "screenshot": "referee-view-light-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    },
+    {
+      "kind": "reference-state",
+      "id": "observer-paused",
+      "source": "ott-robot-lab-referee.html",
+      "sha256": "1df5df0af87751254181ab01dba0ed34b13d1be29ef43247ea2d4fa55d00af44",
+      "theme": "light",
+      "selectedVariant": "Người chơi / Khán giả",
+      "state": "paused; observer is fixed to PLAYER/Red bottom",
+      "screenshot": "observer-view-light-1440x900.png",
+      "viewport": "1440x900",
+      "network": "DENIED except pinned data fonts"
+    }
+  ],
+  "themeChecks": [
+    {
+      "stored": null,
+      "osPreference": "dark",
+      "expected": "dark",
+      "actual": "dark",
+      "result": "PASS"
+    },
+    {
+      "stored": "light",
+      "osPreference": "dark",
+      "expected": "light",
+      "actual": "light",
+      "result": "PASS"
+    },
+    {
+      "stored": "dark",
+      "osPreference": "dark",
+      "expected": "dark",
+      "actual": "dark",
+      "result": "PASS"
+    },
+    {
+      "stored": "system",
+      "osPreference": "dark",
+      "expected": "dark",
+      "actual": "dark",
+      "result": "PASS"
+    }
+  ],
+  "routeBefore": [
+    {
+      "route": "/",
+      "url": "http://127.0.0.1:4173/",
+      "status": 200,
+      "error": null,
+      "textLength": 1196,
+      "screenshot": "app-before-root-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/home",
+      "url": "http://127.0.0.1:4173/home",
+      "status": 200,
+      "error": null,
+      "textLength": 1196,
+      "screenshot": "app-before-_home-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/phong-online",
+      "url": "http://127.0.0.1:4173/phong-online",
+      "status": 200,
+      "error": null,
+      "textLength": 382,
+      "screenshot": "app-before-_phong-online-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/queue",
+      "url": "http://127.0.0.1:4173/queue",
+      "status": 200,
+      "error": null,
+      "textLength": 169,
+      "screenshot": "app-before-_queue-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/phong/demo",
+      "url": "http://127.0.0.1:4173/phong/demo",
+      "status": 200,
+      "error": null,
+      "textLength": 70,
+      "screenshot": "app-before-_phong_demo-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/room/demo",
+      "url": "http://127.0.0.1:4173/room/demo",
+      "status": 200,
+      "error": null,
+      "textLength": 70,
+      "screenshot": "app-before-_room_demo-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/game/demo",
+      "url": "http://127.0.0.1:4173/game/demo",
+      "status": 200,
+      "error": null,
+      "textLength": 70,
+      "screenshot": "app-before-_game_demo-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/ai",
+      "url": "http://127.0.0.1:4173/ai",
+      "status": 200,
+      "error": null,
+      "textLength": 346,
+      "screenshot": "app-before-_ai-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/offline",
+      "url": "http://127.0.0.1:4173/offline",
+      "status": 200,
+      "error": null,
+      "textLength": 301,
+      "screenshot": "app-before-_offline-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/spectate/demo",
+      "url": "http://127.0.0.1:4173/spectate/demo",
+      "status": 200,
+      "error": null,
+      "textLength": 201,
+      "screenshot": "app-before-_spectate_demo-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/bot-lab",
+      "url": "http://127.0.0.1:4173/bot-lab",
+      "status": 200,
+      "error": null,
+      "textLength": 828,
+      "screenshot": "app-before-_bot-lab-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/dau-chuong-trinh/online",
+      "url": "http://127.0.0.1:4173/dau-chuong-trinh/online",
+      "status": 200,
+      "error": null,
+      "textLength": 982,
+      "screenshot": "app-before-_dau-chuong-trinh_online-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/dau-chuong-trinh/offline",
+      "url": "http://127.0.0.1:4173/dau-chuong-trinh/offline",
+      "status": 200,
+      "error": null,
+      "textLength": 1914,
+      "screenshot": "app-before-_dau-chuong-trinh_offline-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/ban-be",
+      "url": "http://127.0.0.1:4173/ban-be",
+      "status": 200,
+      "error": null,
+      "textLength": 239,
+      "screenshot": "app-before-_ban-be-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/friends",
+      "url": "http://127.0.0.1:4173/friends",
+      "status": 200,
+      "error": null,
+      "textLength": 239,
+      "screenshot": "app-before-_friends-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/lich-su",
+      "url": "http://127.0.0.1:4173/lich-su",
+      "status": 200,
+      "error": null,
+      "textLength": 422,
+      "screenshot": "app-before-_lich-su-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/history",
+      "url": "http://127.0.0.1:4173/history",
+      "status": 200,
+      "error": null,
+      "textLength": 422,
+      "screenshot": "app-before-_history-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/history/demo",
+      "url": "http://127.0.0.1:4173/history/demo",
+      "status": 200,
+      "error": null,
+      "textLength": 422,
+      "screenshot": "app-before-_history_demo-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/ho-so",
+      "url": "http://127.0.0.1:4173/ho-so",
+      "status": 200,
+      "error": null,
+      "textLength": 173,
+      "screenshot": "app-before-_ho-so-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/profile/demo",
+      "url": "http://127.0.0.1:4173/profile/demo",
+      "status": 200,
+      "error": null,
+      "textLength": 173,
+      "screenshot": "app-before-_profile_demo-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/cai-dat",
+      "url": "http://127.0.0.1:4173/cai-dat",
+      "status": 200,
+      "error": null,
+      "textLength": 813,
+      "screenshot": "app-before-_cai-dat-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/settings",
+      "url": "http://127.0.0.1:4173/settings",
+      "status": 200,
+      "error": null,
+      "textLength": 813,
+      "screenshot": "app-before-_settings-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/login",
+      "url": "http://127.0.0.1:4173/login",
+      "status": 200,
+      "error": null,
+      "textLength": 447,
+      "screenshot": "app-before-_login-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/register",
+      "url": "http://127.0.0.1:4173/register",
+      "status": 200,
+      "error": null,
+      "textLength": 496,
+      "screenshot": "app-before-_register-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/forgot-password",
+      "url": "http://127.0.0.1:4173/forgot-password",
+      "status": 200,
+      "error": null,
+      "textLength": 445,
+      "screenshot": "app-before-_forgot-password-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/guest",
+      "url": "http://127.0.0.1:4173/guest",
+      "status": 200,
+      "error": null,
+      "textLength": 612,
+      "screenshot": "app-before-_guest-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/guest/play",
+      "url": "http://127.0.0.1:4173/guest/play",
+      "status": 200,
+      "error": null,
+      "textLength": 301,
+      "screenshot": "app-before-_guest_play-1440x900.png",
+      "result": "CAPTURED"
+    },
+    {
+      "route": "/missing-v0-route",
+      "url": "http://127.0.0.1:4173/missing-v0-route",
+      "status": 200,
+      "error": null,
+      "textLength": 267,
+      "screenshot": "app-before-_missing-v0-route-1440x900.png",
+      "result": "CAPTURED"
+    }
+  ],
+  "inventory": [
+    [
+      "Guest principal + account login giữa trận",
+      [
+        "HOME-01",
+        "AUTH-01",
+        "LOCAL-01"
+      ],
+      [
+        "/",
+        "/guest",
+        "/guest/play"
+      ],
+      [
+        "anonymous",
+        "guest-persistent",
+        "account"
+      ],
+      [
+        "guestApi",
+        "authApi",
+        "clientIdentity",
+        "localGameStorage"
+      ],
+      [
+        "AuthPages.test.tsx",
+        "localData.test.ts"
+      ],
+      "V2/V9"
+    ],
+    [
+      "Cancel vs match commit, reconnect/resync",
+      [
+        "QUEUE-01",
+        "QUEUE-02",
+        "QUEUE-03",
+        "QUEUE-04"
+      ],
+      [
+        "/queue"
+      ],
+      [
+        "searching",
+        "cancelling",
+        "matched",
+        "reconnecting"
+      ],
+      [
+        "matchmakingApi",
+        "queueAdmission",
+        "queueState"
+      ],
+      [
+        "QueuePage.test.tsx",
+        "r1-queue-recovery.spec.ts"
+      ],
+      "V3"
+    ],
+    [
+      "Active match / Bot owner rời tab",
+      [
+        "ROOM-05",
+        "BOTON-05"
+      ],
+      [
+        "/phong/:roomId",
+        "/game/:roomId",
+        "/dau-chuong-trinh/online"
+      ],
+      [
+        "pregame",
+        "active",
+        "resume",
+        "conflict"
+      ],
+      [
+        "activeMatchHint",
+        "matchApi",
+        "botOnlineApi"
+      ],
+      [
+        "activeMatchHint.test.ts",
+        "r10-bot-restart-probe.mjs"
+      ],
+      "V2/V5"
+    ],
+    [
+      "Custom Manual/Bot + Ref/Spec độc lập",
+      [
+        "ROOM-01",
+        "ROOM-02",
+        "ROOM-03",
+        "ROOM-04"
+      ],
+      [
+        "/phong/:roomId",
+        "/room/:roomId"
+      ],
+      [
+        "create",
+        "waiting",
+        "ready",
+        "locked-config"
+      ],
+      [
+        "roomApi",
+        "WaitingRoom",
+        "CreateRoomForm"
+      ],
+      [
+        "WaitingRoom.test.tsx",
+        "r8-manual-referee.spec.ts"
+      ],
+      "V3"
+    ],
+    [
+      "Ref pause/resume/replacement",
+      [
+        "REF-01",
+        "REF-02",
+        "REF-03",
+        "REF-04"
+      ],
+      [
+        "/game/:roomId",
+        "/spectate/:roomId"
+      ],
+      [
+        "running",
+        "paused",
+        "resuming",
+        "blocked"
+      ],
+      [
+        "matchApi",
+        "RefereePauseOverlay",
+        "RefereeReplacementPanel"
+      ],
+      [
+        "referee.route.unit.test.ts",
+        "r8-manual-referee.spec.ts"
+      ],
+      "V4"
+    ],
+    [
+      "Online bot hot-update",
+      [
+        "BOTON-02",
+        "BOTON-03"
+      ],
+      [
+        "/dau-chuong-trinh/online"
+      ],
+      [
+        "active",
+        "pending",
+        "invalid",
+        "terminal"
+      ],
+      [
+        "botOnlineApi",
+        "bot-online contracts"
+      ],
+      [
+        "bot-online.service.unit.test.ts"
+      ],
+      "V5"
+    ],
+    [
+      "Bot budgets/fault/capacity",
+      [
+        "BOTON-04",
+        "BOTON-05"
+      ],
+      [
+        "/dau-chuong-trinh/online"
+      ],
+      [
+        "preset",
+        "thinking",
+        "quota",
+        "author-fault",
+        "infrastructure-recovery"
+      ],
+      [
+        "botOnlineApi",
+        "bot-sdk",
+        "server snapshot"
+      ],
+      [
+        "wasmtime.adapter.unit.test.ts",
+        "r10-bot-restart-probe.mjs"
+      ],
+      "V5"
+    ],
+    [
+      "Private library",
+      [
+        "BOTLIB-01",
+        "BOTLIB-02",
+        "BOTLIB-03",
+        "BOTLIB-04"
+      ],
+      [
+        "/bot-lab"
+      ],
+      [
+        "empty",
+        "uploading",
+        "checking",
+        "ready",
+        "test-failed",
+        "delete"
+      ],
+      [
+        "botLibraryApi"
+      ],
+      [
+        "bot-library.route.unit.test.ts",
+        "BotWorkbenchPage.test.tsx"
+      ],
+      "V5"
+    ],
+    [
+      "Guest Bot/local library",
+      [
+        "LOCAL-03",
+        "LOCAL-04",
+        "LOCAL-05"
+      ],
+      [
+        "/bot-lab",
+        "/dau-chuong-trinh/online"
+      ],
+      [
+        "guest-local",
+        "sample",
+        "revision",
+        "ownership-denied"
+      ],
+      [
+        "localData",
+        "bot-library",
+        "guestApi"
+      ],
+      [
+        "localData.test.ts",
+        "VIS-FUNC-01 harness"
+      ],
+      "V5"
+    ],
+    [
+      "Offline runtime/cache",
+      [
+        "LOCAL-03",
+        "LOCAL-04",
+        "LOCAL-05"
+      ],
+      [
+        "/dau-chuong-trinh/offline",
+        "/offline"
+      ],
+      [
+        "download",
+        "ready",
+        "missing",
+        "evicted",
+        "paused-restore"
+      ],
+      [
+        "botOfflineRunner",
+        "offlineKit",
+        "localData"
+      ],
+      [
+        "BotOfflinePage.test.tsx",
+        "offlineKit tests"
+      ],
+      "V5/V9"
+    ],
+    [
+      "Invitations/privacy",
+      [
+        "FRIEND-01",
+        "FRIEND-02",
+        "FRIEND-03",
+        "FRIEND-04"
+      ],
+      [
+        "/ban-be",
+        "/friends",
+        "/phong/:roomId"
+      ],
+      [
+        "incoming",
+        "sent",
+        "expired",
+        "blocked",
+        "guest-link"
+      ],
+      [
+        "socialApi",
+        "roomApi"
+      ],
+      [
+        "FriendsPage.test.tsx",
+        "social.route.unit.test.ts"
+      ],
+      "V6/V8"
+    ],
+    [
+      "Replay/audit/NPM",
+      [
+        "RESULT-01",
+        "RESULT-02",
+        "HIST-01",
+        "HIST-02",
+        "HIST-03",
+        "HIST-04"
+      ],
+      [
+        "/lich-su",
+        "/history",
+        "/history/:matchId"
+      ],
+      [
+        "list",
+        "replay",
+        "pause-timeline",
+        "legacy-final-only",
+        "audit"
+      ],
+      [
+        "historyApi",
+        "ReplayPanel",
+        "resultMetrics"
+      ],
+      [
+        "ReplayPanel.test.tsx",
+        "history.route.unit.test.ts"
+      ],
+      "V4/V7"
+    ],
+    [
+      "Local/account data boundaries",
+      [
+        "HIST-04",
+        "PROF-03",
+        "SET-03"
+      ],
+      [
+        "/lich-su",
+        "/ho-so",
+        "/cai-dat"
+      ],
+      [
+        "local",
+        "account",
+        "export",
+        "clear-confirmation",
+        "active-guard"
+      ],
+      [
+        "localData",
+        "localGameStorage",
+        "authApi"
+      ],
+      [
+        "localData.test.ts",
+        "localGameStorage.test.ts"
+      ],
+      "V7/V9"
+    ],
+    [
+      "Auth/failure paths",
+      [
+        "AUTH-01",
+        "AUTH-02",
+        "AUTH-03",
+        "FALL-01"
+      ],
+      [
+        "/login",
+        "/register",
+        "/forgot-password",
+        "*"
+      ],
+      [
+        "expired",
+        "forbidden",
+        "retry",
+        "return",
+        "missing-cache",
+        "outage"
+      ],
+      [
+        "httpClient",
+        "apiError",
+        "returnUrl",
+        "authApi"
+      ],
+      [
+        "AuthPages.test.tsx",
+        "NotFoundPage.test.tsx"
+      ],
+      "V9"
+    ],
+    [
+      "Home / direct and program tabs",
+      [
+        "HOME-01",
+        "HOME-02",
+        "HOME-03",
+        "HOME-04",
+        "HOME-05",
+        "HOME-06"
+      ],
+      [
+        "/",
+        "/home",
+        "/phong-online"
+      ],
+      [
+        "direct",
+        "program",
+        "resume",
+        "rooms",
+        "friends"
+      ],
+      [
+        "home route",
+        "queue",
+        "bot-online",
+        "bot-offline"
+      ],
+      [
+        "HomePage.test.tsx",
+        "frontend.smoke.spec.ts"
+      ],
+      "V2"
+    ],
+    [
+      "Manual/AI/Offline shared board/HUD",
+      [
+        "GAME-01",
+        "GAME-02"
+      ],
+      [
+        "/game/:roomId",
+        "/ai",
+        "/offline"
+      ],
+      [
+        "blue-bottom",
+        "red-bottom",
+        "selected",
+        "legal",
+        "capture",
+        "last-move"
+      ],
+      [
+        "game-rules",
+        "matchApi",
+        "localGameStorage"
+      ],
+      [
+        "GameBoard.test.tsx",
+        "LocalGamePage.test.tsx"
+      ],
+      "V4"
+    ],
+    [
+      "Spectator and public events",
+      [
+        "SPEC-01",
+        "SPEC-02"
+      ],
+      [
+        "/spectate/:roomId"
+      ],
+      [
+        "canonical",
+        "leave",
+        "reconnect",
+        "private-log-hidden"
+      ],
+      [
+        "matchApi",
+        "roomApi"
+      ],
+      [
+        "SpectatorPage.test.tsx"
+      ],
+      "V4"
+    ],
+    [
+      "Friends / profile / settings pages",
+      [
+        "FRIEND-01",
+        "FRIEND-02",
+        "FRIEND-03",
+        "FRIEND-04",
+        "PROF-01",
+        "PROF-02",
+        "PROF-03",
+        "SET-01",
+        "SET-02",
+        "SET-03"
+      ],
+      [
+        "/friends",
+        "/profile/:username",
+        "/settings"
+      ],
+      [
+        "loading",
+        "empty",
+        "public",
+        "self",
+        "guest",
+        "theme",
+        "motion"
+      ],
+      [
+        "socialApi",
+        "authApi",
+        "localData"
+      ],
+      [
+        "FriendsPage.test.tsx",
+        "ProfilePage.test.tsx",
+        "SettingsPage.test.tsx"
+      ],
+      "V6/V8/V9"
+    ]
+  ],
+  "gates": {
+    "sourceHashes": "PASS",
+    "referenceVariants": "PASS",
+    "referenceRouteStates": "PASS",
+    "routeBefore": "PASS",
+    "pinnedFonts": "PASS",
+    "themeChecks": "PASS",
+    "inventory": "PASS"
+  }
+}

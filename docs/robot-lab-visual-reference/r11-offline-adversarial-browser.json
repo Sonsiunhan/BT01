@@ -1,0 +1,76 @@
+{
+  "measuredAt": "2026-10-05T15:00:49.286Z",
+  "origin": "http://127.0.0.1:4177",
+  "scope": "real source Offline compartment via Vite module import",
+  "playerCodeExecuted": false,
+  "status": "PASS_REAL_COMPARTMENT_ADVERSARIAL_SCOPE",
+  "cases": [
+    {
+      "name": "dynamicAttestationReady",
+      "pass": true,
+      "memoryRoundTrip": true
+    },
+    {
+      "name": "hostileImportIsRejectedWithoutLeak",
+      "pass": true,
+      "observedCode": "IMPORT_NOT_ALLOWED"
+    },
+    {
+      "name": "hostileForbiddenApiIsRejectedWithoutLeak",
+      "pass": true,
+      "observedCode": "FORBIDDEN_API"
+    },
+    {
+      "name": "hostileOutputBudgetIsRejectedWithoutLeak",
+      "pass": true,
+      "observedCode": "OUTPUT_BUDGET"
+    },
+    {
+      "name": "hostileComputeTimeoutIsRejectedWithoutLeak",
+      "pass": true,
+      "observedCode": "TURN_TIMEOUT"
+    },
+    {
+      "name": "memoryRoundTripAndExplicitReset",
+      "pass": true,
+      "first": {
+        "schema": "adversarial-v1",
+        "counter": 1
+      },
+      "second": {
+        "schema": "adversarial-v1",
+        "counter": 2
+      },
+      "reset": {
+        "schema": "adversarial-v1",
+        "counter": 1
+      }
+    },
+    {
+      "name": "workerKillReclaimFreshInvocation",
+      "pass": true,
+      "recovered": {
+        "schema": "adversarial-v1",
+        "counter": 1
+      }
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ],
+  "expectedDiagnostics": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ]
+}

@@ -1,0 +1,294 @@
+{
+  "measuredAt": "2026-10-05T01:49:19.484Z",
+  "origin": "http://127.0.0.1:4175",
+  "fixedFixturesOnly": true,
+  "playerCodeExecuted": false,
+  "results": [
+    {
+      "name": "guestIndexedDbRevisionReloadOwnership",
+      "ok": true
+    },
+    {
+      "name": "guestIndexedDbConcurrentQuota",
+      "ok": true
+    },
+    {
+      "name": "actualCompartmentAbi",
+      "ok": true,
+      "result": {
+        "move": {
+          "from": "a1",
+          "to": "a2"
+        },
+        "memory": {
+          "seen": 1
+        },
+        "computeMs": 5.599999999627471,
+        "isolationProof": {
+          "parentDenied": true,
+          "storageDenied": true,
+          "cookieDenied": true,
+          "memoryBytes": 20971520,
+          "memoryMaximumPages": 1024,
+          "memoryMaximumEnforced": true,
+          "networkDenied": true,
+          "storageAbsent": true
+        }
+      }
+    },
+    {
+      "name": "deterministicFreshTurn",
+      "ok": true,
+      "result": {
+        "move": {
+          "from": "a1",
+          "to": "a2"
+        },
+        "memory": {
+          "seen": 1
+        },
+        "computeMs": 5.5,
+        "isolationProof": {
+          "parentDenied": true,
+          "storageDenied": true,
+          "cookieDenied": true,
+          "memoryBytes": 20971520,
+          "memoryMaximumPages": 1024,
+          "memoryMaximumEnforced": true,
+          "networkDenied": true,
+          "storageAbsent": true
+        }
+      }
+    },
+    {
+      "name": "deterministicHashSeed",
+      "ok": true,
+      "result": {
+        "move": {
+          "from": "a1",
+          "to": "a2"
+        },
+        "memory": 1838368099,
+        "computeMs": 5.5,
+        "isolationProof": {
+          "parentDenied": true,
+          "storageDenied": true,
+          "cookieDenied": true,
+          "memoryBytes": 20971520,
+          "memoryMaximumPages": 1024,
+          "memoryMaximumEnforced": true,
+          "networkDenied": true,
+          "storageAbsent": true
+        }
+      }
+    },
+    {
+      "name": "deterministicHashSeedRepeat",
+      "ok": true,
+      "result": {
+        "move": {
+          "from": "a1",
+          "to": "a2"
+        },
+        "memory": 1838368099,
+        "computeMs": 6,
+        "isolationProof": {
+          "parentDenied": true,
+          "storageDenied": true,
+          "cookieDenied": true,
+          "memoryBytes": 20971520,
+          "memoryMaximumPages": 1024,
+          "memoryMaximumEnforced": true,
+          "networkDenied": true,
+          "storageAbsent": true
+        }
+      }
+    },
+    {
+      "name": "isolatedPreflight",
+      "ok": true,
+      "result": {
+        "move": {
+          "from": "a1",
+          "to": "a2"
+        },
+        "memory": {
+          "seen": 1
+        },
+        "computeMs": 5.600000000093132,
+        "isolationProof": {
+          "parentDenied": true,
+          "storageDenied": true,
+          "cookieDenied": true,
+          "memoryBytes": 20971520,
+          "memoryMaximumPages": 1024,
+          "memoryMaximumEnforced": true,
+          "networkDenied": true,
+          "storageAbsent": true
+        }
+      }
+    },
+    {
+      "name": "jsBridgeDenied",
+      "ok": false,
+      "code": "IMPORT_NOT_ALLOWED",
+      "message": "IMPORT_NOT_ALLOWED"
+    },
+    {
+      "name": "namespaceEscapeDenied",
+      "ok": false,
+      "code": "FORBIDDEN_API",
+      "message": "FORBIDDEN_API"
+    },
+    {
+      "name": "trustedTypingEvalDenied",
+      "ok": false,
+      "code": "BOT_RUNTIME_FAILED",
+      "message": "BOT_RUNTIME_FAILED"
+    },
+    {
+      "name": "outputBudget",
+      "ok": false,
+      "code": "OUTPUT_BUDGET",
+      "message": "OUTPUT_BUDGET"
+    },
+    {
+      "name": "legalMoveGuard",
+      "ok": false,
+      "code": "ILLEGAL_OUTPUT",
+      "message": "ILLEGAL_OUTPUT"
+    },
+    {
+      "name": "memoryOutputBudget",
+      "ok": false,
+      "code": "ILLEGAL_OUTPUT",
+      "message": "ILLEGAL_OUTPUT"
+    },
+    {
+      "name": "computeWatchdog",
+      "ok": false,
+      "code": "TURN_TIMEOUT",
+      "message": "TURN_TIMEOUT"
+    },
+    {
+      "name": "cancelReclaim",
+      "ok": false,
+      "code": "ABORTED",
+      "message": "ABORTED"
+    },
+    {
+      "name": "computeCancelReclaim",
+      "ok": false,
+      "code": "ABORTED",
+      "message": "ABORTED"
+    },
+    {
+      "name": "replacementUnaffected",
+      "ok": true,
+      "result": {
+        "move": {
+          "from": "a1",
+          "to": "a2"
+        },
+        "memory": {
+          "seen": 1
+        },
+        "computeMs": 3.599999999627471,
+        "isolationProof": {
+          "parentDenied": true,
+          "storageDenied": true,
+          "cookieDenied": true,
+          "memoryBytes": 20971520,
+          "memoryMaximumPages": 1024,
+          "memoryMaximumEnforced": true,
+          "networkDenied": true,
+          "storageAbsent": true
+        }
+      }
+    },
+    {
+      "name": "cachedRuntimeNetworkDisabled",
+      "ok": true,
+      "result": {
+        "move": {
+          "from": "a1",
+          "to": "a2"
+        },
+        "memory": {
+          "seen": 1
+        },
+        "computeMs": 5.7000000001862645,
+        "isolationProof": {
+          "parentDenied": true,
+          "storageDenied": true,
+          "cookieDenied": true,
+          "memoryBytes": 20971520,
+          "memoryMaximumPages": 1024,
+          "memoryMaximumEnforced": true,
+          "networkDenied": true,
+          "storageAbsent": true
+        }
+      }
+    },
+    {
+      "name": "tamperedCachedRuntimeDenied",
+      "ok": false,
+      "code": "RUNTIME_HASH_MISMATCH",
+      "message": "RUNTIME_HASH_MISMATCH"
+    }
+  ],
+  "diagnostics": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+  ]
+}

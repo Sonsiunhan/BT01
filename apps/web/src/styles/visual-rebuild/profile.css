@@ -1,0 +1,19 @@
+/* V8 Robot Lab profile: identity first, stats readable, Guest boundaries explicit. */
+.robot-lab-profile-shell { width: min(70rem, calc(100% - 2rem)); margin: 0 auto; padding: clamp(1rem, 3vw, 2rem) 0 3rem; }
+.robot-lab-profile-error { width: min(42rem, calc(100% - 2rem)); margin: 3rem auto; border-color: color-mix(in srgb, var(--warning) 42%, var(--border)); background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 95%, var(--warning)), var(--surface)); }
+.robot-lab-profile-shell .profile-hero { position: relative; overflow: hidden; border-color: color-mix(in srgb, var(--system-cyan) 38%, var(--border)); background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 96%, var(--system-cyan)), var(--surface)); box-shadow: 0 5px 0 color-mix(in srgb, var(--text-primary) 15%, transparent), var(--shadow-raised); }
+.robot-lab-profile-shell .profile-hero::after { content: ""; position: absolute; inset: auto -10% -65% 35%; height: 14rem; pointer-events: none; opacity: .24; background: repeating-linear-gradient(90deg, transparent 0 1.5rem, color-mix(in srgb, var(--system-cyan) 45%, transparent) 1.5rem 1.56rem); transform: rotate(-12deg); }
+.robot-lab-profile-shell .profile-identity h1 { font-size: clamp(2.3rem, 6vw, 4rem); letter-spacing: -.04em; }
+.robot-lab-profile-shell .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.robot-lab-profile-shell .stat-card { position: relative; overflow: hidden; border-color: color-mix(in srgb, var(--system-cyan) 24%, var(--border)); background: var(--surface-raised); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 13%, transparent), var(--shadow-raised); }
+.robot-lab-profile-shell .stat-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--system-cyan); }
+.robot-lab-profile-shell .stat-card strong { font-family: var(--font-display, sans-serif); }
+.robot-lab-profile-shell .profile-bot-panel { border-color: color-mix(in srgb, var(--system-cyan) 26%, var(--border)); background: color-mix(in srgb, var(--system-cyan) 6%, var(--surface)); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 12%, transparent), var(--shadow-raised); }
+.robot-lab-profile-shell .profile-note { border-left-color: var(--system-cyan); background: var(--surface-raised); }
+.robot-lab-profile-shell .recent-form i { border-color: color-mix(in srgb, var(--system-cyan) 35%, var(--border)); }
+.robot-lab-profile-shell.guest-profile-layout .profile-hero { border-color: color-mix(in srgb, var(--warning) 36%, var(--border)); }
+.robot-lab-profile-shell.guest-profile-layout .profile-note { border-left-color: var(--warning); }
+
+@media (max-width: 800px) { .robot-lab-profile-shell .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .robot-lab-profile-shell { width: min(100% - 1rem, 70rem); } .robot-lab-profile-shell .profile-hero { grid-template-columns: 1fr; align-items: start; } .robot-lab-profile-shell .stats-grid { grid-template-columns: 1fr; } .robot-lab-profile-shell .profile-actions { justify-content: flex-start; } }
+@media (prefers-reduced-motion: reduce) { .robot-lab-profile-shell .profile-hero::after { display: none; } }

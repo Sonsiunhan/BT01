@@ -1,0 +1,154 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useBeforeUnload, useBlocker, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import type { MatchmakingEventEnvelope, MatchmakingPlayer, MatchmakingSnapshot } from "@ottv2/contracts";
+
+import { routes } from "../app/routes";
+import { Button, LoadingState, useToast } from "../components/ui";
+import { ApiError } from "../services/http/apiError";
+import { cancelQueue, getQueue, subscribeToQueue } from "../services/matchmaking/matchmakingApi";
+import { acquireQueueAdmission, type QueueAdmissionLease } from "../services/matchmaking/queueAdmission";
+import { applyQueueEvent, formatQueueElapsed, queueStateFromSnapshot, reconcileQueueSnapshot, type QueueUiState } from "./queueState";
+import { loginReturnPath } from "../services/auth/returnUrl";
+import { RobotLabHost } from "../foundation/RobotLabHost";
+
+export default function QueuePage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const requestedMode = searchParams.get("mode");
+  const queueMode = requestedMode === "BOT" || requestedMode === "UNRANKED" ? requestedMode : "RANKED";
+  const { notify } = useToast();
+  const [state, setState] = useState<QueueUiState | { phase: "loading" | "error"; message?: string }>({ phase: "loading" });
+  const [pending, setPending] = useState(false);
+  const redirectTimer = useRef<number | undefined>(undefined);
+  const redirected = useRef(false);
+  const lease = useRef<QueueAdmissionLease | null>(null);
+  const latest = useRef<QueueUiState | null>(null);
+  const mounted = useRef(false);
+  const cancelling = useRef(false);
+  const terminalNavigation = useRef(false);
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    const sameLocation = currentLocation.pathname === nextLocation.pathname
+      && currentLocation.search === nextLocation.search
+      && currentLocation.hash === nextLocation.hash;
+    return !terminalNavigation.current && state.phase !== "error" && state.phase !== "cancelled" && !sameLocation;
+  });
+
+  useBeforeUnload(useCallback((event) => {
+    if (state.phase !== "loading" && state.phase !== "queued") return;
+    event.preventDefault();
+    event.returnValue = "";
+  }, [state.phase]));
+
+  const redirectToRoom = useCallback((roomId: string | null) => {
+    if (!roomId || redirected.current) return;
+    redirected.current = true;
+    redirectTimer.current = window.setTimeout(() => {
+      terminalNavigation.current = true;
+      void navigate(queueMode === "BOT" ? `${routes.botOnline}?room=${encodeURIComponent(roomId)}` : `/room/${encodeURIComponent(roomId)}`);
+    }, 650);
+  }, [navigate, queueMode]);
+
+  const acceptSnapshot = useCallback((queue: MatchmakingSnapshot) => {
+    const next = latest.current ? reconcileQueueSnapshot(latest.current, queue) : queueStateFromSnapshot(queue);
+    latest.current = next;
+    lease.current?.update(next.queue);
+    if (mounted.current) setState(next);
+    if (next.phase === "found" && mounted.current) redirectToRoom(next.queue.roomId);
+    return next;
+  }, [redirectToRoom]);
+
+  useEffect(() => {
+    let active = true;
+    mounted.current = true;
+    // A query-mode change starts a new admission generation. Do not let the
+    // previous cancelled queue suppress navigation or reconcile the new queue.
+    terminalNavigation.current = false;
+    latest.current = null;
+    setState({ phase: "loading" });
+    const admission = acquireQueueAdmission(queueMode);
+    lease.current = admission;
+    redirected.current = false;
+    let unsubscribe: () => void = () => undefined;
+    let resyncing = false;
+    admission.promise.then((result) => {
+      if (!active) return;
+      acceptSnapshot(result.queue);
+      const queueId = result.queue.queueId;
+      const resync = async () => {
+        if (!active || resyncing) return;
+        resyncing = true;
+        try { const synced = await getQueue(queueId); if (active) acceptSnapshot(synced.queue); }
+        catch { if (active) notify("Chưa đồng bộ được hàng chờ. Hãy thử lại khi có kết nối.", "warning"); }
+        finally { resyncing = false; }
+      };
+      unsubscribe = subscribeToQueue(result.queue.queueId, (event: MatchmakingEventEnvelope) => {
+        if (!active) return;
+        if (!latest.current) return;
+        const next = applyQueueEvent(latest.current, event);
+        latest.current = next;
+        admission.update(next.queue);
+        setState(next);
+        if (next.phase === "found") redirectToRoom(next.queue.roomId);
+      }, () => { if (active) { notify("Kết nối hàng chờ bị gián đoạn. Đang đồng bộ lại…", "warning"); void resync(); } }, () => { void resync(); });
+    }).catch((reason) => {
+      if (!active) return;
+      if (reason instanceof ApiError && reason.status === 401) { terminalNavigation.current = true; void navigate(loginReturnPath(location)); }
+      else setState({ phase: "error", message: reason instanceof ApiError ? reason.message : "Không thể vào hàng chờ Ranked." });
+    });
+    return () => { active = false; mounted.current = false; if (redirectTimer.current !== undefined) window.clearTimeout(redirectTimer.current); unsubscribe(); admission.release(); };
+  }, [acceptSnapshot, location, navigate, notify, queueMode, redirectToRoom]);
+
+  const cancel = useCallback(async (onCancelled?: () => void, onFailure?: () => void) => {
+    if (cancelling.current || !lease.current) return;
+    cancelling.current = true;
+    setPending(true);
+    const admission = lease.current;
+    const complete = (queue: MatchmakingSnapshot): boolean => {
+      const next = acceptSnapshot(queue);
+      if (next.phase === "found") { onFailure?.(); return true; }
+      if (next.phase !== "cancelled") return false;
+      terminalNavigation.current = true;
+      notify("Đã huỷ tìm trận.", "success");
+      if (onCancelled) onCancelled();
+      else void navigate(routes.home);
+      return true;
+    };
+    try {
+      const initial = (await admission.promise).queue;
+      const queue = latest.current?.queue ?? initial;
+      if (queue.status !== "QUEUED" && complete(queue)) return;
+      try {
+        const result = await cancelQueue(queue.queueId);
+        if (complete(result.queue)) return;
+      } catch {
+        const synced = await getQueue(queue.queueId);
+        if (complete(synced.queue)) return;
+      }
+      throw new Error("Máy chủ chưa xác nhận huỷ tìm trận. Hãy thử lại.");
+    } catch (reason) {
+      if (mounted.current) { onFailure?.(); notify(reason instanceof Error ? reason.message : "Không thể xác nhận huỷ tìm trận. Hãy thử lại.", "error"); }
+    } finally { cancelling.current = false; if (mounted.current) setPending(false); }
+  }, [acceptSnapshot, navigate, notify]);
+
+  useEffect(() => {
+    if (blocker.state === "blocked") void cancel(() => blocker.proceed(), () => blocker.reset());
+  }, [blocker, cancel]);
+
+  if (state.phase === "loading") return <LoadingState fullPage label={queueMode === "BOT" ? "Đang vào hàng chờ Bot Online…" : "Đang vào hàng chờ Ranked…"} />;
+  if (state.phase === "error") return <section className="placeholder queue-error queue-visual-shell"><p className="eyebrow">GHÉP TRẬN</p><h1>Không thể tìm trận</h1><p className="form-intro">{state.message}</p><Button onClick={() => window.location.reload()}>Thử lại</Button></section>;
+  if (state.phase === "found") return <MatchFound queue={state.queue} />;
+  if (state.phase === "cancelled") return <section className="placeholder queue-error queue-visual-shell"><p className="eyebrow">GHÉP TRẬN</p><h1>Hàng chờ đã đóng</h1><Button onClick={() => navigate(routes.home)}>Về sảnh</Button></section>;
+  if (!("queue" in state)) return null;
+  const queue = state.queue;
+  return <section className="queue-page queue-visual-shell" aria-labelledby="queue-title"><div className="queue-header"><div><p className="eyebrow">{queue.mode === "BOT" ? "GHÉP BOT ONLINE · KHÔNG XẾP HẠNG" : queue.mode === "UNRANKED" ? "GHÉP TRẬN ĐẤU THƯỜNG" : "GHÉP TRẬN XẾP HẠNG"}</p><h1 id="queue-title">Đang tìm đối thủ</h1><p className="queue-subtitle">{queue.mode === "BOT" ? "Hai người chơi sẽ vào phòng Bot thường; mỗi bên gắn revision đã kiểm tra trước khi Sẵn sàng." : queue.mode === "UNRANKED" ? "Ghép người chơi Đấu thường; không tính Elo." : "Khoảng tìm kiếm mở rộng theo thời gian chờ, do máy chủ quyết định."}</p></div><span className="ranked-pill">{queue.mode === "BOT" ? "BOT · UNRANKED" : queue.mode === "UNRANKED" ? "ĐẤU THƯỜNG" : "RANKED"}</span></div><div className="queue-search-stage" aria-label="Giai đoạn tìm trận" data-queue-stage="searching"><div className="queue-stage-icon" data-robot="queue-host"><RobotLabHost size={92} /></div><div className="queue-stage-copy"><span>GIAI ĐOẠN TÌM TRẬN</span><strong>Đang tìm đối thủ</strong><p>Máy chủ đang ghép cặp phù hợp. Bạn có thể huỷ bất cứ lúc nào.</p></div><span className="queue-live-chip">ĐANG TÌM</span></div><div className="queue-stats" aria-label="Thông tin hàng chờ"><div><span>{queue.mode === "RANKED" ? "RATING CỦA BẠN" : "NGƯỜI CHƠI"}</span><strong>{queue.mode === "RANKED" ? queue.player.elo : queue.player.displayName}</strong></div><div><span>{queue.mode === "RANKED" ? "KHOẢNG TÌM KIẾM" : "SỨC CHỨA"}</span><strong>{queue.mode === "RANKED" ? `±${queue.range}` : queue.mode === "BOT" ? "2 BOT" : "2 NGƯỜI"}</strong></div><div><span>THỜI GIAN</span><strong>{formatQueueElapsed(queue.elapsedMs)}</strong></div></div><div className="queue-actions"><Button variant="danger" onClick={() => void cancel()} pending={pending} pendingLabel="Đang huỷ…">Huỷ tìm trận</Button><Button variant="secondary" onClick={() => void cancel()} disabled={pending}>Về sảnh</Button></div><p className="queue-hint" role="status">Máy chủ sẽ giữ chỗ của bạn khi tìm thấy đối thủ.</p></section>;
+}
+
+function MatchFound({ queue }: { queue: QueueUiState["queue"] }) {
+  return <section className="queue-page queue-visual-shell match-found-page" aria-labelledby="match-found-title" aria-live="assertive"><p className="eyebrow">{queue.mode === "BOT" ? "ĐÃ GHÉP BOT ONLINE" : "ĐÃ GHÉP ĐỐI THỦ"}</p><div className="match-found-impact" aria-hidden="true"><span>+</span></div><h1 id="match-found-title">ĐÃ TÌM THẤY ĐỐI THỦ</h1><p className="queue-subtitle">{queue.mode === "BOT" ? "Phòng Bot thường đang được mở; mỗi bên gắn revision đã kiểm tra trước khi Sẵn sàng." : "Phòng đấu đang được mở; máy chủ sẽ xác nhận Ready và đếm ngược."}</p><div className="match-found-versus"><FoundPlayer side="BLUE" player={queue.player} ranked={queue.mode === "RANKED"} /><strong>VS</strong><FoundPlayer side="RED" player={queue.opponent} ranked={queue.mode === "RANKED"} /></div><p className="queue-hint">Đang chuyển vào phòng chờ…</p></section>;
+}
+
+function FoundPlayer({ side, player, ranked }: { side: "BLUE" | "RED"; player: MatchmakingPlayer | null; ranked: boolean }) {
+  const name = player?.displayName ?? "Đang đồng bộ";
+  return <div className={`match-found-player ${side.toLowerCase()}`}><div className="found-avatar" aria-hidden="true">{name.slice(0, 2).toUpperCase()}</div><span>{side === "BLUE" ? "XANH" : "ĐỎ"}</span><strong>{name}</strong><small>@{player?.username ?? "—"} · {ranked ? `${player?.elo ?? "—"} Elo` : "Không xếp hạng"}</small></div>;
+}

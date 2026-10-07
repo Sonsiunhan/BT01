@@ -1,0 +1,18 @@
+{
+  "measuredAt": "2026-10-05T17:24:53.424Z",
+  "postgres": "17",
+  "host": "127.0.0.1",
+  "port": 48671,
+  "database": "ottv2_r20_acceptance_1791221093423",
+  "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-r20-pg-tPy0HC",
+  "productionMutation": false,
+  "retainedForInspection": true,
+  "migration": "PASS",
+  "tests": "PASS_WITH_EXPLICIT_RUNTIME_SKIPS",
+  "stopped": true,
+  "testCounts": {
+    "passed": 153,
+    "failed": 0,
+    "skipped": 7
+  }
+}

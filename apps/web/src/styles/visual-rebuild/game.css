@@ -1,0 +1,129 @@
+/* V4 Robot Lab arena surfaces. Rules, permissions and clocks remain authoritative elsewhere. */
+.robot-lab-game-room,
+.robot-lab-local-game,
+.robot-lab-spectator-page {
+  width: min(82rem, calc(100% - 2rem));
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 2rem) 0 4rem;
+  gap: 1rem;
+}
+
+.robot-lab-game-room .game-room-header,
+.robot-lab-local-game .local-game-header,
+.robot-lab-spectator-page .game-room-header {
+  padding: 1rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--system-cyan) 38%, var(--border));
+  border-radius: var(--radius-lg, 1.2rem);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 96%, var(--system-cyan)), var(--surface));
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--text-primary) 15%, transparent), var(--shadow-raised);
+}
+
+.robot-lab-game-room .game-room-header h1,
+.robot-lab-local-game .local-game-header h1,
+.robot-lab-spectator-page .game-room-header h1 {
+  letter-spacing: -.03em;
+  text-wrap: balance;
+}
+
+.robot-lab-game-room .game-room-layout,
+.robot-lab-spectator-page .game-room-layout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, .7fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.robot-lab-game-room .perspective-stage {
+  display: grid;
+  gap: .65rem;
+  padding: clamp(.7rem, 2vw, 1.2rem);
+  border: 1px solid color-mix(in srgb, var(--system-cyan) 32%, var(--border));
+  border-radius: var(--radius-lg, 1.2rem);
+  background: color-mix(in srgb, var(--system-cyan) 5%, var(--surface));
+}
+
+.robot-lab-board-panel {
+  padding: clamp(.8rem, 2vw, 1.4rem);
+  border-color: color-mix(in srgb, var(--system-cyan) 38%, var(--border));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 97%, var(--system-cyan)), var(--surface));
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--text-primary) 14%, transparent), var(--shadow-raised);
+}
+
+.robot-lab-board-panel .board-panel-header { align-items: center; }
+.robot-lab-board-panel .board-panel-header h2 { color: var(--text); }
+.robot-lab-board-panel .board-frame { padding: clamp(.55rem, 1.5vw, 1rem); border: 1px solid #b4c5d1; border-radius: .85rem; background: #dbe7ee; box-shadow: 0 4px 0 rgba(7, 25, 42, .2); }
+.robot-lab-board-panel .game-board { border: 2px solid #aabcc9; background: #b4c5d1; box-shadow: inset 0 0 0 1px rgba(255,255,255,.5), 0 5px 0 rgba(7, 25, 42, .16); }
+.robot-lab-board-panel .board-square { color: #284257; border-color: #b4c5d1; background: #eef4f7; }
+.robot-lab-board-panel .board-square:nth-child(odd) { background: #dde8ef; }
+.robot-lab-board-panel .board-axis { color: #36536c; }
+.robot-lab-board-panel .board-square.blue .board-piece-token { --piece-color: #4078af; border: 3px solid #4078af; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #ffffff 0 24%, #d7eaff 62%, #b4d2ee 100%); box-shadow: 0 .28rem .35rem rgba(46, 92, 140, .35), inset 0 .12rem 0 rgba(255,255,255,.8); }
+.robot-lab-board-panel .board-square.red .board-piece-token { --piece-color: #a34f63; border: 3px solid #a34f63; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #ffffff 0 24%, #ffe0e5 62%, #f0bac4 100%); box-shadow: 0 .28rem .35rem rgba(117, 49, 69, .35), inset 0 .12rem 0 rgba(255,255,255,.8); }
+.robot-lab-board-panel .board-coordinate { color: #36536c; opacity: 1; }
+:root[data-theme="dark"] .robot-lab-game-room .turn-badge,
+:root[data-theme="dark"][data-design-system="robot-lab"] .button.danger { color: #07141c; }
+.robot-lab-board-panel .board-square { transition: background 190ms ease, box-shadow 190ms ease, transform 190ms ease; }
+.robot-lab-board-panel .board-square:hover:not(:disabled) { transform: translateY(-1px); }
+.robot-lab-board-panel .board-square.selected { box-shadow: inset 0 0 0 3px var(--system-cyan), inset 0 0 1rem color-mix(in srgb, var(--system-cyan) 28%, transparent); }
+
+.robot-lab-game-room .player-hud,
+.robot-lab-game-room .info-card,
+.robot-lab-game-room .game-room-feed,
+.robot-lab-spectator-page .info-card,
+.robot-lab-spectator-page .spectator-feed-grid > * {
+  border-color: color-mix(in srgb, var(--system-cyan) 24%, var(--border));
+  background: var(--surface-raised);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 13%, transparent), var(--shadow-raised);
+}
+
+.robot-lab-game-room .player-hud.active { border-color: var(--system-cyan); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 13%, transparent), 0 0 0 2px color-mix(in srgb, var(--system-cyan) 20%, transparent); }
+.robot-lab-game-room .game-room-info { display: grid; gap: .8rem; }
+.robot-lab-game-room .match-status-bar { border-color: color-mix(in srgb, var(--system-cyan) 34%, var(--border)); background: color-mix(in srgb, var(--system-cyan) 7%, var(--surface)); }
+.robot-lab-game-room .referee-control-panel { border-color: color-mix(in srgb, var(--red-side) 38%, var(--border)); background: color-mix(in srgb, var(--red-side) 7%, var(--surface)); }
+
+.robot-lab-pause-overlay { border-color: var(--system-cyan); box-shadow: 0 8px 0 color-mix(in srgb, var(--text-primary) 22%, transparent), 0 0 0 1px color-mix(in srgb, var(--system-cyan) 20%, transparent); }
+.robot-lab-pause-overlay .referee-pause-dialog h2 { color: var(--text); }
+.robot-lab-pause-overlay .referee-pause-meta strong, .robot-lab-pause-overlay .referee-resume-countdown { color: var(--system-cyan); font-family: var(--font-data, monospace); }
+.robot-lab-pause-overlay .button { min-height: 2.75rem; }
+
+.robot-lab-result-panel { width: 100%; margin: 0; border-color: color-mix(in srgb, var(--system-cyan) 38%, var(--border)); background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 97%, var(--system-cyan)), var(--surface)); box-shadow: 0 6px 0 color-mix(in srgb, var(--text-primary) 16%, transparent), var(--shadow-raised); }
+.robot-lab-result-panel .result-board-thumbnail { display: grid; justify-items: center; margin: .25rem 0 .8rem; padding: .65rem; border: 1px solid color-mix(in srgb, var(--system-cyan) 30%, var(--border)); border-radius: var(--radius-md, .8rem); background: color-mix(in srgb, var(--system-cyan) 5%, var(--surface)); }
+.robot-lab-result-panel .result-board-thumbnail .final-position { width: min(100%, 28rem); }
+.robot-lab-spectator-page .spectator-banner { border-color: color-mix(in srgb, var(--system-cyan) 40%, var(--border)); background: color-mix(in srgb, var(--system-cyan) 8%, var(--surface)); }
+.robot-lab-spectator-page .spectator-readonly { padding: .55rem .8rem; border: 1px dashed color-mix(in srgb, var(--system-cyan) 40%, var(--border)); border-radius: var(--radius-sm, .6rem); background: color-mix(in srgb, var(--system-cyan) 5%, var(--surface)); }
+.robot-lab-spectator-page .spectator-layout .robot-lab-board-panel { pointer-events: none; }
+
+.robot-lab-local-game .local-board-wrap { width: min(100%, 56rem); margin-inline: auto; padding: clamp(.7rem, 2vw, 1.2rem); border: 1px solid color-mix(in srgb, var(--system-cyan) 30%, var(--border)); border-radius: var(--radius-lg, 1.2rem); background: color-mix(in srgb, var(--system-cyan) 4%, var(--surface)); }
+.robot-lab-local-game .local-player, .robot-lab-local-game .local-turn { border-color: color-mix(in srgb, var(--system-cyan) 24%, var(--border)); background: var(--surface-raised); }
+
+@media (max-width: 920px) {
+  .robot-lab-game-room .game-room-layout, .robot-lab-spectator-page .game-room-layout { grid-template-columns: 1fr; }
+  .robot-lab-game-room .game-room-info { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .robot-lab-game-room, .robot-lab-local-game, .robot-lab-spectator-page { width: min(100% - 1rem, 82rem); }
+  .robot-lab-game-room .game-room-header, .robot-lab-local-game .local-game-header, .robot-lab-spectator-page .game-room-header { align-items: stretch; flex-direction: column; }
+  .robot-lab-game-room .game-header-actions { justify-content: flex-start; }
+  .robot-lab-game-room .game-room-info { grid-template-columns: 1fr; }
+  .robot-lab-local-game .local-hud { grid-template-columns: 1fr; }
+  .robot-lab-local-game .local-player.red { text-align: left; }
+  .robot-lab-board-panel { padding: .6rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .robot-lab-board-panel .board-square { transition: none; }
+  .robot-lab-board-panel .board-square:hover:not(:disabled) { transform: none; }
+}
+/* Artwork is already composited from the approved demo; never recolor or redraw it. */
+:root[data-design-system="robot-lab"] img.robot-lab-reference-gesture {
+  object-fit: contain;
+  filter: none;
+  flex-shrink: 0;
+}
+:root[data-design-system="robot-lab"] .board-legend img.robot-lab-reference-gesture {
+  width: 20px;
+  height: 20px;
+}
+:root[data-design-system="robot-lab"] .board-piece-token img.robot-lab-reference-gesture,
+:root[data-design-system="robot-lab"] .final-position-piece img.robot-lab-reference-gesture {
+  width: 100%;
+  height: 100%;
+  filter: none;
+}

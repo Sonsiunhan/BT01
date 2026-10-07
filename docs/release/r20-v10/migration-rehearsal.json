@@ -1,0 +1,74 @@
+{
+  "gate": "F1",
+  "status": "PARTIAL_LOCAL_PASS_PRODUCTION_BLOCKED",
+  "recordedAt": "2026-10-06T00:54:37+07:00",
+  "candidate": {
+    "headSha": "8c6fed2201295ecb310999691cf2c85cb80ef47a",
+    "prisma": "6.19.3",
+    "postgres": "17.7"
+  },
+  "freshClusterRehearsal": {
+    "evidence": "docs/robot-lab-visual-reference/v10-isolated-db.json",
+    "database": "ottv2_r20_acceptance_1791221093423",
+    "host": "127.0.0.1",
+    "port": 48671,
+    "productionMutation": false,
+    "firstRun": "PASS_16_MIGRATIONS",
+    "serverTests": {
+      "passed": 153,
+      "failed": 0,
+      "skipped": 7,
+      "status": "PASS_WITH_EXPLICIT_RUNTIME_SKIPS"
+    },
+    "secondRun": "PASS_NO_PENDING_MIGRATIONS",
+    "migrationLedger": "six newest migrations finished and not rolled back",
+    "guestIndexes": {
+      "BotLibrary_ownerGuestId_name_key": {
+        "indisvalid": true,
+        "indisready": true
+      },
+      "BotLibrary_ownerGuestId_updatedAt_idx": {
+        "indisvalid": true,
+        "indisready": true
+      }
+    },
+    "clusterStopped": true
+  },
+  "populatedSchemaRehearsal": {
+    "status": "PASS_SQL_POPULATED_REHEARSAL",
+    "evidenceRecordedBy": "scripts/r20-populated-rehearsal.mjs",
+    "host": "127.0.0.1",
+    "port": 38220,
+    "database": "ottv2_r20_populated_1791222762878",
+    "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-r20-populated-P5BNZx",
+    "productionMutation": false,
+    "firstTenMigrations": "PASS",
+    "seededLegacyRows": {
+      "User:u-old": "preserved",
+      "Match:m-old": "preserved",
+      "MatchPlayer:mp-old": "preserved"
+    },
+    "candidateMigrations": "PASS_6_MIGRATIONS",
+    "newColumns": {
+      "Match.playMode": "MANUAL",
+      "Match.botAdjudication": "NULL"
+    },
+    "guestIndexes": {
+      "BotLibrary_ownerGuestId_name_key": { "indisvalid": true, "indisready": true },
+      "BotLibrary_ownerGuestId_updatedAt_idx": { "indisvalid": true, "indisready": true }
+    },
+    "ownerConstraint": {
+      "name": "BotLibrary_exactly_one_owner",
+      "convalidated": false,
+      "reason": "Intentionally NOT VALID to avoid scanning historical rows; new/updated rows are enforced."
+    },
+    "clusterStopped": true
+  },
+  "production": {
+    "migrationExecuted": false,
+    "backupId": null,
+    "approvalArtifact": null,
+    "status": "BLOCKED"
+  },
+  "verdict": "Local SQL/static review, fresh-cluster migration, idempotence, populated legacy-data rehearsal and index/constraint checks pass. F1 remains blocked only on verified production backup/restore and explicit production approval for the exact six-migration set."
+}

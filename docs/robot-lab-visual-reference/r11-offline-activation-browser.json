@@ -1,0 +1,23 @@
+{
+  "measuredAt": "2026-10-05T14:30:01.909Z",
+  "origin": "http://127.0.0.1:4176",
+  "fixedAttestationOnly": true,
+  "playerCodeExecuted": false,
+  "status": "PASS_FIXED_ATTESTATION_SCOPE",
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+    "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+  ],
+  "cases": [
+    {
+      "name": "builtProductDynamicAttestationUnlocksRuntimeGate",
+      "pass": true
+    },
+    {
+      "name": "coldReloadReattestsFromCachedKitWithoutNetwork",
+      "pass": true
+    }
+  ]
+}

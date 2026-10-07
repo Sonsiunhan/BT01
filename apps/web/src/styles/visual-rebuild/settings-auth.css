@@ -1,0 +1,74 @@
+/* V9: Robot Lab forms and safe system states. No gameplay or identity rules here. */
+.robot-lab-settings-page { width: min(82rem, calc(100% - 2rem)); margin: 0 auto; padding: 2rem 0 4rem; }
+.robot-lab-settings-page > div:first-child { padding: 1.35rem 1.5rem; border: 1px solid var(--border); border-radius: 1.4rem; background: var(--surface); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 18%, transparent); }
+.robot-lab-settings-page h1, .robot-lab-auth-layout h1, .robot-lab-fallback-panel h1 { font-size: clamp(1.9rem, 3vw, 2.35rem); line-height: 1.2; letter-spacing: -.035em; }
+.robot-lab-settings-page h2, .robot-lab-auth-layout h2 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 .65rem; }
+.settings-workspace { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 1.25rem; margin-top: 1.25rem; align-items: start; }
+.robot-lab-settings-page .settings-tabs { display: grid; gap: .45rem; padding: .8rem; border: 1px solid var(--border); border-radius: 1.2rem; background: var(--surface); }
+.robot-lab-settings-page .settings-tab { min-height: 2.85rem; width: 100%; border-radius: .75rem; text-align: left; font-size: .9rem; border: 1px solid transparent; background: transparent; color: var(--text-secondary); }
+.robot-lab-settings-page .settings-tab.active { background: var(--data-accent); color: var(--ink-on-accent, #07141c); border-color: var(--data-accent); }
+.robot-lab-settings-page .settings-grid { gap: 1rem; align-items: start; }
+.robot-lab-settings-page .settings-card { min-width: 0; padding: 1.5rem; border: 1px solid var(--border); border-radius: 1.3rem; background: var(--surface); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 18%, transparent); }
+.robot-lab-settings-page .settings-grid > .settings-card:only-child { grid-column: 1 / -1; max-width: 56rem; }
+.robot-lab-settings-page .form-hint, .robot-lab-auth-layout .form-intro, .robot-lab-auth-layout small { font-size: .875rem; line-height: 1.6; }
+.robot-lab-settings-page .settings-preview { text-align: center; display: grid; gap: .9rem; justify-items: center; }
+.settings-preview-host { width: 150px; height: 150px; }
+.settings-preview-gestures { display: flex; gap: 1.1rem; }
+.settings-preview-gestures .piece-glyph { width: 34px; height: 34px; }
+.settings-preview > p:not(.eyebrow) { color: var(--text-secondary); font-size: .875rem; line-height: 1.6; }
+.robot-lab-settings-page .settings-inline-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.robot-lab-settings-page details { border-top: 1px solid var(--border); padding-top: 1rem; }
+.robot-lab-settings-page summary { cursor: pointer; min-height: 2rem; color: var(--data-accent); font-weight: 700; }
+.robot-lab-settings-page .settings-data-counts { display: flex; flex-wrap: wrap; gap: .75rem; padding: .9rem; background: var(--surface-raised); border-radius: .8rem; }
+.robot-lab-auth-layout { display: grid; grid-template-columns: minmax(15rem, .85fr) minmax(20rem, 1.15fr); align-items: start; gap: 1.25rem; width: min(62rem, calc(100% - 2rem)); min-height: 0; margin: 2rem auto 4rem; padding: 0; }
+.robot-lab-auth-layout .auth-card, .auth-companion { width: 100%; min-width: 0; box-sizing: border-box; padding: 1.5rem; border: 1px solid var(--border); border-radius: 1.4rem; background: var(--surface); box-shadow: 0 6px 0 color-mix(in srgb, var(--text-primary) 18%, transparent); }
+.auth-companion { display: grid; justify-items: center; gap: 1rem; text-align: center; }
+.auth-companion > p { color: var(--text-secondary); font-size: .95rem; line-height: 1.65; margin: 0; }
+.auth-robot { width: 210px; height: 210px; }
+.robot-lab-auth-layout .auth-brand { display: flex; align-items: center; gap: .8rem; margin: 0 0 1.5rem; }
+.robot-lab-auth-layout .auth-brand .robot-lab-wordmark-copy { display: grid; gap: .15rem; }
+.robot-lab-auth-layout .auth-brand strong { color: var(--text-primary); font: 800 1.35rem/1.25 var(--font-data); }
+.robot-lab-auth-layout .auth-brand small { color: var(--text-secondary); letter-spacing: .1em; font-size: .75rem; }
+.robot-lab-auth-layout input:not([type="checkbox"]), .robot-lab-settings-page input:not([type="checkbox"]):not([type="range"]), .robot-lab-settings-page select { min-height: 2.9rem; border-radius: .8rem; background: var(--surface-raised); }
+.robot-lab-auth-layout .guest-warning { padding: 1rem; border: 1px solid var(--border); border-radius: .85rem; background: var(--surface-raised); margin: 1.2rem 0; }
+.robot-lab-auth-layout .guest-warning strong, .robot-lab-auth-layout .guest-warning span { display: block; }
+.robot-lab-auth-layout .guest-warning span { margin-top: .45rem; font-size: .85rem; color: var(--text-secondary); }
+.robot-lab-auth-layout .form-links { font-size: .875rem; flex-wrap: wrap; gap: .7rem; }
+.robot-lab-auth-layout .recovery-hologram { background: var(--surface-raised); border: 1px solid var(--border); box-shadow: none; }
+.robot-lab-auth-layout .recovery-scanline { display: none; }
+.robot-lab-auth-layout .recovery-code { overflow-wrap: anywhere; font-size: 1.4rem; color: var(--text-primary); }
+.robot-lab-fallback-panel, .robot-lab-loading-panel { width: min(38rem, calc(100% - 2rem)); margin: 2rem auto; padding: 1.5rem; border: 1px solid var(--border); border-radius: 1.4rem; background: var(--surface); box-shadow: 0 4px 0 color-mix(in srgb, var(--text-primary) 18%, transparent); text-align: center; }
+.robot-lab-fallback-art { width: 100px; height: 100px; margin-inline: auto; }
+.robot-lab-loading-panel { min-height: 15rem; gap: .85rem; flex-direction: column; justify-content: center; }
+.robot-lab-fallback-panel .error-actions { justify-content: center; flex-wrap: wrap; }
+:root[data-design-system="robot-lab"] .modal { border: 1px solid var(--border); border-radius: 1.4rem; background: var(--surface); box-shadow: 0 6px 0 color-mix(in srgb, var(--text-primary) 18%, transparent); }
+:root[data-design-system="robot-lab"] .modal h2 { font-size: 1.5rem; }
+:root[data-design-system="robot-lab"] .toast { border: 1px solid var(--border); border-radius: .9rem; background: var(--surface-raised); box-shadow: 0 3px 0 color-mix(in srgb, var(--text-primary) 18%, transparent); }
+.auth-robot { transition: transform 160ms ease; }
+.auth-companion:hover .auth-robot { transform: translateY(-4px); }
+@media (max-width: 900px) {
+  .settings-workspace { grid-template-columns: 1fr; }
+  .robot-lab-settings-page .settings-tabs { display: flex; flex-wrap: wrap; }
+  .robot-lab-settings-page .settings-tab { width: auto; flex: 1 0 auto; text-align: center; }
+}
+@media (max-width: 620px) {
+  .robot-lab-auth-layout { grid-template-columns: 1fr; margin-top: 1rem; }
+  .auth-companion { grid-row: 2; padding: 1.2rem; }
+  .auth-robot { width: 110px; height: 110px; }
+  .auth-robot svg { width: 110px; height: 110px; }
+  .robot-lab-auth-layout .auth-card, .robot-lab-settings-page .settings-card { padding: 1.15rem; }
+  .robot-lab-settings-page .settings-grid { grid-template-columns: 1fr; }
+  .robot-lab-settings-page .settings-inline-actions .button { flex: 1 1 100%; }
+}
+:root[data-reduced-motion="true"] .auth-robot, :root[data-quality-tier="low"] .auth-robot { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) { .auth-robot, .auth-companion:hover .auth-robot { transition: none; transform: none; } }
+.robot-lab-auth-layout::before, .robot-lab-auth-layout .auth-card::before { display: none; }
+.robot-lab-loading-panel.loading-state.full-page { min-height: 15rem; }
+.robot-lab-auth-layout .auth-card { max-width: none; backdrop-filter: none; }
+:root[data-theme="light"] .robot-lab-settings-page .settings-tab.active { color: #fff; }
+.robot-lab-auth-layout .button.primary { color: #07141c; background: var(--system-cyan); }
+:root[data-theme="light"] .robot-lab-auth-layout .button.primary { color: #fff; }
+:root[data-theme="light"] .robot-lab-auth-layout .robot-lab-wordmark-mark { color: #fff; }
+:root[data-theme="dark"] .robot-lab-settings-page .button.danger,
+:root[data-theme="dark"][data-design-system="robot-lab"] .modal .button.danger { color: #07141c; }
+:root[data-reduced-motion="true"] .auth-companion:hover .auth-robot, :root[data-quality-tier="low"] .auth-companion:hover .auth-robot { transform: none; }

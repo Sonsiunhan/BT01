@@ -1,0 +1,237 @@
+/* V5 · Robot Lab bot surfaces. Keep the operational UI calm, explicit and private. */
+.robot-lab-bot-workbench,
+.robot-lab-bot-online,
+.robot-lab-bot-offline {
+  width: min(82rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.2rem) 0 3rem;
+}
+
+.robot-lab-bot-workbench .bot-workbench-header,
+.robot-lab-bot-online .bot-online-header,
+.robot-lab-bot-offline .bot-offline-header {
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--system-cyan) 42%, var(--border));
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 92%, var(--system-cyan)), var(--surface));
+  box-shadow: var(--lab-bevel), var(--shadow-raised);
+}
+
+.robot-lab-bot-workbench .bot-workbench-grid {
+  grid-template-columns: minmax(14rem, .72fr) minmax(20rem, 1.25fr) minmax(18rem, 1fr);
+  gap: 1rem;
+}
+
+.robot-lab-bot-workbench .bot-workbench-panel,
+.robot-lab-bot-online .bot-online-panel,
+.robot-lab-bot-offline .bot-offline-slot,
+.robot-lab-bot-offline .bot-offline-kit {
+  border-color: color-mix(in srgb, var(--system-cyan) 35%, var(--border));
+  background: linear-gradient(155deg, color-mix(in srgb, var(--surface-raised) 96%, var(--system-cyan)), var(--surface));
+  box-shadow: var(--lab-bevel), var(--shadow-raised);
+}
+
+.robot-lab-bot-workbench .bot-workbench-panel {
+  min-height: 30rem;
+  transition: transform var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.robot-lab-bot-workbench .bot-workbench-panel:hover,
+.robot-lab-bot-online .bot-online-panel:hover,
+.robot-lab-bot-offline .bot-offline-slot:hover {
+  border-color: color-mix(in srgb, var(--system-cyan) 60%, var(--border));
+  transform: translateY(-2px);
+}
+
+.robot-lab-bot-workbench .bot-list-item {
+  border-color: color-mix(in srgb, var(--system-cyan) 28%, var(--border));
+  background: color-mix(in srgb, var(--surface-raised) 82%, var(--system-cyan));
+  transition: transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
+}
+
+.robot-lab-bot-workbench .bot-list-item:hover,
+.robot-lab-bot-workbench .bot-list-item.selected {
+  border-color: var(--data-accent);
+  background: color-mix(in srgb, var(--data-accent) 10%, var(--surface-raised));
+  transform: translateY(-1px);
+}
+
+.robot-lab-bot-workbench .file-drop {
+  min-height: 8rem;
+  border: 1px dashed color-mix(in srgb, var(--system-cyan) 62%, var(--border));
+  background: color-mix(in srgb, var(--system-cyan) 8%, var(--surface));
+  transition: border-color var(--motion-fast), background var(--motion-fast), transform var(--motion-fast);
+}
+
+.robot-lab-bot-workbench .file-drop:hover,
+.robot-lab-bot-workbench .file-drop:focus-within {
+  border-color: var(--data-accent);
+  background: color-mix(in srgb, var(--data-accent) 12%, var(--surface));
+  transform: translateY(-1px);
+}
+
+.robot-lab-bot-workbench .bot-private-log,
+.robot-lab-bot-workbench .bot-source-view {
+  border-color: color-mix(in srgb, var(--data-accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--data-accent) 7%, var(--surface));
+}
+
+.robot-lab-bot-workbench .bot-source-view pre {
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.robot-lab-bot-online .bot-online-grid {
+  grid-template-columns: minmax(16rem, 1fr) minmax(18rem, 1.05fr) minmax(16rem, .9fr);
+  gap: 1rem;
+}
+
+.robot-lab-bot-online .bot-online-panel {
+  min-height: 22rem;
+  transition: transform var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.robot-lab-bot-online .bot-online-status {
+  border-color: color-mix(in srgb, var(--data-accent) 32%, var(--border));
+  background: color-mix(in srgb, var(--data-accent) 7%, var(--surface));
+}
+
+.robot-lab-bot-online .bot-online-header-actions,
+.robot-lab-bot-online .bot-online-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  align-items: center;
+}
+
+.robot-lab-bot-online .bot-online-hint {
+  margin: .6rem 0 0;
+  color: var(--text-muted);
+  font-size: .88rem;
+}
+
+.robot-lab-bot-online .bot-online-feedback {
+  grid-column: 1 / -1;
+  min-height: 0;
+  border-color: color-mix(in srgb, var(--data-accent) 45%, var(--border));
+}
+
+.robot-lab-bot-online .bot-online-feedback ul {
+  margin: .65rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.robot-lab-bot-online .bot-online-contract li::marker {
+  color: var(--data-accent);
+}
+
+.robot-lab-bot-online .check-row {
+  min-height: 2.75rem;
+  padding: .55rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.robot-lab-bot-offline .bot-offline-layout {
+  grid-template-columns: minmax(0, 1.35fr) minmax(19rem, .8fr);
+  gap: 1rem;
+}
+
+.robot-lab-bot-offline .bot-offline-board {
+  padding: .8rem;
+  border: 1px solid color-mix(in srgb, var(--system-cyan) 35%, var(--border));
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 94%, var(--system-cyan)), var(--surface));
+  box-shadow: var(--lab-bevel), var(--shadow-raised);
+}
+
+.robot-lab-bot-offline .bot-offline-slot {
+  transition: transform var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.robot-lab-bot-offline .bot-offline-slot.blue {
+  border-color: color-mix(in srgb, var(--blue-side) 55%, var(--border));
+}
+
+.robot-lab-bot-offline .bot-offline-slot.red {
+  border-color: color-mix(in srgb, var(--red-side) 55%, var(--border));
+}
+
+.robot-lab-bot-offline .bot-offline-controls {
+  gap: .55rem;
+}
+
+.robot-lab-bot-offline .bot-offline-result {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+@media (max-width: 1050px) {
+  .robot-lab-bot-workbench .bot-workbench-grid,
+  .robot-lab-bot-online .bot-online-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .robot-lab-bot-workbench .bot-inspector-panel,
+  .robot-lab-bot-online .bot-online-contract {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .robot-lab-bot-offline .bot-offline-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .robot-lab-bot-offline .bot-offline-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .robot-lab-bot-offline .bot-offline-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .robot-lab-bot-workbench .bot-workbench-header,
+  .robot-lab-bot-online .bot-online-header,
+  .robot-lab-bot-offline .bot-offline-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .robot-lab-bot-workbench .bot-workbench-header > .button,
+  .robot-lab-bot-online .bot-online-header > .button,
+  .robot-lab-bot-online .bot-online-header-actions,
+  .robot-lab-bot-offline .bot-offline-header > .button {
+    width: 100%;
+  }
+
+  .robot-lab-bot-workbench .bot-workbench-grid,
+  .robot-lab-bot-online .bot-online-grid,
+  .robot-lab-bot-offline .bot-offline-slots {
+    grid-template-columns: 1fr;
+  }
+
+  .robot-lab-bot-workbench .bot-inspector-panel,
+  .robot-lab-bot-online .bot-online-contract,
+  .robot-lab-bot-offline .bot-offline-actions {
+    grid-column: auto;
+  }
+
+  .robot-lab-bot-workbench .bot-workbench-panel,
+  .robot-lab-bot-online .bot-online-panel {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-lab-bot-workbench .bot-workbench-panel,
+  .robot-lab-bot-workbench .bot-list-item,
+  .robot-lab-bot-workbench .file-drop,
+  .robot-lab-bot-online .bot-online-panel,
+  .robot-lab-bot-offline .bot-offline-slot {
+    transition: none;
+    transform: none;
+  }
+}

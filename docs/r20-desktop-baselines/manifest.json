@@ -1,0 +1,323 @@
+{
+  "generatedAt": "2026-10-05T16:30:43.873Z",
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "notFoundResponses": [],
+  "expectedGuestAuth401": 16,
+  "requestFailures": [],
+  "expectedNavigationAborts": [
+    {
+      "url": "http://localhost:3001/health",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "url": "http://localhost:3001/bot-library",
+      "failure": "net::ERR_ABORTED"
+    }
+  ],
+  "apiResponses": [
+    {
+      "url": "http://localhost:3001/rooms?limit=12",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/rooms?limit=12",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/rooms/events",
+      "status": 200,
+      "contentType": "text/event-stream"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/bot-library",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/bot-library/sdk",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/guest/session",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/guest/session",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/friends",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/requests?direction=incoming",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/requests?direction=sent",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/invites",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/rooms/referee/invites",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/friends",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/requests?direction=incoming",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/requests?direction=sent",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/invites",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/rooms/referee/invites",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/social/presence/events",
+      "status": 200,
+      "contentType": "text/event-stream"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/health",
+      "status": 200,
+      "contentType": "application/json"
+    },
+    {
+      "url": "http://localhost:3001/auth/me",
+      "status": 401,
+      "contentType": "application/json"
+    }
+  ],
+  "pages": [
+    {
+      "name": "home",
+      "route": "/",
+      "file": "docs\\r20-desktop-baselines\\home-1440x900.png",
+      "scrollWidth": 1440,
+      "viewportWidth": 1440,
+      "title": "Oẳn Tù Tì v2"
+    },
+    {
+      "name": "bot-workbench",
+      "route": "/bot-lab",
+      "file": "docs\\r20-desktop-baselines\\bot-workbench-1440x900.png",
+      "scrollWidth": 1440,
+      "viewportWidth": 1440,
+      "title": "Oẳn Tù Tì v2"
+    },
+    {
+      "name": "bot-online",
+      "route": "/dau-chuong-trinh/online",
+      "file": "docs\\r20-desktop-baselines\\bot-online-1440x900.png",
+      "scrollWidth": 1440,
+      "viewportWidth": 1440,
+      "title": "Oẳn Tù Tì v2"
+    },
+    {
+      "name": "bot-offline",
+      "route": "/dau-chuong-trinh/offline",
+      "file": "docs\\r20-desktop-baselines\\bot-offline-1440x900.png",
+      "scrollWidth": 1440,
+      "viewportWidth": 1440,
+      "title": "Oẳn Tù Tì v2"
+    },
+    {
+      "name": "history",
+      "route": "/history",
+      "file": "docs\\r20-desktop-baselines\\history-1440x900.png",
+      "scrollWidth": 1440,
+      "viewportWidth": 1440,
+      "title": ""
+    },
+    {
+      "name": "friends",
+      "route": "/friends",
+      "file": "docs\\r20-desktop-baselines\\friends-1440x900.png",
+      "scrollWidth": 1440,
+      "viewportWidth": 1440,
+      "title": "Oẳn Tù Tì v2"
+    },
+    {
+      "name": "settings",
+      "route": "/settings?tab=appearance",
+      "file": "docs\\r20-desktop-baselines\\settings-1440x900.png",
+      "scrollWidth": 1440,
+      "viewportWidth": 1440,
+      "title": "Oẳn Tù Tì v2"
+    }
+  ]
+}
