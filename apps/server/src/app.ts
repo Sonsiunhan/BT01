@@ -31,6 +31,7 @@ import { BotOnlineService, FileBotOnlineStatePersistence } from "./modules/bot-o
 import { createWasmtimeCpythonAdapter, DEFAULT_CPYTHON_WASM_SHA256, DEFAULT_WASMTIME_LINUX_SHA256 } from "./modules/bot-online/wasmtime.adapter.js";
 import { registerBotOnlineRoutes } from "./modules/bot-online/bot-online.route.js";
 import { registerCors } from "./plugins/cors.js";
+import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
 import { registerWebApp } from "./plugins/web-app.js";
 import { PrismaDatabase, type DatabasePort } from "./plugins/prisma.js";
@@ -126,6 +127,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   }, 60 * 60 * 1000);
   guestSourceSweep.unref();
   app.addHook("onReady", async () => realtime.start());
+  app.addHook("onRequest", csrfMiddleware);
   const requestStarts = new Map<string, number>();
   app.addHook("onRequest", async (request) => { requestStarts.set(request.id, performance.now()); });
   app.addHook("onResponse", async (request, reply) => {

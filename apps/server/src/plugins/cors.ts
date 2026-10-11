@@ -6,7 +6,7 @@ export async function registerCors(app: FastifyInstance, allowedOrigins: readonl
   await app.register(cors, {
     credentials: true,
     origin(origin, callback) {
-      if (origin === undefined || allowlist.has(origin)) {
+      if (allowlist.has(origin)) {
         callback(null, true);
         return;
       }
@@ -14,3 +14,4 @@ export async function registerCors(app: FastifyInstance, allowedOrigins: readonl
     }
   });
 }
+

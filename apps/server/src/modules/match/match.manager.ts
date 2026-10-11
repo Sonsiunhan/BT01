@@ -253,7 +253,11 @@ export class MatchManager {
     if (wasDisconnected) {
       this.disconnectDeadlines.get(room.roomId)?.delete(userId);
       if (this.disconnectDeadlines.get(room.roomId)?.size === 0) this.disconnectDeadlines.delete(room.roomId);
-      if (match.status === "PLAYING" && this.pendingDisconnects(match) === 0) match.turnStartedAt = this.now();
+      if (match.status === "PLAYING" && this.pendingDisconnects(match) === 0) {
+        // Deduct elapsed time before restarting the turn timer.
+        // Without this, players could reset their clock by disconnecting and reconnecting.
+        this.advance(match);
+      }
       const expiredOpponent = match.expiredDisconnects.values().next().value as string | undefined;
       if (expiredOpponent !== undefined) {
         this.finish(match, player.side, "DISCONNECT_TIMEOUT");

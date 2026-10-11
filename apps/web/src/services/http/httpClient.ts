@@ -50,8 +50,12 @@ export async function requestJson<T = unknown>(path: string, options: { method: 
       method: options.method,
       credentials: "include",
       // Fastify rejects Content-Type: application/json with no document.
-      // Preflight/Ready and DELETE intentionally have no request body.
-      headers: { Accept: "application/json", ...(options.body === undefined ? {} : { "Content-Type": "application/json" }), ...options.headers },
+      headers: { 
+        "Accept": "application/json", 
+        "X-OTT-Request": "1",
+        ...(options.body === undefined ? {} : { "Content-Type": "application/json" }), 
+        ...options.headers 
+      },
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: options.signal,
     });

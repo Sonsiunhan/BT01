@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import type { CreateRoomRequest, JoinRoomRequest, RoomDetail, RoomSummary, SpectateRoomRequest, RoomPlayMode } from "@ottv2/contracts";
 
 import { AppError } from "../../shared/errors/app-error.js";
@@ -40,6 +40,8 @@ export class RoomManager {
   private readonly createIdempotency = new Map<string, IdempotencyRecord>();
   private readonly joinIdempotency = new Map<string, IdempotencyRecord>();
   private readonly refereeInvites = new Map<string, RefereeInvite>();
+  /** Per-room mutex preventing concurrent join race conditions. */
+  private readonly joiningRooms = new Set<string>();
 
   subscribe(listener: (rooms: RoomSummary[]) => void): () => void { this.listeners.add(listener); return () => this.listeners.delete(listener); }
 
@@ -299,29 +301,36 @@ export class RoomManager {
 
   private async joinInternal(actor: RoomActor, roomId: string, input: JoinRoomRequest, idempotencyKey: string | undefined, bypassPassword: boolean): Promise<RoomDetail> {
     const normalizedRoomId = roomId.trim().toUpperCase();
-    const room = this.rooms.get(normalizedRoomId);
-    if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
-    const fingerprint = JSON.stringify({ roomId: normalizedRoomId, input });
-    if (idempotencyKey) {
-      const key = `${actor.userId}:${idempotencyKey}`;
-      const previous = this.joinIdempotency.get(key);
-      if (previous) {
-        if (previous.fingerprint !== fingerprint) throw new AppError("CONFLICT", "Idempotency-Key đã được dùng cho yêu cầu khác.", 409, false, "INVALID");
-        const existing = this.rooms.get(previous.roomId);
-        if (existing) return this.serialize(existing, actor.userId);
+    // Per-room mutex: prevent concurrent join race condition across the async verifySecret gap.
+    if (this.joiningRooms.has(normalizedRoomId)) throw new AppError("CONFLICT", "Có yêu cầu tham gia đang xử lý. Hãy thử lại.", 409, true, "RECOVERABLE");
+    this.joiningRooms.add(normalizedRoomId);
+    try {
+      const room = this.rooms.get(normalizedRoomId);
+      if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
+      const fingerprint = JSON.stringify({ roomId: normalizedRoomId, input });
+      if (idempotencyKey) {
+        const key = `${actor.userId}:${idempotencyKey}`;
+        const previous = this.joinIdempotency.get(key);
+        if (previous) {
+          if (previous.fingerprint !== fingerprint) throw new AppError("CONFLICT", "Idempotency-Key đã được dùng cho yêu cầu khác.", 409, false, "INVALID");
+          const existing = this.rooms.get(previous.roomId);
+          if (existing) return this.serialize(existing, actor.userId);
+        }
       }
+      if (room.members.some((member) => member.userId === actor.userId)) return this.serialize(room, actor.userId);
+      if (room.referee?.userId === actor.userId) throw new AppError("CONFLICT", "Trọng tài không thể đồng thời là người chơi.", 409, false, "INVALID", { reason: "PLAYER_REFEREE_CONFLICT" });
+      if (room.members.length >= 2) throw new AppError("CONFLICT", "Phòng đã đủ người chơi.", 409, false, "INVALID");
+      if (!bypassPassword && room.passwordHash && (!input.password || !(await verifySecret(input.password, room.passwordHash)))) {
+        throw new AppError("UNAUTHORIZED", "Mật khẩu phòng không đúng.", 401, false, "INVALID");
+      }
+      room.members.push({ ...actor, joinedAt: Date.now(), isHost: false });
+      if (room.spectatorIds.delete(actor.userId)) this.revokeSpectatorStreams(normalizedRoomId, actor.userId);
+      this.publish();
+      if (idempotencyKey) this.joinIdempotency.set(`${actor.userId}:${idempotencyKey}`, { fingerprint, roomId: normalizedRoomId });
+      return this.serialize(room, actor.userId);
+    } finally {
+      this.joiningRooms.delete(normalizedRoomId);
     }
-    if (room.members.some((member) => member.userId === actor.userId)) return this.serialize(room, actor.userId);
-    if (room.referee?.userId === actor.userId) throw new AppError("CONFLICT", "Trọng tài không thể đồng thời là người chơi.", 409, false, "INVALID", { reason: "PLAYER_REFEREE_CONFLICT" });
-    if (room.members.length >= 2) throw new AppError("CONFLICT", "Phòng đã đủ người chơi.", 409, false, "INVALID");
-    if (!bypassPassword && room.passwordHash && (!input.password || !(await verifySecret(input.password, room.passwordHash)))) {
-      throw new AppError("UNAUTHORIZED", "Mật khẩu phòng không đúng.", 401, false, "INVALID");
-    }
-    room.members.push({ ...actor, joinedAt: Date.now(), isHost: false });
-    if (room.spectatorIds.delete(actor.userId)) this.revokeSpectatorStreams(normalizedRoomId, actor.userId);
-    this.publish();
-    if (idempotencyKey) this.joinIdempotency.set(`${actor.userId}:${idempotencyKey}`, { fingerprint, roomId: normalizedRoomId });
-    return this.serialize(room, actor.userId);
   }
 
   private getRoom(roomId: string): RoomState {
@@ -364,16 +373,16 @@ export class RoomManager {
   private generateRoomId(): string {
     for (let attempt = 0; attempt < 100; attempt += 1) {
       let id = "";
-      for (let index = 0; index < 6; index += 1) id += ROOM_ID_ALPHABET[Math.floor(Math.random() * ROOM_ID_ALPHABET.length)];
+      for (let index = 0; index < 6; index += 1) id += ROOM_ID_ALPHABET[randomInt(ROOM_ID_ALPHABET.length)];
       if (!this.rooms.has(id)) return id;
     }
     throw new AppError("SERVICE_UNAVAILABLE", "Không thể cấp Room ID lúc này.", 503, true, "RECOVERABLE");
   }
 
   private generateFriendlyName(): string {
-    const adjective = FRIENDLY_ADJECTIVES[Math.floor(Math.random() * FRIENDLY_ADJECTIVES.length)] ?? "Neon";
-    const noun = FRIENDLY_NOUNS[Math.floor(Math.random() * FRIENDLY_NOUNS.length)] ?? "Hammer";
-    return `${adjective} ${noun} ${Math.floor(10 + Math.random() * 90)}`;
+    const adjective = FRIENDLY_ADJECTIVES[randomInt(FRIENDLY_ADJECTIVES.length)] ?? "Neon";
+    const noun = FRIENDLY_NOUNS[randomInt(FRIENDLY_NOUNS.length)] ?? "Hammer";
+    return `${adjective} ${noun} ${randomInt(10, 100)}`;
   }
 
   private serialize(room: RoomState, viewerId: string | undefined, revealMembers = false): RoomDetail {
