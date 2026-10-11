@@ -82,4 +82,23 @@ describe("R15 Settings output", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("kết thúc trận local");
     expect(mocks.clearOfflineKit).not.toHaveBeenCalled();
   });
+
+  it("shows GuestFeatureBlocker with CTA button on protected tabs when not logged in (SETTINGS-01)", async () => {
+    renderWithProviders(<SettingsPage />, "/cai-dat?tab=account");
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Tài khoản" })).toBeInTheDocument());
+    expect(screen.getByText(/Tính năng này chỉ dành cho tài khoản đã đăng ký/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Đăng nhập ngay" })).toHaveAttribute("href", "/dang-nhap?returnTo=%2Fcai-dat%3Ftab%3Daccount");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Riêng tư" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Quyền riêng tư" })).toBeInTheDocument());
+    expect(screen.getAllByRole("link", { name: "Đăng nhập ngay" })[0]).toBeInTheDocument();
+  });
+
+  it("displays percentage labels next to audio volume sliders (SETTINGS-02)", async () => {
+    renderWithProviders(<SettingsPage />, "/cai-dat?tab=audio");
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Âm thanh" })).toBeInTheDocument());
+    expect(screen.getByText(/Âm lượng master/)).toHaveTextContent("100%");
+    expect(screen.getByText(/Âm lượng SFX/)).toHaveTextContent("55%");
+    expect(screen.getByText(/Âm lượng BGM/)).toHaveTextContent("30%");
+  });
 });

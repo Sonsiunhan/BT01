@@ -83,6 +83,8 @@ describe("SpectatorPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Phòng Robot" })).toBeInTheDocument();
     expect(document.querySelector(".robot-lab-spectator-page")).toBeInTheDocument();
+    expect(screen.getByText("NHẬT KÝ DIỄN BIẾN")).toBeInTheDocument();
+    expect(screen.getByText("NHẬT KÝ NƯỚC ĐI")).toBeInTheDocument();
     expect(screen.getByText(/Revision 3/)).toBeInTheDocument();
     expect(screen.getByText("Nước đi mới đã được chấp nhận")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tiếp tục" })).not.toBeInTheDocument();
@@ -99,5 +101,14 @@ describe("SpectatorPage", () => {
     expect(screen.getByText("Dịch vụ xem trận đang tạm thời không khả dụng.")).toBeInTheDocument();
     expect(screen.queryByText(/upstream down|UPSTREAM_UNAVAILABLE|stack/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+  });
+
+  it("renders a password-type input when entering a password-protected spectator room", async () => {
+    spectatorApi.requestSpectator.mockRejectedValueOnce(new ApiError("password required", 401, "AUTHENTICATION_REQUIRED"));
+    render(<MemoryRouter initialEntries={["/spectate/ROOM42"]}><Routes><Route path="/spectate/:roomId" element={<SpectatorPage />} /></Routes></MemoryRouter>);
+
+    expect(await screen.findByRole("heading", { name: "Cần mật khẩu phòng" })).toBeInTheDocument();
+    const pwdInput = screen.getByLabelText("Mật khẩu phòng");
+    expect(pwdInput).toHaveAttribute("type", "password");
   });
 });

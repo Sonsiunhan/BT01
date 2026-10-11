@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Modal, ThemeSwitcher, UiGlyph, useToast } from "../components/ui";
 import { routes } from "../app/routes";
@@ -16,6 +16,17 @@ export function AppLayout() {
   const [network, setNetwork] = useState<"checking" | "online" | "offline" | "reconnecting" | "degraded">("checking");
   const [user, setUser] = useState<UserProfile | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const profileDetailsRef = useRef<HTMLDetailsElement | null>(null);
+
+  useEffect(() => {
+    const onPointerDown = (event: Event) => {
+      if (profileDetailsRef.current?.open && !profileDetailsRef.current.contains(event.target as Node)) {
+        profileDetailsRef.current.removeAttribute("open");
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -23,6 +34,11 @@ export function AppLayout() {
     check();
     const timer = window.setInterval(check, 30000);
     getMe().then((result) => { if (active) setUser(result.user); }).catch(() => { if (active) setUser(null); });
+    const onAuthChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ user: UserProfile | null }>).detail;
+      if (active) setUser(detail?.user ?? null);
+    };
+    window.addEventListener("ottv2:auth-change", onAuthChange);
     const onNetworkState = (event: Event) => {
       const state = (event as CustomEvent<{ state?: string }>).detail?.state;
       if (!active) return;
@@ -39,6 +55,7 @@ export function AppLayout() {
       window.clearInterval(timer);
       window.removeEventListener("ottv2:network-state", onNetworkState);
       window.removeEventListener("ottv2:session-expired", onSessionExpired);
+      window.removeEventListener("ottv2:auth-change", onAuthChange);
     };
   }, []);
 
@@ -63,11 +80,11 @@ export function AppLayout() {
         <NavLink to={routes.history}>Lịch sử</NavLink>
         <NavLink to={routes.profile}>Hồ sơ</NavLink>
       </nav>
-      <div className="header-actions"><ThemeSwitcher />{user ? <details className="profile-menu"><summary aria-label="Mở menu hồ sơ">{user.displayName}</summary><div><NavLink to={routes.profile}>Xem hồ sơ</NavLink><NavLink to={routes.settings}>Cài đặt</NavLink><button type="button" onClick={signOut}>Đăng xuất</button></div></details> : <NavLink className="header-login" to={routes.login}>Đăng nhập</NavLink>}</div>
+      <div className="header-actions"><ThemeSwitcher />{user ? <details ref={profileDetailsRef} className="profile-menu"><summary aria-label="Mở menu hồ sơ">{user.displayName}</summary><div><NavLink to={routes.profile}>Xem hồ sơ</NavLink><NavLink to={routes.settings}>Cài đặt</NavLink><button type="button" onClick={signOut}>Đăng xuất</button></div></details> : <NavLink className="header-login" to={routes.login}>Đăng nhập</NavLink>}</div>
     </header>}
     {!isGame && !isHome && network !== "online" && network !== "checking" && <div className={`network-banner ${network}`} role="status" aria-live="polite"><strong>{network === "offline" ? "Mất kết nối mạng" : network === "degraded" ? "Dịch vụ đang suy giảm" : "Đang kết nối lại"}</strong><span>{network === "offline" ? "Các thao tác online đang tạm khoá; dữ liệu sẽ được đồng bộ khi kết nối trở lại." : network === "degraded" ? "Một số thao tác có thể chậm hoặc cần thử lại." : "Đang thử khôi phục kết nối realtime…"}</span></div>}
     <main className="page-container"><Outlet /></main>
-    {!isGame && <nav className="bottom-nav" aria-label="Điều hướng di động"><NavLink to={routes.home}><UiGlyph name="home" /><span>Trang chủ</span></NavLink><NavLink to={routes.history}><UiGlyph name="history" /><span>Lịch sử</span></NavLink><NavLink to={routes.friends}><UiGlyph name="friends" /><span>Bạn bè</span></NavLink><NavLink to={routes.profile}><UiGlyph name="profile" /><span>Hồ sơ</span></NavLink></nav>}
+    {!isGame && <nav className="bottom-nav" aria-label="Điều hướng di động"><NavLink to={routes.home}><UiGlyph name="home" /><span>Trang chủ</span></NavLink><NavLink to={routes.rooms}><UiGlyph name="players" /><span>Đấu trường</span></NavLink><NavLink to={routes.history}><UiGlyph name="history" /><span>Lịch sử</span></NavLink><NavLink to={routes.friends}><UiGlyph name="friends" /><span>Bạn bè</span></NavLink><NavLink to={routes.settings}><UiGlyph name="settings" /><span>Cài đặt</span></NavLink><NavLink to={routes.profile}><UiGlyph name="profile" /><span>Hồ sơ</span></NavLink></nav>}
     <Modal open={sessionExpired} title="Phiên đăng nhập đã hết hạn" description="Vui lòng đăng nhập lại để tiếp tục. Các thao tác đang chờ sẽ không được gửi lại tự động." dismissible={false} onClose={() => undefined}><div className="modal-actions"><Button onClick={() => { setSessionExpired(false); navigate(loginReturnPath(location)); }}>Đăng nhập lại</Button></div></Modal>
   </div>;
 }

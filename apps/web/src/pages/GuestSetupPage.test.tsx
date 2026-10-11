@@ -34,4 +34,17 @@ describe("Guest compatibility onboarding", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tiếp tục" })).not.toBeDisabled();
   });
+
+  it("allows user to edit the guest nickname and submit with custom name", async () => {
+    const setSpy = vi.spyOn(localStorageService, "setGuestProfile").mockResolvedValue(undefined);
+    renderWithProviders(<><GuestSetupPage /><LocationProbe /></>, "/guest");
+    const input = await screen.findByLabelText("Tên khách");
+    await waitFor(() => expect((input as HTMLInputElement).value).not.toBe(""));
+    expect(input).not.toHaveAttribute("readonly");
+    fireEvent.change(input, { target: { value: "Biệt Danh Mới" } });
+    expect(input).toHaveValue("Biệt Danh Mới");
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(setSpy).toHaveBeenCalledWith({ displayName: "Biệt Danh Mới" }));
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/offline"));
+  });
 });

@@ -33,4 +33,12 @@ describe("R11 local manual and AI compatibility", () => {
     expect(screen.getByRole("region", { name: "Bàn cờ, góc nhìn phe Xanh" })).toBeInTheDocument();
     expect(screen.getByText("Không có kết nối lại · trạng thái local là nguồn sự thật của ván này.")).toBeInTheDocument();
   });
+
+  it("exposes surrender button during active game and stays visible without being covered", async () => {
+    renderWithProviders(<LocalGamePage mode="OFFLINE" />, "/offline");
+    fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu ván" }));
+
+    expect(screen.getByRole("button", { name: "Đầu hàng" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Thoát ván" })).toBeInTheDocument();
+  });
 });

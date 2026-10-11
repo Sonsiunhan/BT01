@@ -1,4 +1,5 @@
 import { screen, waitFor } from "@testing-library/react";
+import { Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProfilePage from "./ProfilePage";
@@ -52,4 +53,30 @@ describe("R14 Profile output", () => {
     expect(screen.getByText("7 thắng · 3 thua")).toBeInTheDocument();
     expect(screen.getByText("Bot không thay đổi Elo Ranked")).toBeInTheDocument();
   });
+
+  it("shows server error state on 500 without redirecting to login (PROFILE-01)", async () => {
+    mocks.getMe.mockRejectedValue(new ApiError("Lỗi kết nối máy chủ, vui lòng thử lại.", 500, "INTERNAL_ERROR"));
+
+    renderWithProviders(<ProfilePage />, "/ho-so");
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Lỗi kết nối máy chủ" })).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Đăng nhập" })).not.toBeInTheDocument();
+  });
+
+  it("shows friendly robot empty state on 404 public profile instead of crash or login (PLAYER-01)", async () => {
+    mocks.getPublicProfile.mockRejectedValue(new ApiError("Không tìm thấy người chơi.", 404, "NOT_FOUND"));
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/profile/:username" element={<ProfilePage />} />
+      </Routes>,
+      "/profile/ghost_player"
+    );
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Không tìm thấy người chơi" })).toBeInTheDocument());
+    expect(screen.getByText(/Người chơi "@ghost_player" không tồn tại/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Khám phá phòng chơi" })).toBeInTheDocument();
+  });
 });
+

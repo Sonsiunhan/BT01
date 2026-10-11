@@ -26,11 +26,16 @@ export default function ForgotPasswordPage() {
   };
   return <AuthLayout><div className="auth-card"><AuthBrand /><p className="eyebrow">KHÔI PHỤC / ĐẶT LẠI AN TOÀN</p><h1>Khôi phục mật khẩu</h1><p className="form-intro">Nhập username, mã khôi phục đã lưu và mật khẩu mới.</p><form className="form-stack" onSubmit={submit} noValidate>
     <label htmlFor="recover-username">Username<input id="recover-username" value={form.username} onChange={(event) => update("username", event.target.value)} autoComplete="username" required minLength={4} aria-invalid={Boolean(fieldErrors.username)} aria-describedby={fieldErrors.username ? "recover-username-error" : undefined} />{fieldErrors.username && <small id="recover-username-error" className="field-error">{fieldErrors.username}</small>}</label>
-    <label htmlFor="recover-code">Recovery Code<input id="recover-code" value={form.recoveryCode} onChange={(event) => update("recoveryCode", event.target.value.toUpperCase())} required autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(fieldErrors.recoveryCode)} aria-describedby={fieldErrors.recoveryCode ? "recover-code-error" : undefined} />{fieldErrors.recoveryCode && <small id="recover-code-error" className="field-error">{fieldErrors.recoveryCode}</small>}</label>
-    <PasswordField id="recover-new-password" label="Mật khẩu mới" value={form.newPassword} onChange={(event) => update("newPassword", event.target.value)} required minLength={8} autoComplete="new-password" aria-invalid={Boolean(fieldErrors.newPassword)} />
-    {fieldErrors.newPassword && <p className="field-error" role="status">{fieldErrors.newPassword}</p>}
-    <PasswordField id="recover-confirm-password" label="Xác nhận mật khẩu mới" value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} required minLength={8} autoComplete="new-password" aria-invalid={Boolean(fieldErrors.confirmPassword)} />
-    {fieldErrors.confirmPassword && <p className="field-error" role="status">{fieldErrors.confirmPassword}</p>}
-    {error && <p className="form-error" role="alert" aria-live="assertive">{error}</p>}{done && <p className="form-success" role="status" aria-live="polite">Đã đổi mật khẩu. Đang chuyển tới đăng nhập…</p>}<Button type="submit" pending={pending} pendingLabel="Đang khôi phục…">Đặt lại mật khẩu</Button>
+    <label htmlFor="recover-code">Mã khôi phục<input id="recover-code" value={form.recoveryCode} onChange={(event) => update("recoveryCode", event.target.value.toUpperCase())} required autoCapitalize="characters" spellCheck={false} aria-invalid={Boolean(fieldErrors.recoveryCode)} aria-describedby={fieldErrors.recoveryCode ? "recover-code-error" : undefined} />{fieldErrors.recoveryCode && <small id="recover-code-error" className="field-error">{fieldErrors.recoveryCode}</small>}</label>
+    <PasswordField id="recover-new-password" label="Mật khẩu mới" value={form.newPassword} onChange={(event) => update("newPassword", event.target.value)} required minLength={8} autoComplete="new-password" error={fieldErrors.newPassword} errorId="recover-new-password-error" />
+    <PasswordField id="recover-confirm-password" label="Xác nhận mật khẩu mới" value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} required minLength={8} autoComplete="new-password" error={fieldErrors.confirmPassword} errorId="recover-confirm-password-error" />
+    {error && <p className="form-error" role="alert" aria-live="assertive">{error}</p>}
+    {done && (
+      <div className="recovery-success" style={{ display: "grid", gap: "0.5rem" }}>
+        <p className="form-success" role="status" aria-live="polite">Đã đổi mật khẩu. Đang chuyển tới đăng nhập…</p>
+        <Button type="button" variant="secondary" onClick={() => navigate(routes.login)}>Đăng nhập ngay</Button>
+      </div>
+    )}
+    {!done && <Button type="submit" pending={pending} pendingLabel="Đang khôi phục…">Đặt lại mật khẩu</Button>}
   </form><div className="form-links"><Link to={routes.login}>Quay lại đăng nhập</Link></div></div></AuthLayout>;
 }
