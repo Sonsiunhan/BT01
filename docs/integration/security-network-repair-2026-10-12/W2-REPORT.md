@@ -2,14 +2,14 @@
 
 Date: 2026-10-12  
 Candidate branch: `codex/security-network-repair`  
-Commit: `e5da0de`  
+Commits: `e5da0de`, `9ffb3e0`, `547d892`, `810b73d`  
 Base: `test-v0.2@277c627b78586639e40366e2ab6f544d93da69aa`
 
 ## Scope completed
 
 - Command ledger lookup is scoped by the composite `(targetId, principalId, commandId, operation)` key. The previous global `commandId` fallback was removed, so an ACK from another principal or room cannot be returned.
 - Stored outcomes carry the payload fingerprint. Reusing the same scoped command UUID with another MOVE payload returns `CONFLICT` with exact reason `COMMAND_ID_REUSED` before a second mutation.
-- Prisma durable reads compare the persisted `payloadDigest` before returning an ACK; the memory fallback follows the same rule.
+- Prisma durable reads require the full scope and compare the persisted `payloadDigest` before returning an ACK; the memory fallback follows the same rule.
 - MOVE payload fingerprints are SHA-256 over the canonical `{from,to,stateVersion}` object.
 - Client MOVE operations use a per-operation UUID through `X-Command-Id`; `X-OTT-Request: 1` remains only a request/CSRF marker. The server no longer promotes that marker to a command ID, and non-UUID legacy markers are ignored.
 - Room lock cleanup now compares and removes the queued promise token, including completed failures and concurrent requests.
