@@ -19,7 +19,7 @@ Phạm vi: W3 của candidate repair; không push, không merge `test-v0.2` ho�
 
 | Gate | Kết quả |
 |---|---|
-| SEC-06 — public error/log privacy | **PASS** — canary `W3_PRIVATE_CANARY` và private source không xuất hiện; safe `reason` vẫn giữ |
+| SEC-06 — public error/log privacy | **PASS** — logger stream và response đều loại canary `W3_PRIVATE_CANARY`, private source/input/stack; safe `reason` vẫn giữ |
 | SEC-08 — security-core assertions/crypto seed | **PASS** — 28 security-core tests |
 | SEC-10 — CSRF route/config | **PASS** — 5 integration tests; probe POS 204, NEG 403, evil origin 403 với `CSRF_ORIGIN_NOT_ALLOWED` |
 | W3 root focused suite | **PASS** — 2 files, 33 tests |
