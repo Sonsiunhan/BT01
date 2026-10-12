@@ -504,13 +504,16 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
   }
 
   async readOutcome(query: ReadOutcomeQuery): Promise<CommandOutcome | null> {
+    // A command ID is not globally unique. Never perform a partial lookup that
+    // could select another target or operation.
+    if (!query.targetId || !query.operation) return null;
     const cached =
-      (query.targetId && query.operation ? this.ledger.get({
+      this.ledger.get({
         principalId: query.principalId,
         commandId: query.commandId,
         targetId: query.targetId,
         operation: query.operation,
-      }) : undefined);
+      });
 
     if (cached) return cached;
 
@@ -520,9 +523,9 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
         const dbEntry = await this.prisma.commandLedgerEntry.findFirst({
           where: {
             commandId: query.commandId,
-            ...(query.principalId ? { principalId: query.principalId } : {}),
-            ...(query.targetId ? { targetId: query.targetId } : {}),
-            ...(query.operation ? { operation: query.operation } : {}),
+            principalId: query.principalId,
+            targetId: query.targetId,
+            operation: query.operation,
           },
         });
         if (dbEntry) {
