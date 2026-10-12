@@ -1,0 +1,78 @@
+{
+  "source": "origin/network-core-v0.2@4ba4a5e / test-v0.2@277c627; relevant source unchanged",
+  "base": "C:\\Users\\Admin\\.codex\\worktrees\\security-network-repair-20261012\\BT01",
+  "realDb": false,
+  "results": [
+    {
+      "id": "LONG-01",
+      "name": "async commit port UNKNOWN must deny move",
+      "pass": false,
+      "actual": {
+        "commitCalls": 0,
+        "rejected": false,
+        "versionBefore": 2,
+        "versionAfter": 3
+      },
+      "expected": "commitTransition called and UNKNOWN blocks public state/ACK",
+      "evidenceKind": "in-memory contract probe; not real DB test"
+    },
+    {
+      "id": "LONG-02",
+      "name": "new room setup descriptor matches actual engine setup",
+      "pass": false,
+      "actual": {
+        "descriptor": {
+          "version": "rps-v2",
+          "seed": 402977
+        },
+        "BLUE": 9,
+        "RED": 9
+      },
+      "expected": "v2 room has 18 pieces per side; legacy v1 explicitly preserved"
+    },
+    {
+      "id": "LONG-03",
+      "name": "same command ID different payload must conflict",
+      "pass": true,
+      "actual": {
+        "rejected": true,
+        "reason": "COMMAND_ID_REUSED"
+      },
+      "expected": "409 COMMAND_ID_REUSED; no second mutation"
+    },
+    {
+      "id": "LONG-04",
+      "name": "settled failed joins release lock entries",
+      "pass": true,
+      "actual": {
+        "entriesAfter30CompletedRequests": 0
+      },
+      "expected": "no retained lock per arbitrary absent room ID after request settles"
+    },
+    {
+      "id": "LONG-05",
+      "name": "constant CSRF marker cannot serve as per-operation command ID",
+      "pass": true,
+      "actual": {
+        "versionBeforeThirdMove": 4,
+        "returnedVersion": 5,
+        "boardB3": {
+          "id": "blue-r-1",
+          "side": "BLUE",
+          "type": "R"
+        }
+      },
+      "expected": "new BLUE operation advances version; existing match.route falls back to X-OTT-Request=1 while submitMove omits commandId",
+      "evidenceKind": "manager reproduction of route-derived command identity; not HTTP/browser proof"
+    },
+    {
+      "id": "LONG-06",
+      "name": "ledger lookup must isolate principal and target",
+      "pass": true,
+      "actual": {
+        "returnedOtherScopeOutcome": false
+      },
+      "expected": "lookup with different principal/target returns no outcome; never ACK or expose another room"
+    }
+  ]
+}
