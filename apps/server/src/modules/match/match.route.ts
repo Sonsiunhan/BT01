@@ -82,14 +82,21 @@ async function memberRoom(auth: AuthService, rooms: RoomManager, request: Fastif
   return { context, room };
 }
 
+/** Guard against concurrent settle calls for the same match (double Elo finalization). */
+const settlingMatches = new Set<string>();
+
 async function settle(matches: MatchManager, history: MatchHistoryService | undefined, rating: RatingService | undefined, rooms: RoomManager, roomId: string, room: Awaited<ReturnType<RoomManager["search"]>>, match: Awaited<ReturnType<MatchManager["ensure"]>>): Promise<Awaited<ReturnType<MatchManager["ensure"]>>> {
   let next = match;
-  if (rating && next.status === "FINISHED" && next.rating === null) {
+  const matchKey = `${roomId}:${next.stateVersion}`;
+  if (rating && next.status === "FINISHED" && next.rating === null && !settlingMatches.has(matchKey)) {
+    settlingMatches.add(matchKey);
     try {
       const result = await rating.finalize(next);
       if (result) next = matches.setRating(room, result);
     } catch {
       // The authoritative result is already committed in memory; persistence/retry handles DB degradation.
+    } finally {
+      settlingMatches.delete(matchKey);
     }
   }
   if (history && (next.status === "FINISHED" || next.status === "ABORTED")) await history.record(next, room.playMode);
@@ -249,11 +256,8 @@ export async function registerMatchRoutes(app: FastifyInstance, auth: AuthServic
     const { context, room } = await memberRoom(auth, rooms, request);
     matches.acquireActiveLock(room, context.user.id, clientIdOf(request));
     const input = requireBody(request.body, PieceMoveRequestSchema);
-    const rawCmd =
-      (input as { commandId?: string }).commandId ??
-      (request.headers["x-command-id"] as string | undefined) ??
-      (request.headers["x-ott-request"] as string | undefined);
-    const commandId = rawCmd ? rawCmd.replace(/^req-/, "") : undefined;
+    const headerCommandId = request.headers["x-command-id"];
+    const commandId = typeof headerCommandId === "string" && headerCommandId.trim() ? headerCommandId.trim() : undefined;
     let match = matches.move(room, actorOf(context), input.from as Coordinate, input.to as Coordinate, input.stateVersion, commandId);
     match = await settle(matches, history, rating, rooms, room.roomId, room, match);
     return reply.status(200).send({ match });

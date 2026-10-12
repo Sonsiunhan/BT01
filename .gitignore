@@ -20,3 +20,5 @@ Thumbs.db
 
 prisma/*.db
 prisma/*.db-journal
+
+.agents/

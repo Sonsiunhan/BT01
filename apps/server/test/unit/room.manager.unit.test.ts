@@ -72,6 +72,18 @@ describe("W3 RoomManager", () => {
     expect(manager.search(first.roomId, guest.userId).members).toHaveLength(2);
   });
 
+  it("cleans completed room lock chains instead of retaining one entry per operation", async () => {
+    const manager = new RoomManager();
+    const internal = manager as unknown as { runWithRoomLock: <T>(roomId: string, action: () => Promise<T>) => Promise<T>; roomLocks: Map<string, Promise<void>> };
+    for (let i = 0; i < 30; i += 1) {
+      await internal.runWithRoomLock(`room-${i}`, async () => undefined);
+    }
+    expect(internal.roomLocks.size).toBe(0);
+
+    await Promise.all(Array.from({ length: 30 }, (_, i) => internal.runWithRoomLock("shared-room", async () => undefined)));
+    expect(internal.roomLocks.size).toBe(0);
+  });
+
   it("transfers host, retains waiting rooms and cleans up empty rooms", async () => {
     const manager = new RoomManager();
     const room = await manager.create(host, publicInput);

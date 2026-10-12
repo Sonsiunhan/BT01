@@ -14,3 +14,4 @@ export async function registerCors(app: FastifyInstance, allowedOrigins: readonl
     }
   });
 }
+

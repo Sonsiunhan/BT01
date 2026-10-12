@@ -3,7 +3,7 @@ import { CommandLedger } from "../../src/modules/match/commit/command-ledger.js"
 import type { CommandKey, CommandOutcome } from "../../src/modules/match/commit/commit.port.js";
 
 describe("CommandLedger (L05-W2 — Idempotent Outcome Ledger)", () => {
-  it("records and retrieves command outcomes by CommandKey and commandId", () => {
+  it("records and retrieves command outcomes only by the full scoped CommandKey", () => {
     const ledger = new CommandLedger();
     const key: CommandKey = {
       principalId: "user-1",
@@ -26,8 +26,8 @@ describe("CommandLedger (L05-W2 — Idempotent Outcome Ledger)", () => {
 
     expect(ledger.has(key)).toBe(true);
     expect(ledger.get(key)).toEqual(outcome);
-    expect(ledger.getByCommandId("cmd-100")).toEqual(outcome);
-    expect(ledger.getByCommandId("non-existent")).toBeUndefined();
+    expect(ledger.get({ ...key, principalId: "other-user" })).toBeUndefined();
+    expect(ledger.get({ ...key, targetId: "other-match" })).toBeUndefined();
   });
 
   it("evicts oldest entries when exceeding maxPerTarget bound", () => {
@@ -54,9 +54,17 @@ describe("CommandLedger (L05-W2 — Idempotent Outcome Ledger)", () => {
     }
 
     // cmd-1 should be evicted (maxPerTarget = 2)
-    expect(ledger.getByCommandId("cmd-1")).toBeUndefined();
-    expect(ledger.getByCommandId("cmd-2")).toBeDefined();
-    expect(ledger.getByCommandId("cmd-3")).toBeDefined();
+    expect(ledger.get({ principalId: "user-1", commandId: "cmd-1", targetId, operation: "MOVE" })).toBeUndefined();
+    expect(ledger.get({ principalId: "user-1", commandId: "cmd-2", targetId, operation: "MOVE" })).toBeDefined();
+    expect(ledger.get({ principalId: "user-1", commandId: "cmd-3", targetId, operation: "MOVE" })).toBeDefined();
+  });
+
+  it("preserves payload identity so the same scoped command cannot be reused", () => {
+    const ledger = new CommandLedger();
+    const key = { principalId: "u1", commandId: "c1", targetId: "r1", operation: "MOVE", payloadHash: "sha256:a" };
+    ledger.record({ commandId: "c1", principalId: "u1", outcome: "COMMITTED", stateVersion: 1, sequence: 1, ackPayload: {}, committedAt: 1 }, key);
+    expect(ledger.get({ ...key, payloadHash: "sha256:b" })?.payloadHash).toBe("sha256:a");
+    expect(ledger.get({ ...key, principalId: "u2" })).toBeUndefined();
   });
 
   it("clears entries for a specific targetId or clears all", () => {

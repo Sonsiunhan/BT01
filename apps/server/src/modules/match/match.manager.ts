@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { MatchBotAdjudication, MatchEventEnvelope, MatchEventType, MatchPauseCategory, MatchPauseReason, MatchPublicTimelineEvent, MatchRating, MatchReplacementStatus, MatchSnapshot, RoomDetail } from "@ottv2/contracts";
 import { applyMove, createInitialState, type Coordinate, type RuleState, type Side } from "@ottv2/game-rules";
 
@@ -352,7 +352,11 @@ export class MatchManager {
     if (wasDisconnected) {
       this.disconnectDeadlines.get(room.roomId)?.delete(userId);
       if (this.disconnectDeadlines.get(room.roomId)?.size === 0) this.disconnectDeadlines.delete(room.roomId);
-      if (match.status === "PLAYING" && this.pendingDisconnects(match) === 0) match.turnStartedAt = this.now();
+      if (match.status === "PLAYING" && this.pendingDisconnects(match) === 0) {
+        // Gameplay is frozen while a disconnect is pending. Restart the turn
+        // timer at reconnect; the grace interval must not consume clock time.
+        match.turnStartedAt = this.now();
+      }
       const expiredOpponent = match.expiredDisconnects.values().next().value as string | undefined;
       if (expiredOpponent !== undefined) {
         this.finish(match, player.side, "DISCONNECT_TIMEOUT");
@@ -657,16 +661,22 @@ export class MatchManager {
   move(room: RoomDetail, actor: MatchActor, from: Coordinate, to: Coordinate, stateVersion: number, commandId?: string): MatchSnapshot {
     const match = this.getMatch(room);
     const player = this.player(match, actor.userId);
+    // A command ID is an operation UUID. Legacy markers such as `1` (and other
+    // non-UUID values) must never become a shared idempotency key.
+    const operationCommandId = commandId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(commandId) ? commandId : undefined;
+    const payloadHash = createHash("sha256").update(JSON.stringify({ from, to, stateVersion })).digest("hex");
 
     // Fast-path: Check command ledger if commandId provided
-    if (commandId) {
+    if (operationCommandId) {
       const cached = this.commandLedger.get({
         principalId: actor.userId,
-        commandId,
+        commandId: operationCommandId,
         targetId: room.roomId,
         operation: "MOVE",
+        payloadHash,
       });
       if (cached?.ackPayload) {
+        if (cached.payloadHash !== payloadHash) throw new AppError("CONFLICT", "Command ID đã được dùng cho payload khác.", 409, false, "INVALID", { reason: "COMMAND_ID_REUSED" });
         return cached.ackPayload as MatchSnapshot;
       }
     }
@@ -681,10 +691,10 @@ export class MatchManager {
       latestMove.stateVersion === match.stateVersion &&
       stateVersion === match.stateVersion - 1
     ) {
-      if (commandId) {
+      if (operationCommandId) {
         this.commandLedger.record(
           {
-            commandId,
+            commandId: operationCommandId,
             principalId: actor.userId,
             outcome: "COMMITTED",
             stateVersion: match.stateVersion,
@@ -694,9 +704,10 @@ export class MatchManager {
           },
           {
             principalId: actor.userId,
-            commandId,
+            commandId: operationCommandId,
             targetId: room.roomId,
             operation: "MOVE",
+            payloadHash,
           }
         );
       }
@@ -718,12 +729,13 @@ export class MatchManager {
     }
 
     // Staged next state values
-    const effectiveCommandId = commandId ?? randomUUID();
+    const effectiveCommandId = operationCommandId ?? randomUUID();
     const commandKey = {
       principalId: actor.userId,
       commandId: effectiveCommandId,
       targetId: room.roomId,
       operation: "MOVE",
+      payloadHash,
     };
     const nextSequence = match.sequence + 1;
     const nextVersion = match.stateVersion + 1;
@@ -747,6 +759,7 @@ export class MatchManager {
       });
 
       if (commitResult.outcome === "CONFLICT") {
+        if (commitResult.conflictReason === "COMMAND_ID_REUSED") throw new AppError("CONFLICT", "Command ID đã được dùng cho payload khác.", 409, false, "INVALID", { reason: "COMMAND_ID_REUSED" });
         throw new AppError("CONFLICT", "Trạng thái bàn cờ đã thay đổi, hãy đồng bộ lại.", 409, true, "RECOVERABLE", {
           reason: "STALE_STATE",
           stateVersion: match.stateVersion,
@@ -787,6 +800,7 @@ export class MatchManager {
         sequence: snapshot.sequence,
         ackPayload: snapshot,
         committedAt: this.now(),
+        payloadHash,
       },
       commandKey
     );

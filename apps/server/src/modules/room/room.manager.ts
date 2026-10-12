@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import type { CreateRoomRequest, JoinRoomRequest, RoomDetail, RoomSummary, SpectateRoomRequest, RoomPlayMode } from "@ottv2/contracts";
 
 import { AppError } from "../../shared/errors/app-error.js";
@@ -59,14 +59,15 @@ export class RoomManager {
     const currentLock = this.roomLocks.get(roomId) ?? Promise.resolve();
     let release!: () => void;
     const nextLock = new Promise<void>((resolve) => { release = resolve; });
-    this.roomLocks.set(roomId, currentLock.then(() => nextLock));
+    const queuedLock = currentLock.then(() => nextLock);
+    this.roomLocks.set(roomId, queuedLock);
 
     await currentLock;
     try {
       return await action();
     } finally {
       release();
-      if (this.roomLocks.get(roomId) === nextLock) {
+      if (this.roomLocks.get(roomId) === queuedLock) {
         this.roomLocks.delete(roomId);
       }
     }
@@ -94,7 +95,7 @@ export class RoomManager {
     if (input.hostRole === "REFEREE" && !refereeEnabled) throw new AppError("VALIDATION_ERROR", "Bật trọng tài trước khi chọn vai trò Trọng tài.", 400, false, "INVALID");
     if (input.visibility === "PUBLIC" && refereeEnabled && input.hostRole === "REFEREE") throw new AppError("VALIDATION_ERROR", "Phòng có chủ phòng làm trọng tài phải là Private.", 400, false, "INVALID");
 
-    const seed = Math.floor(Math.random() * 2822400);
+    const seed = randomInt(2_822_400);
     const room: RoomState = {
       roomId,
       roomGeneration,
@@ -129,7 +130,7 @@ export class RoomManager {
     const roomId = this.generateRoomId();
     const roomGeneration = randomUUID();
     const now = Date.now();
-    const seed = Math.floor(Math.random() * 2822400);
+    const seed = randomInt(2_822_400);
     const room: RoomState = {
       roomId,
       roomGeneration,
@@ -460,16 +461,16 @@ export class RoomManager {
   private generateRoomId(): string {
     for (let attempt = 0; attempt < 100; attempt += 1) {
       let id = "";
-      for (let index = 0; index < 6; index += 1) id += ROOM_ID_ALPHABET[Math.floor(Math.random() * ROOM_ID_ALPHABET.length)];
+      for (let index = 0; index < 6; index += 1) id += ROOM_ID_ALPHABET[randomInt(ROOM_ID_ALPHABET.length)];
       if (!this.rooms.has(id)) return id;
     }
     throw new AppError("SERVICE_UNAVAILABLE", "Không thể cấp Room ID lúc này.", 503, true, "RECOVERABLE");
   }
 
   private generateFriendlyName(): string {
-    const adjective = FRIENDLY_ADJECTIVES[Math.floor(Math.random() * FRIENDLY_ADJECTIVES.length)] ?? "Neon";
-    const noun = FRIENDLY_NOUNS[Math.floor(Math.random() * FRIENDLY_NOUNS.length)] ?? "Hammer";
-    return `${adjective} ${noun} ${Math.floor(10 + Math.random() * 90)}`;
+    const adjective = FRIENDLY_ADJECTIVES[randomInt(FRIENDLY_ADJECTIVES.length)] ?? "Neon";
+    const noun = FRIENDLY_NOUNS[randomInt(FRIENDLY_NOUNS.length)] ?? "Hammer";
+    return `${adjective} ${noun} ${randomInt(10, 100)}`;
   }
 
   private serialize(room: RoomState, viewerId: string | undefined, revealMembers = false): RoomDetail {

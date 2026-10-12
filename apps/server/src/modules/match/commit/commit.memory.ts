@@ -1,4 +1,5 @@
 import type { CompactMatchSnapshot, DomainEventEnvelope } from "@ottv2/contracts";
+import { commandPayloadConflicts } from "./commit.port.js";
 import type {
   BotPrivateCheckpoint,
   BotPrivateCheckpointPort,
@@ -31,6 +32,9 @@ export class InMemoryCommitPort implements CommitPort, BotPrivateCheckpointPort 
     // Fast-path: Check if command was already committed idempotently
     const existing = this.ledger.get(input.commandKey);
     if (existing) {
+      if (commandPayloadConflicts(existing, input.commandKey)) {
+        return { outcome: "CONFLICT", conflictReason: "COMMAND_ID_REUSED", stateVersion: existing.stateVersion, sequence: existing.sequence, existingOutcome: existing };
+      }
       return {
         outcome: existing.outcome,
         stateVersion: existing.stateVersion,
@@ -82,6 +86,7 @@ export class InMemoryCommitPort implements CommitPort, BotPrivateCheckpointPort 
       sequence: nextSeq,
       ackPayload: input.nextState,
       committedAt: this.now(),
+      ...(input.commandKey.payloadHash ? { payloadHash: input.commandKey.payloadHash } : {}),
     };
     this.ledger.record(outcome, input.commandKey);
 
@@ -98,13 +103,12 @@ export class InMemoryCommitPort implements CommitPort, BotPrivateCheckpointPort 
 
   async readOutcome(query: ReadOutcomeQuery): Promise<CommandOutcome | null> {
     return (
-      this.ledger.get({
+      (query.targetId && query.operation ? this.ledger.get({
         principalId: query.principalId,
         commandId: query.commandId,
-        targetId: query.targetId ?? "",
-        operation: query.operation ?? "",
-      }) ??
-      this.ledger.getByCommandId(query.commandId) ??
+        targetId: query.targetId,
+        operation: query.operation,
+      }) : undefined) ??
       null
     );
   }
