@@ -1,8 +1,8 @@
 # W3 report — privacy, security assertions và integration review
 
-Ngày: 2026-10-12  
-Candidate branch: `codex/security-network-repair`  
-Base: `test-v0.2@277c627b78586639e40366e2ab6f544d93da69aa`  
+Ngày: 2026-10-12
+Candidate branch: `codex/security-network-repair`
+Base: `test-v0.2@277c627b78586639e40366e2ab6f544d93da69aa`
 Phạm vi: W3 của candidate repair; không push, không merge `test-v0.2` hoặc `main`.
 
 ## Thay đổi đã thực hiện

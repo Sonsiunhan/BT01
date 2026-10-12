@@ -11,7 +11,7 @@
 
 ## 1. Consumer Path Architecture & Cold Offline Mapping
 
-Trong chế độ Bot Offline, toàn bộ mã nguồn Python của người chơi được thực thi hoàn toàn ở phía client (trình duyệt) thông qua **Pyodide WebAssembly**, nằm trong một **opaque-origin iframe sandbox kết hợp Web Worker cô lập**. 
+Trong chế độ Bot Offline, toàn bộ mã nguồn Python của người chơi được thực thi hoàn toàn ở phía client (trình duyệt) thông qua **Pyodide WebAssembly**, nằm trong một **opaque-origin iframe sandbox kết hợp Web Worker cô lập**.
 
 ### Mermaid Diagram: Cold Offline Consumer Path
 

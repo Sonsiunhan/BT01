@@ -270,4 +270,3 @@ T+34h Verdict table input cho D-07
 ```
 
 **Blocker nếu Long chậm:** D-02.02 (rotation), D-02.03 (CSRF), D-02.05 (stream revoke), D-02.08–09 (abuse) đều NOT RUN → chặn D-07 sign-off.
-

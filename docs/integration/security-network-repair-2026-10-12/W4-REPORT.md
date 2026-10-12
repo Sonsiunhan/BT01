@@ -1,7 +1,7 @@
 # W4 report — candidate test, build và browser gate
 
-Ngày: 2026-10-12  
-Candidate branch: `codex/security-network-repair`  
+Ngày: 2026-10-12
+Candidate branch: `codex/security-network-repair`
 Phạm vi: W4 của candidate repair; không push, không merge `test-v0.2` hoặc `main`.
 
 ## Kết quả gate
