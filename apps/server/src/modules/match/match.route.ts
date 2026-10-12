@@ -256,11 +256,8 @@ export async function registerMatchRoutes(app: FastifyInstance, auth: AuthServic
     const { context, room } = await memberRoom(auth, rooms, request);
     matches.acquireActiveLock(room, context.user.id, clientIdOf(request));
     const input = requireBody(request.body, PieceMoveRequestSchema);
-    const rawCmd =
-      (input as { commandId?: string }).commandId ??
-      (request.headers["x-command-id"] as string | undefined) ??
-      (request.headers["x-ott-request"] as string | undefined);
-    const commandId = rawCmd ? rawCmd.replace(/^req-/, "") : undefined;
+    const headerCommandId = request.headers["x-command-id"];
+    const commandId = typeof headerCommandId === "string" && headerCommandId.trim() ? headerCommandId.trim() : undefined;
     let match = matches.move(room, actorOf(context), input.from as Coordinate, input.to as Coordinate, input.stateVersion, commandId);
     match = await settle(matches, history, rating, rooms, room.roomId, room, match);
     return reply.status(200).send({ match });

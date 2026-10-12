@@ -41,8 +41,9 @@ export function acceptRefereeReplacement(roomId: string) {
   return requestJson<{ match: MatchSnapshot }>(`/matches/${encodeURIComponent(roomId)}/referee/replacement/accept`, { method: "POST", headers: { "X-Client-Id": getClientId() } });
 }
 
-export function submitMove(roomId: string, from: string, to: string, stateVersion: number) {
-  return requestJson<{ match: MatchSnapshot }>(`/matches/${encodeURIComponent(roomId)}/moves`, { method: "POST", body: { from, to, stateVersion }, headers: { "X-Client-Id": getClientId() } });
+export function submitMove(roomId: string, from: string, to: string, stateVersion: number, commandId?: string) {
+  const effectiveCommandId = commandId ?? globalThis.crypto?.randomUUID?.();
+  return requestJson<{ match: MatchSnapshot }>(`/matches/${encodeURIComponent(roomId)}/moves`, { method: "POST", body: { from, to, stateVersion }, commandId: effectiveCommandId, headers: { "X-Client-Id": getClientId() } });
 }
 
 export function surrender(roomId: string, stateVersion: number) {

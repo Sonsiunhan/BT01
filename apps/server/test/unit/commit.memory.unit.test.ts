@@ -35,9 +35,22 @@ describe("InMemoryCommitPort (L05-W2 — In-Memory Commit Port Adapter)", () => 
     const read = await port.readOutcome({
       principalId: "user-blue",
       commandId: "cmd-move-1",
+      targetId: "match-100",
+      operation: "MOVE",
     });
     expect(read?.outcome).toBe("COMMITTED");
     expect(read?.stateVersion).toBe(1);
+  });
+
+  it("rejects a reused scoped command ID with a different payload", async () => {
+    const port = new InMemoryCommitPort();
+    const base = { principalId: "u1", commandId: "c1", targetId: "m1", operation: "MOVE" as const };
+    const first = await port.commitTransition({ commandKey: { ...base, payloadHash: "sha256:a" }, expectedVersion: 0, nextState: { move: "a" }, domainEvents: [] });
+    expect(first.outcome).toBe("COMMITTED");
+    const reused = await port.commitTransition({ commandKey: { ...base, payloadHash: "sha256:b" }, expectedVersion: 1, nextState: { move: "b" }, domainEvents: [] });
+    expect(reused.outcome).toBe("CONFLICT");
+    expect(reused.conflictReason).toBe("COMMAND_ID_REUSED");
+    expect(reused.existingOutcome?.ackPayload).toEqual({ move: "a" });
   });
 
   it("detects CAS version conflict when expectedVersion does not match current state", async () => {

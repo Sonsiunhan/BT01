@@ -454,18 +454,18 @@ describe("L06-W2 Prisma Commit Port Adapter (L-05.02, L-05.03, L-05.04, RULE-16)
 
       // INVARIANT: UNKNOWN is NEVER purged or tombstoned!
       expect(compaction.preservedUnresolvedCount).toBe(1);
-      const unknownOutcome = ledgerTest.getByCommandId("cmd-unknown");
+      const unknownOutcome = ledgerTest.get({ principalId: "u1", commandId: "cmd-unknown", targetId: "r1", operation: "MOVE" });
       expect(unknownOutcome).toBeDefined();
       expect(unknownOutcome?.outcome).toBe("UNKNOWN");
 
       // Expired committed entry was converted to a tombstone
       expect(compaction.tombstonedCount).toBe(1);
-      const tombstonedOutcome = ledgerTest.getByCommandId("cmd-committed-expired");
+      const tombstonedOutcome = ledgerTest.get({ principalId: "u2", commandId: "cmd-committed-expired", targetId: "r2", operation: "MOVE" });
       expect(tombstonedOutcome?.isTombstone).toBe(true);
       expect(tombstonedOutcome?.ackPayload).toBeNull(); // Large payload stripped
 
       // Fresh committed entry was untouched
-      const freshOutcome = ledgerTest.getByCommandId("cmd-committed-fresh");
+      const freshOutcome = ledgerTest.get({ principalId: "u3", commandId: "cmd-committed-fresh", targetId: "r3", operation: "MOVE" });
       expect(freshOutcome?.isTombstone).toBeUndefined();
     });
   });

@@ -33,8 +33,13 @@ export interface CommandOutcome {
   sequence: number;
   ackPayload: unknown;
   committedAt: number;
+  payloadHash?: string;
   expiresAt?: number;
   isTombstone?: boolean;
+}
+
+export function commandPayloadConflicts(outcome: CommandOutcome, key: CommandKey): boolean {
+  return outcome.payloadHash !== key.payloadHash;
 }
 
 export interface CommitTransitionResult {

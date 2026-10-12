@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { CompactMatchSnapshot, DomainEventEnvelope } from "@ottv2/contracts";
+import { commandPayloadConflicts } from "./commit.port.js";
 import type {
   BotPrivateCheckpoint,
   BotPrivateCheckpointPort,
@@ -80,6 +81,9 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
     // Fast-path: check if command outcome is already in ledger
     const existing = this.ledger.get(input.commandKey);
     if (existing) {
+      if (commandPayloadConflicts(existing, input.commandKey)) {
+        return { outcome: "CONFLICT", conflictReason: "COMMAND_ID_REUSED", stateVersion: existing.stateVersion, sequence: existing.sequence, existingOutcome: existing };
+      }
       return {
         outcome: existing.outcome,
         stateVersion: existing.stateVersion,
@@ -130,6 +134,7 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
       sequence: nextSeq,
       ackPayload: input.nextState,
       committedAt: this.now(),
+      ...(input.commandKey.payloadHash ? { payloadHash: input.commandKey.payloadHash } : {}),
       expiresAt: this.now() + this.ledgerTtlMs,
     };
     this.ledger.record(outcome, input.commandKey);
@@ -163,6 +168,9 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
     // 1. Fast-path: Check in-memory ledger
     const existing = this.ledger.get(input.commandKey);
     if (existing) {
+      if (commandPayloadConflicts(existing, input.commandKey)) {
+        return { outcome: "CONFLICT", conflictReason: "COMMAND_ID_REUSED", stateVersion: existing.stateVersion, sequence: existing.sequence, existingOutcome: existing };
+      }
       return {
         outcome: existing.outcome,
         stateVersion: existing.stateVersion,
@@ -203,8 +211,12 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
             sequence: dbEntry.sequence,
             ackPayload: dbEntry.ackPayload,
             committedAt: dbEntry.committedAt?.getTime() ?? dbEntry.receivedAt.getTime(),
+            ...(dbEntry.payloadDigest ? { payloadHash: dbEntry.payloadDigest } : {}),
             ...(dbEntry.expiresAt ? { expiresAt: dbEntry.expiresAt.getTime() } : {}),
           };
+          if (commandPayloadConflicts(outcome, input.commandKey)) {
+            return { outcome: "CONFLICT", conflictReason: "COMMAND_ID_REUSED", stateVersion: outcome.stateVersion, sequence: outcome.sequence, existingOutcome: outcome };
+          }
           this.ledger.record(outcome, input.commandKey);
           return {
             outcome: outcome.outcome,
@@ -493,12 +505,12 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
 
   async readOutcome(query: ReadOutcomeQuery): Promise<CommandOutcome | null> {
     const cached =
-      this.ledger.get({
+      (query.targetId && query.operation ? this.ledger.get({
         principalId: query.principalId,
         commandId: query.commandId,
-        targetId: query.targetId ?? "",
-        operation: query.operation ?? "",
-      }) ?? this.ledger.getByCommandId(query.commandId);
+        targetId: query.targetId,
+        operation: query.operation,
+      }) : undefined);
 
     if (cached) return cached;
 
@@ -522,6 +534,7 @@ export class PrismaCommitPort implements CommitPort, BotPrivateCheckpointPort {
             sequence: dbEntry.sequence,
             ackPayload: dbEntry.ackPayload,
             committedAt: dbEntry.committedAt?.getTime() ?? dbEntry.receivedAt.getTime(),
+            ...(dbEntry.payloadDigest ? { payloadHash: dbEntry.payloadDigest } : {}),
             ...(dbEntry.expiresAt ? { expiresAt: dbEntry.expiresAt.getTime() } : {}),
           };
           return outcome;

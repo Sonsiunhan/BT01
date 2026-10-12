@@ -8,7 +8,6 @@ export interface CompactionResult {
 
 export class CommandLedger {
   private readonly records = new Map<string, CommandOutcome>();
-  private readonly byCommandId = new Map<string, CommandOutcome>();
   private readonly byTargetId = new Map<string, Set<string>>();
   private readonly maxPerTarget: number;
 
@@ -17,19 +16,15 @@ export class CommandLedger {
   }
 
   buildKey(key: CommandKey): string {
-    return `${key.targetId}:${key.principalId}:${key.commandId}:${key.operation}`;
+    return JSON.stringify([key.targetId, key.principalId, key.commandId, key.operation]);
   }
 
   get(key: CommandKey): CommandOutcome | undefined {
-    return this.records.get(this.buildKey(key)) ?? this.byCommandId.get(key.commandId);
-  }
-
-  getByCommandId(commandId: string): CommandOutcome | undefined {
-    return this.byCommandId.get(commandId);
+    return this.records.get(this.buildKey(key));
   }
 
   has(key: CommandKey): boolean {
-    return this.records.has(this.buildKey(key)) || this.byCommandId.has(key.commandId);
+    return this.records.has(this.buildKey(key));
   }
 
   isExpired(key: CommandKey, now: number = Date.now()): boolean {
@@ -43,8 +38,8 @@ export class CommandLedger {
 
   record(outcome: CommandOutcome, key: CommandKey): void {
     const stringKey = this.buildKey(key);
-    this.records.set(stringKey, outcome);
-    this.byCommandId.set(outcome.commandId, outcome);
+    const storedOutcome = key.payloadHash === undefined ? outcome : { ...outcome, payloadHash: key.payloadHash };
+    this.records.set(stringKey, storedOutcome);
 
     const targetKeys = this.byTargetId.get(key.targetId) ?? new Set<string>();
     targetKeys.add(stringKey);
@@ -65,10 +60,6 @@ export class CommandLedger {
 
       if (candidateKey) {
         targetKeys.delete(candidateKey);
-        const oldOutcome = this.records.get(candidateKey);
-        if (oldOutcome) {
-          this.byCommandId.delete(oldOutcome.commandId);
-        }
         this.records.delete(candidateKey);
       }
       // Note: If all entries are UNKNOWN, none are evicted to ensure durability!
@@ -97,7 +88,6 @@ export class CommandLedger {
         // Tombstone that has exceeded double TTL can be pruned completely
         if (now - outcome.committedAt > ttlMs * 2) {
           this.records.delete(key);
-          this.byCommandId.delete(outcome.commandId);
           prunedCount++;
         }
       } else if (isExpiredByTime) {
@@ -116,17 +106,12 @@ export class CommandLedger {
       const targetKeys = this.byTargetId.get(targetId);
       if (targetKeys) {
         for (const key of targetKeys) {
-          const outcome = this.records.get(key);
-          if (outcome) {
-            this.byCommandId.delete(outcome.commandId);
-          }
           this.records.delete(key);
         }
         this.byTargetId.delete(targetId);
       }
     } else {
       this.records.clear();
-      this.byCommandId.clear();
       this.byTargetId.clear();
     }
   }

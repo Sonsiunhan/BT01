@@ -59,14 +59,15 @@ export class RoomManager {
     const currentLock = this.roomLocks.get(roomId) ?? Promise.resolve();
     let release!: () => void;
     const nextLock = new Promise<void>((resolve) => { release = resolve; });
-    this.roomLocks.set(roomId, currentLock.then(() => nextLock));
+    const queuedLock = currentLock.then(() => nextLock);
+    this.roomLocks.set(roomId, queuedLock);
 
     await currentLock;
     try {
       return await action();
     } finally {
       release();
-      if (this.roomLocks.get(roomId) === nextLock) {
+      if (this.roomLocks.get(roomId) === queuedLock) {
         this.roomLocks.delete(roomId);
       }
     }
