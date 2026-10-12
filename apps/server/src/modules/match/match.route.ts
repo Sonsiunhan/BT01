@@ -82,14 +82,21 @@ async function memberRoom(auth: AuthService, rooms: RoomManager, request: Fastif
   return { context, room };
 }
 
+/** Guard against concurrent settle calls for the same match (double Elo finalization). */
+const settlingMatches = new Set<string>();
+
 async function settle(matches: MatchManager, history: MatchHistoryService | undefined, rating: RatingService | undefined, rooms: RoomManager, roomId: string, room: Awaited<ReturnType<RoomManager["search"]>>, match: Awaited<ReturnType<MatchManager["ensure"]>>): Promise<Awaited<ReturnType<MatchManager["ensure"]>>> {
   let next = match;
-  if (rating && next.status === "FINISHED" && next.rating === null) {
+  const matchKey = `${roomId}:${next.stateVersion}`;
+  if (rating && next.status === "FINISHED" && next.rating === null && !settlingMatches.has(matchKey)) {
+    settlingMatches.add(matchKey);
     try {
       const result = await rating.finalize(next);
       if (result) next = matches.setRating(room, result);
     } catch {
       // The authoritative result is already committed in memory; persistence/retry handles DB degradation.
+    } finally {
+      settlingMatches.delete(matchKey);
     }
   }
   if (history && (next.status === "FINISHED" || next.status === "ABORTED")) await history.record(next, room.playMode);
