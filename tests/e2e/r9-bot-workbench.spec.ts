@@ -23,6 +23,6 @@ test("R9 Workbench keeps library, upload and private inspector regions explicit"
   await expect(page.getByRole("heading", { name: "Chuẩn bị Bot Online" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Bot", exact: true })).toHaveValue("r9-bot");
   await expect(page.getByRole("combobox", { name: "Revision", exact: true })).toHaveValue("r9-revision");
-  await expect(page.getByRole("button", { name: "Tạo phòng Bot Online" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Chạy preflight bắt buộc" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Tìm trận Online" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Kiểm tra code" })).toBeEnabled();
 });

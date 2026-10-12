@@ -1,0 +1,98 @@
+{
+  "measuredAt": "2026-10-12T02:19:17.722Z",
+  "branch": "test-v0.2",
+  "mainUnchanged": "dbda8a9a17a91b7d24237feb3041fa924416f3f9",
+  "sourceHeads": {
+    "son": "68838f81203adb951350c0f1fc81c19175bdaf7f",
+    "long": "4ba4a5e8b667bd3a7e323c6ea22da2938afeccd4"
+  },
+  "commands": {
+    "typecheck": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0
+    },
+    "build": {
+      "exitCode": 0
+    },
+    "databaseHarness": {
+      "exitCode": 0
+    },
+    "browser": {
+      "exitCode": 0
+    }
+  },
+  "tests": {
+    "root": {
+      "passed": 144,
+      "failed": 0,
+      "skipped": 0
+    },
+    "server": {
+      "passed": 293,
+      "failed": 0,
+      "skipped": 8
+    },
+    "web": {
+      "passed": 225,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser": {
+      "startTime": "2026-10-12T02:16:47.437Z",
+      "duration": 121921.52,
+      "expected": 44,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "db": {
+    "measuredAt": "2026-10-12T02:05:34.305Z",
+    "host": "127.0.0.1",
+    "port": 52095,
+    "database": "ottv2_test_merge_1791770734305",
+    "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-test-v02-pg-C2YCuz",
+    "productionMutation": false,
+    "retainedForInspection": true,
+    "migration": "PASS",
+    "rootTests": "PASS",
+    "serverTests": "PASS",
+    "stopped": true
+  },
+  "review": "writer review + regression + per-file source preservation; no independent merge code-review claimed",
+  "limitations": [
+    "7 real Wasmtime/CPython-WASI tests skipped",
+    "1 POSIX backup permission gate skipped on Windows; Windows rejection test passes",
+    "Crash/restore rehearsal uses mocks, not real process/DB kill",
+    "PrismaCommitPort not wired by default runtime bootstrap",
+    "rps-v2 setup opt-in, default remains rps-v1",
+    "No production/load/deployment certification"
+  ],
+  "pushed": false,
+  "deployed": false,
+  "botW0Started": false,
+  "artifactHashScheme": "sha256-utf8-lf",
+  "hashes": {
+    "browser-animation-before.json": "2a5039155b0979397125aa8186e85d7810ed36f0ac9909105ec8400c0d8f590c",
+    "browser-before.json": "e40fde70b16d3a1c587779bdfe64eb5bd4900f5239f2d335211dbbade1c7530f",
+    "browser-guest-repeated.json": "564eadebf0747a72db1729e46c5e3f6d681d38662251f8b53eeeff287b6a9379",
+    "browser-guest-timeout-before.json": "3549b7fb78bb84ef0f6787dd7f158e78ec8b9b329784ccb17ce65755ccfa353a",
+    "browser-isolation.json": "ecab758b7234009bb54e6f0bf335ee3fefe520297dfe83b2b55492b66ac221e0",
+    "browser-resource-timeout.json": "128fe08bc44eba6da5b3644acae15918d2956d95d713dc72eddc894ae1060781",
+    "browser-tests.json": "912b0d79c721a49e0a51da43f278aecabe3c99094a9d929ed1bc2111cba12e81",
+    "isolated-db.json": "551c8a194fd166f1a1a9160575448af0b083f78dd7fbcaa69392f7b7de2d47fa",
+    "MERGE-REPORT.md": "28b6f1fcc1dad8ef8354593aa5e41fb01dad6fda02d88c68a958ef2ad8e34ac8",
+    "preservation.json": "d5a63ae250867cfb05840be5e4ae54d45f1bf6518136a3763cd9cbb75d01808c",
+    "root-before.json": "f005d3990e706bbc57b54de389d0cebb8aa25f328d83c7b1a9bca9a68f38d886",
+    "root-tests.json": "33b43797d2972fe7de297a890f90ddd17c448f13c3c905c14553c76eee278de5",
+    "semantic-after.json": "b4958aecc007a7b954ee988dab28c9ee59044961da3991ad017e18fc93e4dd7b",
+    "semantic-before.json": "4ab7bb94d6b6ddd765b4b7a3b887766991c347f0dacfb0df573806ec21f3f1d8",
+    "server-before-permissions.json": "ce3154c87a2d33aaa9f64fe8389b269815f2806f086ff627e68c9febf765fe77",
+    "server-before.json": "a48fc8e64953829fa8d7e664d803c2654dc20bf44f08f3a6179bf6c49b4404f8",
+    "server-tests.json": "898775c4b5ab359ec2f19c2843c5fb178a07ae438ebb1965c7c8bedc336b4179",
+    "server-unit-tests.json": "3d70acaedc3ea147df5f1997cd324c0b96901af58763c603a9e82ea0292460f6",
+    "web-tests.json": "851a66fd5e2c67499dc8b02925ff2be6737f9b9bf4a945bd315aeb7fe2e76b20"
+  }
+}

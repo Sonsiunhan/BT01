@@ -181,4 +181,81 @@ describe("W3 RoomManager", () => {
       vi.useRealTimers();
     }
   });
+
+  it("increments roomVersion monotonically on each mutation and rejects stale expectedVersion", async () => {
+    const manager = new RoomManager();
+    const room = await manager.create(host, publicInput);
+    expect(room.roomVersion).toBe(1);
+    expect(room.roomGeneration).toBeDefined();
+
+    // Joining increments version to 2
+    const afterJoin = await manager.join(guest, room.roomId, { expectedVersion: 1 });
+    expect(afterJoin.roomVersion).toBe(2);
+
+    // Joining with stale version must be rejected
+    await expect(
+      manager.join(third, room.roomId, { expectedVersion: 1 })
+    ).rejects.toMatchObject({ code: "CONFLICT", details: { reason: "STALE_VERSION" } });
+
+    // Ready toggle increments version to 3
+    const afterReady = manager.setReady(guest, room.roomId, true);
+    expect(afterReady.roomVersion).toBe(3);
+
+    // Leaving increments version to 4
+    const afterLeave = manager.leave(guest, room.roomId);
+    expect(afterLeave?.roomVersion).toBe(4);
+  });
+
+  it("handles player ready toggles and validates start prerequisites (ROOM-03)", async () => {
+    const manager = new RoomManager();
+    const room = await manager.create(host, publicInput);
+
+    // Cannot start with only 1 player
+    expect(manager.canStart(room.roomId)).toEqual({ canStart: false, reason: "WAITING_FOR_PLAYERS" });
+
+    await manager.join(guest, room.roomId, {});
+    // Both players not ready yet
+    expect(manager.canStart(room.roomId)).toEqual({ canStart: false, reason: "PLAYERS_NOT_READY" });
+
+    // Host ready
+    manager.setReady(host, room.roomId, true);
+    expect(manager.canStart(room.roomId)).toEqual({ canStart: false, reason: "PLAYERS_NOT_READY" });
+
+    // Guest ready -> all ready, can start!
+    manager.setReady(guest, room.roomId, true);
+    expect(manager.canStart(room.roomId)).toEqual({ canStart: true });
+
+    // Guest unready -> cannot start
+    manager.setReady(guest, room.roomId, false);
+    expect(manager.canStart(room.roomId)).toEqual({ canStart: false, reason: "PLAYERS_NOT_READY" });
+  });
+
+  it("preserves setupContext and does not reroll seed across Ready, refresh and player leave (RULE-04, 07, 16)", async () => {
+    const manager = new RoomManager();
+    const room = await manager.create(host, publicInput);
+    const initialSetup = room.setupDescriptor;
+    expect(initialSetup).toBeDefined();
+    expect(initialSetup?.version).toBe("rps-v2");
+    expect(typeof initialSetup?.seed).toBe("number");
+
+    // Guest joins - setupDescriptor stays identical
+    const joined = await manager.join(guest, room.roomId, {});
+    expect(joined.setupDescriptor).toEqual(initialSetup);
+
+    // Ready toggles - setupDescriptor remains unchanged
+    const readyHost = manager.setReady(host, room.roomId, true);
+    expect(readyHost.setupDescriptor).toEqual(initialSetup);
+
+    const readyGuest = manager.setReady(guest, room.roomId, true);
+    expect(readyGuest.setupDescriptor).toEqual(initialSetup);
+
+    // Refresh search - setupDescriptor remains unchanged
+    const searched = manager.search(room.roomId, host.userId);
+    expect(searched.setupDescriptor).toEqual(initialSetup);
+
+    // Guest leaves and rejoins - setupDescriptor remains identical
+    manager.leave(guest, room.roomId);
+    const rejoined = await manager.join(guest, room.roomId, {});
+    expect(rejoined.setupDescriptor).toEqual(initialSetup);
+  });
 });

@@ -1,4 +1,4 @@
-import { adjacentCoordinates, coordinateToPosition, GOAL_COORDINATES, isCoordinate } from "./coordinates.js";
+import { adjacentCoordinates, coordinateToPosition, GOAL_COORDINATES, isCoordinate, BOARD_COORDINATES } from "./coordinates.js";
 import type {
   Board,
   MoveCommand,
@@ -79,6 +79,45 @@ export function getLegalDestinations(state: RuleState, side: Side, from: unknown
   return adjacentCoordinates(from).filter((to) => validateMove(state, { side, from, to }) === null);
 }
 
+export function hasLegalMove(state: RuleState, side: Side): boolean {
+  if (state.status === "FINISHED") return false;
+  if (state.currentTurn !== side) return false;
+  
+  for (const from of BOARD_COORDINATES) {
+    const source = state.board[from];
+    if (source !== null && source.side === side) {
+      if (getLegalDestinations(state, side, from).length > 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+export function evaluateTurnStart(state: RuleState): RuleState {
+  if (state.status === "FINISHED" || state.currentTurn === null) return state;
+  
+  if (!hasLegalMove(state, state.currentTurn)) {
+    return Object.freeze({
+      ...state,
+      status: "FINISHED",
+      winner: otherSide(state.currentTurn),
+      resultReason: "NO_LEGAL_MOVES",
+      currentTurn: null
+    });
+  }
+  
+  return state;
+}
+
+function freezeState(state: RuleState): RuleState {
+  Object.freeze(state.board);
+  Object.freeze(state.pieceCounts.BLUE);
+  Object.freeze(state.pieceCounts.RED);
+  Object.freeze(state.pieceCounts);
+  return Object.freeze(state);
+}
+
 export function applyMove(state: RuleState, command: MoveCommand): MoveResult {
   const error = validateMove(state, command);
   if (error !== null) return rejection(state, error);
@@ -95,20 +134,49 @@ export function applyMove(state: RuleState, command: MoveCommand): MoveResult {
 
   const extinction = createsExtinction(pieceCounts, command.side);
   const reachedGoal = GOAL_COORDINATES[command.side] === command.to;
-  const winner = extinction || reachedGoal ? command.side : null;
-  const resultReason = extinction ? "EXTINCTION" : reachedGoal ? "GOAL_REACHED" : null;
-  const nextState: RuleState = {
-    board: board as Board,
-    pieceCounts: pieceCounts as PieceCounts,
-    currentTurn: winner === null ? otherSide(command.side) : null,
-    status: winner === null ? "PLAYING" : "FINISHED",
-    winner,
-    resultReason,
-  };
+  
+  let winner = extinction || reachedGoal ? command.side : null;
+  let resultReason = extinction ? "EXTINCTION" : reachedGoal ? "GOAL_REACHED" : null;
+  let nextTurn = winner === null ? otherSide(command.side) : null;
+  let status = winner === null ? "PLAYING" : "FINISHED";
+
+  let nextState: RuleState;
+
+  if (winner === null && nextTurn !== null) {
+    const tempState: RuleState = {
+      board: board as Board,
+      pieceCounts: pieceCounts as PieceCounts,
+      currentTurn: nextTurn,
+      status: status as any,
+      winner,
+      resultReason: resultReason as any,
+    };
+    if (!hasLegalMove(tempState, nextTurn)) {
+      nextState = {
+        board: board as Board,
+        pieceCounts: pieceCounts as PieceCounts,
+        currentTurn: null,
+        status: "FINISHED",
+        winner: command.side,
+        resultReason: "NO_LEGAL_MOVES",
+      };
+    } else {
+      nextState = tempState;
+    }
+  } else {
+    nextState = {
+      board: board as Board,
+      pieceCounts: pieceCounts as PieceCounts,
+      currentTurn: nextTurn,
+      status: status as any,
+      winner,
+      resultReason: resultReason as any,
+    };
+  }
 
   return {
     kind: "accepted",
-    state: nextState,
+    state: freezeState(nextState),
     move: {
       pieceId: source.id,
       side: command.side,

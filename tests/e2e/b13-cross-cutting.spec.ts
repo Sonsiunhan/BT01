@@ -50,6 +50,13 @@ async function preparePublicShell(page: Page) {
 }
 
 async function expectNoSeriousA11yViolations(page: Page, label: string) {
+  // Scan the settled screen, not the intermediate opacity of entry animations.
+  // Keep infinite ambient animations running and retain every axe rule/assertion.
+  await page.evaluate(async () => {
+    await Promise.all(document.getAnimations()
+      .filter(animation => animation.effect?.getComputedTiming().endTime !== Infinity)
+      .map(animation => animation.finished.catch(() => undefined)));
+  });
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   const serious = results.violations.filter((violation) => violation.impact === "critical" || violation.impact === "serious");
   expect(serious, `${label}: ${serious.map((violation) => `${violation.id} (${violation.nodes.length})`).join(", ")}`).toEqual([]);

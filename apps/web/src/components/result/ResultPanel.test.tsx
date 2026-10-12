@@ -61,3 +61,14 @@ describe("B6 ResultPanel", () => {
     expect(screen.getByText("ĐẤU LẠI")).toBeInTheDocument();
   });
 });
+
+describe("test-v0.2 canonical blocked-turn integration", () => {
+  it.each([
+    ["BLUE", "Đối thủ không còn nước đi hợp lệ."],
+    ["RED", "Bạn không còn nước đi hợp lệ."],
+  ] as const)("shows NO_LEGAL_MOVES from viewer %s without claiming extinction", (viewerSide, message) => {
+    render(<ResultPanel status="FINISHED" winner="BLUE" viewerSide={viewerSide} resultReason="NO_LEGAL_MOVES" mode="UNRANKED" stats={stats} onBack={vi.fn()} />);
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.queryByText("Bạn đã mất toàn bộ quân.")).not.toBeInTheDocument();
+  });
+});

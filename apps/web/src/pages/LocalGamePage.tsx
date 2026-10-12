@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { applyMove, createInitialState, getLegalDestinations, type Coordinate, type RuleState, type Side } from "@ottv2/game-rules";
+import { applyMove, createInitialState, evaluateTurnStart, getLegalDestinations, type Coordinate, type RuleState, type Side } from "@ottv2/game-rules";
 import { Button, LoadingState } from "../components/ui";
 import { GameBoard } from "../components/board";
 import { routes } from "../app/routes";
@@ -15,14 +15,6 @@ const modeCopy: Record<ActiveLocalMode, { eyebrow: string; title: string; descri
   AI: { eyebrow: "ĐẤU MÁY / BÌNH THƯỜNG", title: "Đấu với máy", description: "Bot thường dùng cùng luật chơi và phản hồi ổn định để bạn luyện tập.", opponent: "Bot thường" },
   OFFLINE: { eyebrow: "NGOẠI TUYẾN / HAI NGƯỜI", title: "Hai người một máy", description: "Chuyển thiết bị cho nhau sau mỗi lượt. Dữ liệu chỉ nằm trên máy này.", opponent: "Người chơi Đỏ" },
 };
-
-function hasAnyLegalMoves(state: RuleState, side: Side): boolean {
-  for (const [from, piece] of Object.entries(state.board) as Array<[Coordinate, RuleState["board"][Coordinate]]>) {
-    if (piece?.side !== side) continue;
-    if (getLegalDestinations(state, side, from).length > 0) return true;
-  }
-  return false;
-}
 
 export default function LocalGamePage({ mode }: LocalGamePageProps) {
   const navigate = useNavigate();
@@ -53,7 +45,7 @@ export default function LocalGamePage({ mode }: LocalGamePageProps) {
       const session = currentSession ?? (mode === "OFFLINE" ? await migrateLegacyGuestSessionToOffline() : null);
       if (!active || !session || session.mode !== mode || session.state.status !== "PLAYING") return;
       setSetup(session.setup);
-      setState(session.state);
+      setState(evaluateTurnStart(session.state));
       setClocks(session.clocks);
       setRemaining(session.remaining);
       setMoveStats(session.stats ?? { moves: 0, captures: 0, piecesLost: 0 });
@@ -112,25 +104,10 @@ export default function LocalGamePage({ mode }: LocalGamePageProps) {
         const result = applyMove(state, { side: "RED", ...move });
         if (result.kind === "accepted") {
           setMoveStats((current) => ({ moves: current.moves + 1, captures: current.captures, piecesLost: current.piecesLost + (defender && defender.side === "BLUE" ? 1 : 0) }));
-          if (result.state.status === "PLAYING" && result.state.currentTurn === "BLUE") {
-            const blueCanMove = hasAnyLegalMoves(result.state, "BLUE");
-            if (!blueCanMove) {
-              const redCanMove = hasAnyLegalMoves(result.state, "RED");
-              if (!redCanMove) {
-                setState({ ...result.state, status: "FINISHED", currentTurn: null, winner: null, resultReason: null });
-                return;
-              }
-            }
-          }
           setState(result.state);
         }
       } else {
-        const blueCanMove = hasAnyLegalMoves(state, "BLUE");
-        if (!blueCanMove) {
-          setState((current) => ({ ...current, status: "FINISHED", currentTurn: null, winner: null, resultReason: null }));
-        } else {
-          setState((current) => ({ ...current, status: "FINISHED", currentTurn: null, winner: "BLUE", resultReason: "EXTINCTION" }));
-        }
+        setState(evaluateTurnStart(state));
       }
     }, 350);
     return () => window.clearTimeout(timer);
@@ -201,17 +178,6 @@ export default function LocalGamePage({ mode }: LocalGamePageProps) {
     setClocks((current) => ({ ...current, [side]: nextClock }));
     turnStartedAt.current = Date.now();
     setRemaining(result.state.currentTurn ? clocks[result.state.currentTurn] : nextClock);
-    if (result.state.status === "PLAYING" && result.state.currentTurn) {
-      const nextTurn = result.state.currentTurn;
-      const nextCanMove = hasAnyLegalMoves(result.state, nextTurn);
-      if (!nextCanMove) {
-        const sideCanMove = hasAnyLegalMoves(result.state, side);
-        if (!sideCanMove) {
-          setState({ ...result.state, status: "FINISHED", currentTurn: null, winner: null, resultReason: null });
-          return;
-        }
-      }
-    }
     setState(result.state);
     if (mode === "OFFLINE") {
       setHandoff(result.state.currentTurn);
@@ -246,5 +212,5 @@ export default function LocalGamePage({ mode }: LocalGamePageProps) {
   };
   const leaveGame = () => { if (state.status === "PLAYING" && !window.confirm("Bạn có thay đổi chưa lưu. Rời ván sẽ kết thúc phiên local hiện tại?")) return; void clearLocalSession(mode); navigate(routes.home); };
   const resetLocalGame = () => { setRestoredSession(false); setStarted(false); setSurrenderedSide(null); setState(createInitialState()); setMoveStats({ moves: 0, captures: 0, piecesLost: 0 }); };
-  return <section className="local-page local-game-page robot-lab-local-game"><header className="local-game-header"><div><p className="eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="form-intro">Không có kết nối lại · trạng thái local là nguồn sự thật của ván này.</p></div><div className="local-game-header-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>{state.status === "PLAYING" && <Button variant="danger" onClick={surrender}>Đầu hàng</Button>}<Button variant="secondary" onClick={leaveGame}>Thoát ván</Button></div></header>{restoredSession && <div className="local-session-resumed" role="status">Đã khôi phục ván local trên thiết bị này.</div>}<div className="local-hud"><div className="local-player blue"><span>XANH</span><strong>{setup.blueName}</strong><small>{state.currentTurn === "BLUE" ? "Đang đi" : "Chờ lượt"}</small></div><div className="local-turn"><small>ĐỒNG HỒ LOCAL</small><strong className={remaining <= 10 ? "low-time" : ""}>{remaining}s</strong><span>{state.status === "FINISHED" ? (state.winner === null ? "Hòa cờ" : "Kết thúc") : activeName}</span></div><div className="local-player red"><span>ĐỎ</span><strong>{setup.redName}</strong><small>{state.currentTurn === "RED" ? "Đang đi" : "Chờ lượt"}</small></div></div>{handoff && <div className="turn-handoff" role="status" aria-live="assertive">Chuyển thiết bị cho <strong>{handoff === "BLUE" ? setup.blueName : setup.redName}</strong></div>}<div className="local-board-wrap"><GameBoard state={state} viewSide={viewSide} interactionSide={interactionSide} onMove={move} disabled={Boolean(handoff) || interactionSide === null} thinkingSide={mode === "AI" && state.status === "PLAYING" && state.currentTurn === "RED" ? "RED" : null} /></div>{state.status === "FINISHED" && <ResultPanel status="FINISHED" winner={state.winner} viewerSide="BLUE" resultReason={timedOut ? "TIMEOUT" : surrenderedSide ? "SURRENDER" : state.resultReason === "EXTINCTION" || state.resultReason === "GOAL_REACHED" ? state.resultReason : null} mode={mode} stats={{ ...moveStats, durationSeconds: Math.max(0, Math.floor((Date.now() - startedAt.current) / 1000)) }} board={state.board} onBack={() => navigate(routes.home)} onRematch={resetLocalGame} />}</section>;
+  return <section className="local-page local-game-page robot-lab-local-game"><header className="local-game-header"><div><p className="eyebrow">{copy.eyebrow}</p><h1>{copy.title}</h1><p className="form-intro">Không có kết nối lại · trạng thái local là nguồn sự thật của ván này.</p></div><div className="local-game-header-actions" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>{state.status === "PLAYING" && <Button variant="danger" onClick={surrender}>Đầu hàng</Button>}<Button variant="secondary" onClick={leaveGame}>Thoát ván</Button></div></header>{restoredSession && <div className="local-session-resumed" role="status">Đã khôi phục ván local trên thiết bị này.</div>}<div className="local-hud"><div className="local-player blue"><span>XANH</span><strong>{setup.blueName}</strong><small>{state.currentTurn === "BLUE" ? "Đang đi" : "Chờ lượt"}</small></div><div className="local-turn"><small>ĐỒNG HỒ LOCAL</small><strong className={remaining <= 10 ? "low-time" : ""}>{remaining}s</strong><span>{state.status === "FINISHED" ? (state.winner === null ? "Hòa cờ" : "Kết thúc") : activeName}</span></div><div className="local-player red"><span>ĐỎ</span><strong>{setup.redName}</strong><small>{state.currentTurn === "RED" ? "Đang đi" : "Chờ lượt"}</small></div></div>{handoff && <div className="turn-handoff" role="status" aria-live="assertive">Chuyển thiết bị cho <strong>{handoff === "BLUE" ? setup.blueName : setup.redName}</strong></div>}<div className="local-board-wrap"><GameBoard state={state} viewSide={viewSide} interactionSide={interactionSide} onMove={move} disabled={Boolean(handoff) || interactionSide === null} thinkingSide={mode === "AI" && state.status === "PLAYING" && state.currentTurn === "RED" ? "RED" : null} /></div>{state.status === "FINISHED" && <ResultPanel status="FINISHED" winner={state.winner} viewerSide="BLUE" resultReason={timedOut ? "TIMEOUT" : surrenderedSide ? "SURRENDER" : state.resultReason === "EXTINCTION" || state.resultReason === "GOAL_REACHED" || state.resultReason === "NO_LEGAL_MOVES" ? state.resultReason : null} mode={mode} stats={{ ...moveStats, durationSeconds: Math.max(0, Math.floor((Date.now() - startedAt.current) / 1000)) }} board={state.board} onBack={() => navigate(routes.home)} onRematch={resetLocalGame} />}</section>;
 }

@@ -1,0 +1,13 @@
+{
+  "measuredAt": "2026-10-12T02:05:34.305Z",
+  "host": "127.0.0.1",
+  "port": 52095,
+  "database": "ottv2_test_merge_1791770734305",
+  "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-test-v02-pg-C2YCuz",
+  "productionMutation": false,
+  "retainedForInspection": true,
+  "migration": "PASS",
+  "rootTests": "PASS",
+  "serverTests": "PASS",
+  "stopped": true
+}

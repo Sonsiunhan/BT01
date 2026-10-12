@@ -38,7 +38,9 @@ type Outcome = "victory" | "defeat" | "draw" | "neutral";
 const reasonCopy: Record<Exclude<MatchResultReason, null>, string> = {
   EXTINCTION: "Đối thủ đã mất toàn bộ quân.",
   GOAL_REACHED: "Bạn đã chiếm ô đích.",
+  NO_LEGAL_MOVES: "Bị khóa nước đi.",
   TIMEOUT: "Đối thủ đã hết thời gian.",
+
   SURRENDER: "Đối thủ đã đầu hàng.",
   DISCONNECT_TIMEOUT: "Đối thủ không kết nối lại.",
   SERVER_INTERRUPTION: "Máy chủ đã khởi động lại hoặc kết nối trận bị mất.",
@@ -73,6 +75,7 @@ function reasonFor(reason: MatchResultReason, outcome: Outcome, botAdjudication?
     return reason ? `${reasonCopy[reason]}${reason.startsWith("BOT_") ? botCriteriaCopy(botAdjudication) : ""}` : "Không có thay đổi điểm xếp hạng.";
   }
   if (reason === "BOT_AUTHOR_FAULT" || reason === "BOT_INFRASTRUCTURE" || reason === "BOT_LIMIT_CRITERIA" || reason === "BOT_LIMIT_EXACT_TIE") return `${reasonCopy[reason]}${botCriteriaCopy(botAdjudication)}`;
+  if (reason === "NO_LEGAL_MOVES") return outcome === "victory" ? "Đối thủ không còn nước đi hợp lệ." : "Bạn không còn nước đi hợp lệ.";
   if (reason === "GOAL_REACHED") return outcome === "victory" ? "Bạn đã chiếm ô đích." : "Đối thủ đã chiếm ô đích.";
   if (reason === "TIMEOUT") return outcome === "victory" ? "Đối thủ đã hết thời gian." : "Bạn đã hết thời gian.";
   if (reason === "SURRENDER") return outcome === "victory" ? "Đối thủ đã đầu hàng." : "Bạn đã đầu hàng.";

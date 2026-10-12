@@ -1,0 +1,417 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\node_modules\\playwright\\cli.js",
+      "test",
+      "--config",
+      "scripts/integration/test-v02-browser.config.ts",
+      "tests/e2e/r2-guest-principal.spec.ts",
+      "--repeat-each=3"
+    ],
+    "configFile": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\scripts\\integration\\test-v02-browser.config.ts",
+    "rootDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\scripts\\integration\\test-v02-browser-guard.mjs",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/test-results/test-v02-integration",
+        "repeatEach": 3,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\docs\\integration\\test-v0.2\\browser-tests.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "corepack pnpm --filter @ottv2/web dev --host 127.0.0.1 --port 4173",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": false
+    }
+  },
+  "suites": [
+    {
+      "title": "r2-guest-principal.spec.ts",
+      "file": "r2-guest-principal.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "legacy Guest Arena play URL redirects to normal Offline2P",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1563,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:05.174Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-bc8e64ef70e1b985af33",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "Guest onboarding generates a stable name and persists an edited nickname",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2645,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:06.981Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-d4da7974fcd0f9e1a599",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "two tabs without Web Locks never overlap Guest bootstrap",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1672,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:09.650Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-bootstrap-diagnostics",
+                      "contentType": "application/json",
+                      "body": "eyJldmVudHMiOlsiZmlyc3Q6IFt2aXRlXSBjb25uZWN0aW5nLi4uIiwic2Vjb25kOiBbdml0ZV0gY29ubmVjdGluZy4uLiIsImZpcnN0OiBbdml0ZV0gY29ubmVjdGVkLiIsInNlY29uZDogW3ZpdGVdIGNvbm5lY3RlZC4iLCJmaXJzdDogJWNEb3dubG9hZCB0aGUgUmVhY3QgRGV2VG9vbHMgZm9yIGEgYmV0dGVyIGRldmVsb3BtZW50IGV4cGVyaWVuY2U6IGh0dHBzOi8vcmVhY3QuZGV2L2xpbmsvcmVhY3QtZGV2dG9vbHMgZm9udC13ZWlnaHQ6Ym9sZCIsInNlY29uZDogJWNEb3dubG9hZCB0aGUgUmVhY3QgRGV2VG9vbHMgZm9yIGEgYmV0dGVyIGRldmVsb3BtZW50IGV4cGVyaWVuY2U6IGh0dHBzOi8vcmVhY3QuZGV2L2xpbmsvcmVhY3QtZGV2dG9vbHMgZm9udC13ZWlnaHQ6Ym9sZCIsImZpcnN0OiBTZXJ2aWNlIFdvcmtlciByZWdpc3RyYXRpb24gYmxvY2tlZCBieSBQbGF5d3JpZ2h0Iiwic2Vjb25kOiBTZXJ2aWNlIFdvcmtlciByZWdpc3RyYXRpb24gYmxvY2tlZCBieSBQbGF5d3JpZ2h0Iiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwiZmlyc3Q6IEZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDUwMyAoU2VydmljZSBVbmF2YWlsYWJsZSkiLCJmaXJzdDogRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNTAzIChTZXJ2aWNlIFVuYXZhaWxhYmxlKSIsImZpcnN0OiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwiZmlyc3Q6IEZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDUwMyAoU2VydmljZSBVbmF2YWlsYWJsZSkiLCJzZWNvbmQ6IEZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDQwMSAoVW5hdXRob3JpemVkKSIsInNlY29uZDogW0RPTV0gSW5wdXQgZWxlbWVudHMgc2hvdWxkIGhhdmUgYXV0b2NvbXBsZXRlIGF0dHJpYnV0ZXMgKHN1Z2dlc3RlZDogXCJuZXctcGFzc3dvcmRcIik6IChNb3JlIGluZm86IGh0dHBzOi8vZ29vLmdsLzlwMnZLcSkgJW8iLCJmaXJzdDogRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDAxIChVbmF1dGhvcml6ZWQpIiwiZmlyc3Q6IFtET01dIElucHV0IGVsZW1lbnRzIHNob3VsZCBoYXZlIGF1dG9jb21wbGV0ZSBhdHRyaWJ1dGVzIChzdWdnZXN0ZWQ6IFwibmV3LXBhc3N3b3JkXCIpOiAoTW9yZSBpbmZvOiBodHRwczovL2dvby5nbC85cDJ2S3EpICVvIl0sImFjdGl2ZSI6MCwibWF4QWN0aXZlIjoxLCJjYWxscyI6Mn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-1b9ac6b97bf3af0a5590",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 24,
+          "column": 1
+        },
+        {
+          "title": "legacy Guest Arena play URL redirects to normal Offline2P",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 804,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:12.014Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-cfa14abb6ce52ee95fcc",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "Guest onboarding generates a stable name and persists an edited nickname",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2776,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:13.052Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-1da15a87af2694fbdc20",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "two tabs without Web Locks never overlap Guest bootstrap",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4084,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:15.855Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-bootstrap-diagnostics",
+                      "contentType": "application/json",
+                      "body": "eyJldmVudHMiOlsiZmlyc3Q6IFt2aXRlXSBjb25uZWN0aW5nLi4uIiwiZmlyc3Q6IFt2aXRlXSBjb25uZWN0ZWQuIiwic2Vjb25kOiBbdml0ZV0gY29ubmVjdGluZy4uLiIsInNlY29uZDogW3ZpdGVdIGNvbm5lY3RlZC4iLCJmaXJzdDogJWNEb3dubG9hZCB0aGUgUmVhY3QgRGV2VG9vbHMgZm9yIGEgYmV0dGVyIGRldmVsb3BtZW50IGV4cGVyaWVuY2U6IGh0dHBzOi8vcmVhY3QuZGV2L2xpbmsvcmVhY3QtZGV2dG9vbHMgZm9udC13ZWlnaHQ6Ym9sZCIsInNlY29uZDogJWNEb3dubG9hZCB0aGUgUmVhY3QgRGV2VG9vbHMgZm9yIGEgYmV0dGVyIGRldmVsb3BtZW50IGV4cGVyaWVuY2U6IGh0dHBzOi8vcmVhY3QuZGV2L2xpbmsvcmVhY3QtZGV2dG9vbHMgZm9udC13ZWlnaHQ6Ym9sZCIsImZpcnN0OiBTZXJ2aWNlIFdvcmtlciByZWdpc3RyYXRpb24gYmxvY2tlZCBieSBQbGF5d3JpZ2h0Iiwic2Vjb25kOiBTZXJ2aWNlIFdvcmtlciByZWdpc3RyYXRpb24gYmxvY2tlZCBieSBQbGF5d3JpZ2h0Iiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA0MDEgKFVuYXV0aG9yaXplZCkiLCJzZWNvbmQ6IFtET01dIElucHV0IGVsZW1lbnRzIHNob3VsZCBoYXZlIGF1dG9jb21wbGV0ZSBhdHRyaWJ1dGVzIChzdWdnZXN0ZWQ6IFwibmV3LXBhc3N3b3JkXCIpOiAoTW9yZSBpbmZvOiBodHRwczovL2dvby5nbC85cDJ2S3EpICVvIiwiZmlyc3Q6IEZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDUwMyAoU2VydmljZSBVbmF2YWlsYWJsZSkiLCJmaXJzdDogRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNTAzIChTZXJ2aWNlIFVuYXZhaWxhYmxlKSIsImZpcnN0OiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwiZmlyc3Q6IEZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDUwMyAoU2VydmljZSBVbmF2YWlsYWJsZSkiLCJmaXJzdDogRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDAxIChVbmF1dGhvcml6ZWQpIiwiZmlyc3Q6IFtET01dIElucHV0IGVsZW1lbnRzIHNob3VsZCBoYXZlIGF1dG9jb21wbGV0ZSBhdHRyaWJ1dGVzIChzdWdnZXN0ZWQ6IFwibmV3LXBhc3N3b3JkXCIpOiAoTW9yZSBpbmZvOiBodHRwczovL2dvby5nbC85cDJ2S3EpICVvIl0sImFjdGl2ZSI6MCwibWF4QWN0aXZlIjoxLCJjYWxscyI6Mn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-e08d88229f88afd8f18b",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 24,
+          "column": 1
+        },
+        {
+          "title": "legacy Guest Arena play URL redirects to normal Offline2P",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1483,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:21.400Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-91b78c5dd34bacdaa632",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "Guest onboarding generates a stable name and persists an edited nickname",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3313,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:23.305Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-4b6719cfb80f376ccec7",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "two tabs without Web Locks never overlap Guest bootstrap",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3482,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:16:26.667Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "guest-bootstrap-diagnostics",
+                      "contentType": "application/json",
+                      "body": "eyJldmVudHMiOlsiZmlyc3Q6IFt2aXRlXSBjb25uZWN0aW5nLi4uIiwiZmlyc3Q6IFt2aXRlXSBjb25uZWN0ZWQuIiwic2Vjb25kOiBbdml0ZV0gY29ubmVjdGluZy4uLiIsInNlY29uZDogW3ZpdGVdIGNvbm5lY3RlZC4iLCJmaXJzdDogJWNEb3dubG9hZCB0aGUgUmVhY3QgRGV2VG9vbHMgZm9yIGEgYmV0dGVyIGRldmVsb3BtZW50IGV4cGVyaWVuY2U6IGh0dHBzOi8vcmVhY3QuZGV2L2xpbmsvcmVhY3QtZGV2dG9vbHMgZm9udC13ZWlnaHQ6Ym9sZCIsInNlY29uZDogJWNEb3dubG9hZCB0aGUgUmVhY3QgRGV2VG9vbHMgZm9yIGEgYmV0dGVyIGRldmVsb3BtZW50IGV4cGVyaWVuY2U6IGh0dHBzOi8vcmVhY3QuZGV2L2xpbmsvcmVhY3QtZGV2dG9vbHMgZm9udC13ZWlnaHQ6Ym9sZCIsImZpcnN0OiBTZXJ2aWNlIFdvcmtlciByZWdpc3RyYXRpb24gYmxvY2tlZCBieSBQbGF5d3JpZ2h0Iiwic2Vjb25kOiBTZXJ2aWNlIFdvcmtlciByZWdpc3RyYXRpb24gYmxvY2tlZCBieSBQbGF5d3JpZ2h0Iiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwic2Vjb25kOiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA0MDEgKFVuYXV0aG9yaXplZCkiLCJzZWNvbmQ6IFtET01dIElucHV0IGVsZW1lbnRzIHNob3VsZCBoYXZlIGF1dG9jb21wbGV0ZSBhdHRyaWJ1dGVzIChzdWdnZXN0ZWQ6IFwibmV3LXBhc3N3b3JkXCIpOiAoTW9yZSBpbmZvOiBodHRwczovL2dvby5nbC85cDJ2S3EpICVvIiwiZmlyc3Q6IEZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDUwMyAoU2VydmljZSBVbmF2YWlsYWJsZSkiLCJmaXJzdDogRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNTAzIChTZXJ2aWNlIFVuYXZhaWxhYmxlKSIsImZpcnN0OiBGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA1MDMgKFNlcnZpY2UgVW5hdmFpbGFibGUpIiwiZmlyc3Q6IEZhaWxlZCB0byBsb2FkIHJlc291cmNlOiB0aGUgc2VydmVyIHJlc3BvbmRlZCB3aXRoIGEgc3RhdHVzIG9mIDUwMyAoU2VydmljZSBVbmF2YWlsYWJsZSkiLCJmaXJzdDogRmFpbGVkIHRvIGxvYWQgcmVzb3VyY2U6IHRoZSBzZXJ2ZXIgcmVzcG9uZGVkIHdpdGggYSBzdGF0dXMgb2YgNDAxIChVbmF1dGhvcml6ZWQpIiwiZmlyc3Q6IFtET01dIElucHV0IGVsZW1lbnRzIHNob3VsZCBoYXZlIGF1dG9jb21wbGV0ZSBhdHRyaWJ1dGVzIChzdWdnZXN0ZWQ6IFwibmV3LXBhc3N3b3JkXCIpOiAoTW9yZSBpbmZvOiBodHRwczovL2dvby5nbC85cDJ2S3EpICVvIl0sImFjdGl2ZSI6MCwibWF4QWN0aXZlIjoxLCJjYWxscyI6Mn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-2a163c0d84be25583190",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 24,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-12T02:16:03.602Z",
+    "duration": 27775.440000000002,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

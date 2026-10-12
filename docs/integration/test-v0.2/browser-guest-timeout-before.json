@@ -1,0 +1,1708 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\node_modules\\playwright\\cli.js",
+      "test",
+      "--config",
+      "scripts/integration/test-v02-browser.config.ts"
+    ],
+    "configFile": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\scripts\\integration\\test-v02-browser.config.ts",
+    "rootDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\scripts\\integration\\test-v02-browser-guard.mjs",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/test-results/test-v02-integration",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\docs\\integration\\test-v0.2\\browser-tests.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "corepack pnpm --filter @ottv2/web dev --host 127.0.0.1 --port 4173",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": false
+    }
+  },
+  "suites": [
+    {
+      "title": "b13-cross-cutting.spec.ts",
+      "file": "b13-cross-cutting.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "B13 cross-cutting accessibility and responsive QA",
+          "file": "b13-cross-cutting.spec.ts",
+          "line": 65,
+          "column": 6,
+          "specs": [
+            {
+              "title": "axe scans representative public, auth and recovery screens",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4329,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:12:58.822Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-10e07024d7b563d60fc0",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 66,
+              "column": 3
+            },
+            {
+              "title": "axe scans history, social, settings and local setup families",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9962,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:13:03.548Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-69dfd5b8f5f8258bbdaf",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 75,
+              "column": 3
+            },
+            {
+              "title": "keyboard board keeps one roving tab stop and Escape clears selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4051,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:13:13.540Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-7a0b3ff3e03be5f01bd9",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 91,
+              "column": 3
+            },
+            {
+              "title": "reduced motion forces low visual tier and keeps the shell usable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 851,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:13:17.611Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-fc39239ab888fe4556d4",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "screen matrix has no horizontal overflow at supported widths",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4115,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:13:18.484Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-721e09eaccfca88232e9",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 117,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "b14-release-gate.spec.ts",
+      "file": "b14-release-gate.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "all public route aliases boot without an app error or horizontal overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b14-release-gate.spec.ts",
+                    "line": 16,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12593,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:22.642Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b14-release-gate.spec.ts",
+                        "line": 16,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "024e3e7b70c51c398331-bc742afff8269d4b5310",
+          "file": "b14-release-gate.spec.ts",
+          "line": 15,
+          "column": 1
+        },
+        {
+          "title": "theme, motion and audio defaults remain deterministic across the release matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5334,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:35.264Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "024e3e7b70c51c398331-badf6db9fc9848df1b0d",
+          "file": "b14-release-gate.spec.ts",
+          "line": 31,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "frontend.smoke.spec.ts",
+      "file": "frontend.smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "public shell uses Vietnamese navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1034,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:40.673Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-534230ea06f7581118d1",
+          "file": "frontend.smoke.spec.ts",
+          "line": 31,
+          "column": 1
+        },
+        {
+          "title": "mobile exposes safe bottom navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1103,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:41.723Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-d400a8d3fba09c4bf872",
+          "file": "frontend.smoke.spec.ts",
+          "line": 38,
+          "column": 1
+        },
+        {
+          "title": "history keeps filters, canonical detail context and a read-only final thumbnail",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2594,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:42.847Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-47001c58ff2ee567f844",
+          "file": "frontend.smoke.spec.ts",
+          "line": 45,
+          "column": 1
+        },
+        {
+          "title": "game room hides global navigation and renders a 9 by 9 board",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1014,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:45.464Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-be85836a20a3ab4be2fd",
+          "file": "frontend.smoke.spec.ts",
+          "line": 75,
+          "column": 1
+        },
+        {
+          "title": "result screen stays explicit for GOAL_REACHED",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1657,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:46.499Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-43622377c59fecebf0fa",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result screen stays explicit for TIMEOUT",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1544,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:48.179Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-0b207625d6ec352e81ba",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result screen stays explicit for SURRENDER",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1648,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:49.748Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-a7b33a7e156d539f8d3c",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result screen stays explicit for SERVER_INTERRUPTION",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2080,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:51.422Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-d49e8ead756aae2145da",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result rematch shows a server-authoritative pending state",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2640,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:53.539Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-a339f9b3fccf80242a41",
+          "file": "frontend.smoke.spec.ts",
+          "line": 100,
+          "column": 1
+        },
+        {
+          "title": "offline keeps canonical orientation across BLUE and RED turns",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3173,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:56.214Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-31a7a222f3d60da8d664",
+          "file": "frontend.smoke.spec.ts",
+          "line": 110,
+          "column": 1
+        },
+        {
+          "title": "AI keeps BLUE orientation while the bot takes its turn",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2488,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:13:59.425Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-30ea25e5428a720b4b1a",
+          "file": "frontend.smoke.spec.ts",
+          "line": 125,
+          "column": 1
+        },
+        {
+          "title": "online BLUE viewer stays fixed with self on the near side",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1718,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:01.940Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-d43c829de41e39eb99d0",
+          "file": "frontend.smoke.spec.ts",
+          "line": 137,
+          "column": 3
+        },
+        {
+          "title": "online RED viewer stays fixed with self on the near side",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1839,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:03.688Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-b50a75eb89cffbf4edbb",
+          "file": "frontend.smoke.spec.ts",
+          "line": 137,
+          "column": 3
+        },
+        {
+          "title": "spectator always uses canonical BLUE orientation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2359,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:05.561Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-ab4e2e917c5c2d7e8411",
+          "file": "frontend.smoke.spec.ts",
+          "line": 150,
+          "column": 1
+        },
+        {
+          "title": "spectator is read-only and exposes canonical activity feeds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1514,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:07.966Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-a9fd691457004d22ca5c",
+          "file": "frontend.smoke.spec.ts",
+          "line": 161,
+          "column": 1
+        },
+        {
+          "title": "private spectator entry keeps password and error copy in Vietnamese",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1506,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:09.506Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-f7c2ca7681953d119df0",
+          "file": "frontend.smoke.spec.ts",
+          "line": 176,
+          "column": 1
+        },
+        {
+          "title": "not found screen provides branded explanation and lobby action",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1019,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:11.037Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-20a4a37557745950dd62",
+          "file": "frontend.smoke.spec.ts",
+          "line": 194,
+          "column": 1
+        },
+        {
+          "title": "registration keeps recovery acknowledgement gated",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1097,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:12.079Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-88897442cf39ac19651b",
+          "file": "frontend.smoke.spec.ts",
+          "line": 201,
+          "column": 1
+        },
+        {
+          "title": "profile edit modal persists a combined profile update",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1467,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:13.198Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-5f2d25814c186e767a38",
+          "file": "frontend.smoke.spec.ts",
+          "line": 207,
+          "column": 1
+        },
+        {
+          "title": "friend card keeps secondary actions in an accessible menu",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1658,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:14.688Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-7788c22a7e16068e7d71",
+          "file": "frontend.smoke.spec.ts",
+          "line": 225,
+          "column": 1
+        },
+        {
+          "title": "authenticated homepage preserves friends preview and horizontal room scrolling",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1743,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:16.367Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-089ca664a4f8d12e3db8",
+          "file": "frontend.smoke.spec.ts",
+          "line": 243,
+          "column": 1
+        },
+        {
+          "title": "room browser applies realtime room-list sync without a refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2200,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:18.131Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-4392e965fdeda749f2f2",
+          "file": "frontend.smoke.spec.ts",
+          "line": 265,
+          "column": 1
+        },
+        {
+          "title": "privacy presence preference persists across settings reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2698,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:20.354Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-2645900127de09ffe80b",
+          "file": "frontend.smoke.spec.ts",
+          "line": 278,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r1-queue-recovery.spec.ts",
+      "file": "r1-queue-recovery.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Queue cancel waits for server ACK and keeps the closed queue in place",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2044,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:23.100Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "33a48c2bcedf917daf44-7aa899c38bece8d3f105",
+          "file": "r1-queue-recovery.spec.ts",
+          "line": 53,
+          "column": 1
+        },
+        {
+          "title": "browser Back waits for cancellation and keeps the queue on failed ACK",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1857,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:25.161Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "33a48c2bcedf917daf44-22c7f3b241396f8beddb",
+          "file": "r1-queue-recovery.spec.ts",
+          "line": 80,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r10-bot-online.spec.ts",
+      "file": "r10-bot-online.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R10 Bot Online custom room exposes role toggles and gates room creation on preflight",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2685,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:27.063Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cb0c48ad57ed691a75d0-415d757a87bf577059a8",
+          "file": "r10-bot-online.spec.ts",
+          "line": 26,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r2-guest-principal.spec.ts",
+      "file": "r2-guest-principal.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "legacy Guest Arena play URL redirects to normal Offline2P",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1875,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:29.806Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-bc8e64ef70e1b985af33",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "Guest onboarding generates a stable name and persists an edited nickname",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4007,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:31.716Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-d4da7974fcd0f9e1a599",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "two tabs without Web Locks never overlap Guest bootstrap",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7199,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Cần mật khẩu phòng' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: 'Cần mật khẩu phòng' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Cần mật khẩu phòng' })\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Cần mật khẩu phòng' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: 'Cần mật khẩu phòng' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Cần mật khẩu phòng' })\u001b[22m\n\n    at C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\r2-guest-principal.spec.ts:41:75",
+                    "location": {
+                      "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\r2-guest-principal.spec.ts",
+                      "column": 75,
+                      "line": 41
+                    },
+                    "snippet": "  39 |   await context.route(\"**/rooms/LOCKA/spectate\", (route) => route.fulfill({ status: 401, contentType: \"application/json\", body: JSON.stringify({ code: \"UNAUTHORIZED\", message: \"Cần đăng nhập\" }) }));\n  40 |   await Promise.all([page.goto(\"/spectate/LOCKA\"), second.goto(\"/spectate/LOCKA\")]);\n> 41 |   await expect(page.getByRole(\"heading\", { name: \"Cần mật khẩu phòng\" })).toBeVisible();\n     |                                                                           ^\n  42 |   await expect(second.getByRole(\"heading\", { name: \"Cần mật khẩu phòng\" })).toBeVisible();\n  43 |   expect(maxActive).toBe(1);\n  44 |   expect(cookiesSeen).toContain(\"\");"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\r2-guest-principal.spec.ts",
+                        "column": 75,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: 'Cần mật khẩu phòng' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: 'Cần mật khẩu phòng' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: 'Cần mật khẩu phòng' })\u001b[22m\n\n\n  39 |   await context.route(\"**/rooms/LOCKA/spectate\", (route) => route.fulfill({ status: 401, contentType: \"application/json\", body: JSON.stringify({ code: \"UNAUTHORIZED\", message: \"Cần đăng nhập\" }) }));\n  40 |   await Promise.all([page.goto(\"/spectate/LOCKA\"), second.goto(\"/spectate/LOCKA\")]);\n> 41 |   await expect(page.getByRole(\"heading\", { name: \"Cần mật khẩu phòng\" })).toBeVisible();\n     |                                                                           ^\n  42 |   await expect(second.getByRole(\"heading\", { name: \"Cần mật khẩu phòng\" })).toBeVisible();\n  43 |   expect(maxActive).toBe(1);\n  44 |   expect(cookiesSeen).toContain(\"\");\n    at C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\r2-guest-principal.spec.ts:41:75"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:35.758Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\test-results\\test-v02-integration\\r2-guest-principal-two-tab-efe0c-ver-overlap-Guest-bootstrap\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\r2-guest-principal.spec.ts",
+                    "column": 75,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-1b9ac6b97bf3af0a5590",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 24,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r7-queue-waiting.spec.ts",
+      "file": "r7-queue-waiting.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R7 queue search stage is explicit and calm in the browser",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1699,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:46.313Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b501c8a7aa5093fa1ba0-e4e46594d74e4f5b2983",
+          "file": "r7-queue-waiting.spec.ts",
+          "line": 40,
+          "column": 1
+        },
+        {
+          "title": "R7 referee Start is role-gated in the waiting room",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1943,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:48.563Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b501c8a7aa5093fa1ba0-772eab0de021efbb0d41",
+          "file": "r7-queue-waiting.spec.ts",
+          "line": 55,
+          "column": 1
+        },
+        {
+          "title": "R7 player view never exposes referee Start",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1254,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:50.534Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b501c8a7aa5093fa1ba0-2bfccdac055583553f1a",
+          "file": "r7-queue-waiting.spec.ts",
+          "line": 66,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r8-manual-referee.spec.ts",
+      "file": "r8-manual-referee.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R8 referee can stop with a public reason and sees the authoritative pause overlay",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2135,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:51.854Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-d091b3bf5a6f72a16658",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 37,
+          "column": 1
+        },
+        {
+          "title": "R8 player sees a nondismissible wait state and no referee controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1300,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:54.018Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-6ec5adc27100015b2a91",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 50,
+          "column": 1
+        },
+        {
+          "title": "R8 referee can hold the three-second resume preparation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1484,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:55.342Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-85b4a3e32d084c542e92",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 59,
+          "column": 1
+        },
+        {
+          "title": "R8 pause surface remains usable at the mobile viewport",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1347,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:56.849Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-6e32e1d0cd8f80165e35",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 68,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r9-bot-workbench.spec.ts",
+      "file": "r9-bot-workbench.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R9 Workbench keeps library, upload and private inspector regions explicit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1833,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:14:58.237Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c9cca2d74d9c629aefc4-161613d89e2375c1b224",
+          "file": "r9-bot-workbench.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-12T02:12:56.764Z",
+    "duration": 124049.201,
+    "expected": 43,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

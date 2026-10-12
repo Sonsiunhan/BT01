@@ -25,8 +25,11 @@ import { registerGuestImportRoutes } from "./modules/guest/guest-import.route.js
 import { MetricsRegistry } from "./modules/diagnostics/metrics.js";
 import { registerMetricsRoute } from "./modules/diagnostics/metrics.route.js";
 import { registerR3ProviderRoute } from "./modules/diagnostics/r3-provider.route.js";
+import { InventoryService } from "./modules/diagnostics/inventory.service.js";
+import { registerInventoryRoute } from "./modules/diagnostics/inventory.route.js";
 import { BotLibraryService, type BotLibraryDatabase } from "./modules/bot-library/bot-library.service.js";
 import { registerBotLibraryRoutes } from "./modules/bot-library/bot-library.route.js";
+import { CapacityController, registerCapacityAdmissionHook, registerCapacityRoute } from "./modules/capacity/index.js";
 import { BotOnlineService, FileBotOnlineStatePersistence } from "./modules/bot-online/bot-online.service.js";
 import { createWasmtimeCpythonAdapter, DEFAULT_CPYTHON_WASM_SHA256, DEFAULT_WASMTIME_LINUX_SHA256 } from "./modules/bot-online/wasmtime.adapter.js";
 import { registerBotOnlineRoutes } from "./modules/bot-online/bot-online.route.js";
@@ -37,19 +40,24 @@ import { PrismaDatabase, type DatabasePort } from "./plugins/prisma.js";
 import { DisabledRealtimeAdapter } from "./realtime/disabled.adapter.js";
 import { PlayHtmlAdapter } from "./realtime/playhtml.adapter.js";
 import type { RealtimePort } from "./realtime/realtime.port.js";
+import type { CommitPort, CommandLedger } from "./modules/match/commit/index.js";
 
 export type BuildAppOptions = {
   env?: AppEnv;
   database?: DatabasePort;
   realtime?: RealtimePort;
+  auth?: AuthService;
   rooms?: RoomManager;
   matches?: MatchManager;
+  commitPort?: CommitPort;
+  commandLedger?: CommandLedger;
   matchPersistence?: MatchPersistence;
   matchmaking?: MatchmakingManager;
   history?: MatchHistoryService;
   social?: SocialService;
   guestImport?: GuestImportService;
   metrics?: MetricsRegistry;
+  capacityController?: CapacityController;
   botLibrary?: BotLibraryService;
   botOnline?: BotOnlineService;
 };
@@ -72,16 +80,17 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   });
   const database = options.database ?? new PrismaDatabase();
   const realtime = options.realtime ?? createRealtime(env, app);
-  const auth = new AuthService(database instanceof PrismaDatabase ? database.client : undefined);
+  const auth = options.auth ?? new AuthService(database instanceof PrismaDatabase ? database.client : undefined);
   const rooms = options.rooms ?? new RoomManager();
   const matchPersistence = options.matchPersistence ?? (env.MATCH_PERSISTENCE_DIR ? new FileMatchPersistence(env.MATCH_PERSISTENCE_DIR) : undefined);
-  const matches = options.matches ?? new MatchManager(Date.now, 30_000, matchPersistence);
+  const matches = options.matches ?? new MatchManager(Date.now, 30_000, matchPersistence, options.commitPort, options.commandLedger);
   const matchmaking = options.matchmaking ?? new MatchmakingManager(rooms, matches);
   const rating = new RatingService(database instanceof PrismaDatabase ? database.client : undefined);
   const history = options.history ?? new MatchHistoryService(database instanceof PrismaDatabase ? database.client : undefined);
   const social = options.social ?? new SocialService(database instanceof PrismaDatabase ? database.client : undefined, rooms);
   const guestImport = options.guestImport ?? new GuestImportService(database instanceof PrismaDatabase ? database.client : undefined);
   const metrics = options.metrics ?? new MetricsRegistry();
+  const capacity = options.capacityController ?? new CapacityController({ metrics });
   // An explicitly configured runtime is all-or-nothing. A partial env setup
   // must fail closed instead of silently falling back to a build handoff.
   const hasExplicitRuntime = Boolean(
@@ -107,6 +116,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   // order when resolving wildcard GET routes.
   await registerR3ProviderRoute(app);
   await registerWebApp(app);
+  registerCapacityAdmissionHook(app, capacity);
   await registerAuthRoutes(app, auth, env);
   await registerProfileRoutes(app, auth, social);
   await registerRoomRoutes(app, auth, rooms);
@@ -117,8 +127,17 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerGuestImportRoutes(app, auth, guestImport, env.NODE_ENV === "production");
   await registerBotLibraryRoutes(app, auth, botLibrary);
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
+  const botProbe = () => ({
+    status: botRuntimeAdapter ? ("ok" as const) : ("degraded" as const),
+    reason: botRuntimeAdapter ? undefined : "wasmtime-unconfigured",
+  });
+  const healthService = new HealthService(database, realtime, botProbe);
+  const inventoryService = new InventoryService(healthService);
+
   await registerMetricsRoute(app, metrics);
-  await registerHealthRoute(app, new HealthService(database, realtime));
+  await registerInventoryRoute(app, inventoryService);
+  await registerCapacityRoute(app, capacity);
+  await registerHealthRoute(app, healthService);
   // Guest uploads are temporary, not an account cloud library. Keep this
   // bounded sweep independent of user traffic; never prune live references.
   const guestSourceSweep = setInterval(() => {
@@ -126,13 +145,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   }, 60 * 60 * 1000);
   guestSourceSweep.unref();
   app.addHook("onReady", async () => realtime.start());
-  const requestStarts = new Map<string, number>();
-  app.addHook("onRequest", async (request) => { requestStarts.set(request.id, performance.now()); });
   app.addHook("onResponse", async (request, reply) => {
-    const startedAt = requestStarts.get(request.id);
-    requestStarts.delete(request.id);
     const path = request.routeOptions.url ?? request.url.split("?", 1)[0] ?? "/";
-    metrics.observeHttp(request.method, path, reply.statusCode, startedAt === undefined ? 0 : performance.now() - startedAt);
+    const bytes = Number(reply.getHeader("content-length") ?? 0) || 0;
+    const durationMs = typeof reply.elapsedTime === "number" && reply.elapsedTime >= 0 ? reply.elapsedTime : 0;
+    metrics.observeHttp(request.method, path, reply.statusCode, durationMs, bytes);
   });
   app.addHook("onClose", async () => {
     clearInterval(guestSourceSweep);

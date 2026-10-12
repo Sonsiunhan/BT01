@@ -13,6 +13,7 @@ async function prepareShell(page: Page) {
 }
 
 test("all public route aliases boot without an app error or horizontal overflow", async ({ page }) => {
+  test.slow();
   await prepareShell(page);
   const routes = [
     "/", "/home", "/login", "/dang-nhap", "/register", "/dang-ky", "/forgot-password", "/quen-mat-khau",

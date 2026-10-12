@@ -185,14 +185,83 @@ describe("W6 MatchmakingManager", () => {
     expect((await queue.join({ ...blue, principal: "GUEST" }, 1000, "guest-client", "BOT")).mode).toBe("BOT");
   });
 
-  it("cancels a queued entry but never cancels a committed match", async () => {
+  it("cancels a queued entry but returns committed match if already matched", async () => {
     const rooms = new RoomManager();
     const matches = new MatchManager();
     const queue = new MatchmakingManager(rooms, matches);
     const waiting = await queue.join(blue, 1000, "client-blue");
     expect(queue.cancel(waiting.queueId, blue.userId).status).toBe("CANCELLED");
     const first = await queue.join(blue, 1000, "client-blue");
-    await queue.join(red, 1000, "client-red");
-    expect(() => queue.cancel(first.queueId, blue.userId)).toThrowError(expect.objectContaining({ details: expect.objectContaining({ reason: "MATCH_ALREADY_COMMITTED" }) }));
+    const second = await queue.join(red, 1000, "client-red");
+    const cancelResult = queue.cancel(first.queueId, blue.userId);
+    expect(cancelResult.status).toBe("MATCHED");
+    expect(cancelResult.roomId).toBe(second.roomId);
+    expect(cancelResult.matchId).toBeTruthy();
+    queue.stop();
+    matches.stop();
+  });
+
+  it("renews lease on renewLease and tick, and cleans up expired leases safely", async () => {
+    let now = 1_000_000;
+    const rooms = new RoomManager();
+    const matches = new MatchManager(() => now);
+    const queue = new MatchmakingManager(rooms, matches, () => now);
+
+    const entry = await queue.join(blue, 1000, "client-blue");
+    expect(entry.status).toBe("QUEUED");
+
+    // Advance time by 20s (less than 30s lease)
+    now += 20_000;
+    const renewed = queue.renewLease(entry.queueId, blue.userId);
+    expect(renewed.status).toBe("QUEUED");
+
+    // Advance time past original 30s (at +40s total, renewed was at +20s so lease is valid until +50s)
+    now += 20_000;
+    expect(queue.cleanupExpiredLeases()).toBe(0);
+
+    // Advance time past renewed lease (+20s more, now at +60s)
+    now += 20_000;
+    expect(queue.cleanupExpiredLeases()).toBe(1);
+    expect(queue.get(entry.queueId, blue.userId).status).toBe("CANCELLED");
+
+    queue.stop();
+    matches.stop();
+  });
+
+  it("enforces MAX_QUEUE_DEPTH limit with 503 SERVICE_UNAVAILABLE", async () => {
+    const rooms = new RoomManager();
+    const matches = new MatchManager();
+    const queue = new MatchmakingManager(rooms, matches);
+
+    // Fill queue to MAX_QUEUE_DEPTH by inserting mock entries directly
+    const entriesMap = (queue as any).entries as Map<string, any>;
+    for (let i = 0; i < 1000; i++) {
+      entriesMap.set(`dummy-${i}`, {
+        queueId: `dummy-${i}`,
+        mode: "RANKED",
+        actor: { userId: `user-${i}`, username: `user_${i}`, displayName: `User ${i}`, principal: "ACCOUNT" },
+        clientId: "client",
+        elo: 3000 + i * 100, // Non-matching elo
+        joinedAt: 1000,
+        leaseExpiresAt: 9999999,
+        maxWaitDeadline: 9999999,
+        status: "QUEUED",
+        opponent: null,
+        roomId: null,
+        matchId: null,
+        sequence: 0,
+      });
+    }
+
+    await expect(queue.join(blue, 1000, "client-blue")).rejects.toThrowError(
+      expect.objectContaining({
+        statusCode: 503,
+        code: "SERVICE_UNAVAILABLE",
+        details: expect.objectContaining({ reason: "QUEUE_FULL" }),
+      })
+    );
+
+    queue.stop();
+    matches.stop();
   });
 });

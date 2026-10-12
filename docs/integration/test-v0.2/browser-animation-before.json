@@ -1,0 +1,1708 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\node_modules\\playwright\\cli.js",
+      "test",
+      "--config",
+      "scripts/integration/test-v02-browser.config.ts"
+    ],
+    "configFile": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\scripts\\integration\\test-v02-browser.config.ts",
+    "rootDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\scripts\\integration\\test-v02-browser-guard.mjs",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/test-results/test-v02-integration",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/Admin/.codex/worktrees/test-v02-integration/BT01/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\docs\\integration\\test-v0.2\\browser-tests.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "corepack pnpm --filter @ottv2/web dev --host 127.0.0.1 --port 4173",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": false
+    }
+  },
+  "suites": [
+    {
+      "title": "b13-cross-cutting.spec.ts",
+      "file": "b13-cross-cutting.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "B13 cross-cutting accessibility and responsive QA",
+          "file": "b13-cross-cutting.spec.ts",
+          "line": 58,
+          "column": 6,
+          "specs": [
+            {
+              "title": "axe scans representative public, auth and recovery screens",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1878,
+                      "error": {
+                        "message": "Error: /: color-contrast (7)\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 274\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds\",\u001b[39m\n\u001b[31m+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+     \"impact\": \"serious\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.6pt (11.52px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"eyebrow\\\">ONLINE</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-panel > div:nth-child(1) > .eyebrow\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.2,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"3:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#1e2735\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"26.4pt (35.2px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.2 (foreground color: #1e2735, background color: #0c1624, font size: 26.4pt (35.2px), font weight: normal). Expected contrast ratio of 3:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.2 (foreground color: #1e2735, background color: #0c1624, font size: 26.4pt (35.2px), font weight: normal). Expected contrast ratio of 3:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 id=\\\"home-online-title\\\">TÌM TRẬN</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"#home-online-title\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.6pt (11.52px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p>Chọn nhịp chơi rồi vào sảnh phù hợp.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-panel > div:nth-child(1) > p:nth-child(3)\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0d1826\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.21,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#1e2936\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.2pt (10.88px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.21 (foreground color: #1e2936, background color: #0d1826, font size: 8.2pt (10.88px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<button class=\\\"home-online-tab active\\\" type=\\\"button\\\" aria-pressed=\\\"true\\\">Đấu thường</button>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-tab.active[type=\\\"button\\\"]\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<div class=\\\"home-online-choice\\\" role=\\\"group\\\" aria-label=\\\"Chế độ tìm trận\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-choice\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.21 (foreground color: #1e2936, background color: #0d1826, font size: 8.2pt (10.88px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<button class=\\\"home-online-tab active\\\" type=\\\"button\\\" aria-pressed=\\\"true\\\">Đấu thường</button>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-tab.active[type=\\\"button\\\"]\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#122530\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.01,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#11242e\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"10.8pt (14.4px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 10.8pt (14.4px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<a class=\\\"home-primary-cta\\\" href=\\\"/queue?mode=UNRANKED\\\" data-discover=\\\"true\\\"><strong>TÌM TRẬN</strong><small>Vào phòng online không tính Elo</small><span aria-hidden=\\\"true\\\">→</span></a>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-primary-cta\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 10.8pt (14.4px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<strong>TÌM TRẬN</strong>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-primary-cta > strong\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#122530\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.01,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#11242e\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.2pt (10.88px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 8.2pt (10.88px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<a class=\\\"home-primary-cta\\\" href=\\\"/queue?mode=UNRANKED\\\" data-discover=\\\"true\\\"><strong>TÌM TRẬN</strong><small>Vào phòng online không tính Elo</small><span aria-hidden=\\\"true\\\">→</span></a>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-primary-cta\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 8.2pt (10.88px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<small>Vào phòng online không tính Elo</small>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-primary-cta > small\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"7.7pt (10.24px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 7.7pt (10.24px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 7.7pt (10.24px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"home-online-hint\\\">Xếp hạng dành cho tài khoản đã đăng nhập.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-hint\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.color\",\u001b[39m\n\u001b[31m+       \"wcag2aa\",\u001b[39m\n\u001b[31m+       \"wcag143\",\u001b[39m\n\u001b[31m+       \"TTv5\",\u001b[39m\n\u001b[31m+       \"TT13.c\",\u001b[39m\n\u001b[31m+       \"EN-301-549\",\u001b[39m\n\u001b[31m+       \"EN-9.1.4.3\",\u001b[39m\n\u001b[31m+       \"ACT\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-3.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                        "stack": "Error: /: color-contrast (7)\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 274\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds\",\u001b[39m\n\u001b[31m+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+     \"impact\": \"serious\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.6pt (11.52px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"eyebrow\\\">ONLINE</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-panel > div:nth-child(1) > .eyebrow\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.2,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"3:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#1e2735\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"26.4pt (35.2px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.2 (foreground color: #1e2735, background color: #0c1624, font size: 26.4pt (35.2px), font weight: normal). Expected contrast ratio of 3:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.2 (foreground color: #1e2735, background color: #0c1624, font size: 26.4pt (35.2px), font weight: normal). Expected contrast ratio of 3:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 id=\\\"home-online-title\\\">TÌM TRẬN</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"#home-online-title\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.6pt (11.52px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p>Chọn nhịp chơi rồi vào sảnh phù hợp.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-panel > div:nth-child(1) > p:nth-child(3)\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0d1826\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.21,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#1e2936\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.2pt (10.88px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.21 (foreground color: #1e2936, background color: #0d1826, font size: 8.2pt (10.88px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<button class=\\\"home-online-tab active\\\" type=\\\"button\\\" aria-pressed=\\\"true\\\">Đấu thường</button>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-tab.active[type=\\\"button\\\"]\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<div class=\\\"home-online-choice\\\" role=\\\"group\\\" aria-label=\\\"Chế độ tìm trận\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-choice\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.21 (foreground color: #1e2936, background color: #0d1826, font size: 8.2pt (10.88px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<button class=\\\"home-online-tab active\\\" type=\\\"button\\\" aria-pressed=\\\"true\\\">Đấu thường</button>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-tab.active[type=\\\"button\\\"]\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#122530\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.01,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#11242e\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"10.8pt (14.4px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 10.8pt (14.4px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<a class=\\\"home-primary-cta\\\" href=\\\"/queue?mode=UNRANKED\\\" data-discover=\\\"true\\\"><strong>TÌM TRẬN</strong><small>Vào phòng online không tính Elo</small><span aria-hidden=\\\"true\\\">→</span></a>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-primary-cta\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 10.8pt (14.4px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<strong>TÌM TRẬN</strong>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-primary-cta > strong\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#122530\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.01,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#11242e\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.2pt (10.88px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 8.2pt (10.88px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<a class=\\\"home-primary-cta\\\" href=\\\"/queue?mode=UNRANKED\\\" data-discover=\\\"true\\\"><strong>TÌM TRẬN</strong><small>Vào phòng online không tính Elo</small><span aria-hidden=\\\"true\\\">→</span></a>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-primary-cta\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 8.2pt (10.88px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<small>Vào phòng online không tính Elo</small>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-primary-cta > small\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"7.7pt (10.24px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 7.7pt (10.24px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 7.7pt (10.24px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"home-online-hint\\\">Xếp hạng dành cho tài khoản đã đăng nhập.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-hint\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.color\",\u001b[39m\n\u001b[31m+       \"wcag2aa\",\u001b[39m\n\u001b[31m+       \"wcag143\",\u001b[39m\n\u001b[31m+       \"TTv5\",\u001b[39m\n\u001b[31m+       \"TT13.c\",\u001b[39m\n\u001b[31m+       \"EN-301-549\",\u001b[39m\n\u001b[31m+       \"EN-9.1.4.3\",\u001b[39m\n\u001b[31m+       \"ACT\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-3.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at expectNoSeriousA11yViolations (C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b13-cross-cutting.spec.ts:55:120)\n    at C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b13-cross-cutting.spec.ts:64:7",
+                        "location": {
+                          "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b13-cross-cutting.spec.ts",
+                          "column": 120,
+                          "line": 55
+                        },
+                        "snippet": "  53 |   const results = await new AxeBuilder({ page }).withTags([\"wcag2a\", \"wcag2aa\"]).analyze();\n  54 |   const serious = results.violations.filter((violation) => violation.impact === \"critical\" || violation.impact === \"serious\");\n> 55 |   expect(serious, `${label}: ${serious.map((violation) => `${violation.id} (${violation.nodes.length})`).join(\", \")}`).toEqual([]);\n     |                                                                                                                        ^\n  56 | }\n  57 |\n  58 | test.describe(\"B13 cross-cutting accessibility and responsive QA\", () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b13-cross-cutting.spec.ts",
+                            "column": 120,
+                            "line": 55
+                          },
+                          "message": "Error: /: color-contrast (7)\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -   1\u001b[39m\n\u001b[31m+ Received  + 274\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"description\": \"Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds\",\u001b[39m\n\u001b[31m+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\u001b[39m\n\u001b[31m+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=playwright\",\u001b[39m\n\u001b[31m+     \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+     \"impact\": \"serious\",\u001b[39m\n\u001b[31m+     \"nodes\": Array [\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.6pt (11.52px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"eyebrow\\\">ONLINE</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-panel > div:nth-child(1) > .eyebrow\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.2,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"3:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#1e2735\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"26.4pt (35.2px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.2 (foreground color: #1e2735, background color: #0c1624, font size: 26.4pt (35.2px), font weight: normal). Expected contrast ratio of 3:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.2 (foreground color: #1e2735, background color: #0c1624, font size: 26.4pt (35.2px), font weight: normal). Expected contrast ratio of 3:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<h2 id=\\\"home-online-title\\\">TÌM TRẬN</h2>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \"#home-online-title\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.6pt (11.52px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 8.6pt (11.52px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p>Chọn nhịp chơi rồi vào sảnh phù hợp.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-panel > div:nth-child(1) > p:nth-child(3)\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0d1826\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.21,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#1e2936\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.2pt (10.88px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.21 (foreground color: #1e2936, background color: #0d1826, font size: 8.2pt (10.88px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<button class=\\\"home-online-tab active\\\" type=\\\"button\\\" aria-pressed=\\\"true\\\">Đấu thường</button>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-tab.active[type=\\\"button\\\"]\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<div class=\\\"home-online-choice\\\" role=\\\"group\\\" aria-label=\\\"Chế độ tìm trận\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-choice\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.21 (foreground color: #1e2936, background color: #0d1826, font size: 8.2pt (10.88px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<button class=\\\"home-online-tab active\\\" type=\\\"button\\\" aria-pressed=\\\"true\\\">Đấu thường</button>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-tab.active[type=\\\"button\\\"]\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#122530\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.01,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#11242e\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"10.8pt (14.4px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"bold\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 10.8pt (14.4px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<a class=\\\"home-primary-cta\\\" href=\\\"/queue?mode=UNRANKED\\\" data-discover=\\\"true\\\"><strong>TÌM TRẬN</strong><small>Vào phòng online không tính Elo</small><span aria-hidden=\\\"true\\\">→</span></a>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-primary-cta\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 10.8pt (14.4px), font weight: bold). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<strong>TÌM TRẬN</strong>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-primary-cta > strong\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#122530\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.01,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#11242e\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"8.2pt (10.88px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 8.2pt (10.88px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<a class=\\\"home-primary-cta\\\" href=\\\"/queue?mode=UNRANKED\\\" data-discover=\\\"true\\\"><strong>TÌM TRẬN</strong><small>Vào phòng online không tính Elo</small><span aria-hidden=\\\"true\\\">→</span></a>\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-primary-cta\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.01 (foreground color: #11242e, background color: #122530, font size: 8.2pt (10.88px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<small>Vào phòng online không tính Elo</small>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-primary-cta > small\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+       Object {\u001b[39m\n\u001b[31m+         \"all\": Array [],\u001b[39m\n\u001b[31m+         \"any\": Array [\u001b[39m\n\u001b[31m+           Object {\u001b[39m\n\u001b[31m+             \"data\": Object {\u001b[39m\n\u001b[31m+               \"bgColor\": \"#0c1624\",\u001b[39m\n\u001b[31m+               \"contrastRatio\": 1.14,\u001b[39m\n\u001b[31m+               \"expectedContrastRatio\": \"4.5:1\",\u001b[39m\n\u001b[31m+               \"fgColor\": \"#182331\",\u001b[39m\n\u001b[31m+               \"fontSize\": \"7.7pt (10.24px)\",\u001b[39m\n\u001b[31m+               \"fontWeight\": \"normal\",\u001b[39m\n\u001b[31m+               \"messageKey\": null,\u001b[39m\n\u001b[31m+             },\u001b[39m\n\u001b[31m+             \"id\": \"color-contrast\",\u001b[39m\n\u001b[31m+             \"impact\": \"serious\",\u001b[39m\n\u001b[31m+             \"message\": \"Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 7.7pt (10.24px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+             \"relatedNodes\": Array [\u001b[39m\n\u001b[31m+               Object {\u001b[39m\n\u001b[31m+                 \"html\": \"<section class=\\\"home-online-panel\\\" aria-labelledby=\\\"home-online-title\\\">\",\u001b[39m\n\u001b[31m+                 \"target\": Array [\u001b[39m\n\u001b[31m+                   \".home-online-panel\",\u001b[39m\n\u001b[31m+                 ],\u001b[39m\n\u001b[31m+               },\u001b[39m\n\u001b[31m+             ],\u001b[39m\n\u001b[31m+           },\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+         \"failureSummary\": \"Fix any of the following:\u001b[39m\n\u001b[31m+   Element has insufficient color contrast of 1.14 (foreground color: #182331, background color: #0c1624, font size: 7.7pt (10.24px), font weight: normal). Expected contrast ratio of 4.5:1\",\u001b[39m\n\u001b[31m+         \"html\": \"<p class=\\\"home-online-hint\\\">Xếp hạng dành cho tài khoản đã đăng nhập.</p>\",\u001b[39m\n\u001b[31m+         \"impact\": \"serious\",\u001b[39m\n\u001b[31m+         \"none\": Array [],\u001b[39m\n\u001b[31m+         \"target\": Array [\u001b[39m\n\u001b[31m+           \".home-online-hint\",\u001b[39m\n\u001b[31m+         ],\u001b[39m\n\u001b[31m+       },\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+     \"tags\": Array [\u001b[39m\n\u001b[31m+       \"cat.color\",\u001b[39m\n\u001b[31m+       \"wcag2aa\",\u001b[39m\n\u001b[31m+       \"wcag143\",\u001b[39m\n\u001b[31m+       \"TTv5\",\u001b[39m\n\u001b[31m+       \"TT13.c\",\u001b[39m\n\u001b[31m+       \"EN-301-549\",\u001b[39m\n\u001b[31m+       \"EN-9.1.4.3\",\u001b[39m\n\u001b[31m+       \"ACT\",\u001b[39m\n\u001b[31m+       \"RGAAv4\",\u001b[39m\n\u001b[31m+       \"RGAA-3.2.1\",\u001b[39m\n\u001b[31m+     ],\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  53 |   const results = await new AxeBuilder({ page }).withTags([\"wcag2a\", \"wcag2aa\"]).analyze();\n  54 |   const serious = results.violations.filter((violation) => violation.impact === \"critical\" || violation.impact === \"serious\");\n> 55 |   expect(serious, `${label}: ${serious.map((violation) => `${violation.id} (${violation.nodes.length})`).join(\", \")}`).toEqual([]);\n     |                                                                                                                        ^\n  56 | }\n  57 |\n  58 | test.describe(\"B13 cross-cutting accessibility and responsive QA\", () => {\n    at expectNoSeriousA11yViolations (C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b13-cross-cutting.spec.ts:55:120)\n    at C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b13-cross-cutting.spec.ts:64:7"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:09:34.510Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\test-results\\test-v02-integration\\b13-cross-cutting-B13-cros-0253b-c-auth-and-recovery-screens\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b13-cross-cutting.spec.ts",
+                        "column": 120,
+                        "line": 55
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-10e07024d7b563d60fc0",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 59,
+              "column": 3
+            },
+            {
+              "title": "axe scans history, social, settings and local setup families",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10425,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:09:37.342Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-69dfd5b8f5f8258bbdaf",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "keyboard board keeps one roving tab stop and Escape clears selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4494,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:09:48.034Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-7a0b3ff3e03be5f01bd9",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "reduced motion forces low visual tier and keeps the shell usable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 796,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:09:52.564Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-fc39239ab888fe4556d4",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "screen matrix has no horizontal overflow at supported widths",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4172,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-12T02:09:53.382Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ca88314147b4b9993de1-721e09eaccfca88232e9",
+              "file": "b13-cross-cutting.spec.ts",
+              "line": 110,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "b14-release-gate.spec.ts",
+      "file": "b14-release-gate.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "all public route aliases boot without an app error or horizontal overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b14-release-gate.spec.ts",
+                    "line": 16,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12072,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:09:57.606Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "C:\\Users\\Admin\\.codex\\worktrees\\test-v02-integration\\BT01\\tests\\e2e\\b14-release-gate.spec.ts",
+                        "line": 16,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "024e3e7b70c51c398331-bc742afff8269d4b5310",
+          "file": "b14-release-gate.spec.ts",
+          "line": 15,
+          "column": 1
+        },
+        {
+          "title": "theme, motion and audio defaults remain deterministic across the release matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5150,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:09.711Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "024e3e7b70c51c398331-badf6db9fc9848df1b0d",
+          "file": "b14-release-gate.spec.ts",
+          "line": 31,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "frontend.smoke.spec.ts",
+      "file": "frontend.smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "public shell uses Vietnamese navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1030,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:14.907Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-534230ea06f7581118d1",
+          "file": "frontend.smoke.spec.ts",
+          "line": 31,
+          "column": 1
+        },
+        {
+          "title": "mobile exposes safe bottom navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1155,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:15.954Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-d400a8d3fba09c4bf872",
+          "file": "frontend.smoke.spec.ts",
+          "line": 38,
+          "column": 1
+        },
+        {
+          "title": "history keeps filters, canonical detail context and a read-only final thumbnail",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2564,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:17.133Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-47001c58ff2ee567f844",
+          "file": "frontend.smoke.spec.ts",
+          "line": 45,
+          "column": 1
+        },
+        {
+          "title": "game room hides global navigation and renders a 9 by 9 board",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 990,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:19.722Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-be85836a20a3ab4be2fd",
+          "file": "frontend.smoke.spec.ts",
+          "line": 75,
+          "column": 1
+        },
+        {
+          "title": "result screen stays explicit for GOAL_REACHED",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1604,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:20.734Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-43622377c59fecebf0fa",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result screen stays explicit for TIMEOUT",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1660,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:22.365Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-0b207625d6ec352e81ba",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result screen stays explicit for SURRENDER",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1550,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:24.051Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-a7b33a7e156d539f8d3c",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result screen stays explicit for SERVER_INTERRUPTION",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1587,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:25.628Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-d49e8ead756aae2145da",
+          "file": "frontend.smoke.spec.ts",
+          "line": 89,
+          "column": 3
+        },
+        {
+          "title": "result rematch shows a server-authoritative pending state",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2207,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:27.240Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-a339f9b3fccf80242a41",
+          "file": "frontend.smoke.spec.ts",
+          "line": 100,
+          "column": 1
+        },
+        {
+          "title": "offline keeps canonical orientation across BLUE and RED turns",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3279,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:29.479Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-31a7a222f3d60da8d664",
+          "file": "frontend.smoke.spec.ts",
+          "line": 110,
+          "column": 1
+        },
+        {
+          "title": "AI keeps BLUE orientation while the bot takes its turn",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2486,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:32.784Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-30ea25e5428a720b4b1a",
+          "file": "frontend.smoke.spec.ts",
+          "line": 125,
+          "column": 1
+        },
+        {
+          "title": "online BLUE viewer stays fixed with self on the near side",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1113,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:35.286Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-d43c829de41e39eb99d0",
+          "file": "frontend.smoke.spec.ts",
+          "line": 137,
+          "column": 3
+        },
+        {
+          "title": "online RED viewer stays fixed with self on the near side",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1291,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:36.418Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-b50a75eb89cffbf4edbb",
+          "file": "frontend.smoke.spec.ts",
+          "line": 137,
+          "column": 3
+        },
+        {
+          "title": "spectator always uses canonical BLUE orientation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1358,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:37.729Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-ab4e2e917c5c2d7e8411",
+          "file": "frontend.smoke.spec.ts",
+          "line": 150,
+          "column": 1
+        },
+        {
+          "title": "spectator is read-only and exposes canonical activity feeds",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1402,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:39.108Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-a9fd691457004d22ca5c",
+          "file": "frontend.smoke.spec.ts",
+          "line": 161,
+          "column": 1
+        },
+        {
+          "title": "private spectator entry keeps password and error copy in Vietnamese",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1562,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:40.532Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-f7c2ca7681953d119df0",
+          "file": "frontend.smoke.spec.ts",
+          "line": 176,
+          "column": 1
+        },
+        {
+          "title": "not found screen provides branded explanation and lobby action",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1002,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:42.116Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-20a4a37557745950dd62",
+          "file": "frontend.smoke.spec.ts",
+          "line": 194,
+          "column": 1
+        },
+        {
+          "title": "registration keeps recovery acknowledgement gated",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1056,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:43.142Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-88897442cf39ac19651b",
+          "file": "frontend.smoke.spec.ts",
+          "line": 201,
+          "column": 1
+        },
+        {
+          "title": "profile edit modal persists a combined profile update",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1773,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:44.222Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-5f2d25814c186e767a38",
+          "file": "frontend.smoke.spec.ts",
+          "line": 207,
+          "column": 1
+        },
+        {
+          "title": "friend card keeps secondary actions in an accessible menu",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1638,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:46.014Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-7788c22a7e16068e7d71",
+          "file": "frontend.smoke.spec.ts",
+          "line": 225,
+          "column": 1
+        },
+        {
+          "title": "authenticated homepage preserves friends preview and horizontal room scrolling",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1921,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:47.668Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-089ca664a4f8d12e3db8",
+          "file": "frontend.smoke.spec.ts",
+          "line": 243,
+          "column": 1
+        },
+        {
+          "title": "room browser applies realtime room-list sync without a refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2154,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:49.611Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-4392e965fdeda749f2f2",
+          "file": "frontend.smoke.spec.ts",
+          "line": 265,
+          "column": 1
+        },
+        {
+          "title": "privacy presence preference persists across settings reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2682,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:51.784Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "2f1c79ca929d2f823063-2645900127de09ffe80b",
+          "file": "frontend.smoke.spec.ts",
+          "line": 278,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r1-queue-recovery.spec.ts",
+      "file": "r1-queue-recovery.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Queue cancel waits for server ACK and keeps the closed queue in place",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1996,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:54.496Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "33a48c2bcedf917daf44-7aa899c38bece8d3f105",
+          "file": "r1-queue-recovery.spec.ts",
+          "line": 53,
+          "column": 1
+        },
+        {
+          "title": "browser Back waits for cancellation and keeps the queue on failed ACK",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1733,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:56.507Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "33a48c2bcedf917daf44-22c7f3b241396f8beddb",
+          "file": "r1-queue-recovery.spec.ts",
+          "line": 80,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r10-bot-online.spec.ts",
+      "file": "r10-bot-online.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R10 Bot Online custom room exposes role toggles and gates room creation on preflight",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1387,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:58.278Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cb0c48ad57ed691a75d0-415d757a87bf577059a8",
+          "file": "r10-bot-online.spec.ts",
+          "line": 26,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r2-guest-principal.spec.ts",
+      "file": "r2-guest-principal.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "legacy Guest Arena play URL redirects to normal Offline2P",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1020,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:10:59.713Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-bc8e64ef70e1b985af33",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "Guest onboarding generates a stable name and persists an edited nickname",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2493,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:00.755Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-d4da7974fcd0f9e1a599",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "two tabs without Web Locks never overlap Guest bootstrap",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2231,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:03.269Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e901720c5530de16c6ff-1b9ac6b97bf3af0a5590",
+          "file": "r2-guest-principal.spec.ts",
+          "line": 24,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r7-queue-waiting.spec.ts",
+      "file": "r7-queue-waiting.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R7 queue search stage is explicit and calm in the browser",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:05.541Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b501c8a7aa5093fa1ba0-e4e46594d74e4f5b2983",
+          "file": "r7-queue-waiting.spec.ts",
+          "line": 40,
+          "column": 1
+        },
+        {
+          "title": "R7 referee Start is role-gated in the waiting room",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1365,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:06.683Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b501c8a7aa5093fa1ba0-772eab0de021efbb0d41",
+          "file": "r7-queue-waiting.spec.ts",
+          "line": 55,
+          "column": 1
+        },
+        {
+          "title": "R7 player view never exposes referee Start",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1428,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:08.069Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b501c8a7aa5093fa1ba0-2bfccdac055583553f1a",
+          "file": "r7-queue-waiting.spec.ts",
+          "line": 66,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r8-manual-referee.spec.ts",
+      "file": "r8-manual-referee.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R8 referee can stop with a public reason and sees the authoritative pause overlay",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2147,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:09.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-d091b3bf5a6f72a16658",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 37,
+          "column": 1
+        },
+        {
+          "title": "R8 player sees a nondismissible wait state and no referee controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1499,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:11.726Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-6ec5adc27100015b2a91",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 50,
+          "column": 1
+        },
+        {
+          "title": "R8 referee can hold the three-second resume preparation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1685,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:13.257Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-85b4a3e32d084c542e92",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 59,
+          "column": 1
+        },
+        {
+          "title": "R8 pause surface remains usable at the mobile viewport",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1461,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:14.973Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "400f820fae518f649401-6e32e1d0cd8f80165e35",
+          "file": "r8-manual-referee.spec.ts",
+          "line": 68,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "r9-bot-workbench.spec.ts",
+      "file": "r9-bot-workbench.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "R9 Workbench keeps library, upload and private inspector regions explicit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2201,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-12T02:11:16.481Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c9cca2d74d9c629aefc4-161613d89e2375c1b224",
+          "file": "r9-bot-workbench.spec.ts",
+          "line": 7,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-12T02:09:32.552Z",
+    "duration": 107261.341,
+    "expected": 43,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

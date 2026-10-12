@@ -42,28 +42,81 @@ export class RatingService {
   constructor(private readonly db?: PrismaClient) {}
 
   async finalize(match: MatchSnapshot): Promise<MatchRating | null> {
-    if (match.mode !== "RANKED" || match.status !== "FINISHED" || !match.winner || !match.resultReason || match.resultReason === "SERVER_INTERRUPTION") return null;
+    // INVARIANT (FRS-L06 §5, L-05.08):
+    // Ranked account manual only is eligible for Elo; Bot, hybrid, local, or guest do NOT alter Elo ratings.
+    if (
+      match.mode !== "RANKED" ||
+      match.status !== "FINISHED" ||
+      match.playMode === "BOT" ||
+      (match as any).playMode === "HYBRID" ||
+      !match.winner ||
+      !match.resultReason ||
+      match.resultReason === "SERVER_INTERRUPTION"
+    ) {
+      return null;
+    }
+
     const blue = match.players.find((player) => player.side === "BLUE");
     const red = match.players.find((player) => player.side === "RED");
     if (!blue || !red) return null;
+
+    // Guests and Bots are ineligible for ranked Elo
+    const bluePrincipal = (blue as { principal?: string }).principal;
+    const redPrincipal = (red as { principal?: string }).principal;
+    if (bluePrincipal === "GUEST" || redPrincipal === "GUEST") {
+      return null;
+    }
+    if ((blue as any).isBot || (red as any).isBot) {
+      return null;
+    }
+
     const winner = match.winner;
     if (!winner) return null;
     const resultReason = match.resultReason;
     if (!resultReason) return null;
     const db = this.db;
     if (!db) throw new AppError("SERVICE_UNAVAILABLE", "Dịch vụ xếp hạng hiện chưa sẵn sàng.", 503, true, "RECOVERABLE");
+
     try {
-      return await db.$transaction(async (tx) => {
-      const existing = await tx.rankedMatchResult.findUnique({ where: { matchId: match.matchId } });
-      if (existing) return resultFromRows(existing);
-      const stats = await tx.userStats.findMany({ where: { userId: { in: [blue.userId, red.userId] } } });
-      const blueStats = stats.find((item) => item.userId === blue.userId);
-      const redStats = stats.find((item) => item.userId === red.userId);
-      if (!blueStats || !redStats) throw new AppError("SERVICE_UNAVAILABLE", "Không tìm thấy thống kê Elo của người chơi.", 503, true, "RECOVERABLE");
-      const rating = calculateElo({ blueElo: blueStats.elo, redElo: redStats.elo, winner });
-      await tx.rankedMatchResult.create({ data: { matchId: match.matchId, blueUserId: blue.userId, redUserId: red.userId, resultReason, ...rating } });
-      await tx.userStats.update({ where: { userId: blue.userId }, data: { elo: rating.blueAfter, ...(winner === "BLUE" ? { rankedWins: { increment: 1 } } : { rankedLosses: { increment: 1 } }) } });
-      await tx.userStats.update({ where: { userId: red.userId }, data: { elo: rating.redAfter, ...(winner === "RED" ? { rankedWins: { increment: 1 } } : { rankedLosses: { increment: 1 } }) } });
+      return await db.$transaction(async (tx: any) => {
+        // Fast-path idempotency check on MatchSettlement
+        if (typeof tx.matchSettlement?.findUnique === "function") {
+          const settlement = await tx.matchSettlement.findUnique({ where: { matchId: match.matchId } });
+          if (settlement?.eloApplied) {
+            const existing = await tx.rankedMatchResult.findUnique({ where: { matchId: match.matchId } });
+            if (existing) return resultFromRows(existing);
+          }
+        }
+
+        const existing = await tx.rankedMatchResult.findUnique({ where: { matchId: match.matchId } });
+        if (existing) return resultFromRows(existing);
+
+        const stats = await tx.userStats.findMany({ where: { userId: { in: [blue.userId, red.userId] } } });
+        const blueStats = stats.find((item: any) => item.userId === blue.userId);
+        const redStats = stats.find((item: any) => item.userId === red.userId);
+        if (!blueStats || !redStats) throw new AppError("SERVICE_UNAVAILABLE", "Không tìm thấy thống kê Elo của người chơi.", 503, true, "RECOVERABLE");
+
+        const rating = calculateElo({ blueElo: blueStats.elo, redElo: redStats.elo, winner });
+        await tx.rankedMatchResult.create({ data: { matchId: match.matchId, blueUserId: blue.userId, redUserId: red.userId, resultReason, ...rating } });
+        await tx.userStats.update({ where: { userId: blue.userId }, data: { elo: rating.blueAfter, ...(winner === "BLUE" ? { rankedWins: { increment: 1 } } : { rankedLosses: { increment: 1 } }) } });
+        await tx.userStats.update({ where: { userId: red.userId }, data: { elo: rating.redAfter, ...(winner === "RED" ? { rankedWins: { increment: 1 } } : { rankedLosses: { increment: 1 } }) } });
+
+        // Mark MatchSettlement eloApplied
+        if (typeof tx.matchSettlement?.upsert === "function") {
+          await tx.matchSettlement.upsert({
+            where: { matchId: match.matchId },
+            create: {
+              matchId: match.matchId,
+              outcome: winner,
+              eloApplied: true,
+              historyRecorded: false,
+            },
+            update: {
+              eloApplied: true,
+            },
+          });
+        }
+
         return rating;
       });
     } catch (error) {

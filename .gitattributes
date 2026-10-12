@@ -1,0 +1,2 @@
+# Vite's test module loader must receive LF-terminated hashbangs on Windows.
+scripts/network/*.mjs text eol=lf

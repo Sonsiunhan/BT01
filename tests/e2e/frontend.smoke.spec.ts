@@ -166,7 +166,7 @@ test("spectator is read-only and exposes canonical activity feeds", async ({ pag
   await page.goto("/spectate/ABC123");
   await expect(page.getByRole("heading", { name: "Phòng kiểm thử" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Nhật ký nước đi" })).toContainText("Chưa có nước đi mới.");
-  await expect(page.getByRole("region", { name: "Combat feed" })).toContainText("Chưa có diễn biến kết quả.");
+  await expect(page.getByRole("region", { name: "Nhật ký diễn biến" })).toContainText("Chưa có diễn biến kết quả.");
   const bluePiece = page.getByRole("gridcell", { name: /Ô b1, Quân Đấm phe Xanh/ });
   await bluePiece.click({ force: true });
   await expect(bluePiece).toHaveAttribute("aria-selected", "false");
@@ -240,7 +240,7 @@ test("friend card keeps secondary actions in an accessible menu", async ({ page 
   await expect(trigger).toBeFocused();
 });
 
-test("authenticated homepage renders friends preview after an internally scrolling room list", async ({ page }) => {
+test("authenticated homepage preserves friends preview and horizontal room scrolling", async ({ page }) => {
   await disableEventSource(page);
   await page.route("**/auth/me", async (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ user: { id: "self-user", fullName: "Tôi", displayName: "Tôi", username: "toi_day", theme: "system", avatarPreset: "robot", stats: { elo: 1000, rankedWins: 0, rankedLosses: 0, quickWins: 0, quickLosses: 0 } } }) }));
   await page.route("**/health", async (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "ok", service: "ottv2-server", version: "test", protocolVersion: "0.1", timestamp: new Date().toISOString(), components: { application: { status: "ok" }, database: { status: "ok" }, realtime: { status: "ok" } } }) }));
@@ -255,7 +255,7 @@ test("authenticated homepage renders friends preview after an internally scrolli
   await expect(page.locator(".room-card")).toHaveCount(10);
   await expect(page.locator("#friends-preview-title")).toBeVisible();
   await expect(page.locator(".friends-preview-row")).toHaveCount(1);
-  const scrollable = await page.locator(".room-grid-scroll").evaluate((element) => element.scrollHeight > element.clientHeight);
+  const scrollable = await page.locator(".room-grid-scroll").evaluate((element) => element.scrollWidth > element.clientWidth);
   expect(scrollable).toBe(true);
   await page.getByLabel("Tìm Room ID").fill("ZZZZZZ");
   await page.getByRole("button", { name: "Tìm" }).click();
