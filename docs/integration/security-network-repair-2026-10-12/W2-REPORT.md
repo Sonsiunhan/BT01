@@ -1,8 +1,8 @@
 # W2 report — command scope, operation IDs, room lock cleanup
 
-Date: 2026-10-12  
-Candidate branch: `codex/security-network-repair`  
-Commits: `e5da0de`, `9ffb3e0`, `547d892`, `810b73d`  
+Date: 2026-10-12
+Candidate branch: `codex/security-network-repair`
+Commits: `e5da0de`, `9ffb3e0`, `547d892`, `810b73d`
 Base: `test-v0.2@277c627b78586639e40366e2ab6f544d93da69aa`
 
 ## Scope completed
