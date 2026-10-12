@@ -4,6 +4,22 @@ import { applyMove, createInitialState, type Coordinate, type RuleState, type Si
 
 import { AppError } from "../../shared/errors/app-error.js";
 import type { MatchCheckpoint, MatchPersistence, PersistedMove } from "./match.persistence.js";
+import type { CommitPort } from "./commit/commit.port.js";
+import { CommandLedger } from "./commit/command-ledger.js";
+import { InMemoryCommitPort } from "./commit/commit.memory.js";
+import { MatchLane } from "./lane/match-lane.js";
+import { DeadlineScheduler } from "./scheduler/index.js";
+
+export type MatchCommand =
+  | { type: "MOVE"; room: RoomDetail; actor: MatchActor; from: Coordinate; to: Coordinate; stateVersion: number; commandId?: string }
+  | { type: "READY"; room: RoomDetail; actor: MatchActor; ready: boolean; commandId?: string }
+  | { type: "FAST_READY"; room: RoomDetail; actor: MatchActor; commandId?: string }
+  | { type: "START"; room: RoomDetail; actor: MatchActor; commandId?: string }
+  | { type: "SURRENDER"; room: RoomDetail; actor: MatchActor; stateVersion: number; commandId?: string }
+  | { type: "REMATCH"; room: RoomDetail; actor: MatchActor; stateVersion: number; commandId?: string }
+  | { type: "REJECT_REMATCH"; room: RoomDetail; actor: MatchActor; stateVersion: number; commandId?: string }
+  | { type: "REFEREE_STOP"; room: RoomDetail; actor: MatchActor; category?: MatchPauseCategory; commandId?: string }
+  | { type: "REFEREE_RESUME"; room: RoomDetail; actor: MatchActor; commandId?: string };
 
 export type MatchActor = { userId: string; username: string; displayName: string; principal?: "ACCOUNT" | "GUEST" };
 type MatchPlayerState = MatchActor & { side: Side; ready: boolean; connected: boolean };
@@ -69,15 +85,65 @@ export class MatchManager {
   private readonly activeLocks = new Map<string, ActiveGameLock>();
   private readonly schedulerTimers = new Map<string, NodeJS.Timeout>();
   private readonly schedulerCallbacks = new Map<string, Map<number, SchedulerSubscriber>>();
+  private readonly lanes = new Map<string, MatchLane>();
+  readonly commitPort: CommitPort;
+  readonly commandLedger: CommandLedger;
+  readonly deadlineScheduler: DeadlineScheduler;
   private nextSchedulerConsumer = 1;
   private readonly now: () => number;
   private readonly graceMs: number;
   private readonly persistence: MatchPersistence | undefined;
 
-  constructor(now: () => number = Date.now, graceMs = 30_000, persistence?: MatchPersistence) {
+  constructor(
+    now: () => number = Date.now,
+    graceMs = 30_000,
+    persistence?: MatchPersistence,
+    commitPort?: CommitPort,
+    commandLedger?: CommandLedger
+  ) {
     this.now = now;
     this.graceMs = graceMs;
     this.persistence = persistence;
+    this.commandLedger = commandLedger ?? new CommandLedger();
+    this.commitPort = commitPort ?? new InMemoryCommitPort(this.commandLedger, this.now);
+    this.deadlineScheduler = new DeadlineScheduler(this.now);
+  }
+
+  getLane(roomId: string): MatchLane {
+    let lane = this.lanes.get(roomId);
+    if (!lane) {
+      lane = new MatchLane({ roomId });
+      this.lanes.set(roomId, lane);
+    }
+    return lane;
+  }
+
+  async dispatchCommand(roomId: string, command: MatchCommand): Promise<MatchSnapshot> {
+    const lane = this.getLane(roomId);
+    return lane.enqueue(async () => {
+      switch (command.type) {
+        case "MOVE":
+          return this.move(command.room, command.actor, command.from, command.to, command.stateVersion, command.commandId);
+        case "READY":
+          return this.ready(command.room, command.actor, command.ready);
+        case "FAST_READY":
+          return this.fastReady(command.room, command.actor);
+        case "START":
+          return this.start(command.room, command.actor);
+        case "SURRENDER":
+          return this.surrender(command.room, command.actor, command.stateVersion);
+        case "REMATCH":
+          return this.rematch(command.room, command.actor, command.stateVersion);
+        case "REJECT_REMATCH":
+          return this.rejectRematch(command.room, command.actor, command.stateVersion);
+        case "REFEREE_STOP":
+          return this.stopByReferee(command.room, command.actor, command.category);
+        case "REFEREE_RESUME":
+          return this.resumeByReferee(command.room, command.actor);
+        default:
+          throw new AppError("VALIDATION_ERROR", "Loại lệnh không hợp lệ.", 400, false, "INVALID");
+      }
+    });
   }
 
   ensure(room: RoomDetail): MatchSnapshot {
@@ -140,7 +206,47 @@ export class MatchManager {
     this.syncPlayers(match, room);
     this.advance(match);
     this.persistCheckpoint(match);
+    this.ensureSchedulerActive(room);
     return this.snapshot(match);
+  }
+
+  private ensureSchedulerActive(room: RoomDetail): void {
+    const match = this.matches.get(room.roomId);
+    if (!match) return;
+    this.deadlineScheduler.registerRoom(room.roomId);
+    const hasSubscribers = (this.schedulerCallbacks.get(room.roomId)?.size ?? 0) > 0;
+    const isGameplayActive =
+      match.status === "COUNTDOWN" ||
+      match.status === "PLAYING" ||
+      match.status === "RESUMING" ||
+      match.status === "PAUSED";
+    if (!hasSubscribers && !isGameplayActive) {
+      return;
+    }
+    this.deadlineScheduler.startRoom(room.roomId, () => {
+      try {
+        const currentMatch = this.matches.get(room.roomId);
+        if (!currentMatch) return;
+        const subscribers = [...(this.schedulerCallbacks.get(room.roomId)?.values() ?? [])];
+        let currentRoom: RoomDetail | undefined;
+        if (subscribers.length > 0) {
+          for (const subscriber of subscribers) {
+            try { currentRoom = subscriber.roomProvider?.() ?? room; break; }
+            catch { void subscriber.onTick?.(this.snapshot(currentMatch)); }
+          }
+          if (!currentRoom) return;
+        } else {
+          currentRoom = room;
+        }
+        const snapshot = this.tick(currentRoom);
+        for (const callback of subscribers) void callback.onTick?.(snapshot);
+        if (snapshot.status === "FINISHED" || snapshot.status === "ABORTED") {
+          this.stopScheduler(room.roomId);
+        }
+      } catch {
+        // Silently ignore terminal/revoked errors in background tick
+      }
+    });
   }
 
   getViewerSide(room: RoomDetail, userId: string): Side | null {
@@ -163,27 +269,7 @@ export class MatchManager {
     if (roomProvider) subscriber.roomProvider = roomProvider;
     callbacks.set(consumerId, subscriber);
     this.schedulerCallbacks.set(room.roomId, callbacks);
-    if (this.schedulerTimers.has(room.roomId)) return () => this.releaseScheduler(room.roomId, consumerId);
-    const timer = setInterval(() => {
-      try {
-        const subscribers = [...(this.schedulerCallbacks.get(room.roomId)?.values() ?? [])];
-        const match = this.matches.get(room.roomId);
-        if (!match) return;
-        let currentRoom: RoomDetail | undefined;
-        for (const subscriber of subscribers) {
-          try { currentRoom = subscriber.roomProvider?.() ?? room; break; }
-          catch { void subscriber.onTick?.(this.snapshot(match)); }
-        }
-        if (!currentRoom) return;
-        const snapshot = this.tick(currentRoom);
-        for (const callback of subscribers) void callback.onTick?.(snapshot);
-        if (snapshot.status === "FINISHED" || snapshot.status === "ABORTED") this.stopScheduler(room.roomId);
-      } catch {
-        // A terminal/revoked room is cleaned up by the owning route/store.
-      }
-    }, 1_000);
-    timer.unref?.();
-    this.schedulerTimers.set(room.roomId, timer);
+    this.ensureSchedulerActive(room);
     return () => this.releaseScheduler(room.roomId, consumerId);
   }
 
@@ -192,13 +278,25 @@ export class MatchManager {
     if (timer) clearInterval(timer);
     this.schedulerTimers.delete(roomId);
     this.schedulerCallbacks.delete(roomId);
+    this.deadlineScheduler.stopRoom(roomId);
   }
 
   private releaseScheduler(roomId: string, consumerId: number): void {
     const callbacks = this.schedulerCallbacks.get(roomId);
     callbacks?.delete(consumerId);
-    if (callbacks && callbacks.size > 0) return;
-    this.stopScheduler(roomId);
+    if (!callbacks || callbacks.size === 0) {
+      this.schedulerCallbacks.delete(roomId);
+      const match = this.matches.get(roomId);
+      const isGameplayActive =
+        match !== undefined &&
+        (match.status === "COUNTDOWN" ||
+          match.status === "PLAYING" ||
+          match.status === "RESUMING" ||
+          match.status === "PAUSED");
+      if (!isGameplayActive) {
+        this.stopScheduler(roomId);
+      }
+    }
   }
 
   subscribe(roomId: string, listener: MatchListener): () => void {
@@ -241,10 +339,11 @@ export class MatchManager {
     const roomConnections = this.connections.get(room.roomId) ?? new Map<string, Set<string>>();
     const userConnections = roomConnections.get(userId) ?? new Set<string>();
     const roomTimers = this.disconnectTimers.get(room.roomId);
-    const wasDisconnected = roomTimers?.has(userId) ?? false;
+    const wasDisconnected = (roomTimers?.has(userId) ?? false) || this.deadlineScheduler.has(room.roomId, `disconnect:${userId}`);
     const timer = roomTimers?.get(userId);
     if (timer) clearTimeout(timer);
     roomTimers?.delete(userId);
+    this.deadlineScheduler.cancel(room.roomId, `disconnect:${userId}`);
     userConnections.add(clientId);
     roomConnections.set(userId, userConnections);
     this.connections.set(room.roomId, roomConnections);
@@ -303,13 +402,21 @@ export class MatchManager {
     if (match.status !== "PLAYING" && match.status !== "PAUSED" && match.status !== "RESUMING") return;
     player.connected = false;
     this.emit(match, "PLAYER_DISCONNECTED");
+    const dueAt = this.now() + this.graceMs;
     const timers = this.disconnectTimers.get(room.roomId) ?? new Map<string, NodeJS.Timeout>();
     const timer = setTimeout(() => this.expireDisconnect(room.roomId, userId), this.graceMs);
     timers.set(userId, timer);
     this.disconnectTimers.set(room.roomId, timers);
     const deadlines = this.disconnectDeadlines.get(room.roomId) ?? new Map<string, number>();
-    deadlines.set(userId, this.now() + this.graceMs);
+    deadlines.set(userId, dueAt);
     this.disconnectDeadlines.set(room.roomId, deadlines);
+    this.deadlineScheduler.schedule({
+      roomId: room.roomId,
+      key: `disconnect:${userId}`,
+      category: "DISCONNECT",
+      dueAt,
+      onDue: () => this.expireDisconnect(room.roomId, userId),
+    });
   }
 
   stop(): void {
@@ -319,6 +426,13 @@ export class MatchManager {
     for (const timer of this.schedulerTimers.values()) clearInterval(timer);
     this.schedulerTimers.clear();
     this.schedulerCallbacks.clear();
+    this.deadlineScheduler.stop();
+    for (const lane of this.lanes.values()) lane.clear();
+    this.lanes.clear();
+    if (this.commitPort && typeof (this.commitPort as any).clear === "function") {
+      (this.commitPort as any).clear();
+    }
+    this.commandLedger.clear();
     this.connections.clear();
     this.refereeConnections.clear();
     this.listeners.clear();
@@ -330,6 +444,8 @@ export class MatchManager {
   discardUnstarted(roomId: string): void {
     const match = this.matches.get(roomId);
     if (!match || match.status !== "WAITING_READY" || match.sequence !== 0) return;
+    this.stopScheduler(roomId);
+    this.deadlineScheduler.unregisterRoom(roomId);
     for (const timer of this.disconnectTimers.get(roomId)?.values() ?? []) clearTimeout(timer);
     this.disconnectTimers.delete(roomId);
     this.disconnectDeadlines.delete(roomId);
@@ -338,6 +454,12 @@ export class MatchManager {
     this.listeners.delete(roomId);
     this.spectatorListeners.delete(roomId);
     this.releaseLocks(roomId);
+    this.lanes.get(roomId)?.clear();
+    this.lanes.delete(roomId);
+    if (this.commitPort && typeof (this.commitPort as any).clear === "function") {
+      (this.commitPort as any).clear(roomId);
+    }
+    this.commandLedger.clear(roomId);
     this.matches.delete(roomId);
   }
 
@@ -516,25 +638,133 @@ export class MatchManager {
       this.persistence?.appendEvent(envelope);
       this.persistCheckpoint(match);
     }
-    for (const listener of this.listeners.get(match.roomId) ?? []) listener(envelope);
-    for (const listener of this.spectatorListeners.get(match.roomId) ?? []) listener(envelope);
+    for (const listener of this.listeners.get(match.roomId) ?? []) {
+      try {
+        listener(envelope);
+      } catch {
+        // Fault isolation (L-04.11)
+      }
+    }
+    for (const listener of this.spectatorListeners.get(match.roomId) ?? []) {
+      try {
+        listener(envelope);
+      } catch {
+        // Fault isolation (L-04.11)
+      }
+    }
     return this.snapshot(match);
   }
-  move(room: RoomDetail, actor: MatchActor, from: Coordinate, to: Coordinate, stateVersion: number): MatchSnapshot {
+  move(room: RoomDetail, actor: MatchActor, from: Coordinate, to: Coordinate, stateVersion: number, commandId?: string): MatchSnapshot {
     const match = this.getMatch(room);
-    this.advance(match, true);
     const player = this.player(match, actor.userId);
+
+    // Fast-path: Check command ledger if commandId provided
+    if (commandId) {
+      const cached = this.commandLedger.get({
+        principalId: actor.userId,
+        commandId,
+        targetId: room.roomId,
+        operation: "MOVE",
+      });
+      if (cached?.ackPayload) {
+        return cached.ackPayload as MatchSnapshot;
+      }
+    }
+
+    // Idempotent retry check on just-committed move
+    const latestMove = match.moves.at(-1);
+    if (
+      latestMove &&
+      latestMove.side === player.side &&
+      latestMove.from === from &&
+      latestMove.to === to &&
+      latestMove.stateVersion === match.stateVersion &&
+      stateVersion === match.stateVersion - 1
+    ) {
+      if (commandId) {
+        this.commandLedger.record(
+          {
+            commandId,
+            principalId: actor.userId,
+            outcome: "COMMITTED",
+            stateVersion: match.stateVersion,
+            sequence: match.sequence,
+            ackPayload: this.snapshot(match),
+            committedAt: this.now(),
+          },
+          {
+            principalId: actor.userId,
+            commandId,
+            targetId: room.roomId,
+            operation: "MOVE",
+          }
+        );
+      }
+      return this.snapshot(match);
+    }
+
+    this.advance(match, true);
     this.assertVersion(match, stateVersion);
     if (match.status !== "PLAYING") throw this.invalidState("move", match.status);
-    if (match.ruleState.currentTurn !== player.side) throw new AppError("CONFLICT", "Chưa tới lượt của bạn.", 409, false, "INVALID", { reason: "WRONG_TURN", event: "PIECE_MOVE_REJECTED" });
+    if (match.ruleState.currentTurn !== player.side) {
+      throw new AppError("CONFLICT", "Chưa tới lượt của bạn.", 409, false, "INVALID", { reason: "WRONG_TURN", event: "PIECE_MOVE_REJECTED" });
+    }
+
+    // Staging: compute next ruleState without mutating match in-place
     const result = applyMove(match.ruleState, { side: player.side, from, to });
     if (result.kind === "rejected") {
       this.emit(match, "PIECE_MOVE_REJECTED");
       throw new AppError("VALIDATION_ERROR", "Nước đi không hợp lệ.", 400, false, "INVALID", { reason: "MOVE_REJECTED", moveCode: result.error.code, event: "PIECE_MOVE_REJECTED" });
     }
+
+    // Staged next state values
+    const effectiveCommandId = commandId ?? randomUUID();
+    const commandKey = {
+      principalId: actor.userId,
+      commandId: effectiveCommandId,
+      targetId: room.roomId,
+      operation: "MOVE",
+    };
+    const nextSequence = match.sequence + 1;
+    const nextVersion = match.stateVersion + 1;
+    const nextMove: PersistedMove = {
+      sequence: nextSequence,
+      stateVersion: nextVersion,
+      side: player.side,
+      from,
+      to,
+      capturedPieceId: result.move.capturedPieceId,
+      committedAt: this.now(),
+    };
+
+    // Staged commit through CommitPort (CAS check)
+    if (this.commitPort && typeof (this.commitPort as any).commitTransitionSync === "function") {
+      const commitResult = (this.commitPort as any).commitTransitionSync({
+        commandKey,
+        expectedVersion: match.stateVersion,
+        nextState: { ...this.snapshot(match), stateVersion: nextVersion, sequence: nextSequence },
+        domainEvents: [],
+      });
+
+      if (commitResult.outcome === "CONFLICT") {
+        throw new AppError("CONFLICT", "Trạng thái bàn cờ đã thay đổi, hãy đồng bộ lại.", 409, true, "RECOVERABLE", {
+          reason: "STALE_STATE",
+          stateVersion: match.stateVersion,
+          event: "STATE_RESYNC",
+        });
+      }
+      if (commitResult.outcome === "UNKNOWN") {
+        this.getLane(match.roomId).lockOnUnknown("COMMIT_UNKNOWN");
+        throw new AppError("INTERNAL_ERROR", "Giao dịch trạng thái không xác định; ván đấu tạm khóa để đối chiếu.", 500, true, "RECOVERABLE", {
+          reason: "COMMIT_UNKNOWN",
+        });
+      }
+    }
+
+    // COMMITTED: atomically apply staged changes to public match
     match.ruleState = result.state;
-    match.moves.push({ sequence: match.sequence + 1, stateVersion: match.stateVersion + 1, side: player.side, from, to, capturedPieceId: result.move.capturedPieceId, committedAt: this.now() });
-    match.stateVersion += 1;
+    match.moves.push(nextMove);
+    match.stateVersion = nextVersion;
     match.turnStartedAt = this.now();
     if (result.state.status === "FINISHED") {
       match.status = "FINISHED";
@@ -543,14 +773,33 @@ export class MatchManager {
       match.endedAt = this.now();
       this.releaseLocks(match.roomId);
     }
+
     this.emit(match, "PIECE_MOVE_ACCEPTED");
     if (match.status === "FINISHED") this.emit(match, "MATCH_FINISHED");
-    return this.snapshot(match);
+
+    const snapshot = this.snapshot(match);
+    this.commandLedger.record(
+      {
+        commandId: effectiveCommandId,
+        principalId: actor.userId,
+        outcome: "COMMITTED",
+        stateVersion: nextVersion,
+        sequence: snapshot.sequence,
+        ackPayload: snapshot,
+        committedAt: this.now(),
+      },
+      commandKey
+    );
+
+    return snapshot;
   }
 
   surrender(room: RoomDetail, actor: MatchActor, stateVersion: number): MatchSnapshot {
     const match = this.getMatch(room);
     this.advance(match, true);
+    if (match.status === "FINISHED" || match.status === "ABORTED") {
+      return this.snapshot(match);
+    }
     const player = this.player(match, actor.userId);
     this.assertVersion(match, stateVersion);
     if (match.status !== "PLAYING") throw this.invalidState("surrender", match.status);
@@ -560,9 +809,25 @@ export class MatchManager {
     return this.snapshot(match);
   }
 
-  finishBotLimit(room: RoomDetail, winner: Side, adjudication: MatchBotAdjudication): MatchSnapshot {
+  finishBotLimit(
+    room: RoomDetail,
+    winner: Side,
+    adjudication: MatchBotAdjudication,
+    expectedStateVersion?: number,
+    expectedMatchId?: string,
+    epoch?: number
+  ): MatchSnapshot {
     const match = this.getMatch(room);
     if (match.playMode !== "BOT") throw new AppError("CONFLICT", "Chỉ trận Đấu chương trình mới có thể phân định giới hạn.", 409, false, "INVALID", { reason: "BOT_MATCH_REQUIRED" });
+    if (expectedMatchId !== undefined && expectedMatchId !== match.matchId) {
+      throw new AppError("CONFLICT", "Lệnh Bot thuộc ván đấu cũ.", 409, true, "RECOVERABLE", { reason: "STALE_MATCH_ID", expectedMatchId, currentMatchId: match.matchId });
+    }
+    if (expectedStateVersion !== undefined && expectedStateVersion !== match.stateVersion) {
+      throw new AppError("CONFLICT", "Trạng thái bàn cờ đã thay đổi.", 409, true, "RECOVERABLE", { reason: "STALE_VERSION", expectedStateVersion, currentStateVersion: match.stateVersion });
+    }
+    if (epoch !== undefined && epoch !== match.stateVersion) {
+      throw new AppError("CONFLICT", "Epoch của Bot không khớp trạng thái hiện tại.", 409, true, "RECOVERABLE", { reason: "STALE_EPOCH" });
+    }
     if (match.status !== "PLAYING") return this.snapshot(match);
     this.finish(match, winner, adjudication.reason === "LIMIT_EXACT_TIE" ? "BOT_LIMIT_EXACT_TIE" : "BOT_LIMIT_CRITERIA");
     match.botAdjudication = adjudication;
@@ -570,9 +835,21 @@ export class MatchManager {
     return this.snapshot(match);
   }
 
-  finishBotFault(room: RoomDetail, actor: MatchActor, stateVersion: number): MatchSnapshot {
+  finishBotFault(
+    room: RoomDetail,
+    actor: MatchActor,
+    stateVersion: number,
+    expectedMatchId?: string,
+    epoch?: number
+  ): MatchSnapshot {
     const match = this.getMatch(room);
     const player = this.player(match, actor.userId);
+    if (expectedMatchId !== undefined && expectedMatchId !== match.matchId) {
+      throw new AppError("CONFLICT", "Lệnh Bot thuộc ván đấu cũ.", 409, true, "RECOVERABLE", { reason: "STALE_MATCH_ID", expectedMatchId, currentMatchId: match.matchId });
+    }
+    if (epoch !== undefined && epoch !== match.stateVersion) {
+      throw new AppError("CONFLICT", "Epoch của Bot không khớp trạng thái hiện tại.", 409, true, "RECOVERABLE", { reason: "STALE_EPOCH" });
+    }
     this.assertVersion(match, stateVersion);
     if (match.playMode !== "BOT") throw new AppError("CONFLICT", "Chỉ trận Đấu chương trình mới có lỗi chiến thuật.", 409, false, "INVALID", { reason: "BOT_MATCH_REQUIRED" });
     if (match.status !== "PLAYING") return this.snapshot(match);
@@ -651,6 +928,10 @@ export class MatchManager {
       match.moves = [];
       match.publicTimeline = [];
       match.stateVersion = 0;
+      if (this.commitPort instanceof InMemoryCommitPort) {
+        this.commitPort.clear(room.roomId);
+      }
+      this.commandLedger.clear(room.roomId);
       this.emit(match, "MATCH_SNAPSHOT");
     }
     return this.snapshot(match);
@@ -864,6 +1145,7 @@ export class MatchManager {
     const match = this.matches.get(roomId);
     const roomTimers = this.disconnectTimers.get(roomId);
     roomTimers?.delete(userId);
+    this.deadlineScheduler.cancel(roomId, `disconnect:${userId}`);
     if (!match || (match.status !== "COUNTDOWN" && match.status !== "PLAYING" && match.status !== "PAUSED" && match.status !== "RESUMING") || this.connections.get(roomId)?.get(userId)?.size) return;
     this.disconnectDeadlines.get(roomId)?.delete(userId);
     match.expiredDisconnects.add(userId);
@@ -924,6 +1206,7 @@ export class MatchManager {
     for (const timer of this.disconnectTimers.get(roomId)?.values() ?? []) clearTimeout(timer);
     this.disconnectTimers.delete(roomId);
     this.disconnectDeadlines.delete(roomId);
+    this.deadlineScheduler.cancelCategory(roomId, "DISCONNECT");
   }
 
   private releaseLocks(roomId: string): void {
@@ -1000,8 +1283,20 @@ export class MatchManager {
       this.persistence?.appendEvent(envelope);
       this.persistCheckpoint(match);
     }
-    for (const listener of this.listeners.get(match.roomId) ?? []) listener(envelope);
-    for (const listener of this.spectatorListeners.get(match.roomId) ?? []) listener(envelope);
+    for (const listener of this.listeners.get(match.roomId) ?? []) {
+      try {
+        listener(envelope);
+      } catch {
+        // Fault isolation (L-04.11): listener errors must not disrupt other listeners or match progression
+      }
+    }
+    for (const listener of this.spectatorListeners.get(match.roomId) ?? []) {
+      try {
+        listener(envelope);
+      } catch {
+        // Fault isolation (L-04.11): spectator listener errors must not disrupt other listeners or match progression
+      }
+    }
   }
 
   private createEnvelope(match: MatchState, type: MatchEventType): MatchEventEnvelope {

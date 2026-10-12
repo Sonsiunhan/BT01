@@ -38,7 +38,9 @@ type Outcome = "victory" | "defeat" | "neutral";
 const reasonCopy: Record<Exclude<MatchResultReason, null>, string> = {
   EXTINCTION: "Đối thủ đã mất toàn bộ quân.",
   GOAL_REACHED: "Bạn đã chiếm ô đích.",
+  NO_LEGAL_MOVES: "Bị khóa nước đi.",
   TIMEOUT: "Đối thủ đã hết thời gian.",
+
   SURRENDER: "Đối thủ đã đầu hàng.",
   DISCONNECT_TIMEOUT: "Đối thủ không kết nối lại.",
   SERVER_INTERRUPTION: "Máy chủ đã khởi động lại hoặc kết nối trận bị mất.",

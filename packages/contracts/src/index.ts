@@ -14,3 +14,17 @@ export * from "./version.js";
 export * from "./r3-provider.js";
 export * from "./bot-library.js";
 export * from "./bot-online.js";
+export * from "./mode.js";
+export * from "./command.js";
+export * from "./snapshot.js";
+export * from "./events.js";
+export * from "./bot-abi.js";
+export * from "./projection.js";
+export * from "./compatibility.js";
+export * from "./bounds.js";
+export * from "./fixtures.js";
+export * from "./inventory.js";
+export { z } from "zod";
+
+
+

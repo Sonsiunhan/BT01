@@ -220,16 +220,38 @@ export class MatchHistoryService {
     const db = this.db;
     if (!db) unavailable();
     const data = toMatchProjection(match, playMode);
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: any) => {
+      // Idempotent settlement check
+      if (typeof tx.matchSettlement?.findUnique === "function") {
+        const settlement = await tx.matchSettlement.findUnique({ where: { matchId: match.matchId } });
+        if (settlement?.historyRecorded) {
+          return;
+        }
+      }
+
       const existing = await tx.match.findUnique({ where: { id: match.matchId }, include: { players: true } });
       if (!existing) {
         await tx.match.create({ data });
-        return;
+      } else if (match.rating) {
+        for (const player of match.players) {
+          const rating = player.side === "BLUE" ? { ratingBefore: match.rating.blueBefore, ratingAfter: match.rating.blueAfter, ratingDelta: match.rating.blueDelta } : { ratingBefore: match.rating.redBefore, ratingAfter: match.rating.redAfter, ratingDelta: match.rating.redDelta };
+          await tx.matchPlayer.updateMany({ where: { matchId: match.matchId, userId: player.userId }, data: rating });
+        }
       }
-      if (!match.rating) return;
-      for (const player of match.players) {
-        const rating = player.side === "BLUE" ? { ratingBefore: match.rating.blueBefore, ratingAfter: match.rating.blueAfter, ratingDelta: match.rating.blueDelta } : { ratingBefore: match.rating.redBefore, ratingAfter: match.rating.redAfter, ratingDelta: match.rating.redDelta };
-        await tx.matchPlayer.updateMany({ where: { matchId: match.matchId, userId: player.userId }, data: rating });
+
+      if (typeof tx.matchSettlement?.upsert === "function") {
+        await tx.matchSettlement.upsert({
+          where: { matchId: match.matchId },
+          create: {
+            matchId: match.matchId,
+            outcome: match.winner ?? match.resultReason ?? "FINISHED",
+            eloApplied: false,
+            historyRecorded: true,
+          },
+          update: {
+            historyRecorded: true,
+          },
+        });
       }
     });
   }

@@ -64,4 +64,107 @@ describe("W5 HTTP session and network signals", () => {
     const telemetryEvent = (telemetry.mock.calls[0]?.[0] as CustomEvent).detail as { name: string; detail?: Record<string, unknown> };
     expect(telemetryEvent).toMatchObject({ name: "http_request", detail: { state: "DEGRADED", status: 503 } });
   });
+
+  it("injects X-OTT-Request header on GET and mutation requests", async () => {
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 })));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getJson("/matches/ROOM01");
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      expect.stringContaining("/matches/ROOM01"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "X-OTT-Request": "1",
+          Accept: "application/json",
+        }),
+      })
+    );
+
+    await requestJson("/matches/ROOM01/moves", { method: "POST", body: { square: "E5" } });
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      expect.stringContaining("/matches/ROOM01/moves"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "X-OTT-Request": "1",
+          "Content-Type": "application/json",
+        }),
+      })
+    );
+  });
+
+  it("preserves commandId via X-Command-Id header when specified", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ accepted: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await requestJson("/matches/ROOM01/moves", {
+      method: "POST",
+      body: { square: "E5" },
+      commandId: "cmd-uuid-1234",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/matches/ROOM01/moves"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "X-Command-Id": "cmd-uuid-1234",
+        }),
+      })
+    );
+  });
+
+  it("does not dispatch ottv2:session-expired on 403 Forbidden", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({ message: "Forbidden room action", code: "FORBIDDEN", severity: "ROOM_EXPIRED" }),
+          { status: 403, headers: { "Content-Type": "application/json" } }
+        )
+      )
+    );
+    const listener = vi.fn();
+    window.addEventListener("ottv2:session-expired", listener);
+
+    await expect(requestJson("/matches/ROOM01/moves", { method: "POST", body: {} })).rejects.toMatchObject({
+      status: 403,
+      code: "FORBIDDEN",
+    });
+
+    expect(listener).not.toHaveBeenCalled();
+    window.removeEventListener("ottv2:session-expired", listener);
+  });
+
+  it("populates ApiError envelope fields (retryable, severity, details) from server error payload", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            message: "Nước đi không hợp lệ theo luật.",
+            code: "RULE_VIOLATION",
+            retryable: false,
+            severity: "REJECTED_MOVE",
+            details: { reason: "CANNOT_CAPTURE_OWN_PIECE", square: "E5" },
+          }),
+          { status: 422, headers: { "Content-Type": "application/json" } }
+        )
+      )
+    );
+
+    let caughtError: unknown;
+    try {
+      await requestJson("/matches/ROOM01/moves", { method: "POST", body: {} });
+    } catch (err) {
+      caughtError = err;
+    }
+
+    expect(caughtError).toMatchObject({
+      status: 422,
+      code: "RULE_VIOLATION",
+      retryable: false,
+      severity: "REJECTED_MOVE",
+      details: { reason: "CANNOT_CAPTURE_OWN_PIECE", square: "E5" },
+    });
+  });
 });
+

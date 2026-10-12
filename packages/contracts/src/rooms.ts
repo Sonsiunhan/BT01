@@ -5,7 +5,8 @@ export const RoomModeSchema = z.enum(["UNRANKED", "RANKED"]);
 export const RoomPlayModeSchema = z.enum(["MANUAL", "BOT"]);
 export const RoomStatusSchema = z.enum(["WAITING", "PLAYING", "ENDED", "ABORTED"]);
 export const RoomHostRoleSchema = z.enum(["PLAYER", "REFEREE"]);
-export const RoomRoleSchema = z.enum(["PLAYER", "REFEREE", "SPECTATOR"]);
+export const RoomRoleSchema = z.enum(["PLAYER", "REFEREE", "SPECTATOR", "REPLACEMENT_CANDIDATE"]);
+
 export const TimerSecondsSchema = z.union([z.literal(30), z.literal(60), z.literal(300), z.literal(600), z.literal(1800), z.literal(3600)]);
 export const SpectatorCapacitySchema = z.union([z.literal(1), z.literal(2), z.literal(5), z.literal(10), z.literal(50), z.literal(100)]);
 
@@ -28,7 +29,11 @@ export const CreateRoomRequestSchema = z.object({
   if (input.visibility === "PUBLIC" && input.refereeEnabled && input.hostRole === "REFEREE") context.addIssue({ code: "custom", path: ["hostRole"], message: "Phòng có chủ phòng làm trọng tài phải là Private để mời người chơi." });
 });
 
-export const JoinRoomRequestSchema = z.object({ password: z.string().min(1).max(12).optional() });
+export const JoinRoomRequestSchema = z.object({
+  password: z.string().min(1).max(12).optional(),
+  expectedGeneration: z.string().optional(),
+  expectedVersion: z.number().int().positive().optional(),
+});
 export const InviteRefereeRequestSchema = z.object({ targetUserId: z.string().min(1), ttlSeconds: z.number().int().min(30).max(300).optional().default(300) });
 export const RefereeInviteSchema = z.object({
   inviteId: z.string().min(1),
@@ -45,10 +50,13 @@ export const RoomMemberSchema = z.object({
   username: z.string().min(1),
   displayName: z.string().min(1),
   isHost: z.boolean(),
+  ready: z.boolean().default(false),
 });
 
 export const RoomSummarySchema = z.object({
   roomId: z.string().length(6),
+  roomGeneration: z.string().optional(),
+  roomVersion: z.number().int().positive().default(1),
   name: z.string().min(1).max(30),
   players: z.number().int().min(0).max(2),
   playerCapacity: z.literal(2),
@@ -74,7 +82,11 @@ export const RoomDetailSchema = RoomSummarySchema.extend({
   isReferee: z.boolean().default(false),
   referee: z.object({ userId: z.string().min(1), username: z.string().min(1), displayName: z.string().min(1), connected: z.boolean() }).nullable().default(null),
   members: z.array(RoomMemberSchema),
+  setupDescriptor: z.object({ version: z.enum(["rps-v1", "rps-v2"]), seed: z.number().int().optional() }).optional(),
 });
+
+export const SetReadyRequestSchema = z.object({ ready: z.boolean() });
+export type SetReadyRequest = z.infer<typeof SetReadyRequestSchema>;
 
 export type CreateRoomRequest = z.input<typeof CreateRoomRequestSchema>;
 export type JoinRoomRequest = z.infer<typeof JoinRoomRequestSchema>;

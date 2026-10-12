@@ -2,7 +2,9 @@ import {
   APPLICATION_VERSION,
   PROTOCOL_VERSION,
   type HealthComponent,
-  type HealthResponse
+  type HealthResponse,
+  type ComponentHealthResponse,
+  type ServiceStatus,
 } from "@ottv2/contracts";
 
 import type { DatabasePort } from "../../plugins/prisma.js";
@@ -27,16 +29,37 @@ async function databaseComponent(database: DatabasePort): Promise<HealthComponen
   }
 }
 
+export type BotHealthProbe = () => Promise<HealthComponent> | HealthComponent;
+export type TransportHealthProbe = () => Promise<HealthComponent> | HealthComponent;
+
 export class HealthService {
   constructor(
     private readonly database: DatabasePort,
-    private readonly realtime: RealtimePort
+    private readonly realtime: RealtimePort,
+    private readonly botProbe?: BotHealthProbe,
+    private readonly transportProbe?: TransportHealthProbe
   ) {}
 
   async getHealth(): Promise<HealthResponse> {
     const database = await databaseComponent(this.database);
     const realtime = this.realtime.getStatus();
-    const status = database.status === "ok" && realtime.status === "ok" ? "ok" : "degraded";
+    const transportStatus: ServiceStatus = realtime.status === "ok" ? "ok" : "degraded";
+    const transport: HealthComponent = this.transportProbe
+      ? await this.transportProbe()
+      : {
+          status: transportStatus,
+          ...(realtime.reason ? { reason: realtime.reason } : {}),
+        };
+    const bot: HealthComponent = this.botProbe
+      ? await this.botProbe()
+      : { status: "ok", reason: "standalone-or-unprobed" };
+
+    const status: ServiceStatus =
+      database.status === "ok" &&
+      realtime.status === "ok" &&
+      transport.status === "ok"
+        ? "ok"
+        : "degraded";
 
     return {
       status,
@@ -47,8 +70,62 @@ export class HealthService {
       components: {
         application: { status: "ok" },
         database,
-        realtime
+        realtime,
+        transport,
+        bot,
       }
+    };
+  }
+
+  async getApplicationHealth(): Promise<ComponentHealthResponse> {
+    return {
+      status: "ok",
+      component: "application",
+      service: "ottv2-server",
+      timestamp: new Date().toISOString(),
+      details: { status: "ok" },
+    };
+  }
+
+  async getDatabaseHealth(): Promise<ComponentHealthResponse> {
+    const details = await databaseComponent(this.database);
+    return {
+      status: details.status,
+      component: "database",
+      service: "ottv2-server",
+      timestamp: new Date().toISOString(),
+      details,
+    };
+  }
+
+  async getTransportHealth(): Promise<ComponentHealthResponse> {
+    const realtime = this.realtime.getStatus();
+    const defaultStatus: ServiceStatus = realtime.status === "ok" ? "ok" : "degraded";
+    const details: HealthComponent = this.transportProbe
+      ? await this.transportProbe()
+      : {
+          status: defaultStatus,
+          ...(realtime.reason ? { reason: realtime.reason } : {}),
+        };
+    return {
+      status: details.status,
+      component: "transport",
+      service: "ottv2-server",
+      timestamp: new Date().toISOString(),
+      details,
+    };
+  }
+
+  async getBotHealth(): Promise<ComponentHealthResponse> {
+    const details: HealthComponent = this.botProbe
+      ? await this.botProbe()
+      : { status: "ok", reason: "standalone-or-unprobed" };
+    return {
+      status: details.status,
+      component: "bot",
+      service: "ottv2-server",
+      timestamp: new Date().toISOString(),
+      details,
     };
   }
 }

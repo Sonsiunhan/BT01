@@ -11,17 +11,28 @@ export const HealthComponentSchema = z.object({
   latencyMs: z.number().nonnegative().optional()
 });
 
+export const ComponentHealthResponseSchema = z.object({
+  status: ServiceStatusSchema,
+  component: z.enum(["application", "database", "transport", "bot"]),
+  service: z.literal("ottv2-server"),
+  timestamp: z.string().datetime(),
+  details: HealthComponentSchema,
+});
+export type ComponentHealthResponse = z.infer<typeof ComponentHealthResponseSchema>;
+
 export const HealthResponseSchema = z.object({
   status: ServiceStatusSchema,
   service: z.literal("ottv2-server"),
   version: z.string().min(1),
   protocolVersion: ProtocolVersionSchema,
-  timestamp: z.iso.datetime(),
+  timestamp: z.string().datetime(),
   components: z.object({
     application: HealthComponentSchema,
     database: HealthComponentSchema,
-    realtime: HealthComponentSchema
-  })
+    realtime: HealthComponentSchema,
+    transport: HealthComponentSchema.optional(),
+    bot: HealthComponentSchema.optional(),
+  }),
 });
 
 export type HealthComponent = z.infer<typeof HealthComponentSchema>;
