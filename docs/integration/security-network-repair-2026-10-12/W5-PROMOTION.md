@@ -4,6 +4,7 @@ Ngày: 2026-10-12
 Target checkout: `test-v0.2`
 Source candidate: `codex/security-network-repair@faa3ad0`
 Merge commit: `8da57f1`
+Final target HEAD after evidence cleanup: `066e3a8`
 
 ## Kết quả
 
