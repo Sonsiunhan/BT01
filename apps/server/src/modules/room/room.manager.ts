@@ -95,7 +95,7 @@ export class RoomManager {
     if (input.hostRole === "REFEREE" && !refereeEnabled) throw new AppError("VALIDATION_ERROR", "Bật trọng tài trước khi chọn vai trò Trọng tài.", 400, false, "INVALID");
     if (input.visibility === "PUBLIC" && refereeEnabled && input.hostRole === "REFEREE") throw new AppError("VALIDATION_ERROR", "Phòng có chủ phòng làm trọng tài phải là Private.", 400, false, "INVALID");
 
-    const seed = Math.floor(Math.random() * 2822400);
+    const seed = randomInt(2_822_400);
     const room: RoomState = {
       roomId,
       roomGeneration,
@@ -130,7 +130,7 @@ export class RoomManager {
     const roomId = this.generateRoomId();
     const roomGeneration = randomUUID();
     const now = Date.now();
-    const seed = Math.floor(Math.random() * 2822400);
+    const seed = randomInt(2_822_400);
     const room: RoomState = {
       roomId,
       roomGeneration,

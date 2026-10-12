@@ -33,34 +33,34 @@ describe("SEC-A: Game Rules Engine — cheat prevention", () => {
     // @ts-expect-error — intentionally invalid coordinate
     const result = applyMove(state, { side: "BLUE", from: "a1", to: "a0" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("OUT_OF_BOUNDS");
+    if (result.kind === "rejected") expect(result.error.code).toBe("OUT_OF_BOUNDS");
   });
 
   it("SEC-A02: rejects moving opponent's piece", () => {
     // BLUE tries to move RED's piece at a9
     const result = applyMove(state, { side: "BLUE", from: "a9", to: "a8" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("NOT_OWNER");
+    if (result.kind === "rejected") expect(result.error.code).toBe("NOT_OWNER");
   });
 
   it("SEC-A03: rejects wrong-turn move", () => {
     // RED tries to move first (BLUE goes first)
     const result = applyMove(state, { side: "RED", from: "a9", to: "a8" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("WRONG_TURN");
+    if (result.kind === "rejected") expect(result.error.code).toBe("WRONG_TURN");
   });
 
   it("SEC-A04: rejects multi-step move (teleport)", () => {
     const result = applyMove(state, { side: "BLUE", from: "a1", to: "a3" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("NOT_ONE_STEP");
+    if (result.kind === "rejected") expect(result.error.code).toBe("NOT_ONE_STEP");
   });
 
   it("SEC-A05: rejects move to friendly-occupied square", () => {
     // b1 has BLUE R, a1 has BLUE S — try to move b1 to a1
     const result = applyMove(state, { side: "BLUE", from: "b1", to: "a1" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("FRIENDLY_BLOCK");
+    if (result.kind === "rejected") expect(result.error.code).toBe("FRIENDLY_BLOCK");
   });
 
   it("SEC-A06: rejects attack by losing piece type", () => {
@@ -84,13 +84,13 @@ describe("SEC-A: Game Rules Engine — cheat prevention", () => {
 
     const result = applyMove(customState, { side: "BLUE", from: "e4", to: "e5" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("LOSING_ATTACKER");
+    if (result.kind === "rejected") expect(result.error.code).toBe("LOSING_ATTACKER");
   });
 
   it("SEC-A07: rejects move from empty square", () => {
     const result = applyMove(state, { side: "BLUE", from: "e5", to: "e6" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("NO_PIECE");
+    if (result.kind === "rejected") expect(result.error.code).toBe("NO_PIECE");
   });
 
   it("SEC-A08: coordinate validation rejects injection strings", () => {
@@ -156,13 +156,24 @@ describe("SEC-B: AuthThrottle — memory safety & rate limiting", () => {
 
   it("SEC-B02: FIXED — throttle evicts entries when hard cap is hit", () => {
     const throttle = new AuthThrottle();
-    // We can't easily test 50k entries in a unit test, but we can verify the
-    // mechanism by checking that the maybeCleanup method exists and the size getter works
-    throttle.failure("key1");
-    throttle.failure("key2");
-    expect(throttle.size).toBe(2);
-    throttle.success("key1");
-    expect(throttle.size).toBe(1);
+    for (let i = 0; i < 50_001; i++) throttle.failure(`cap-key-${i}`);
+    expect(throttle.size).toBeLessThanOrEqual(50_000);
+    expect(throttle.size).toBeGreaterThan(49_000);
+  });
+
+  it("SEC-B05: FIXED — expired buckets are removed on the next cleanup", () => {
+    vi.useFakeTimers();
+    try {
+      const throttle = new AuthThrottle();
+      throttle.failure("expired-key");
+      expect(throttle.size).toBe(1);
+      vi.advanceTimersByTime(11 * 60 * 1000);
+      throttle.failure("fresh-key");
+      expect(throttle.size).toBe(1);
+      expect(() => throttle.guard("expired-key")).not.toThrow();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("SEC-B03: progressive delay increases properly", () => {
@@ -333,7 +344,7 @@ describe("SEC-D: Match state integrity", () => {
 
     const result = applyMove(finishedState, { side: "RED", from: "a9", to: "a8" });
     expect(result.kind).toBe("rejected");
-    if (result.kind === "rejected") expect(result.code).toBe("GAME_OVER");
+    if (result.kind === "rejected") expect(result.error.code).toBe("GAME_OVER");
   });
 });
 
