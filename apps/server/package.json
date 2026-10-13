@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json && node --test ../../scripts/r3-artifact-pins.test.mjs && node ../../scripts/r3-render-provider-probe.mjs",
+    "build": "tsc -p tsconfig.json && node --test ../../scripts/r3-artifact-pins.test.mjs ../../scripts/db-deploy.test.mjs && node ../../scripts/r3-render-provider-probe.mjs",
     "probe:r3:provider": "node ../../scripts/r3-render-provider-probe.mjs --require-pass",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -14,7 +14,7 @@
     "db:generate": "prisma generate --schema ../../prisma/schema.prisma",
     "db:validate": "node --env-file-if-exists=../../.env ../../node_modules/prisma/build/index.js validate --schema ../../prisma/schema.prisma",
     "db:migrate": "node --env-file-if-exists=../../.env ../../node_modules/prisma/build/index.js migrate dev --schema ../../prisma/schema.prisma",
-    "db:deploy": "node --env-file-if-exists=../../.env ../../node_modules/prisma/build/index.js migrate deploy --schema ../../prisma/schema.prisma",
+    "db:deploy": "node ../../scripts/db-deploy.mjs",
     "db:status": "node --env-file-if-exists=../../.env ../../node_modules/prisma/build/index.js migrate status --schema ../../prisma/schema.prisma"
   },
   "dependencies": {

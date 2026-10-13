@@ -2,7 +2,7 @@ services:
   - type: web
     name: ottv2-api
     runtime: node
-    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm build:packages && corepack pnpm --filter @ottv2/web build && corepack pnpm --filter @ottv2/server db:deploy && corepack pnpm --filter @ottv2/server build
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm db:generate && corepack pnpm build:packages && corepack pnpm --filter @ottv2/web build && corepack pnpm --filter @ottv2/server build
     startCommand: corepack pnpm --filter @ottv2/server start
     healthCheckPath: /health
     envVars:
