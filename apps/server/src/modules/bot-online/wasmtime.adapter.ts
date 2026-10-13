@@ -222,6 +222,9 @@ export function createWasmtimeCpythonAdapter(options: WasmtimeCpythonAdapterOpti
         }
         return { ...parseResult(result.stdout.replace(/^__OTT_STARTED__\r?\n/, "")), computeMs: result.computeMs };
       } finally {
+        // Restore owner write permission only after the isolated child exited.
+        // Linux cannot unlink runner.py from a read-only directory otherwise.
+        await chmod(turnDir, 0o700).catch(() => undefined);
         await rm(turnDir, { recursive: true, force: true }).catch(() => undefined);
       }
       } finally { occupied = false; }

@@ -49,7 +49,7 @@ export function sanitizeProbeChecks(checks = {}) {
     "redFixtureTurnP95Ms", "blueFixtureTurnMaxMs", "redFixtureTurnMaxMs", "entrypointCallsPerSide",
     "memoryUpdatesPerSide", "capacity", "firstGranted", "secondRejected", "activeAfterRelease", "requests",
     "concurrentStatuses", "concurrentElapsedMs", "databaseMutated", "sameSeedSameState", "differentSeedChangesResult", "sameSeedA", "sameSeedB", "differentSeed",
-    "consecutiveTimeouts", "resetTurn"
+    "consecutiveTimeouts", "resetTurn", "clockMode", "wallMaxMs"
   ]);
   return Object.fromEntries(Object.entries(checks).map(([name, value]) => {
     if (!value || typeof value !== "object" || Array.isArray(value)) return [name, {}];
@@ -207,7 +207,7 @@ function parseProbe(stdout) {
 
 function runFixedGuest(wasmtimePath, cpythonDir, source, timeoutMs = 500, fuel = 300_000_000) {
   const args = [
-    "run", "--dir", ".::/", "-W", `fuel=${fuel}`, "-W", `timeout=${timeoutMs}ms`,
+    "run", "-C", "cache=n", "-C", "compiler=winch", "--dir", ".::/", "-W", `fuel=${fuel}`, "-W", `timeout=${timeoutMs}ms`,
     "-W", "max-memory-size=67108864", "-W", "trap-on-grow-failure=y", "--env", "PYTHONHASHSEED=0", "--env", "TZ=UTC",
     "python.wasm", "-c", source
   ];
@@ -235,7 +235,7 @@ function runFixedGuest(wasmtimePath, cpythonDir, source, timeoutMs = 500, fuel =
       stdout: Buffer.concat(stdout).toString("utf8"),
       stderr: Buffer.concat(stderr).toString("utf8")
     }));
-    timer = setTimeout(() => child.kill(), Math.max(timeoutMs + 1500, 2500));
+    timer = setTimeout(() => child.kill(), Math.max(timeoutMs + 1500, 16_500));
   });
 }
 

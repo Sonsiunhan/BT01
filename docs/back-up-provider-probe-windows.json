@@ -1,0 +1,171 @@
+{
+  "measuredAt": "2026-10-13T03:07:49.390Z",
+  "runtimeGate": "NOT_PROVEN",
+  "fixtureCodeExecuted": true,
+  "playerCodeExecuted": false,
+  "runtime": {
+    "wasmtimePath": "D:/BT01/.worktrees/w1-runtime-artifacts/wasmtime.exe",
+    "wasmtimeSha256": "51165ae46e2e4ca71b52efff33432d9e58db41bf236cb7c768adb03f653a7152",
+    "cpythonWasiDir": "D:\\BT01\\.worktrees\\back-up\\.runtime-probe/cpython",
+    "cpythonWasmSha256": "d24bd98d3071af6b17d51d53a08700b9acef59172a0afcb6adb733645c2a1715",
+    "cpythonWasmBytes": 30522756,
+    "limits": {
+      "wasmStartupFuel": 2000000000,
+      "wasmFuel": 300000000,
+      "perTurnMs": 500,
+      "outputBytes": 16384,
+      "wasmMemoryPages": 1024
+    }
+  },
+  "checks": {
+    "abi": {
+      "pass": true,
+      "code": 0,
+      "elapsedMs": 2477,
+      "outputBytes": 75,
+      "startup": {
+        "cause": "OK",
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 2477,
+        "hostTimedOut": false
+      }
+    },
+    "environmentIsolation": {
+      "pass": true,
+      "value": [
+        "PYTHONHASHSEED",
+        "TZ"
+      ]
+    },
+    "filesystemBoundary": {
+      "pass": false,
+      "observed": {
+        "outsideSentinelExists": true,
+        "outsideSentinelOutsideRuntime": true,
+        "guestSentinelPath": "/../outside.txt",
+        "guestRead": "PermissionError",
+        "guestWrite": "writable",
+        "readonlyProbeExists": true,
+        "readonlyProbeGuestPath": "/readonly.txt",
+        "unlink": "succeeded",
+        "rename": "FileNotFoundError"
+      }
+    },
+    "networkIsolation": {
+      "pass": true,
+      "code": 1,
+      "observed": "Traceback (most recent call last):\n  File \"<string>\", line 3, in <module>\n    socket.socket()\n    ~~~~~~~~~~~~~^^\n  File \"/lib/python3.14/socket.py\", line 236, in __init__\n    _socket.socket.__init__(self, family, type, proto, fileno)\n    ~"
+    },
+    "pathTraversal": {
+      "pass": true,
+      "observed": [
+        "PermissionError",
+        "PermissionError",
+        "FileNotFoundError"
+      ]
+    },
+    "infiniteLoopBudget": {
+      "pass": true,
+      "code": 3,
+      "observed": "Error: failed to run main module `python.wasm`\n\nCaused by:\n    0: failed to invoke command default\n    1: error while executing at wasm backtrace:\n    0: 0x1bfb1c - python.wasm!_PyEval_EvalFrameDefault\n    1: 0x1be217 - python.wasm!PyEval_E"
+    },
+    "perTurnQuota": {
+      "pass": true,
+      "consecutiveTimeouts": [
+        {
+          "code": 3,
+          "elapsedMs": 2352,
+          "hostTimedOut": false
+        },
+        {
+          "code": 3,
+          "elapsedMs": 2161,
+          "hostTimedOut": false
+        }
+      ],
+      "resetTurn": {
+        "code": 0,
+        "elapsedMs": 2382
+      },
+      "enforcement": "fresh Wasmtime invocation per turn; timeout/fuel failure reclaimed before next turn"
+    },
+    "sleepBudget": {
+      "pass": true,
+      "code": 3,
+      "elapsedMs": 2443,
+      "observed": "Error: timed out after deadline has elapsed\n\nCaused by:\n    wasm trap: interrupt"
+    },
+    "memoryBoundary": {
+      "pass": true,
+      "code": 1,
+      "observed": "Error: failed to run main module `python.wasm`\n\nCaused by:\n    0: failed to invoke command default\n    1: error while executing at wasm backtrace:\n    0: 0x42fdf5 - python.wasm!sbrk\n    1: 0x429a4c - python.wasm!dlmalloc\n    2: 0x42b0e1 - p"
+    },
+    "outputBudget": {
+      "pass": true,
+      "outputBytes": 20023,
+      "manifestOutputBytes": 16384,
+      "terminated": true
+    },
+    "cancellation": {
+      "pass": true,
+      "cancelled": true,
+      "code": null,
+      "elapsedMs": 75
+    },
+    "killReclaim": {
+      "pass": true,
+      "code": 0,
+      "elapsedMs": 2218
+    },
+    "determinism": {
+      "pass": true,
+      "sameSeedSameState": true,
+      "differentSeedChangesResult": true,
+      "sameSeedA": "2808a7d588b9a475a99539486f2114922cda01083154d73155171098000776fa",
+      "sameSeedB": "2808a7d588b9a475a99539486f2114922cda01083154d73155171098000776fa",
+      "differentSeed": "76493728f15e855dc501af9fff448455aa404fa29297fa1e9cc2dbafd833ac7c"
+    },
+    "headroom": {
+      "pass": false,
+      "count": 12,
+      "minMs": 91,
+      "p95Ms": 194,
+      "maxMs": 194,
+      "failures": 1
+    },
+    "wholeMatchBudget": {
+      "pass": true,
+      "blueRounds": 60,
+      "redRounds": 60,
+      "expectedRoundsPerSide": 60,
+      "elapsedMs": 4738,
+      "limitMs": 30000,
+      "blueRuntimeMs": 2404,
+      "redRuntimeMs": 2334,
+      "blueFixtureTurnP95Ms": 0.008,
+      "redFixtureTurnP95Ms": 0.008,
+      "blueFixtureTurnMaxMs": 0.039,
+      "redFixtureTurnMaxMs": 0.016
+    },
+    "admission": {
+      "pass": true,
+      "capacity": 1,
+      "firstGranted": true,
+      "secondRejected": true,
+      "activeAfterRelease": 0
+    },
+    "apiHeadroom": {
+      "pass": true,
+      "requests": 12,
+      "p95Ms": 249,
+      "maxMs": 249,
+      "concurrentStatuses": [
+        200,
+        429
+      ],
+      "admissionPass": true,
+      "origin": "loopback-ephemeral"
+    }
+  }
+}

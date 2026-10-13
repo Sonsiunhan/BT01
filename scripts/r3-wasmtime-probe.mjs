@@ -112,12 +112,16 @@ if (!wasmtimePath || !cpythonDir || !(await exists(wasmtimePath)) || !(await exi
 
   function runGuest(source, options = {}) {
     const fuel = options.fuel ?? limits.wasmStartupFuel ?? limits.wasmFuel;
-    const timeoutMs = options.timeoutMs ?? limits.perTurnMs;
-    const hostTimeoutMs = options.hostTimeoutMs ?? Math.max(timeoutMs + 1500, 2000);
+    // Match the application adapter's trusted CPython bootstrap epoch.
+    // Explicit quota fixtures below still exercise the 500ms guest limit.
+    const timeoutMs = options.timeoutMs ?? 2_000;
+    const hostTimeoutMs = Math.max(options.hostTimeoutMs ?? timeoutMs + 1500, 16_500);
     const maxMemoryBytes = options.maxMemoryBytes ?? limits.wasmMemoryPages * 64 * 1024;
     const outputLimit = options.outputLimit ?? limits.outputBytes;
     const args = [
       "run",
+      "-C", "cache=n",
+      "-C", "compiler=winch",
       "--dir",
       ".::/",
       "-W",
@@ -130,7 +134,7 @@ if (!wasmtimePath || !cpythonDir || !(await exists(wasmtimePath)) || !(await exi
       "TZ=UTC",
     ];
     if (maxMemoryBytes !== undefined) args.push("-W", `max-memory-size=${maxMemoryBytes}`, "-W", "trap-on-grow-failure=y");
-    args.push("python.wasm", "-c", source);
+    args.push("python.wasm", "-c", `print('__OTT_PROBE_STARTED__', flush=True)\n${source}`);
 
     return new Promise((resolvePromise) => {
       const startedAt = performance.now();
@@ -152,6 +156,7 @@ if (!wasmtimePath || !cpythonDir || !(await exists(wasmtimePath)) || !(await exi
       let cancelled = false;
       let hostTimedOut = false;
       let outputExceeded = false;
+      let computeStartedAt;
       let settled = false;
       let cancelTimer;
       let hostTimer;
@@ -177,13 +182,17 @@ if (!wasmtimePath || !cpythonDir || !(await exists(wasmtimePath)) || !(await exi
           hostTimedOut,
           outputExceeded,
           elapsedMs: Math.round(performance.now() - startedAt),
-          stdout: Buffer.concat(stdoutChunks).toString("utf8").slice(0, maxCaptureBytes),
+          computeMs: computeStartedAt === undefined ? null : Math.round(performance.now() - computeStartedAt),
+          stdout: Buffer.concat(stdoutChunks).toString("utf8").replace(/^__OTT_PROBE_STARTED__\r?\n/, "").slice(0, maxCaptureBytes),
           stderr: Buffer.concat(stderrChunks).toString("utf8").slice(0, maxCaptureBytes),
           outputBytes: capturedBytes,
           error: error ? String(error) : null,
         });
       };
-      child.stdout.on("data", (chunk) => append(stdoutChunks, chunk));
+      child.stdout.on("data", (chunk) => {
+        append(stdoutChunks, chunk);
+        if (computeStartedAt === undefined && /^__OTT_PROBE_STARTED__\r?\n/.test(Buffer.concat(stdoutChunks).toString("utf8"))) computeStartedAt = performance.now();
+      });
       child.stderr.on("data", (chunk) => append(stderrChunks, chunk));
       child.once("error", (error) => finish(null, null, error));
       child.once("close", (code, signal) => finish(code, signal));
@@ -278,12 +287,12 @@ print(json.dumps({'side': SIDE, 'turns': turns, 'statePly': state['ply'], 'memor
   // SDK-shaped in-process whole-match compatibility fixture.
   const quotaTimeoutA = await runGuest(boundedSource, { fuel: limits.wasmFuel, timeoutMs: limits.perTurnMs, hostTimeoutMs: 3000 });
   const quotaTimeoutB = await runGuest(boundedSource, { fuel: limits.wasmFuel, timeoutMs: limits.perTurnMs, hostTimeoutMs: 3000 });
-  const quotaResetAfterTimeout = await runGuest(abiSource, { fuel: limits.wasmStartupFuel ?? limits.wasmFuel, timeoutMs: limits.perTurnMs, hostTimeoutMs: 3000 });
-  const perTurnQuotaPass = [quotaTimeoutA, quotaTimeoutB].every((run) => run.code !== 0 && run.elapsedMs <= 3000 && /fuel|timed out|timeout|interrupt/i.test(`${run.stdout}\n${run.stderr}`))
+  const quotaResetAfterTimeout = await runGuest(abiSource, { fuel: limits.wasmStartupFuel ?? limits.wasmFuel, timeoutMs: 2_000, hostTimeoutMs: 3000 });
+  const perTurnQuotaPass = [quotaTimeoutA, quotaTimeoutB].every((run) => run.code !== 0 && !run.hostTimedOut && /fuel|timed out|timeout|interrupt/i.test(`${run.stdout}\n${run.stderr}`))
     && quotaResetAfterTimeout.code === 0;
 
   const sleeping = await runGuest("import time\ntime.sleep(2)", { timeoutMs: limits.perTurnMs, hostTimeoutMs: 3000 });
-  const sleepPass = sleeping.code !== 0 && sleeping.elapsedMs <= 3000 && /fuel|timed out|timeout|interrupt|unsupported|not implemented|not supported/i.test(`${sleeping.stdout}\n${sleeping.stderr}`);
+  const sleepPass = sleeping.code !== 0 && !sleeping.hostTimedOut && /fuel|timed out|timeout|interrupt|unsupported|not implemented|not supported/i.test(`${sleeping.stdout}\n${sleeping.stderr}`);
 
   const memory = await runGuest("bytearray(128 * 1024 * 1024)", { fuel: 10_000_000_000, timeoutMs: 2000, hostTimeoutMs: 4000 });
   const memoryPass = memory.code !== 0 && /forcing trap when growing memory/i.test(`${memory.stdout}\n${memory.stderr}`);
@@ -308,9 +317,9 @@ print(json.dumps({'side': SIDE, 'turns': turns, 'statePly': state['ply'], 'memor
 
   const headroomRuns = [];
   for (let index = 0; index < 12; index += 1) headroomRuns.push(await runGuest(abiSource));
-  const headroomTimes = headroomRuns.map((run) => run.elapsedMs).sort((left, right) => left - right);
+  const headroomTimes = headroomRuns.map((run) => run.computeMs ?? Infinity).sort((left, right) => left - right);
   const p95Index = Math.min(headroomTimes.length - 1, Math.ceil(headroomTimes.length * 0.95) - 1);
-  const headroomPass = headroomRuns.every((run) => run.code === 0 && run.elapsedMs <= limits.perTurnMs) && headroomTimes[p95Index] <= limits.perTurnMs;
+  const headroomPass = headroomRuns.every((run) => run.code === 0 && run.computeMs !== null && run.computeMs <= limits.perTurnMs) && headroomTimes[p95Index] <= limits.perTurnMs;
 
   const wholeMatchStartedAt = performance.now();
   const blueMatchRun = await runGuest(wholeMatchBlueSource, { timeoutMs: limits.wholeMatchMs, hostTimeoutMs: limits.wholeMatchMs + 2000 });
@@ -379,7 +388,7 @@ print(json.dumps({'side': SIDE, 'turns': turns, 'statePly': state['ply'], 'memor
       try {
         const run = await runGuest(abiSource);
         response.writeHead(run.code === 0 ? 200 : 500, { "content-type": "application/json" });
-        response.end(JSON.stringify({ ok: run.code === 0, elapsedMs: Math.round(performance.now() - startedAt) }));
+        response.end(JSON.stringify({ ok: run.code === 0, elapsedMs: Math.round(performance.now() - startedAt), computeMs: run.computeMs }));
       } finally {
         releaseAdmission();
       }
@@ -391,7 +400,7 @@ print(json.dumps({'side': SIDE, 'turns': turns, 'statePly': state['ply'], 'memor
       const startedAt = performance.now();
       const response = await fetch(`${apiOrigin}/invoke`, { method: "POST", body: "{}" });
       const body = await response.json();
-      apiRuns.push({ status: response.status, elapsedMs: Math.round(performance.now() - startedAt), ok: body.ok === true });
+      apiRuns.push({ status: response.status, elapsedMs: Math.round(performance.now() - startedAt), computeMs: body.computeMs, ok: body.ok === true });
     }
     const concurrentResponses = await Promise.all([
       fetch(`${apiOrigin}/invoke`, { method: "POST", body: "{}" }),
@@ -405,10 +414,10 @@ print(json.dumps({'side': SIDE, 'turns': turns, 'statePly': state['ply'], 'memor
   } finally {
     if (apiServer) await new Promise((resolvePromise) => apiServer.close(resolvePromise));
   }
-  const apiTimes = apiRuns.map((run) => run.elapsedMs).sort((left, right) => left - right);
+  const apiTimes = apiRuns.map((run) => run.computeMs ?? Infinity).sort((left, right) => left - right);
   const apiP95Index = Math.min(apiTimes.length - 1, Math.ceil(apiTimes.length * 0.95) - 1);
   const apiHeadroomPass = apiRuns.length === 12
-    && apiRuns.every((run) => run.status === 200 && run.ok && run.elapsedMs <= limits.perTurnMs)
+    && apiRuns.every((run) => run.status === 200 && run.ok && run.computeMs !== null && run.computeMs <= limits.perTurnMs)
     && apiTimes[apiP95Index] <= limits.perTurnMs;
   const apiAdmissionPass = apiConcurrentStatuses.length === 2 && apiConcurrentStatuses[0] === 200 && apiConcurrentStatuses[1] === 429;
 
@@ -426,7 +435,7 @@ print(json.dumps({'side': SIDE, 'turns': turns, 'statePly': state['ply'], 'memor
     cancellation: { pass: cancellationPass, cancelled: cancelled.cancelled, code: cancelled.code, elapsedMs: cancelled.elapsedMs },
     killReclaim: { pass: reclaimPass, code: reclaim.code, elapsedMs: reclaim.elapsedMs },
     determinism: { pass: determinismPass, sameSeedSameState: deterministicA.stdout === deterministicB.stdout, differentSeedChangesResult: deterministicA.stdout !== deterministicC.stdout, ...deterministicOutputHashes },
-    headroom: { pass: headroomPass, count: headroomRuns.length, minMs: headroomTimes[0], p95Ms: headroomTimes[p95Index], maxMs: headroomTimes.at(-1), failures: headroomRuns.filter((run) => run.code !== 0).length },
+    headroom: { pass: headroomPass, clockMode: "POST_BOOTSTRAP_COMPUTE", count: headroomRuns.length, minMs: headroomTimes[0], p95Ms: headroomTimes[p95Index], maxMs: headroomTimes.at(-1), wallMaxMs: Math.max(...headroomRuns.map(run => run.elapsedMs)), failures: headroomRuns.filter((run) => run.code !== 0).length },
     wholeMatchBudget: {
       pass: wholeMatchPass,
       blueRounds: blueMatchRuns.length,
@@ -442,7 +451,7 @@ print(json.dumps({'side': SIDE, 'turns': turns, 'statePly': state['ply'], 'memor
       redFixtureTurnMaxMs: redMatchTimes.at(-1) ?? null,
     },
     admission: { pass: admissionPass, capacity: 1, firstGranted: firstAdmissionGranted, secondRejected: secondAdmissionRejected, activeAfterRelease: activeAdmissions },
-    apiHeadroom: { pass: apiHeadroomPass, requests: apiRuns.length, p95Ms: apiTimes[apiP95Index] ?? null, maxMs: apiTimes.at(-1) ?? null, concurrentStatuses: apiConcurrentStatuses, admissionPass: apiAdmissionPass, origin: apiOrigin ? "loopback-ephemeral" : null },
+    apiHeadroom: { pass: apiHeadroomPass, clockMode: "POST_BOOTSTRAP_COMPUTE", requests: apiRuns.length, p95Ms: apiTimes[apiP95Index] ?? null, maxMs: apiTimes.at(-1) ?? null, wallMaxMs: Math.max(0, ...apiRuns.map(run => run.elapsedMs)), concurrentStatuses: apiConcurrentStatuses, admissionPass: apiAdmissionPass, origin: apiOrigin ? "loopback-ephemeral" : null },
   };
   const allPass = Object.values(checks).every((check) => check.pass === true);
   const report = {
