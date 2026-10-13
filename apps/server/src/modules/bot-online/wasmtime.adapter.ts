@@ -187,6 +187,11 @@ export function createWasmtimeCpythonAdapter(options: WasmtimeCpythonAdapterOpti
         await makeReadOnly(turnDir);
         const args = [
           "run",
+          // The supervisor deliberately omits HOME and host configuration.
+          // Default cache discovery can fail before CPython starts on Linux.
+          "-C", "cache=n",
+          // Keep cold CPython compilation bounded on the free single-CPU host.
+          "-C", "compiler=winch",
           "--dir", `${cpythonDir}::/runtime`,
           "--dir", `${turnDir}::/turn`,
           "-W", `fuel=${limits.wasmStartupFuel}`,
@@ -201,7 +206,10 @@ export function createWasmtimeCpythonAdapter(options: WasmtimeCpythonAdapterOpti
           "/turn/runner.py",
         ];
         const computeBudgetMs = request.phase === "PREFLIGHT" ? limits.preflightMs : limits.perTurnMs;
-        const result = await runChild(wasmtimePath, args, cpythonDir, { PATH: process.env.PATH ?? "", SystemRoot: process.env.SystemRoot ?? "", PYTHONHASHSEED: "0", TZ: "UTC", RAYON_NUM_THREADS: "1" }, signal, bootstrapWatchdogMs, computeBudgetMs);
+        // Compilation happens before Wasmtime's guest epoch timer starts.
+        // Bound cold host compilation separately from the unchanged guest and
+        // author budgets; uncached compilation can exceed 3.5s on free hosts.
+        const result = await runChild(wasmtimePath, args, cpythonDir, { PATH: process.env.PATH ?? "", SystemRoot: process.env.SystemRoot ?? "", PYTHONHASHSEED: "0", TZ: "UTC", RAYON_NUM_THREADS: "1" }, signal, 15_000, computeBudgetMs);
         if (signal.aborted) throw new RuntimeCancelledError();
         if (result.outputBytes > MAX_CAPTURE_BYTES) throw new BotOutputValidationError("Bot vượt giới hạn output.");
         if (result.hostTimedOut) throw new WasmtimeProviderError("Supervisor không thu hồi được lượt Bot đúng hạn.");
