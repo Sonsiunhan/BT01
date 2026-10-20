@@ -1,0 +1,67 @@
+{
+  "asOf": "2026-10-20",
+  "timezone": "UTC+7",
+  "skill": {
+    "name": "ecc:product-capability",
+    "purpose": "Consolidate the original BA/SA specification with current requirements, fields, boundaries and observable acceptance criteria without duplicating conversation or decision logs."
+  },
+  "canonical": "../OTTv2_Dac_Ta_BA_SA_Khoi_Tao_Giai_v1.0.md",
+  "canonicalSha256": "A0DD4B1CF905B89DD98C14775EC193972078D0CFC8F40F43EF666A777A269448",
+  "originalSha256": "1614B3A826CE6100D4FD9497A19E7A93166D0A1A73A989EED946B8B3A2D4A3DC",
+  "activeFiles": [
+    "README.md",
+    "OTTv2_Dac_Ta_BA_SA_Khoi_Tao_Giai_v1.0.md",
+    "DELIVERY-PLAN.md",
+    "DELIVERY-TASKS.csv"
+  ],
+  "cleanup": {
+    "deletedFiles": 12,
+    "archiveRemoved": true,
+    "obsoleteDraftsAndReviewRemoved": true,
+    "deliveryDataAndEvidenceMovedToSupport": true
+  },
+  "verification": {
+    "fieldGroups": 82,
+    "criteria": 81,
+    "duplicateOrMissingFieldIds": 0,
+    "duplicateOrMissingCriterionIds": 0,
+    "conversationDecisionCodesInCanonical": 0,
+    "brokenActiveMarkdownLinks": 0,
+    "applicationCodeChanged": false,
+    "databaseMutations": false,
+    "applicationTests": "NOT_RUN_DOCS_ONLY"
+  },
+  "requirementsReview": {
+    "reviewer": "/root/tournament_requirements_review",
+    "basis": "Stable checklist T001–T081 embedded in canonical section16",
+    "covered": 65,
+    "partial": 16,
+    "open": 0,
+    "partialIds": [
+      "T016",
+      "T017",
+      "T029",
+      "T043",
+      "T044",
+      "T048",
+      "T051",
+      "T053",
+      "T055",
+      "T056",
+      "T065",
+      "T070",
+      "T072",
+      "T073",
+      "T074",
+      "T077"
+    ],
+    "gate": "HOLD",
+    "reason": "Proposed detailed defaults in section15 remain pending human review; consolidation is not approval or implementation evidence.",
+    "newP0P1RegressionsFoundInReviewedScope": 0,
+    "requestedClarificationsImplemented": [
+      "STATIC/CYCLE initial goal and SEEDED initial sampling",
+      "Immutable source snapshots versus explicit permitted Bot switch events"
+    ],
+    "finalTargetedConfirmation": "CONFIRMED: reviewer verified final SHA256 and both clarifications; no regression found in targeted scope; coverage 65/16/0 and gate HOLD unchanged."
+  }
+}

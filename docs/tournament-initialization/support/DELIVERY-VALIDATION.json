@@ -1,0 +1,51 @@
+{
+  "scheduleVersion": "V2",
+  "checkedAt": "2026-10-20",
+  "timezone": "UTC+7",
+  "status": "PASS_SCHEDULE_CONSISTENCY_ONLY",
+  "taskCount": 55,
+  "pageCount": 18,
+  "totals": {
+    "Nguyễn Tiến Nam": 31.5,
+    "Sơn": 31.5,
+    "Long": 31.5,
+    "Đức": 31.5
+  },
+  "dailyHours": {
+    "Nguyễn Tiến Nam 2026-10-21": 8,
+    "Nguyễn Tiến Nam 2026-10-22": 8,
+    "Nguyễn Tiến Nam 2026-10-23": 8,
+    "Nguyễn Tiến Nam 2026-10-24": 7.5,
+    "Sơn 2026-10-21": 8,
+    "Sơn 2026-10-22": 8,
+    "Sơn 2026-10-23": 8,
+    "Sơn 2026-10-24": 7.5,
+    "Long 2026-10-21": 8,
+    "Long 2026-10-22": 8,
+    "Long 2026-10-23": 8,
+    "Long 2026-10-24": 7.5,
+    "Đức 2026-10-21": 8,
+    "Đức 2026-10-22": 8,
+    "Đức 2026-10-23": 8,
+    "Đức 2026-10-24": 7.5
+  },
+  "hoursTotal": 126,
+  "sharedWriterReservations": 17,
+  "partialExports": 19,
+  "checks": [
+    "Actual workSegments match task effort",
+    "No overlap per owner",
+    "All hard dependencies finish before task starts",
+    "All segments inside 08–12/13–17; none in 00–08",
+    "Daily workload <=8 hours",
+    "Slots inside owner task",
+    "Partial exports inside producer task",
+    "Page deadline >= referenced task deadlines"
+  ],
+  "errors": [],
+  "limitations": [
+    "Not effort feasibility or implementation evidence",
+    "G0 remains HOLD",
+    "Remaining buffer only 24/10 16:30–17:00 per person; no full day"
+  ]
+}

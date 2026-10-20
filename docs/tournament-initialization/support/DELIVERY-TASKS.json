@@ -1,0 +1,2184 @@
+{
+  "asOf": "2026-10-20",
+  "timezone": "Asia/Bangkok",
+  "status": "CANDIDATE_SCHEDULE_REQUESTED_BY_USER_NOT_APPROVED_FOR_IMPLEMENTATION",
+  "gates": {
+    "G0": {
+      "target": "2026-10-21T09:00:00+07:00",
+      "currentStatus": "HOLD",
+      "requires": "Human choices/defaults approved, updated stable checklist independently >=99% and no unresolved P0/P1. 81 items implies all81 covered for >=99%."
+    }
+  },
+  "personHours": {
+    "Nguyễn Tiến Nam": 31.5,
+    "Sơn": 31.5,
+    "Long": 31.5,
+    "Đức": 31.5
+  },
+  "tasks": [
+    {
+      "id": "N00",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-21T08:00:00+07:00",
+      "end": "2026-10-21T09:00:00+07:00",
+      "title": "Chốt đặc tả còn lại, kiểm G0; thiết kế trang luật/phân xử",
+      "pages": [
+        "P04",
+        "P05",
+        "P16"
+      ],
+      "dependsOn": [],
+      "deliverable": "Quyết định defaults + đề nghị independent re-review; wireframe và Rule/Resolution DTO. G0 chỉ PASS bằng bằng chứng, không vì hết giờ.",
+      "handoversDuringTask": [],
+      "status": "READY_PREPARATION",
+      "gate": null,
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-21T08:00:00+07:00",
+          "end": "2026-10-21T09:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N01",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-21T09:00:00+07:00",
+      "end": "2026-10-21T12:00:00+07:00",
+      "title": "Harness và engine bàn/movement mới",
+      "pages": [
+        "P04"
+      ],
+      "dependsOn": [
+        "N00"
+      ],
+      "deliverable": "RAY/LEAP, type+side, board5..15, blocker/jump, counts/layout; old-profile regression.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-21T09:00:00+07:00",
+          "end": "2026-10-21T12:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-21T13:00:00+07:00",
+      "end": "2026-10-21T16:30:00+07:00",
+      "title": "API validate/preview và tính khả thi ban đầu",
+      "pages": [
+        "P04"
+      ],
+      "dependsOn": [
+        "N01",
+        "L01"
+      ],
+      "deliverable": "POST validate/preview dùng engine thật; golden legalMoves; lỗi field/version/caps; typed widget contract.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3.5,
+      "workSegments": [
+        {
+          "start": "2026-10-21T13:00:00+07:00",
+          "end": "2026-10-21T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-21T16:30:00+07:00",
+      "end": "2026-10-22T10:30:00+07:00",
+      "title": "Đích tĩnh/chu kỳ/seed và event order",
+      "pages": [
+        "P04"
+      ],
+      "dependsOn": [
+        "N02"
+      ],
+      "deliverable": "Goal profile và seed/round replay; Q17/18 fixtures; không auto-win và không tăng round do pause.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-21T16:30:00+07:00",
+          "end": "2026-10-21T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T08:00:00+07:00",
+          "end": "2026-10-22T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-22T10:30:00+07:00",
+      "end": "2026-10-22T14:30:00+07:00",
+      "title": "Comparator và API version/publish",
+      "pages": [
+        "P04",
+        "P05"
+      ],
+      "dependsOn": [
+        "N03",
+        "L02"
+      ],
+      "deliverable": "Trọng số/event/finaltie, version immutable, create>=effective, envelope guard; endpoints list/diff/publish.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T10:30:00+07:00",
+          "end": "2026-10-22T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T13:00:00+07:00",
+          "end": "2026-10-22T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-22T14:30:00+07:00",
+      "end": "2026-10-22T16:30:00+07:00",
+      "title": "Rule editor V1 có hợp đồng ổn định",
+      "pages": [
+        "P04"
+      ],
+      "dependsOn": [
+        "N04",
+        "S01"
+      ],
+      "deliverable": "Editor export value/onChange/errors/previewRequest; chọn movement/goal; API thật; interface cố định cho Sơn.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-22T14:30:00+07:00",
+          "end": "2026-10-22T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-22T16:30:00+07:00",
+      "end": "2026-10-23T10:30:00+07:00",
+      "title": "SDK/runtime adapter và receipts tương thích",
+      "pages": [
+        "P16",
+        "P15"
+      ],
+      "dependsOn": [
+        "N04",
+        "L01"
+      ],
+      "deliverable": "ABI dimensions/goals/rules/legalMoves; receipt owner/hash/rule/SDK/runtime; no hardcoded9. Kiểm consumer Human–Python Bot Offline; nếu thiếu phải có adapter/harness thực, không thay AI heuristic thành Python.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T16:30:00+07:00",
+          "end": "2026-10-22T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T08:00:00+07:00",
+          "end": "2026-10-23T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-23T10:30:00+07:00",
+      "end": "2026-10-23T14:30:00+07:00",
+      "title": "Hoàn thiện trang luật và ghép component vào wizard",
+      "pages": [
+        "P04"
+      ],
+      "dependsOn": [
+        "N05",
+        "N06"
+      ],
+      "deliverable": "UI diff/reason/effective/publish, conditional fields, old-version display; giữ interface V1.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T10:30:00+07:00",
+          "end": "2026-10-23T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T13:00:00+07:00",
+          "end": "2026-10-23T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N08",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-23T14:30:00+07:00",
+      "end": "2026-10-23T16:30:00+07:00",
+      "title": "Runtime proof và trang trạng thái Bot",
+      "pages": [
+        "P16",
+        "P04",
+        "P15"
+      ],
+      "dependsOn": [
+        "N06",
+        "N07",
+        "D04"
+      ],
+      "deliverable": "Preflight thật/hardcompute/policy gate; status/retry không lộ source; unavailable phải BLOCKED. Proof consumer Offline Người–Python Bot và Bot–Bot; thiếu môi trường/runtime thì BLOCKED.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-23T14:30:00+07:00",
+          "end": "2026-10-23T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N09",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-23T16:30:00+07:00",
+      "end": "2026-10-24T10:30:00+07:00",
+      "title": "Trang xem/phân xử exact-tie đầy đủ FE+BE",
+      "pages": [
+        "P05"
+      ],
+      "dependsOn": [
+        "N04",
+        "L08",
+        "S01"
+      ],
+      "deliverable": "Request list→staff match→winner+reason; DTO/API/ACL thật, timeout/cancel conflict; không player role.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T16:30:00+07:00",
+          "end": "2026-10-23T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T08:00:00+07:00",
+          "end": "2026-10-24T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-24T10:30:00+07:00",
+      "end": "2026-10-24T13:30:00+07:00",
+      "title": "Regression engine/SDK/manual boundary",
+      "pages": [
+        "P04",
+        "P05",
+        "P16"
+      ],
+      "dependsOn": [
+        "N08",
+        "N09"
+      ],
+      "deliverable": "Golden board/movement/goal/tie/clock/receipt; actual evidence, không mock runtime pass. Tối thiểu1trận engine thật qua accepted moves→exact comparator tie→WAITING→manual/timeout→one result; fault fixtures riêng, không thay bằng seed pending request.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T10:30:00+07:00",
+          "end": "2026-10-24T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T13:00:00+07:00",
+          "end": "2026-10-24T13:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-24T13:30:00+07:00",
+      "end": "2026-10-24T14:30:00+07:00",
+      "title": "Review UI Đơn vị/Hợp đồng/Duyệt và backend của Long",
+      "pages": [],
+      "dependsOn": [
+        "L09",
+        "L10"
+      ],
+      "deliverable": "Ghi findings, chủ Long sửa.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-24T13:30:00+07:00",
+          "end": "2026-10-24T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "owner": "Nguyễn Tiến Nam",
+      "start": "2026-10-24T14:30:00+07:00",
+      "end": "2026-10-24T16:30:00+07:00",
+      "title": "Sửa lỗi và bàn giao mảng Nam",
+      "pages": [
+        "P04",
+        "P05",
+        "P16"
+      ],
+      "dependsOn": [
+        "N10",
+        "N11"
+      ],
+      "deliverable": "Candidate + test logs + known gaps/NOT RUN; không tự gắn DONE nếu mandatory fail.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T14:30:00+07:00",
+          "end": "2026-10-24T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S00",
+      "owner": "Sơn",
+      "start": "2026-10-21T08:00:00+07:00",
+      "end": "2026-10-21T09:00:00+07:00",
+      "title": "Thiết kế shell và các trang Sơn; chuẩn UI dùng chung",
+      "pages": [
+        "P01",
+        "P02",
+        "P03",
+        "P14",
+        "P15"
+      ],
+      "dependsOn": [],
+      "deliverable": "Wireframe/state map, form components/tokens, route inventory và console DTO; không code app trước G0.",
+      "handoversDuringTask": [],
+      "status": "READY_PREPARATION",
+      "gate": null,
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-21T08:00:00+07:00",
+          "end": "2026-10-21T09:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S01",
+      "owner": "Sơn",
+      "start": "2026-10-21T09:00:00+07:00",
+      "end": "2026-10-21T10:00:00+07:00",
+      "title": "Admin shell/router và auth-state integration",
+      "pages": [
+        "P01",
+        "P15"
+      ],
+      "dependsOn": [
+        "S00"
+      ],
+      "deliverable": "Layout/navigation role-aware, routes lazy; thiếu capability hiển thị blocked, không player Online CTA.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-21T09:00:00+07:00",
+          "end": "2026-10-21T10:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "owner": "Sơn",
+      "start": "2026-10-21T10:00:00+07:00",
+      "end": "2026-10-21T12:00:00+07:00",
+      "title": "Danh sách giải + capabilities FE/BE",
+      "pages": [
+        "P01"
+      ],
+      "dependsOn": [
+        "S01",
+        "L01",
+        "D01"
+      ],
+      "deliverable": "GET list/filter/page/sort và UI cards; server scope; loading/empty/error; actual disposable data.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-21T10:00:00+07:00",
+          "end": "2026-10-21T12:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "owner": "Sơn",
+      "start": "2026-10-21T13:00:00+07:00",
+      "end": "2026-10-21T16:30:00+07:00",
+      "title": "Wizard nháp cơ bản FE/BE",
+      "pages": [
+        "P02"
+      ],
+      "dependsOn": [
+        "S02",
+        "L02"
+      ],
+      "deliverable": "Create/read/patch draft adapters gọi core, tên/contract/lịch; giữ draft khi lỗi, version conflict.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3.5,
+      "workSegments": [
+        {
+          "start": "2026-10-21T13:00:00+07:00",
+          "end": "2026-10-21T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "owner": "Sơn",
+      "start": "2026-10-21T16:30:00+07:00",
+      "end": "2026-10-22T10:30:00+07:00",
+      "title": "Các nhóm form ngoài rule builder",
+      "pages": [
+        "P02"
+      ],
+      "dependsOn": [
+        "S03"
+      ],
+      "deliverable": "Đối tượng/control/clock/scoring/privacy/regulations; conditional validation và server mapping.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-21T16:30:00+07:00",
+          "end": "2026-10-21T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T08:00:00+07:00",
+          "end": "2026-10-22T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "owner": "Sơn",
+      "start": "2026-10-22T10:30:00+07:00",
+      "end": "2026-10-22T14:30:00+07:00",
+      "title": "Trang chi tiết và panel readiness",
+      "pages": [
+        "P03"
+      ],
+      "dependsOn": [
+        "S04",
+        "L03"
+      ],
+      "deliverable": "GET detail/blockers/state/actions; overview/config/tabs; runtime pending không thành READY giả.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T10:30:00+07:00",
+          "end": "2026-10-22T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T13:00:00+07:00",
+          "end": "2026-10-22T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "owner": "Sơn",
+      "start": "2026-10-22T14:30:00+07:00",
+      "end": "2026-10-22T16:30:00+07:00",
+      "title": "Audit viewer FE/BE và nối readiness core",
+      "pages": [
+        "P14",
+        "P03"
+      ],
+      "dependsOn": [
+        "S05",
+        "L05"
+      ],
+      "deliverable": "GET scoped audit + filter/page UI; aggregate blocker từ API core; đọc thật, không chỉ UI fixture.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-22T14:30:00+07:00",
+          "end": "2026-10-22T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "owner": "Sơn",
+      "start": "2026-10-22T16:30:00+07:00",
+      "end": "2026-10-23T10:30:00+07:00",
+      "title": "Nối RuleEditor V1 vào wizard và submit",
+      "pages": [
+        "P02",
+        "P03"
+      ],
+      "dependsOn": [
+        "N05",
+        "S04",
+        "L05"
+      ],
+      "deliverable": "Giữ một RuleProfile, validate/preview/submit API thật; không copy engine sang client.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T16:30:00+07:00",
+          "end": "2026-10-22T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T08:00:00+07:00",
+          "end": "2026-10-23T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "owner": "Sơn",
+      "start": "2026-10-23T10:30:00+07:00",
+      "end": "2026-10-23T13:30:00+07:00",
+      "title": "Hub Offline đủ auth/backend và bốn lối vào",
+      "pages": [
+        "P15"
+      ],
+      "dependsOn": [
+        "S01",
+        "D02",
+        "N06"
+      ],
+      "deliverable": "Capabilities API + riêng tư Bot library; mode routing thực; thiếu consumer phải blocked rõ.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-23T10:30:00+07:00",
+          "end": "2026-10-23T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T13:00:00+07:00",
+          "end": "2026-10-23T13:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "owner": "Sơn",
+      "start": "2026-10-23T13:30:00+07:00",
+      "end": "2026-10-23T16:30:00+07:00",
+      "title": "Hoàn thiện UI và tích hợp rule widget bản cuối",
+      "pages": [
+        "P01",
+        "P02",
+        "P03",
+        "P14",
+        "P15"
+      ],
+      "dependsOn": [
+        "S07",
+        "S08",
+        "N05"
+      ],
+      "deliverable": "Keyboard/theme/mobile/error/permission. Nhận N07 ngày 23/10 14:30; 14:30–15:30 tích hợp luật, 15:30–15:45 đăng ký ACK/Bot routes, 15:45–16:30 kiểm tra lại.",
+      "handoversDuringTask": [
+        {
+          "task": "N07",
+          "availableAt": "2026-10-23T14:30:00+07:00",
+          "integrationHoursReserved": 2
+        }
+      ],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T13:30:00+07:00",
+          "end": "2026-10-23T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "owner": "Sơn",
+      "start": "2026-10-23T16:30:00+07:00",
+      "end": "2026-10-24T10:30:00+07:00",
+      "title": "Browser E2E đầy đủ các trang Sơn",
+      "pages": [
+        "P01",
+        "P02",
+        "P03",
+        "P14",
+        "P15"
+      ],
+      "dependsOn": [
+        "S09",
+        "N08",
+        "L09",
+        "D09"
+      ],
+      "deliverable": "RealAPI create→submit→notes/approve→roster/readiness; bằng chứng đúng role, không fixture API.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T16:30:00+07:00",
+          "end": "2026-10-23T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T08:00:00+07:00",
+          "end": "2026-10-24T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "owner": "Sơn",
+      "start": "2026-10-24T10:30:00+07:00",
+      "end": "2026-10-24T13:30:00+07:00",
+      "title": "Review chéo trang tài khoản/roster của Đức",
+      "pages": [],
+      "dependsOn": [
+        "D10"
+      ],
+      "deliverable": "UI/ACL/recovery/import/invite findings; không sửa trực tiếp feature files Đức.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T10:30:00+07:00",
+          "end": "2026-10-24T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T13:00:00+07:00",
+          "end": "2026-10-24T13:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "owner": "Sơn",
+      "start": "2026-10-24T13:30:00+07:00",
+      "end": "2026-10-24T14:30:00+07:00",
+      "title": "Kiểm tra role/URL trực tiếp và trạng thái lỗi",
+      "pages": [
+        "P01",
+        "P02",
+        "P03",
+        "P14",
+        "P15"
+      ],
+      "dependsOn": [
+        "S10",
+        "S11"
+      ],
+      "deliverable": "No Admin Online player; forbidden direct routes; safe errors/return path/draft preservation.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-24T13:30:00+07:00",
+          "end": "2026-10-24T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "owner": "Sơn",
+      "start": "2026-10-24T14:30:00+07:00",
+      "end": "2026-10-24T16:30:00+07:00",
+      "title": "Sửa lỗi và bàn giao mảng Sơn",
+      "pages": [
+        "P01",
+        "P02",
+        "P03",
+        "P14",
+        "P15"
+      ],
+      "dependsOn": [
+        "S12"
+      ],
+      "deliverable": "Screenshots/traces + checks + integration candidate; no dead buttons/dummy success.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T14:30:00+07:00",
+          "end": "2026-10-24T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L00",
+      "owner": "Long",
+      "start": "2026-10-21T08:00:00+07:00",
+      "end": "2026-10-21T09:00:00+07:00",
+      "title": "Thiết kế trang SA và hợp nhất API/data proposal",
+      "pages": [
+        "P06",
+        "P07",
+        "P08"
+      ],
+      "dependsOn": [],
+      "deliverable": "Wireframes unit/contract/approval; contract skeleton/error/envelope schema và method ownership.",
+      "handoversDuringTask": [],
+      "status": "READY_PREPARATION",
+      "gate": null,
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-21T08:00:00+07:00",
+          "end": "2026-10-21T09:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L01",
+      "owner": "Long",
+      "start": "2026-10-21T09:00:00+07:00",
+      "end": "2026-10-21T10:00:00+07:00",
+      "title": "Chốt contracts/schema và DB test an toàn",
+      "pages": [],
+      "dependsOn": [
+        "L00",
+        "N00",
+        "S00",
+        "D00"
+      ],
+      "deliverable": "Single-writer DTOs/schema; disposable DB explicit; typed fixtures và migration candidate, không DB chung.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-21T09:00:00+07:00",
+          "end": "2026-10-21T10:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L02",
+      "owner": "Long",
+      "start": "2026-10-21T10:00:00+07:00",
+      "end": "2026-10-21T12:00:00+07:00",
+      "title": "Core draft/quota/contract-policy và audit port",
+      "pages": [
+        "P02",
+        "P07"
+      ],
+      "dependsOn": [
+        "L01"
+      ],
+      "deliverable": "CoreService create/patch/submit guards, atomic quota/idempotency, audit writer; consumers dùng port cố định.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-21T10:00:00+07:00",
+          "end": "2026-10-21T12:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L03",
+      "owner": "Long",
+      "start": "2026-10-21T13:00:00+07:00",
+      "end": "2026-10-21T16:30:00+07:00",
+      "title": "Hai trang Đơn vị và Hợp đồng FE/BE",
+      "pages": [
+        "P06",
+        "P07"
+      ],
+      "dependsOn": [
+        "L02",
+        "D01"
+      ],
+      "deliverable": "CRUD scoped/ranges/envelope/bindings; FK delete guards, remaining quota; real UI/API/tests.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3.5,
+      "workSegments": [
+        {
+          "start": "2026-10-21T13:00:00+07:00",
+          "end": "2026-10-21T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L04",
+      "owner": "Long",
+      "start": "2026-10-21T16:30:00+07:00",
+      "end": "2026-10-22T10:30:00+07:00",
+      "title": "Hộp duyệt và chi tiết xét duyệt FE/BE",
+      "pages": [
+        "P08"
+      ],
+      "dependsOn": [
+        "L03",
+        "N02"
+      ],
+      "deliverable": "List/detail/diff approve/reject/changes with notes; immutable approved snapshot và refund đúng1lần.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-21T16:30:00+07:00",
+          "end": "2026-10-21T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T08:00:00+07:00",
+          "end": "2026-10-22T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L05",
+      "owner": "Long",
+      "start": "2026-10-22T10:30:00+07:00",
+      "end": "2026-10-22T14:30:00+07:00",
+      "title": "Lifecycle/change-request/READY aggregate",
+      "pages": [
+        "P03",
+        "P08"
+      ],
+      "dependsOn": [
+        "L04",
+        "D04",
+        "N02"
+      ],
+      "deliverable": "States + separate config change requests; blockers/ref/roster/rules/receipt aggregation; no fake READY.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T10:30:00+07:00",
+          "end": "2026-10-22T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T13:00:00+07:00",
+          "end": "2026-10-22T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L06",
+      "owner": "Long",
+      "start": "2026-10-22T14:30:00+07:00",
+      "end": "2026-10-22T16:30:00+07:00",
+      "title": "Player admission C32 và cổng quyền chung",
+      "pages": [
+        "P01",
+        "P03"
+      ],
+      "dependsOn": [
+        "L05",
+        "D01"
+      ],
+      "deliverable": "All queue/custom/player-upgrade deny ngoài giải/Guest; existing match reconnect/Offline/observer đúng scope.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-22T14:30:00+07:00",
+          "end": "2026-10-22T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L07",
+      "owner": "Long",
+      "start": "2026-10-22T16:30:00+07:00",
+      "end": "2026-10-23T10:30:00+07:00",
+      "title": "Pause/cancel/end và persistence boundary",
+      "pages": [
+        "P03"
+      ],
+      "dependsOn": [
+        "L05",
+        "L06"
+      ],
+      "deliverable": "Admission-pause vs match-stop rõ; end_at; cancellation CAS hooks; server time; fake-time tests.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T16:30:00+07:00",
+          "end": "2026-10-22T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T08:00:00+07:00",
+          "end": "2026-10-23T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L08",
+      "owner": "Long",
+      "start": "2026-10-23T10:30:00+07:00",
+      "end": "2026-10-23T14:30:00+07:00",
+      "title": "Manual adjudication transaction và ledger handoff",
+      "pages": [
+        "P05"
+      ],
+      "dependsOn": [
+        "L07",
+        "N04"
+      ],
+      "deliverable": "WAITING request/frozen snapshot/deadline/fallback/CAS/cancel order/finish_sequence; một verdict, không double points.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T10:30:00+07:00",
+          "end": "2026-10-23T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T13:00:00+07:00",
+          "end": "2026-10-23T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L09",
+      "owner": "Long",
+      "start": "2026-10-23T14:30:00+07:00",
+      "end": "2026-10-23T16:30:00+07:00",
+      "title": "Concurrency và state/permission test suite",
+      "pages": [
+        "P06",
+        "P07",
+        "P08"
+      ],
+      "dependsOn": [
+        "L08"
+      ],
+      "deliverable": "Quota/refund/create-effective/cancel/timeout tests trên disposable DB; report actuals.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-23T14:30:00+07:00",
+          "end": "2026-10-23T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L10",
+      "owner": "Long",
+      "start": "2026-10-23T16:30:00+07:00",
+      "end": "2026-10-24T10:30:00+07:00",
+      "title": "Tích hợp app/API/DB và chạy luồng xuyên suốt",
+      "pages": [],
+      "dependsOn": [
+        "L09",
+        "N08",
+        "D09",
+        "S09"
+      ],
+      "deliverable": "Compile/runtime wiring thật, no stub handlers; SA→TA→draft→approval→roster→rules→readiness; result fixture. Result fixture chỉ fault/race; engine-to-settlement proof tạiN10.",
+      "handoversDuringTask": [
+        {
+          "task": "N09",
+          "partialExport": true,
+          "availableAt": "2026-10-24T09:30:00+07:00",
+          "routeReadyAt": "2026-10-24T09:45:00+07:00",
+          "integrationHoursReserved": 0.75
+        }
+      ],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T16:30:00+07:00",
+          "end": "2026-10-23T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T08:00:00+07:00",
+          "end": "2026-10-24T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L11",
+      "owner": "Long",
+      "start": "2026-10-24T10:30:00+07:00",
+      "end": "2026-10-24T13:30:00+07:00",
+      "title": "Review chéo engine/SDK và phân xử của Nam",
+      "pages": [],
+      "dependsOn": [
+        "N09",
+        "L10"
+      ],
+      "deliverable": "Review immutable rules, hard cap/privacy/tie/cancel; findings để Nam sửa, không sửa hộ shared files.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T10:30:00+07:00",
+          "end": "2026-10-24T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T13:00:00+07:00",
+          "end": "2026-10-24T13:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L12",
+      "owner": "Long",
+      "start": "2026-10-24T13:30:00+07:00",
+      "end": "2026-10-24T14:30:00+07:00",
+      "title": "Đóng gói data/handoff và kiểm lại trạng thái",
+      "pages": [],
+      "dependsOn": [
+        "L11"
+      ],
+      "deliverable": "Config/rule/seed/participant/result-order contract; operation scope và known blockers; no false10k claim.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-24T13:30:00+07:00",
+          "end": "2026-10-24T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "L13",
+      "owner": "Long",
+      "start": "2026-10-24T14:30:00+07:00",
+      "end": "2026-10-24T16:30:00+07:00",
+      "title": "Sửa lỗi và bàn giao candidate tích hợp",
+      "pages": [],
+      "dependsOn": [
+        "L12"
+      ],
+      "deliverable": "Focused + required typecheck/lint/build/integration/E2E; final evidence và release decision, không tự deploy.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T14:30:00+07:00",
+          "end": "2026-10-24T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D00",
+      "owner": "Đức",
+      "start": "2026-10-21T08:00:00+07:00",
+      "end": "2026-10-21T09:00:00+07:00",
+      "title": "Thiết kế account/roster/staff/support/onboarding",
+      "pages": [
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P17",
+        "P18"
+      ],
+      "dependsOn": [],
+      "deliverable": "Wireframes+actor matrix, identity/roster/import/staff DTO gửi Long; synthetic fixtures.",
+      "handoversDuringTask": [],
+      "status": "READY_PREPARATION",
+      "gate": null,
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-21T08:00:00+07:00",
+          "end": "2026-10-21T09:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D01",
+      "owner": "Đức",
+      "start": "2026-10-21T09:00:00+07:00",
+      "end": "2026-10-21T10:00:00+07:00",
+      "title": "Auth/tenant guard contracts và tests",
+      "pages": [
+        "P09"
+      ],
+      "dependsOn": [
+        "D00"
+      ],
+      "deliverable": "Trusted principal/role/binding checks với repository port; public register never ADMIN; auth-service ownership.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-21T09:00:00+07:00",
+          "end": "2026-10-21T10:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D02",
+      "owner": "Đức",
+      "start": "2026-10-21T10:00:00+07:00",
+      "end": "2026-10-21T12:00:00+07:00",
+      "title": "Bootstrap/TA account trang FE+BE",
+      "pages": [
+        "P09"
+      ],
+      "dependsOn": [
+        "D01",
+        "L01"
+      ],
+      "deliverable": "One-time bootstrap trên safe target; SA list/create/bind/revoke TA; no passwords in logs, whole UI test.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-21T10:00:00+07:00",
+          "end": "2026-10-21T12:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D03",
+      "owner": "Đức",
+      "start": "2026-10-21T13:00:00+07:00",
+      "end": "2026-10-21T16:30:00+07:00",
+      "title": "Roster + preview CSV/XLSX FE/BE",
+      "pages": [
+        "P10"
+      ],
+      "dependsOn": [
+        "D02",
+        "L02"
+      ],
+      "deliverable": "Parse/normalize/validate rows, error preview, safe staging; page table/manual create; scope/caps.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3.5,
+      "workSegments": [
+        {
+          "start": "2026-10-21T13:00:00+07:00",
+          "end": "2026-10-21T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D04",
+      "owner": "Đức",
+      "start": "2026-10-21T16:30:00+07:00",
+      "end": "2026-10-22T10:30:00+07:00",
+      "title": "Import commit worker và account reuse",
+      "pages": [
+        "P10"
+      ],
+      "dependsOn": [
+        "D03"
+      ],
+      "deliverable": "Batch jobs progress/idempotency/unique/person_key/capacity; no password overwrite, retry/crash harness.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-21T16:30:00+07:00",
+          "end": "2026-10-21T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T08:00:00+07:00",
+          "end": "2026-10-22T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D05",
+      "owner": "Đức",
+      "start": "2026-10-22T10:30:00+07:00",
+      "end": "2026-10-22T14:30:00+07:00",
+      "title": "Activation và giao diện nhận tài khoản",
+      "pages": [
+        "P10",
+        "P13"
+      ],
+      "dependsOn": [
+        "D04"
+      ],
+      "deliverable": "Single-use hash/TTL/claim/reissue unclaimed; success không lộ token; owner self-password, accountclaimed không TA reset.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T10:30:00+07:00",
+          "end": "2026-10-22T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-22T13:00:00+07:00",
+          "end": "2026-10-22T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D06",
+      "owner": "Đức",
+      "start": "2026-10-22T14:30:00+07:00",
+      "end": "2026-10-22T16:30:00+07:00",
+      "title": "Nhân sự/Referee invite FE+BE",
+      "pages": [
+        "P11",
+        "P17"
+      ],
+      "dependsOn": [
+        "D02",
+        "L03"
+      ],
+      "deliverable": "Assign/invite/accept/revoke/expiry; minRef accepted cho READY; không gán global role trái phép.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-22T14:30:00+07:00",
+          "end": "2026-10-22T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D07",
+      "owner": "Đức",
+      "start": "2026-10-22T16:30:00+07:00",
+      "end": "2026-10-23T10:30:00+07:00",
+      "title": "Support queue và recovery SA FE+BE",
+      "pages": [
+        "P12",
+        "P13"
+      ],
+      "dependsOn": [
+        "D02"
+      ],
+      "deliverable": "Request/review/verify/reject/resolve, one-time reset owner-only, audit safe và rate limit. /account-access có request recovery khi chưa đăng nhập; public API rate-limited, response chung không enumeration; không đưa người mất password vào Admin shell.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-22T16:30:00+07:00",
+          "end": "2026-10-22T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T08:00:00+07:00",
+          "end": "2026-10-23T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D08",
+      "owner": "Đức",
+      "start": "2026-10-23T10:30:00+07:00",
+      "end": "2026-10-23T14:30:00+07:00",
+      "title": "Ack điều lệ/expiry/retention và dữ liệu cá nhân",
+      "pages": [
+        "P11",
+        "P18"
+      ],
+      "dependsOn": [
+        "D04",
+        "D05",
+        "D06",
+        "L07"
+      ],
+      "deliverable": "Versioned rules_ack, account-vs-enrollment expiry, staging cleanup và90days multi-reference policy; fake-time harness.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T10:30:00+07:00",
+          "end": "2026-10-23T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-23T13:00:00+07:00",
+          "end": "2026-10-23T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D09",
+      "owner": "Đức",
+      "start": "2026-10-23T14:30:00+07:00",
+      "end": "2026-10-23T16:30:00+07:00",
+      "title": "Import/security/privacy integration tests",
+      "pages": [
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P17",
+        "P18"
+      ],
+      "dependsOn": [
+        "D08",
+        "D07"
+      ],
+      "deliverable": "Cross-tenant/doubleclaim/uploadbounds/source/token leakage/retry; synthetic large input không benchmark10klive.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-23T14:30:00+07:00",
+          "end": "2026-10-23T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D10",
+      "owner": "Đức",
+      "start": "2026-10-23T16:30:00+07:00",
+      "end": "2026-10-24T10:30:00+07:00",
+      "title": "E2E các trang Đức bằng account thật ở DB test",
+      "pages": [
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P17",
+        "P18"
+      ],
+      "dependsOn": [
+        "D09"
+      ],
+      "deliverable": "Bootstrap→TA→import→claim→Refaccept→ack/support; no demo-only API, report actor/error cases.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 3,
+      "workSegments": [
+        {
+          "start": "2026-10-23T16:30:00+07:00",
+          "end": "2026-10-23T17:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T08:00:00+07:00",
+          "end": "2026-10-24T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D11",
+      "owner": "Đức",
+      "start": "2026-10-24T10:30:00+07:00",
+      "end": "2026-10-24T13:30:00+07:00",
+      "title": "Review chéo trang quản trị của Sơn",
+      "pages": [],
+      "dependsOn": [
+        "S10"
+      ],
+      "deliverable": "Forms/conditional defaults/loading/permission/admission/Offline privacy; findings có repro.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T10:30:00+07:00",
+          "end": "2026-10-24T12:00:00+07:00"
+        },
+        {
+          "start": "2026-10-24T13:00:00+07:00",
+          "end": "2026-10-24T13:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D12",
+      "owner": "Đức",
+      "start": "2026-10-24T13:30:00+07:00",
+      "end": "2026-10-24T14:30:00+07:00",
+      "title": "Rà audit/PII/token và permission matrix cuối",
+      "pages": [
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P17",
+        "P18"
+      ],
+      "dependsOn": [
+        "D10",
+        "D11"
+      ],
+      "deliverable": "No secrets across logs/export/publicpayload; no ID-based role bypass; retention account shared.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 1,
+      "workSegments": [
+        {
+          "start": "2026-10-24T13:30:00+07:00",
+          "end": "2026-10-24T14:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "id": "D13",
+      "owner": "Đức",
+      "start": "2026-10-24T14:30:00+07:00",
+      "end": "2026-10-24T16:30:00+07:00",
+      "title": "Sửa lỗi và bàn giao mảng Đức",
+      "pages": [
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P17",
+        "P18"
+      ],
+      "dependsOn": [
+        "D12"
+      ],
+      "deliverable": "Focused tests + UI traces + status no missing backend and no secret fixture data.",
+      "handoversDuringTask": [],
+      "status": "WAITING_G0",
+      "gate": "G0",
+      "hours": 2,
+      "workSegments": [
+        {
+          "start": "2026-10-24T14:30:00+07:00",
+          "end": "2026-10-24T16:30:00+07:00"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "id": "P01",
+      "name": "Danh sách giải và Admin shell",
+      "owner": "Sơn",
+      "route": "/admin/tournaments",
+      "frontend": "Cards, lọc trạng thái, tìm kiếm, phân trang, navigation theo quyền",
+      "backend": "GET /api/admin/tournaments; GET /api/admin/capabilities; scope/sort/page",
+      "deadline": "21/10 12:00",
+      "tasks": [
+        "S01",
+        "S02"
+      ],
+      "reviewer": "Đức"
+    },
+    {
+      "id": "P02",
+      "name": "Khởi tạo / sửa nháp giải",
+      "owner": "Sơn",
+      "route": "/admin/tournaments/new; /admin/tournaments/:id/edit",
+      "frontend": "Wizard đủ nhóm field, draft/error/conflict, tích hợp RuleEditor của Nam",
+      "backend": "POST/PATCH draft, validate/submit adapters gọi core; expectedVersion; contract/quota guards",
+      "deadline": "23/10 16:30",
+      "tasks": [
+        "S03",
+        "S04",
+        "S07",
+        "S09"
+      ],
+      "reviewer": "Đức"
+    },
+    {
+      "id": "P03",
+      "name": "Chi tiết giải / điều kiện READY / thao tác",
+      "owner": "Sơn",
+      "route": "/admin/tournaments/:id",
+      "frontend": "Overview/config/tabs/blockers và actions đúng actor",
+      "backend": "GET detail/readiness/action-capabilities; adapters submit/pause/cancel gọi core Long",
+      "deadline": "24/10 10:30",
+      "tasks": [
+        "S05",
+        "S06",
+        "S10"
+      ],
+      "reviewer": "Đức"
+    },
+    {
+      "id": "P04",
+      "name": "Luật / phiên bản / phát hành",
+      "owner": "Nguyễn Tiến Nam",
+      "route": "/admin/tournaments/:id/rules",
+      "frontend": "Board/layout/movement/goals, preview, diff/reason/effective/publish",
+      "backend": "Rules validate/preview/list/version/publish; engine/caps/envelope/immutability",
+      "deadline": "23/10 16:30",
+      "tasks": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N07",
+        "N08"
+      ],
+      "reviewer": "Long"
+    },
+    {
+      "id": "P05",
+      "name": "Xem trận và phân xử thủ công exact-tie",
+      "owner": "Nguyễn Tiến Nam",
+      "route": "/admin/tournaments/:id/adjudications/:requestId",
+      "frontend": "Request/frozen board/criteria/deadline, chọn winner+reason, conflict/timeout",
+      "backend": "GET request; POST decision adapter dùng transaction/CAS Long; owner ACL, no player slot",
+      "deadline": "24/10 10:30",
+      "tasks": [
+        "N04",
+        "L08",
+        "N09"
+      ],
+      "reviewer": "Long"
+    },
+    {
+      "id": "P06",
+      "name": "Đơn vị",
+      "owner": "Long",
+      "route": "/admin/units",
+      "frontend": "Danh sách/tạo/sửa/khóa đơn vị, field errors và consumers",
+      "backend": "Units CRUD, unique code, FK/reference guard, SA authorization",
+      "deadline": "21/10 16:30",
+      "tasks": [
+        "L03"
+      ],
+      "reviewer": "Nguyễn Tiến Nam"
+    },
+    {
+      "id": "P07",
+      "name": "Hợp đồng / hạn mức / envelope",
+      "owner": "Long",
+      "route": "/admin/contracts",
+      "frontend": "Form contract/caps/unit/mode/rules, bindings và quota còn lại",
+      "backend": "Contract CRUD/activation/caps/quota/bind service, transactions và expiry",
+      "deadline": "21/10 16:30",
+      "tasks": [
+        "L02",
+        "L03"
+      ],
+      "reviewer": "Nguyễn Tiến Nam"
+    },
+    {
+      "id": "P08",
+      "name": "Hộp duyệt và chi tiết xét duyệt",
+      "owner": "Long",
+      "route": "/admin/approvals; /admin/approvals/:id",
+      "frontend": "Queue/detail/diff/field notes, ba outcome và change request",
+      "backend": "Approval queries/commands, immutable snapshots, refund/idempotency/ACL",
+      "deadline": "22/10 14:30",
+      "tasks": [
+        "L04",
+        "L05"
+      ],
+      "reviewer": "Nguyễn Tiến Nam"
+    },
+    {
+      "id": "P09",
+      "name": "Tài khoản quản trị / TA và quyền hợp đồng",
+      "owner": "Đức",
+      "route": "/admin/accounts",
+      "frontend": "Account list/create/bind/revoke, role/error states",
+      "backend": "Bootstrap one-time; account/grant endpoints, trusted auth, no public register privilege",
+      "deadline": "21/10 12:00",
+      "tasks": [
+        "D01",
+        "D02"
+      ],
+      "reviewer": "Sơn"
+    },
+    {
+      "id": "P10",
+      "name": "Thí sinh / import / job progress",
+      "owner": "Đức",
+      "route": "/admin/tournaments/:id/participants",
+      "frontend": "Table/manual add/upload/preview/errors/commit/progress/activation status",
+      "backend": "Roster CRUD; CSV/XLSX staging/worker/idempotency/caps/account reuse/token issue",
+      "deadline": "22/10 14:30",
+      "tasks": [
+        "D03",
+        "D04",
+        "D05"
+      ],
+      "reviewer": "Sơn"
+    },
+    {
+      "id": "P11",
+      "name": "Nhân sự / Referee",
+      "owner": "Đức",
+      "route": "/admin/tournaments/:id/staff",
+      "frontend": "Invite/assign/acceptance/revoke/status; role-scoped list",
+      "backend": "Staff/invite APIs, grant/expiry, minRef readiness contract, no global-role escalation",
+      "deadline": "23/10 14:30",
+      "tasks": [
+        "D06",
+        "D08"
+      ],
+      "reviewer": "Sơn"
+    },
+    {
+      "id": "P12",
+      "name": "Hỗ trợ và khôi phục tài khoản",
+      "owner": "Đức",
+      "route": "/admin/support",
+      "frontend": "Request queue/detail/review/reject/resolve và evidence access",
+      "backend": "Support/reset-token issue-after-SA-verify/rate limit/audit/TTL, no TA password takeover",
+      "deadline": "23/10 10:30",
+      "tasks": [
+        "D07"
+      ],
+      "reviewer": "Sơn"
+    },
+    {
+      "id": "P13",
+      "name": "Kích hoạt / đặt mật khẩu bằng mã",
+      "owner": "Đức",
+      "route": "/account-access",
+      "frontend": "Code entry, activation/recovery purpose, set password, expired/claimed/error states Có nút gửi yêu cầu hỗ trợ khi mất đăng nhập, thông báo chung không lộ account tồn tại.",
+      "backend": "Claim/reset purpose-specific token verification, atomic single use, expiry/revoke/session handling Public POST support-request có giới hạn tần suất/phản hồi chung, không tự reset/khóa account.",
+      "deadline": "23/10 10:30",
+      "tasks": [
+        "D05",
+        "D07"
+      ],
+      "reviewer": "Sơn"
+    },
+    {
+      "id": "P14",
+      "name": "Nhật ký quản trị",
+      "owner": "Sơn",
+      "route": "/admin/audit",
+      "frontend": "Safe columns/filters/page/detail theo scope",
+      "backend": "GET /api/admin/audit-logs using audit port Long; SA-wide/TA-tenant, secrets redacted",
+      "deadline": "22/10 16:30",
+      "tasks": [
+        "S06"
+      ],
+      "reviewer": "Đức"
+    },
+    {
+      "id": "P15",
+      "name": "Hub công cụ Offline",
+      "owner": "Sơn",
+      "route": "/admin/offline-tools",
+      "frontend": "Bốn công cụ: Kho Bot/Bot Offline/Người–Bot/Người–Người; actual routing và unavailable states",
+      "backend": "Capabilities/ACL + reuse own-library APIs; gameplay Offline chạy cục bộ đúng security, không tạo server Python runner mới",
+      "deadline": "23/10 16:30",
+      "tasks": [
+        "S08",
+        "S09",
+        "N06",
+        "N08"
+      ],
+      "reviewer": "Đức"
+    },
+    {
+      "id": "P16",
+      "name": "Trạng thái sẵn sàng Bot",
+      "owner": "Nguyễn Tiến Nam",
+      "route": "/admin/tournaments/:id/bot-readiness",
+      "frontend": "Per-participant compatible/pending/blocked/version/retry, không private source/logs",
+      "backend": "Receipt/status/job APIs owner/hash/rule/runtime/SDK/policy and real preflight adapter",
+      "deadline": "23/10 16:30",
+      "tasks": [
+        "N06",
+        "N08"
+      ],
+      "reviewer": "Long"
+    },
+    {
+      "id": "P17",
+      "name": "Nhận / từ chối lời mời nhân sự",
+      "owner": "Đức",
+      "route": "/staff-invitations",
+      "frontend": "Invite details, authenticated acceptance/reject/expiry, safe return",
+      "backend": "POST accept/reject with trusted principal/token-purpose/TTL, no role-by-URL",
+      "deadline": "22/10 16:30",
+      "tasks": [
+        "D06"
+      ],
+      "reviewer": "Sơn"
+    },
+    {
+      "id": "P18",
+      "name": "Điều lệ và xác nhận của thí sinh",
+      "owner": "Đức",
+      "route": "/tournaments/:id/regulations",
+      "frontend": "Summary/full rules/version, ack checkbox/action và changed-version prompt",
+      "backend": "Scoped GET regulations; POST ack version/principal/timestamp, gate only new match",
+      "deadline": "23/10 16:30",
+      "tasks": [
+        "D08",
+        "D09"
+      ],
+      "reviewer": "Sơn"
+    }
+  ],
+  "sharedWriterReservations": [
+    {
+      "task": "L01",
+      "owner": "Long",
+      "start": "2026-10-21T09:00:00+07:00",
+      "end": "2026-10-21T10:00:00+07:00",
+      "purpose": "Chốt contracts/schema và disposable DB.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-21T09:00:00+07:00",
+          "end": "2026-10-21T10:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L02",
+      "owner": "Long",
+      "start": "2026-10-21T11:00:00+07:00",
+      "end": "2026-10-21T11:20:00+07:00",
+      "purpose": "Đăng ký backend tài khoản và console từ export S02/D02.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-21T11:00:00+07:00",
+          "end": "2026-10-21T11:20:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L03",
+      "owner": "Long",
+      "start": "2026-10-21T15:30:00+07:00",
+      "end": "2026-10-21T16:30:00+07:00",
+      "purpose": "Ghép API draft/roster/đơn vị/hợp đồng và kiểm tra với chủ trang; nhận export S03/D03/L03.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-21T15:30:00+07:00",
+          "end": "2026-10-21T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L05",
+      "owner": "Long",
+      "start": "2026-10-22T13:30:00+07:00",
+      "end": "2026-10-22T14:00:00+07:00",
+      "purpose": "Ghép API kích hoạt và DTO từ export D05.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-22T13:30:00+07:00",
+          "end": "2026-10-22T14:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L06",
+      "owner": "Long",
+      "start": "2026-10-22T16:00:00+07:00",
+      "end": "2026-10-22T16:30:00+07:00",
+      "purpose": "Ghép staff/invite/role/admission từ export D06.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-22T16:00:00+07:00",
+          "end": "2026-10-22T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L07",
+      "owner": "Long",
+      "start": "2026-10-23T09:30:00+07:00",
+      "end": "2026-10-23T09:50:00+07:00",
+      "purpose": "Ghép public + SA support/recovery API từ export D07.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-23T09:30:00+07:00",
+          "end": "2026-10-23T09:50:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L08",
+      "owner": "Long",
+      "start": "2026-10-23T13:30:00+07:00",
+      "end": "2026-10-23T14:00:00+07:00",
+      "purpose": "Nối API phân xử N04 với canonical result service.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-23T13:30:00+07:00",
+          "end": "2026-10-23T14:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L09",
+      "owner": "Long",
+      "start": "2026-10-23T14:30:00+07:00",
+      "end": "2026-10-23T15:00:00+07:00",
+      "purpose": "Nối ACK/compatibility từ D08/N06 và kiểm tra HTTP.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-23T14:30:00+07:00",
+          "end": "2026-10-23T15:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "L10",
+      "owner": "Long",
+      "start": "2026-10-24T09:30:00+07:00",
+      "end": "2026-10-24T10:30:00+07:00",
+      "purpose": "Nhận manual FE N09 lúc 24/10 09:30; route sẵn sàng 09:45; browser smoke 09:45–10:30.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-24T09:30:00+07:00",
+          "end": "2026-10-24T10:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S01",
+      "owner": "Sơn",
+      "start": "2026-10-21T09:00:00+07:00",
+      "end": "2026-10-21T09:30:00+07:00",
+      "purpose": "Đăng ký shell/routes/guards; route chưa hoàn tất hiển thị pending.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-21T09:00:00+07:00",
+          "end": "2026-10-21T09:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S02",
+      "owner": "Sơn",
+      "start": "2026-10-21T11:15:00+07:00",
+      "end": "2026-10-21T11:30:00+07:00",
+      "purpose": "Đăng ký console/account FE từ export D02.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-21T11:15:00+07:00",
+          "end": "2026-10-21T11:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S03",
+      "owner": "Sơn",
+      "start": "2026-10-21T15:30:00+07:00",
+      "end": "2026-10-21T16:00:00+07:00",
+      "purpose": "Đăng ký draft/roster/SA FE từ S03/D03/L03, cùng chủ trang kiểm tra API thật.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-21T15:30:00+07:00",
+          "end": "2026-10-21T16:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S05",
+      "owner": "Sơn",
+      "start": "2026-10-22T13:30:00+07:00",
+      "end": "2026-10-22T13:45:00+07:00",
+      "purpose": "Đăng ký activation FE D05; kiểm tra API sau slot Long L05.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-22T13:30:00+07:00",
+          "end": "2026-10-22T13:45:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S06",
+      "owner": "Sơn",
+      "start": "2026-10-22T15:45:00+07:00",
+      "end": "2026-10-22T16:00:00+07:00",
+      "purpose": "Đăng ký staff/invite FE từ D06.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-22T15:45:00+07:00",
+          "end": "2026-10-22T16:00:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S07",
+      "owner": "Sơn",
+      "start": "2026-10-23T09:30:00+07:00",
+      "end": "2026-10-23T09:45:00+07:00",
+      "purpose": "Đăng ký support/recovery FE từ D07.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-23T09:30:00+07:00",
+          "end": "2026-10-23T09:45:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S09",
+      "owner": "Sơn",
+      "start": "2026-10-23T14:30:00+07:00",
+      "end": "2026-10-23T16:30:00+07:00",
+      "purpose": "23/10 14:30–15:30 tích hợp luật; 15:30–15:45 ACK/Bot routes; 15:45–16:30 kiểm tra lại.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-23T14:30:00+07:00",
+          "end": "2026-10-23T16:30:00+07:00"
+        }
+      ]
+    },
+    {
+      "task": "S10",
+      "owner": "Sơn",
+      "start": "2026-10-24T09:30:00+07:00",
+      "end": "2026-10-24T09:45:00+07:00",
+      "purpose": "Đăng ký manual FE N09 ngày 24/10 09:30–09:45, giao Long kiểm tra UI.",
+      "countsInsideTask": true,
+      "workSegments": [
+        {
+          "start": "2026-10-24T09:30:00+07:00",
+          "end": "2026-10-24T09:45:00+07:00"
+        }
+      ]
+    }
+  ],
+  "partialExportDeadlines": [
+    {
+      "producer": "S02",
+      "at": "2026-10-21T10:50:00+07:00",
+      "output": "Console backend exports",
+      "receiver": "L02"
+    },
+    {
+      "producer": "D02",
+      "at": "2026-10-21T10:50:00+07:00",
+      "output": "Account/role backend exports",
+      "receiver": "L02"
+    },
+    {
+      "producer": "D02",
+      "at": "2026-10-21T11:10:00+07:00",
+      "output": "Account FE",
+      "receiver": "S02"
+    },
+    {
+      "producer": "S03",
+      "at": "2026-10-21T15:00:00+07:00",
+      "output": "Draft backend",
+      "receiver": "L03"
+    },
+    {
+      "producer": "D03",
+      "at": "2026-10-21T15:00:00+07:00",
+      "output": "Roster staging backend",
+      "receiver": "L03"
+    },
+    {
+      "producer": "D03",
+      "at": "2026-10-21T15:20:00+07:00",
+      "output": "Roster FE",
+      "receiver": "S03"
+    },
+    {
+      "producer": "L03",
+      "at": "2026-10-21T15:20:00+07:00",
+      "output": "Units/contracts FE",
+      "receiver": "S03"
+    },
+    {
+      "producer": "D05",
+      "at": "2026-10-22T12:00:00+07:00",
+      "output": "Activation backend",
+      "receiver": "L05"
+    },
+    {
+      "producer": "D05",
+      "at": "2026-10-22T13:20:00+07:00",
+      "output": "Activation FE",
+      "receiver": "S05"
+    },
+    {
+      "producer": "D06",
+      "at": "2026-10-22T15:30:00+07:00",
+      "output": "Staff/invite backend",
+      "receiver": "L06"
+    },
+    {
+      "producer": "D06",
+      "at": "2026-10-22T15:40:00+07:00",
+      "output": "Staff/invite FE",
+      "receiver": "S06"
+    },
+    {
+      "producer": "N04",
+      "at": "2026-10-22T14:30:00+07:00",
+      "output": "Manual backend route exports",
+      "receiver": "L08"
+    },
+    {
+      "producer": "D07",
+      "at": "2026-10-23T09:15:00+07:00",
+      "output": "Support/recovery backend",
+      "receiver": "L07"
+    },
+    {
+      "producer": "D07",
+      "at": "2026-10-23T09:20:00+07:00",
+      "output": "Support/recovery FE",
+      "receiver": "S07"
+    },
+    {
+      "producer": "D08",
+      "at": "2026-10-23T14:00:00+07:00",
+      "output": "Regulations/ACK backend+FE",
+      "receiver": "L09/S09"
+    },
+    {
+      "producer": "N06",
+      "at": "2026-10-23T10:30:00+07:00",
+      "output": "Bot-readiness backend ABI export",
+      "receiver": "L09"
+    },
+    {
+      "producer": "N07",
+      "at": "2026-10-23T14:30:00+07:00",
+      "output": "Final RuleEditor stable interface",
+      "receiver": "S09"
+    },
+    {
+      "producer": "N08",
+      "at": "2026-10-23T15:30:00+07:00",
+      "output": "Bot-readiness FE",
+      "receiver": "S09"
+    },
+    {
+      "producer": "N09",
+      "at": "2026-10-24T09:30:00+07:00",
+      "output": "Manual FE; code stable for consumer smoke",
+      "receiver": "S10/L10"
+    }
+  ],
+  "gateDelayRule": "V2 dùng ca 08:00–12:00 và 13:00–17:00 từ 21/10. Mốc mở đợt là 21/10 00:00; không xếp việc 00:00–08:00. G0 mục tiêu 21/10 09:00; nếu chậm, công bố lịch mới theo ca hợp lệ, không tự cắt MUST/test hoặc đổi hạn cuối 24/10 18:00.",
+  "scheduleVersion": "V2",
+  "workPolicy": {
+    "kickoff": "2026-10-21T00:00:00+07:00",
+    "firstShift": "2026-10-21T08:00:00+07:00",
+    "dailyWindows": [
+      "08:00–12:00",
+      "13:00–17:00"
+    ],
+    "noAssignments": "00:00–08:00",
+    "dailyHours": 8,
+    "latestSubmissionBoundary": "00:00",
+    "candidateDue": "2026-10-24T16:30:00+07:00",
+    "remainingBuffer": "24/10 16:30–17:00; không còn nguyên ngày dự phòng",
+    "outerDeadline": "2026-10-24T18:00:00+07:00"
+  }
+}
