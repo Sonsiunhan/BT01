@@ -1,0 +1,303 @@
+{
+  "schemaVersion": "0.2.0",
+  "candidateId": "CAND-F",
+  "title": "Network Core Final Candidate (CP-6 / CP-7 Handoff)",
+  "generatedAt": "2026-10-11T17:34:02.009Z",
+  "git": {
+    "baseSha": "dbda8a9a17a91b7d24237feb3041fa924416f3f9",
+    "branch": "main",
+    "diffHash": "26c3cf9aa6e7a6dbddf5cea7b3c30adbc6fa882016091813559360210ca15534",
+    "compositeFingerprint": "1613cda3d85eaac91e835e1b4ef925274fb7b6a1b9925ef15bf1fe6cbe3a7c3c"
+  },
+  "securityAudit": {
+    "status": "PASSED",
+    "zeroSecretLeaksVerified": true,
+    "scannedDirectories": [
+      "apps/server/src/config",
+      "apps/server/src/modules/capacity",
+      "apps/server/src/modules/diagnostics",
+      "apps/server/src/modules/health",
+      "apps/server/src/modules/match",
+      "apps/server/src/modules/room",
+      "packages/contracts/src",
+      "packages/game-rules/src",
+      "tests/load",
+      "scripts/network"
+    ],
+    "rulesEnforced": [
+      "RULE-01: No private Python code exposed in public projections",
+      "RULE-06: Strict origin and session guard ordering",
+      "RULE-12: Zero raw credentials in health, metrics, or diagnostics",
+      "RULE-14: Disposable DB mutation guard strictly enforced"
+    ]
+  },
+  "runtimeLimits": {
+    "maxActivePvPMatches": 50,
+    "maxActivePythonMatches": 1,
+    "maxConcurrentStreams": 200,
+    "humanMoveAckP95Ms": 300,
+    "humanMoveAckP99Ms": 1000,
+    "teardownHeapDeltaMaxMb": 50
+  },
+  "waveSummary": {
+    "L01": "Game Rules Core (Versioned seeds, 18 pieces, DRAW/NO_LEGAL_MOVES)",
+    "L02": "Contracts & Schema (Protocol 0.2, compatibility 0.1, typed errors)",
+    "L03": "Rooms & Matchmaking (Durable reservations, state machines, race isolation)",
+    "L04": "SSE Broadcast Hub & Web Reconciler (Backpressure, single serialization)",
+    "L05": "Match Authority & Clocks (CAS lanes, independent deadline scheduler)",
+    "L06": "Persistence & Recovery (Prisma transactions, exactly-once ledger, replay engine)",
+    "L07": "Capacity & Integration (3-state controller, hysteresis, workload generators, ramp/soak/spike)"
+  },
+  "files": [
+    {
+      "path": "packages/game-rules/src/engine.ts",
+      "bytes": 5999,
+      "sha256": "cff13d1016e445c41d5e464513cdc05ded629da4ab8663242a93036bfdd6e7cc"
+    },
+    {
+      "path": "packages/game-rules/src/setup.ts",
+      "bytes": 4875,
+      "sha256": "1a73a4c47804c6259622cf18a4bd79a887378baf5badb0faad5502350455e266"
+    },
+    {
+      "path": "packages/game-rules/src/types.ts",
+      "bytes": 1804,
+      "sha256": "f4ff805f0484f414ff1717111915bfd2ca86349aad881d8a831162da5f0dbc12"
+    },
+    {
+      "path": "packages/contracts/src/errors.ts",
+      "bytes": 10964,
+      "sha256": "f3d17231a1ed1c09be20933acb243a34fdd9f3ade1950a697fc2a97a672fa042"
+    },
+    {
+      "path": "packages/contracts/src/events.ts",
+      "bytes": 1390,
+      "sha256": "f1ef26359ceda9057ce56fc7db5cd52c4d70d77f825ecf0e054e1c66c2f886d3"
+    },
+    {
+      "path": "packages/contracts/src/command.ts",
+      "bytes": 1752,
+      "sha256": "33d92d4957229393ce27de63a3d630d29e78a6216f5411d73015ce578cc7f2f9"
+    },
+    {
+      "path": "packages/contracts/src/snapshot.ts",
+      "bytes": 3466,
+      "sha256": "61a08f3d2b71815428a6bed672bb17934811e051fb2072da443b94da5386a11d"
+    },
+    {
+      "path": "packages/contracts/src/health.ts",
+      "bytes": 1340,
+      "sha256": "2752e34cea9ba41f06d978d9dafc51dfb1da2981eca3e7e70b06913e5d9130a0"
+    },
+    {
+      "path": "packages/contracts/src/metrics.ts",
+      "bytes": 1538,
+      "sha256": "07d3ec4aa70031426561fc737f399b9b8a9ddf688fa80fb1950577573acdae70"
+    },
+    {
+      "path": "packages/contracts/src/inventory.ts",
+      "bytes": 942,
+      "sha256": "0f36fe9db7c7f244bc35feb77639195ad0645d09c9cca25709904c0dffb3b892"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "bytes": 822,
+      "sha256": "58b8d97f8c28b51597cecb74dd379bbbf8a6dbe73040f52ad74c1d952b34b51c"
+    },
+    {
+      "path": "apps/server/src/modules/room/room.manager.ts",
+      "bytes": 28691,
+      "sha256": "2ec429e29dea3bc2f9932f6af2b308fd7c1e3140fc15cacd283bd6ad389f6f46"
+    },
+    {
+      "path": "apps/server/src/modules/room/room.route.ts",
+      "bytes": 8219,
+      "sha256": "aafafccd35d7ae11c4a0d6a028e5ba61c0fb9ff20ba8064f98a35979c25342df"
+    },
+    {
+      "path": "apps/server/src/modules/matchmaking/matchmaking.manager.ts",
+      "bytes": 11417,
+      "sha256": "5930435d5cc84d440da85b1df3dcaf6298b899219b1ad9e46bd5f782e77f44d3"
+    },
+    {
+      "path": "apps/server/src/realtime/sse/sse-hub.ts",
+      "bytes": 2528,
+      "sha256": "a77a7dfe51fb66e472ad726c5b283512f34035afd600d317197dccb84419ce4d"
+    },
+    {
+      "path": "apps/web/src/services/network/networkStore.ts",
+      "bytes": 1305,
+      "sha256": "5a01373a9cae2dee6e4369a070c27ffbe811b7797cfdb84c9fbcf317ec90160a"
+    },
+    {
+      "path": "apps/web/src/services/network/reconciler.ts",
+      "bytes": 2753,
+      "sha256": "9d4ab92ac11326010d9b235404638492f0c11297ed0bde3addc8edd68867c8a4"
+    },
+    {
+      "path": "apps/web/src/services/network/subscriptionManager.ts",
+      "bytes": 8789,
+      "sha256": "8793a1fcd61c598b910746c8b303622ec2d7bf53a5b18ff98743cd0d98fba637"
+    },
+    {
+      "path": "apps/web/src/services/network/useMatchNetwork.ts",
+      "bytes": 8596,
+      "sha256": "6cae7c8bbe37817c64e57e77cf4e9b42e0e81db0c5fa3647f75a378c1388cc69"
+    },
+    {
+      "path": "apps/web/src/services/network/index.ts",
+      "bytes": 716,
+      "sha256": "ec36798bbb4b989c775eed22d7d39bdc92252be9d67f25da79dc71b53790e96e"
+    },
+    {
+      "path": "apps/server/src/modules/match/lane/match-lane.ts",
+      "bytes": 3217,
+      "sha256": "0cbf87362618bbf1c5321286ba10388524e69c3224acae7d889e8a0190f780de"
+    },
+    {
+      "path": "apps/server/src/modules/match/scheduler/deadline-scheduler.ts",
+      "bytes": 4057,
+      "sha256": "e7bb95fbb686d9a837ec5b4a6d74fdb5af485b60e883532626f8c006145b4c25"
+    },
+    {
+      "path": "apps/server/src/modules/match/match.manager.ts",
+      "bytes": 60891,
+      "sha256": "a4c0809585925de59582bee14a4b5963f7b2a079d92c27a117ce7bc9a15ae49c"
+    },
+    {
+      "path": "apps/server/src/modules/match/match.route.ts",
+      "bytes": 18418,
+      "sha256": "2562b15ea9293d5dc833694e62a24116fc8d80b80a8afe32abd94a764ddd3737"
+    },
+    {
+      "path": "apps/server/src/modules/match/commit/commit.port.ts",
+      "bytes": 2010,
+      "sha256": "93af7955a5b24fa73fc9eb4f0303784bf3720b41f6062834f69bbaf13fe2e3ce"
+    },
+    {
+      "path": "apps/server/src/modules/match/commit/command-ledger.ts",
+      "bytes": 4367,
+      "sha256": "76ab10a98cff9a615a323e6d1b35bcc4924c15c463ef04cc37b9425c06752ef8"
+    },
+    {
+      "path": "apps/server/src/modules/match/commit/commit.prisma.ts",
+      "bytes": 24773,
+      "sha256": "c988eee61fe3efadc3c1f8a77f27c78cd26f214ab0db44982ed5660b4ac3d28c"
+    },
+    {
+      "path": "apps/server/src/modules/match/recovery/match-recovery.manager.ts",
+      "bytes": 8868,
+      "sha256": "cf6156ff20c4a8c9d776a39cef23e3c65ec4cf284002e9a718ff242ba7617e0a"
+    },
+    {
+      "path": "apps/server/src/modules/match/recovery/replay-engine.ts",
+      "bytes": 7291,
+      "sha256": "507b725fb839192400b7e666340fc065206f4a527c5c5e46b95b7c89caf8eb6a"
+    },
+    {
+      "path": "apps/server/src/modules/match/recovery/retention-gc.service.ts",
+      "bytes": 6243,
+      "sha256": "61bf0e4b357c90acb6402e8f85ff66260a307038a84031411f458ee1804ac051"
+    },
+    {
+      "path": "apps/server/src/modules/match/recovery/local-adapter-descriptor.ts",
+      "bytes": 3662,
+      "sha256": "986cee9f3923585bfd8cd82dc6ae26eea9f599b1f755cdaae72398452af2e9c4"
+    },
+    {
+      "path": "scripts/network/disposable-db.mjs",
+      "bytes": 11843,
+      "sha256": "578eb0c9fa175b6599a25669510be27084fa59bfe5a9830e5978eafe78e6553d"
+    },
+    {
+      "path": "scripts/network/kill-restart-rehearsal.mjs",
+      "bytes": 17804,
+      "sha256": "06b40faf3e79140ba18e0074843f2b491eec300064bc8ad2918b61bc66ccb6e8"
+    },
+    {
+      "path": "scripts/network/backup-restore-rehearsal.mjs",
+      "bytes": 13395,
+      "sha256": "12513442c4558359ae93720327d606783da20a2ee452f8805e6cb05976798d54"
+    },
+    {
+      "path": "apps/server/src/config/budget-profile.ts",
+      "bytes": 14828,
+      "sha256": "e917ea1a94911553fff26e4a64bade6c5f40d88dbebcac78f2ce9e4bd0232ff2"
+    },
+    {
+      "path": "apps/server/src/modules/capacity/capacity.types.ts",
+      "bytes": 1579,
+      "sha256": "626945aefabca00256fc3c62d201682e8df1472f619d337b7cb3824024fad96d"
+    },
+    {
+      "path": "apps/server/src/modules/capacity/admission.pool.ts",
+      "bytes": 2348,
+      "sha256": "158e6b1de524cf4811b8bc339f9b428e59710006f6df30734a713de51d1e1a9c"
+    },
+    {
+      "path": "apps/server/src/modules/capacity/capacity.controller.ts",
+      "bytes": 10519,
+      "sha256": "5da1cbe1ae480314f9703e632ef90e66831775d52406e6b5310b7be220ec5801"
+    },
+    {
+      "path": "apps/server/src/modules/capacity/capacity.hook.ts",
+      "bytes": 4007,
+      "sha256": "5ba371681159802092a2bb38dbb7bfc0a8b43132e88ab113216a1a22f010c2e8"
+    },
+    {
+      "path": "apps/server/src/modules/capacity/capacity.route.ts",
+      "bytes": 580,
+      "sha256": "d2dfadc80577c652b80fe98745bebdddd5020ecb6d87dee7227895704208e4d8"
+    },
+    {
+      "path": "apps/server/src/modules/capacity/index.ts",
+      "bytes": 189,
+      "sha256": "b49d8b2d6a212573c29c10b4949ec483b3d029cd7ef5122d30f0ce66ba72d92c"
+    },
+    {
+      "path": "tests/load/generators/gameplay-http-generator.mjs",
+      "bytes": 5840,
+      "sha256": "0009317f18e789b08042617c04d70931520026e7b9e4caf385922b7b3b576aab"
+    },
+    {
+      "path": "tests/load/generators/sse-stream-generator.mjs",
+      "bytes": 4328,
+      "sha256": "2987c8dee21b206754d8eabf2ee2ad9b984e4e2c34c53229853a5698bf1d6ecb"
+    },
+    {
+      "path": "tests/load/scenarios/ramp-soak-spike.mjs",
+      "bytes": 20388,
+      "sha256": "b7d8dabfd37a46d4dab4ff51c892fccfd7857b10b0916839ac2cdd76425e2ef4"
+    },
+    {
+      "path": "tests/load/scenarios/fault-injection.mjs",
+      "bytes": 10731,
+      "sha256": "42db30f610267e871fb1402b554d81ef98092bb9d2e14a2ee7bd9c50befb68fd"
+    },
+    {
+      "path": "scripts/network/run-baseline-benchmarks.mjs",
+      "bytes": 9239,
+      "sha256": "3bd28461013575b863d6cfec18b79fa18cc2ec68e883eaa858d27d8439748b12"
+    },
+    {
+      "path": "scripts/network/run-gameplay-benchmarks.mjs",
+      "bytes": 12063,
+      "sha256": "2d4dd6b4db3f00ef5b4aa835c57cad2cee0b1779d69806b7a736042f5b323f57"
+    },
+    {
+      "path": "scripts/network/run-capacity-workload.mjs",
+      "bytes": 13696,
+      "sha256": "393db2400226e6d33930deb0c865ace3d1685237c08aadc3078298ebf9e7d5e7"
+    },
+    {
+      "path": "scripts/network/freeze-cand2.mjs",
+      "bytes": 10507,
+      "sha256": "792a4bc5463a95617f227ed7a0abbfc39dc8c39cbef46130d7e5b7a82b80235f"
+    },
+    {
+      "path": "scripts/network/cand2-restart-rehearsal.mjs",
+      "bytes": 11711,
+      "sha256": "bd3461bfdf2995a1a9380a5fbf0dd5905917d6d86f38fc540b27419c5cf0fb6d"
+    }
+  ]
+}

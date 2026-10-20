@@ -53,7 +53,7 @@ describe("R6 RoomBrowser full list", () => {
     expect(screen.getByRole("radio", { name: /Chơi trực tiếp/i })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Đấu chương trình/i })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /Có Trọng tài/i })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /Cho phép spectator/i })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /Cho phép khán giả/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("radio", { name: /Đấu chương trình/i }));
     fireEvent.click(screen.getByRole("checkbox", { name: /Có Trọng tài/i }));
@@ -70,5 +70,16 @@ describe("R6 RoomBrowser full list", () => {
     const createButtons = screen.getAllByRole("button", { name: "Tạo phòng" });
     fireEvent.click(createButtons[createButtons.length - 1]);
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/dau-chuong-trinh/online?room=BOT123"));
+  });
+
+  it("renders a password-type input when joining a private room", async () => {
+    const privateRoom = { ...rooms[0], visibility: "PRIVATE" as const, status: "WAITING" as const, players: 1 };
+    mocks.getRooms.mockResolvedValueOnce({ rooms: [privateRoom] });
+    renderWithProviders(<RoomBrowser variant="full" />);
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Danh sách Phòng Online" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Tham gia" }));
+    expect(await screen.findByRole("heading", { name: "Tham gia phòng" })).toBeInTheDocument();
+    const pwdInput = screen.getByLabelText("Mật khẩu phòng");
+    expect(pwdInput).toHaveAttribute("type", "password");
   });
 });

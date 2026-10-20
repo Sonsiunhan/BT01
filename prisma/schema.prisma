@@ -102,6 +102,12 @@ model Match {
   durationSeconds Int?
   finalBoard     Json?
   botAdjudication Json?
+  rulesVersion    String?        @default("rps-v1")
+  setupVersion    String?
+  initialSeed     Int?
+  initialSignature String?
+  initialBoard    Json?
+  cursorSequence  Int?           @default(0)
   createdAt       DateTime       @default(now())
   players         MatchPlayer[]
   moves           MatchMove[]
@@ -130,14 +136,21 @@ model MatchMove {
 }
 
 model MatchCheckpoint {
-  matchId      String   @id
-  roomId       String
-  sequence     Int
-  stateVersion Int
-  snapshot     Json
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId        String   @id
+  roomId         String
+  sequence       Int
+  stateVersion   Int
+  rulesVersion   String?  @default("rps-v1")
+  setupVersion   String?
+  initialSeed    Int?
+  initialSignature String?
+  initialBoard   Json?
+  cursorSequence Int?     @default(0)
+  lifecycleJson  Json?
+  snapshot       Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  match          Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@index([roomId, updatedAt])
 }
@@ -280,3 +293,84 @@ model BotRevision {
   @@unique([botLibraryId, sourceDigest])
   @@index([botLibraryId, updatedAt])
 }
+
+model CommandLedgerEntry {
+  id             String    @id @default(uuid())
+  principalId    String
+  targetId       String
+  operation      String
+  commandId      String
+  payloadDigest  String?
+  outcome        String
+  stateVersion   Int
+  sequence       Int
+  ackPayload     Json?
+  receivedAt     DateTime  @default(now())
+  committedAt    DateTime?
+  expiresAt      DateTime?
+
+  @@unique([principalId, targetId, operation, commandId])
+  @@index([targetId, expiresAt])
+  @@index([commandId])
+}
+
+model RoomContext {
+  id             String           @id
+  generation     Int              @default(1)
+  stateVersion   Int              @default(0)
+  activeMatchId  String?
+  previousSetup  Json?
+  config         Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  memberships    RoomMembership[]
+
+  @@index([updatedAt])
+}
+
+model RoomMembership {
+  id             String       @id @default(uuid())
+  roomId         String
+  userId         String
+  role           String       @default("PLAYER")
+  side           String?
+  principal      String       @default("ACCOUNT")
+  connected      Boolean      @default(true)
+  joinedAt       DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  room           RoomContext  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([roomId, role])
+}
+
+model BotPrivateCheckpoint {
+  id               String    @id @default(uuid())
+  matchId          String
+  botId            String
+  revisionId       String
+  turnNumber       Int
+  seed             Int?
+  invocationEpoch  Int?
+  invocationToken  String?
+  memoryPayload    Json?
+  budgetRemaining  Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([matchId, botId])
+  @@index([matchId, turnNumber])
+}
+
+model MatchSettlement {
+  id              String    @id @default(uuid())
+  matchId         String    @unique
+  settledAt       DateTime  @default(now())
+  outcome         String
+  eloApplied      Boolean   @default(false)
+  historyRecorded Boolean   @default(false)
+  payload         Json?
+
+  @@index([settledAt])
+}
+

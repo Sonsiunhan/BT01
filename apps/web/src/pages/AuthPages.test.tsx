@@ -20,7 +20,9 @@ describe("B2 auth output", () => {
     renderPage(<LoginPage />);
     expect(screen.getByRole("img", { name: "OTT v2 Robot Lab" })).toBeInTheDocument();
     expect(document.querySelector(".robot-lab-auth-layout .auth-companion")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Đăng nhập" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Tên đăng nhập"), { target: { value: "x" } });
+    fireEvent.change(screen.getByLabelText("Mật khẩu"), { target: { value: "pass" } });
     fireEvent.submit(screen.getByRole("button", { name: "Đăng nhập" }).closest("form") as HTMLFormElement);
     expect(screen.getByText("Username cần ít nhất 4 ký tự.")).toBeInTheDocument();
     expect(loginSpy).not.toHaveBeenCalled();
@@ -40,14 +42,14 @@ describe("B2 auth output", () => {
     fireEvent.submit(screen.getByRole("button", { name: "Đăng ký" }).closest("form") as HTMLFormElement);
     expect(await screen.findByText("Mã khôi phục")).toBeInTheDocument();
     expect(screen.getByText("ABCD-EFGH")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Tôi đã lưu mã" })).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("link", { name: "Đi tới hồ sơ" })).toHaveAttribute("aria-disabled", "true");
   });
 
   it("keeps recovery confirmation error beside the field", async () => {
     const recoverSpy = vi.spyOn(authApi, "recover");
     renderPage(<ForgotPasswordPage />);
     fireEvent.change(screen.getByLabelText("Username"), { target: { value: "player" } });
-    fireEvent.change(screen.getByLabelText("Recovery Code"), { target: { value: "ABCD" } });
+    fireEvent.change(screen.getByLabelText("Mã khôi phục"), { target: { value: "ABCD" } });
     fireEvent.change(screen.getByLabelText("Mật khẩu mới"), { target: { value: "password1" } });
     fireEvent.change(screen.getByLabelText("Xác nhận mật khẩu mới"), { target: { value: "different1" } });
     fireEvent.submit(screen.getByRole("button", { name: "Đặt lại mật khẩu" }).closest("form") as HTMLFormElement);

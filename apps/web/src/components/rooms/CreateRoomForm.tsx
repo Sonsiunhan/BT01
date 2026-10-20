@@ -43,7 +43,7 @@ export function CreateRoomForm({ value, pending = false, onChange, onSubmit, onC
       </div>}
     </fieldset>
     <fieldset className="choice-fieldset"><legend>Khán giả</legend>
-      <label className="check-row"><input type="checkbox" checked={Boolean(value.spectatorsEnabled)} onChange={(event) => update({ spectatorsEnabled: event.target.checked, spectatorCapacity: event.target.checked ? (value.spectatorCapacity ?? 10) : undefined })} /> Cho phép spectator</label>
+      <label className="check-row"><input type="checkbox" checked={Boolean(value.spectatorsEnabled)} onChange={(event) => update({ spectatorsEnabled: event.target.checked, spectatorCapacity: event.target.checked ? (value.spectatorCapacity ?? 10) : undefined })} /> Cho phép khán giả</label>
       {value.spectatorsEnabled && <label>Sức chứa khán giả<select value={value.spectatorCapacity ?? 10} onChange={(event) => update({ spectatorCapacity: Number(event.target.value) as CreateRoomRequest["spectatorCapacity"] })}>{spectatorCapacities.map((capacity) => <option value={capacity} key={capacity}>{capacity} người</option>)}</select></label>}
     </fieldset>
     <div className="modal-actions"><Button type="button" variant="secondary" onClick={onCancel}>Huỷ</Button><Button type="submit" disabled={invalidPublicRefereeHost} pending={pending} pendingLabel="Đang tạo…">Tạo phòng</Button></div>

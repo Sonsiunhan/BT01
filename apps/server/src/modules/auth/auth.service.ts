@@ -19,6 +19,12 @@ const GUEST_SESSION_COOKIE = "ottv2_guest";
 const SHORT_SESSION_MS = 24 * 60 * 60 * 1000;
 const LONG_SESSION_MS = 30 * SHORT_SESSION_MS;
 const MAX_GUEST_SESSIONS = 10_000;
+/**
+ * Pre-computed scrypt hash of a random value. Used in login() to ensure
+ * verifySecret always runs even when the user doesn't exist, preventing
+ * timing-based username enumeration.
+ */
+const DUMMY_PASSWORD_HASH = "scrypt$0000000000000000000000000000000000000000$0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
 type UserWithData = User & { profile: UserProfile | null; stats: UserStats | null };
 
@@ -212,7 +218,11 @@ export class AuthService {
     const key = `${normalizeUsername(input.username)}|${ip}`;
     this.throttle.guard(key);
     const user = await db.user.findUnique({ where: { usernameNormalized: normalizeUsername(input.username) }, include: includeData });
-    if (!user || !(await verifySecret(input.password, user.passwordHash))) {
+    // Always run verifySecret to prevent timing side-channel username enumeration.
+    // When user doesn't exist, verify against a dummy hash so the response time is constant.
+    const hash = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
+    const passwordValid = await verifySecret(input.password, hash);
+    if (!user || !passwordValid) {
       this.throttle.failure(key);
       throw new AppError("UNAUTHORIZED", "Tên đăng nhập hoặc mật khẩu không đúng.", 401, false, "INVALID");
     }

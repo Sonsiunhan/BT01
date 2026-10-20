@@ -1,6 +1,6 @@
 import type { MatchEventEnvelope, MatchPauseCategory, MatchSnapshot } from "@ottv2/contracts";
-import { env } from "../../config/env";
 import { getJson, requestJson } from "../http/httpClient";
+import { getSubscriptionManager } from "../network";
 import { getClientId } from "../session/clientIdentity";
 
 export function getMatch(roomId: string) {
@@ -41,8 +41,9 @@ export function acceptRefereeReplacement(roomId: string) {
   return requestJson<{ match: MatchSnapshot }>(`/matches/${encodeURIComponent(roomId)}/referee/replacement/accept`, { method: "POST", headers: { "X-Client-Id": getClientId() } });
 }
 
-export function submitMove(roomId: string, from: string, to: string, stateVersion: number) {
-  return requestJson<{ match: MatchSnapshot }>(`/matches/${encodeURIComponent(roomId)}/moves`, { method: "POST", body: { from, to, stateVersion }, headers: { "X-Client-Id": getClientId() } });
+export function submitMove(roomId: string, from: string, to: string, stateVersion: number, commandId?: string) {
+  const effectiveCommandId = commandId ?? globalThis.crypto?.randomUUID?.();
+  return requestJson<{ match: MatchSnapshot }>(`/matches/${encodeURIComponent(roomId)}/moves`, { method: "POST", body: { from, to, stateVersion }, commandId: effectiveCommandId, headers: { "X-Client-Id": getClientId() } });
 }
 
 export function surrender(roomId: string, stateVersion: number) {
@@ -58,8 +59,17 @@ export function rejectRematch(roomId: string, stateVersion: number) {
 }
 
 export function subscribeToMatch(roomId: string, onEvent: (event: MatchEventEnvelope) => void, onError: () => void): () => void {
-  const source = new EventSource(`${env.apiBaseUrl}/matches/${encodeURIComponent(roomId)}/events?clientId=${encodeURIComponent(getClientId())}`, { withCredentials: true });
-  source.onmessage = (message) => { try { onEvent(JSON.parse(message.data) as MatchEventEnvelope); } catch { onError(); } };
-  source.onerror = onError;
-  return () => source.close();
+  const path = `/matches/${encodeURIComponent(roomId)}/events?clientId=${encodeURIComponent(getClientId())}`;
+  const lease = getSubscriptionManager().acquire("MATCH", roomId, path, {
+    onEvent: (message) => {
+      try {
+        onEvent(JSON.parse(message.data) as MatchEventEnvelope);
+      } catch {
+        onError();
+      }
+    },
+    onError: () => onError(),
+  });
+  return () => lease.release();
 }
+

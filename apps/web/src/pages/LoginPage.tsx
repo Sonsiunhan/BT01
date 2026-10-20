@@ -24,16 +24,19 @@ export default function LoginPage() {
     if (!password) nextErrors.password = "Vui lòng nhập mật khẩu.";
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) { setPending(false); return; }
-    try { await login({ username: username.trim(), password, remember }); navigate(safeReturnTo(searchParams.get("returnTo"), routes.profile), { replace: true }); }
+    try {
+      const result = await login({ username: username.trim(), password, remember });
+      window.dispatchEvent(new CustomEvent("ottv2:auth-change", { detail: { user: result.user } }));
+      navigate(safeReturnTo(searchParams.get("returnTo"), routes.profile), { replace: true });
+    }
     catch (reason) { setError(reason instanceof ApiError ? reason.message : "Không thể đăng nhập."); }
     finally { setPending(false); }
   };
   return <AuthLayout><div className="auth-card"><AuthBrand /><p className="eyebrow">TÀI KHOẢN / ĐĂNG NHẬP</p><h1>Chào mừng trở lại</h1><p className="form-intro">Đăng nhập để tiếp tục các ván đấu và lưu tiến trình của bạn.</p><form className="form-stack" onSubmit={submit}>
     <label htmlFor="login-username">Tên đăng nhập<input id="login-username" value={username} onChange={(event) => { setUsername(event.target.value); setFieldErrors((current) => ({ ...current, username: undefined })); }} autoComplete="username" required minLength={4} maxLength={20} aria-invalid={Boolean(fieldErrors.username)} aria-describedby={fieldErrors.username ? "login-username-error" : undefined} />{fieldErrors.username && <small id="login-username-error" className="field-error">{fieldErrors.username}</small>}</label>
-    <PasswordField id="login-password" label="Mật khẩu" value={password} onChange={(event) => { setPassword(event.target.value); setFieldErrors((current) => ({ ...current, password: undefined })); }} autoComplete="current-password" required aria-invalid={Boolean(fieldErrors.password)} aria-describedby={fieldErrors.password ? "login-password-error" : undefined} />
-    {fieldErrors.password && <p id="login-password-error" className="field-error" role="status">{fieldErrors.password}</p>}
+    <PasswordField id="login-password" label="Mật khẩu" value={password} onChange={(event) => { setPassword(event.target.value); setFieldErrors((current) => ({ ...current, password: undefined })); }} autoComplete="current-password" required error={fieldErrors.password} errorId="login-password-error" />
     <label className="check-row"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} /> Ghi nhớ phiên đăng nhập</label>
     {error && <p className="form-error" role="alert" aria-live="assertive">{error}</p>}
-    <Button type="submit" pending={pending} pendingLabel="Đang đăng nhập…">Đăng nhập</Button>
+    <Button type="submit" pending={pending} pendingLabel="Đang đăng nhập…" disabled={!username.trim() || !password || pending}>Đăng nhập</Button>
   </form><div className="form-links"><Link to={routes.forgotPassword}>Quên mật khẩu?</Link><span>Chưa có tài khoản? <Link to={routes.register}>Đăng ký</Link></span></div></div></AuthLayout>;
 }

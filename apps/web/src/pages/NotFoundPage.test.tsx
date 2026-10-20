@@ -7,9 +7,11 @@ describe("NotFoundPage", () => {
   it("renders the branded explanation and a lobby action", () => {
     render(<MemoryRouter><NotFoundPage /></MemoryRouter>);
 
-    expect(screen.getByRole("link", { name: "Oẳn Tù Tì v2 — Về sảnh" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "ROBOT LAB — Về sảnh" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "OTT v2 Robot Lab" })).toHaveAttribute("data-brand", "robot-lab");
-    expect(screen.getByRole("heading", { name: "Trang này không tồn tại" })).toBeInTheDocument();
+    const heading = screen.getByRole("heading", { name: "Trang này không tồn tại" });
+    expect(heading).toBeInTheDocument();
+    expect(heading).toHaveFocus();
     expect(screen.getByText(/Đường dẫn có thể đã đổi/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Về sảnh" })).toHaveAttribute("href", "/");
   });

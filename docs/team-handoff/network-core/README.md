@@ -2,6 +2,7 @@
 
 | TASK_ID | Tài liệu | Phạm vi |
 |---|---|---|
+| **Bàn giao Master** | [**NETWORK-CORE-HANDOFF.md**](NETWORK-CORE-HANDOFF.md) | **Bản bàn giao toàn diện toàn bộ 7 Wave Network Core** |
 | Tổng quan | [LONG.md](LONG.md) | Phân công, ownership và thứ tự phối hợp |
 | L-01 | [FRS-L01](FRS-L01-GAME-RULES-SETUP.md) | Game rules và setup |
 | L-02 | [FRS-L02](FRS-L02-API-DATA-CONTRACTS.md) | API/data contracts |

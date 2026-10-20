@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createInitialState } from "@ottv2/game-rules";
-import { clearLocalSession, clearBotOfflineSession, getBotOfflineSession, getGuestProfile, getLocalSession, migrateLegacyGuestSessionToOffline, setBotOfflineSession, setLocalSession, type BotOfflineSessionSnapshot, type LocalSessionSnapshot } from "./localGameStorage";
+import { addLocalHistory, clearLocalSession, clearBotOfflineSession, getBotOfflineSession, getGuestProfile, getLocalHistory, getLocalSession, migrateLegacyGuestSessionToOffline, setBotOfflineSession, setLocalSession, type BotOfflineSessionSnapshot, type LocalHistoryRecord, type LocalSessionSnapshot } from "./localGameStorage";
 
 describe("local session persistence", () => {
   beforeEach(() => localStorage.clear());
@@ -25,6 +25,26 @@ describe("local session persistence", () => {
     const first = await getGuestProfile();
     const second = await getGuestProfile();
     expect(first).toEqual(second);
+  });
+
+  it("stores and retrieves a local history record with DRAW result without converting to loss", async () => {
+    const record: LocalHistoryRecord = {
+      localId: "draw-record-1",
+      mode: "OFFLINE",
+      result: "DRAW",
+      playerName: "Xanh",
+      opponentName: "Đỏ",
+      timerSeconds: 60,
+      durationSeconds: 45,
+      endedAt: new Date().toISOString(),
+      scoreDelta: 0,
+    };
+    await addLocalHistory(record);
+    const history = await getLocalHistory();
+    const stored = history.find((item) => item.localId === "draw-record-1");
+    expect(stored).toBeDefined();
+    expect(stored?.result).toBe("DRAW");
+    expect(stored?.scoreDelta).toBe(0);
   });
 
   it("copies a legacy Guest session into Offline2P without deleting the source", async () => {

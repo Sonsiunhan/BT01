@@ -1,0 +1,20 @@
+{
+  "apiMode": "fixture-only; unmocked API denied",
+  "productionMutation": false,
+  "requests": {
+    "GET /rooms?limit=12": 6,
+    "GET /guest/history/bot-imports": 1,
+    "POST /guest/session": 20,
+    "GET /rooms/B13QA1": 1,
+    "OPTIONS /rooms?limit=12": 2,
+    "OPTIONS /health": 12,
+    "GET /health": 84,
+    "OPTIONS /auth/me": 10,
+    "GET /auth/me": 52,
+    "GET /rooms/events": 2,
+    "GET /rooms/RESULT1": 5,
+    "GET /rooms/ABC123": 2,
+    "GET /matchmaking/queue/00000000-0000-4000-8000-000000000007": 1
+  },
+  "stopped": true
+}

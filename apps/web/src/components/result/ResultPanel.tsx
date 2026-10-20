@@ -33,12 +33,14 @@ export type ResultPanelProps = Readonly<{
   onBack: () => void;
 }>;
 
-type Outcome = "victory" | "defeat" | "neutral";
+type Outcome = "victory" | "defeat" | "draw" | "neutral";
 
 const reasonCopy: Record<Exclude<MatchResultReason, null>, string> = {
   EXTINCTION: "Đối thủ đã mất toàn bộ quân.",
   GOAL_REACHED: "Bạn đã chiếm ô đích.",
+  NO_LEGAL_MOVES: "Bị khóa nước đi.",
   TIMEOUT: "Đối thủ đã hết thời gian.",
+
   SURRENDER: "Đối thủ đã đầu hàng.",
   DISCONNECT_TIMEOUT: "Đối thủ không kết nối lại.",
   SERVER_INTERRUPTION: "Máy chủ đã khởi động lại hoặc kết nối trận bị mất.",
@@ -49,7 +51,9 @@ const reasonCopy: Record<Exclude<MatchResultReason, null>, string> = {
 };
 
 function outcomeFor({ status, winner, viewerSide }: Pick<ResultPanelProps, "status" | "winner" | "viewerSide">): Outcome {
-  if (status === "ABORTED" || !winner || !viewerSide) return "neutral";
+  if (status === "ABORTED") return "neutral";
+  if (winner === null) return "draw";
+  if (!viewerSide) return "neutral";
   return winner === viewerSide ? "victory" : "defeat";
 }
 
@@ -64,10 +68,14 @@ function botCriteriaCopy(botAdjudication: MatchBotAdjudication | null | undefine
 }
 
 function reasonFor(reason: MatchResultReason, outcome: Outcome, botAdjudication?: MatchBotAdjudication | null): string {
+  if (outcome === "draw") {
+    return reason ? `${reasonCopy[reason]}${reason.startsWith("BOT_") ? botCriteriaCopy(botAdjudication) : ""}` : "Ván đấu kết thúc với kết quả hòa.";
+  }
   if (reason === "SERVER_INTERRUPTION" || reason === "DISCONNECT_TIMEOUT" || outcome === "neutral") {
     return reason ? `${reasonCopy[reason]}${reason.startsWith("BOT_") ? botCriteriaCopy(botAdjudication) : ""}` : "Không có thay đổi điểm xếp hạng.";
   }
   if (reason === "BOT_AUTHOR_FAULT" || reason === "BOT_INFRASTRUCTURE" || reason === "BOT_LIMIT_CRITERIA" || reason === "BOT_LIMIT_EXACT_TIE") return `${reasonCopy[reason]}${botCriteriaCopy(botAdjudication)}`;
+  if (reason === "NO_LEGAL_MOVES") return outcome === "victory" ? "Đối thủ không còn nước đi hợp lệ." : "Bạn không còn nước đi hợp lệ.";
   if (reason === "GOAL_REACHED") return outcome === "victory" ? "Bạn đã chiếm ô đích." : "Đối thủ đã chiếm ô đích.";
   if (reason === "TIMEOUT") return outcome === "victory" ? "Đối thủ đã hết thời gian." : "Bạn đã hết thời gian.";
   if (reason === "SURRENDER") return outcome === "victory" ? "Đối thủ đã đầu hàng." : "Bạn đã đầu hàng.";
@@ -115,7 +123,7 @@ export function ResultPanel({ status, winner, viewerSide, resultReason, mode, ra
   const outcome = outcomeFor({ status, winner, viewerSide });
   const viewerRating = useMemo(() => ratingForViewer(rating, viewerSide), [rating, viewerSide]);
   const showRating = mode === "RANKED" && viewerRating !== null && outcome !== "neutral";
-  const title = outcome === "victory" ? "CHIẾN THẮNG" : outcome === "defeat" ? "THUA CUỘC" : "TRẬN ĐẤU BỊ GIÁN ĐOẠN";
+  const title = outcome === "victory" ? "CHIẾN THẮNG" : outcome === "defeat" ? "THUA CUỘC" : outcome === "draw" ? "HÒA CỜ" : "TRẬN ĐẤU BỊ GIÁN ĐOẠN";
   const message = reasonFor(resultReason, outcome, botAdjudication);
   const showOpponentPrompt = rematchState === "opponent_requested" || rematchState === "accepting";
   const resultClass = `result-panel robot-lab-result-panel result-${outcome} ${outcome === "defeat" ? "result-board-muted" : ""}`;

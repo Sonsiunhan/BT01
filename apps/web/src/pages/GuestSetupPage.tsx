@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "../components/ui";
+import { Button, Spinner } from "../components/ui";
 import { routes } from "../app/routes";
 import { getGuestProfile, setGuestProfile } from "../services/local/localGameStorage";
 import { AuthLayout } from "../components/auth/AuthLayout";
@@ -40,10 +40,29 @@ export default function GuestSetupPage() {
     <p className="form-intro">Bạn có thể chơi Online thường, Đấu máy hoặc Offline mà không cần tài khoản. Xếp hạng cần đăng nhập.</p>
     <div className="guest-warning" role="status"><strong>Tên khách giữ trên trình duyệt này</strong><span>Lịch sử local có thể bị mất nếu xóa dữ liệu trình duyệt. Bạn có thể chọn nhập lịch sử vào tài khoản sau khi đăng nhập.</span></div>
     <form className="form-stack" onSubmit={(event) => void submit(event)}>
-      <label>Tên khách<input value={name} readOnly aria-describedby="guest-name-help" /></label>
-      <small id="guest-name-help">{loading ? "Đang đọc danh tính khách…" : "Tên tự động, không phải tài khoản đăng nhập."}</small>
+      <label htmlFor="guest-name-input">
+        Tên khách
+        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <input
+            id="guest-name-input"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            disabled={loading}
+            aria-describedby="guest-name-help"
+            maxLength={20}
+            required
+            style={{ width: "100%" }}
+          />
+          {loading && (
+            <span style={{ position: "absolute", right: "0.75rem", pointerEvents: "none" }} aria-hidden="true">
+              <Spinner size="small" />
+            </span>
+          )}
+        </div>
+      </label>
+      <small id="guest-name-help">{loading ? "Đang đọc danh tính khách…" : "Tên khách lưu trên thiết bị này, bạn có thể chỉnh sửa."}</small>
       {error && <><p className="form-error" role="alert">{error}</p><Button type="button" variant="secondary" onClick={() => setAttempt((value) => value + 1)}>Thử lại</Button></>}
-      <div className="modal-actions"><Link className="button secondary" to={routes.home}>Về sảnh</Link><Button type="submit" disabled={loading || !name} pending={pending} pendingLabel="Đang lưu…">Tiếp tục</Button></div>
+      <div className="modal-actions"><Link className="button secondary" to={routes.home}>Về sảnh</Link><Button type="submit" disabled={loading || !name.trim()} pending={pending} pendingLabel="Đang lưu…">Tiếp tục</Button></div>
     </form>
   </div></AuthLayout>;
 }

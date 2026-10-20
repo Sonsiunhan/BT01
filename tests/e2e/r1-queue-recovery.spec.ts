@@ -50,7 +50,7 @@ async function prepare(page: import("playwright").Page) {
   await page.route(`http://localhost:3001/matchmaking/queue/${queueId}/events**`, async (route) => route.fulfill({ status: 200, contentType: "text/event-stream", body: "" }));
 }
 
-test("Queue cancel waits for server ACK before leaving the page", async ({ page }) => {
+test("Queue cancel waits for server ACK and keeps the closed queue in place", async ({ page }) => {
   await prepare(page);
   let deleteCalls = 0;
   await page.route("http://localhost:3001/matchmaking/queue", async (route) => {
@@ -71,6 +71,9 @@ test("Queue cancel waits for server ACK before leaving the page", async ({ page 
   await expect(page.getByRole("button", { name: "Đang huỷ…" })).toBeDisabled();
   await expect(page).toHaveURL(/\/queue$/);
   await expect.poll(() => deleteCalls).toBe(1);
+  await expect(page.getByRole("heading", { name: "Hàng chờ đã đóng" })).toBeVisible();
+  await expect(page).toHaveURL(/\/queue$/);
+  await page.getByRole("button", { name: "Về sảnh" }).click();
   await expect(page).toHaveURL(/\/$/);
 });
 

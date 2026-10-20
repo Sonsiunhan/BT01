@@ -8,7 +8,14 @@ export type Coordinate = `${File}${Rank}`;
 export type Side = "BLUE" | "RED";
 export type PieceType = "R" | "P" | "S";
 export type RuleStatus = "PLAYING" | "FINISHED";
-export type ResultReason = "EXTINCTION" | "GOAL_REACHED" | null;
+export type ResultReason = "EXTINCTION" | "GOAL_REACHED" | "NO_LEGAL_MOVES" | null;
+
+export type RulesVersion = "rps-v1" | "rps-v2";
+
+export type SetupDescriptor = Readonly<{
+  version: RulesVersion;
+  seed?: number;
+}>;
 
 export type Piece = Readonly<{
   id: string;

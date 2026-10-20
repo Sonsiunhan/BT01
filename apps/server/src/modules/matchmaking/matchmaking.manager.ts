@@ -13,6 +13,8 @@ type QueueEntry = {
   clientId: string;
   elo: number;
   joinedAt: number;
+  leaseExpiresAt: number;
+  maxWaitDeadline: number;
   status: MatchmakingSnapshot["status"];
   opponent: MatchmakingPlayer | null;
   roomId: string | null;
@@ -24,6 +26,9 @@ const BASE_RANGE = 100;
 const RANGE_STEP = 50;
 const RANGE_STEP_MS = 10_000;
 const MAX_RANGE = 1_000;
+const LEASE_DURATION_MS = 30_000;
+const MAX_WAIT_MS = 300_000;
+const MAX_QUEUE_DEPTH = 1_000;
 
 export class MatchmakingManager {
   private readonly entries = new Map<string, QueueEntry>();
@@ -44,20 +49,51 @@ export class MatchmakingManager {
     if (existingId) {
       const existing = this.entries.get(existingId);
       if (existing?.status === "MATCHED") return this.snapshot(existing);
-      if (existing?.status === "QUEUED" && existing.clientId === clientId) return this.snapshot(existing);
+      if (existing?.status === "QUEUED" && existing.clientId === clientId) {
+        existing.leaseExpiresAt = Math.min(existing.maxWaitDeadline, this.now() + LEASE_DURATION_MS);
+        return this.snapshot(existing);
+      }
       throw new AppError("CONFLICT", "Bạn đã ở trong hàng chờ tìm trận.", 409, false, "INVALID", { reason: "MATCHMAKING_ALREADY_QUEUED", queueId: existingId });
     }
-    const entry: QueueEntry = { queueId: randomUUID(), mode, actor, clientId, elo: Math.max(0, Math.round(elo)), joinedAt: this.now(), status: "QUEUED", opponent: null, roomId: null, matchId: null, sequence: 0 };
-    const candidate = [...this.entries.values()].find((item) => item.mode === mode && item.status === "QUEUED" && !this.pendingUsers.has(item.actor.userId) && item.actor.userId !== actor.userId && (mode !== "RANKED" || Math.abs(item.elo - entry.elo) <= Math.max(this.range(item), this.range(entry))));
+    if (this.entries.size >= MAX_QUEUE_DEPTH) {
+      throw new AppError("SERVICE_UNAVAILABLE", "Hàng chờ tìm trận đã đầy. Vui lòng thử lại sau.", 503, true, "RECOVERABLE", { reason: "QUEUE_FULL" });
+    }
+    const now = this.now();
+    const entry: QueueEntry = {
+      queueId: randomUUID(),
+      mode,
+      actor,
+      clientId,
+      elo: Math.max(0, Math.round(elo)),
+      joinedAt: now,
+      leaseExpiresAt: now + LEASE_DURATION_MS,
+      maxWaitDeadline: now + MAX_WAIT_MS,
+      status: "QUEUED",
+      opponent: null,
+      roomId: null,
+      matchId: null,
+      sequence: 0,
+    };
+    const candidate = [...this.entries.values()].find((item) =>
+      item.mode === mode &&
+      item.status === "QUEUED" &&
+      now < item.leaseExpiresAt &&
+      now < item.maxWaitDeadline &&
+      !this.pendingUsers.has(item.actor.userId) &&
+      item.actor.userId !== actor.userId &&
+      (mode !== "RANKED" || Math.abs(item.elo - entry.elo) <= Math.max(this.range(item), this.range(entry)))
+    );
     if (!candidate) {
       this.entries.set(entry.queueId, entry);
       this.byUser.set(actor.userId, entry.queueId);
       this.emit(entry, "QUEUE_JOINED");
       return this.snapshot(entry);
     }
-    if (this.matches.isActiveLocked(candidate.actor.userId)) throw new AppError("CONFLICT", "Đối thủ vừa tham gia một trận đấu khác.", 409, true, "RECOVERABLE", { reason: "ACTIVE_GAME_EXISTS" });
-    this.pendingUsers.add(candidate.actor.userId);
-    this.pendingUsers.add(actor.userId);
+    const [firstUser, secondUser]: [string, string] = candidate.actor.userId < actor.userId
+      ? [candidate.actor.userId, actor.userId]
+      : [actor.userId, candidate.actor.userId];
+    this.pendingUsers.add(firstUser);
+    this.pendingUsers.add(secondUser);
     // Keep both queue entries and user ownership visible until the room commit resolves.
     // A concurrent join/cancel therefore cannot create a second generation or erase the
     // candidate while createRanked is awaiting an async storage boundary.
@@ -97,8 +133,8 @@ export class MatchmakingManager {
       }
       throw error;
     } finally {
-      this.pendingUsers.delete(candidate.actor.userId);
-      this.pendingUsers.delete(actor.userId);
+      this.pendingUsers.delete(firstUser);
+      this.pendingUsers.delete(secondUser);
     }
   }
 
@@ -112,12 +148,37 @@ export class MatchmakingManager {
     const entry = this.entries.get(queueId);
     if (!entry || entry.actor.userId !== userId) throw new AppError("NOT_FOUND", "Không tìm thấy hàng chờ.", 404, false, "INVALID");
     if (this.pendingUsers.has(userId)) throw new AppError("CONFLICT", "Đang xác nhận ghép trận; hãy chờ kết quả từ máy chủ.", 409, true, "RECOVERABLE", { reason: "MATCH_COMMIT_IN_PROGRESS" });
-    if (entry.status === "MATCHED") throw new AppError("CONFLICT", "Đối thủ đã được ghép trận; không thể huỷ tìm trận.", 409, false, "INVALID", { reason: "MATCH_ALREADY_COMMITTED", roomId: entry.roomId, matchId: entry.matchId });
+    if (entry.status === "MATCHED") return this.snapshot(entry);
     if (entry.status === "CANCELLED") return this.snapshot(entry);
     entry.status = "CANCELLED";
     this.byUser.delete(userId);
     this.emit(entry, "QUEUE_CANCELLED");
     return this.snapshot(entry);
+  }
+
+  renewLease(queueId: string, userId: string): MatchmakingSnapshot {
+    const entry = this.entries.get(queueId);
+    if (!entry || entry.actor.userId !== userId) throw new AppError("NOT_FOUND", "Không tìm thấy hàng chờ.", 404, false, "INVALID");
+    if (entry.status === "QUEUED") {
+      entry.leaseExpiresAt = Math.min(entry.maxWaitDeadline, this.now() + LEASE_DURATION_MS);
+    }
+    return this.snapshot(entry);
+  }
+
+  cleanupExpiredLeases(): number {
+    const now = this.now();
+    let cleanedCount = 0;
+    for (const entry of this.entries.values()) {
+      if (entry.status !== "QUEUED") continue;
+      if (now >= entry.leaseExpiresAt || now >= entry.maxWaitDeadline) {
+        entry.status = "CANCELLED";
+        this.byUser.delete(entry.actor.userId);
+        this.pendingUsers.delete(entry.actor.userId);
+        this.emit(entry, "QUEUE_CANCELLED");
+        cleanedCount += 1;
+      }
+    }
+    return cleanedCount;
   }
 
   subscribe(queueId: string, listener: QueueListener): () => void {
@@ -136,7 +197,10 @@ export class MatchmakingManager {
   tick(queueId: string, userId: string): MatchmakingSnapshot {
     const entry = this.entries.get(queueId);
     if (!entry || entry.actor.userId !== userId) throw new AppError("NOT_FOUND", "Không tìm thấy hàng chờ.", 404, false, "INVALID");
-    if (entry.status === "QUEUED") this.emit(entry, "QUEUE_RANGE_UPDATED");
+    if (entry.status === "QUEUED") {
+      entry.leaseExpiresAt = Math.min(entry.maxWaitDeadline, this.now() + LEASE_DURATION_MS);
+      this.emit(entry, "QUEUE_RANGE_UPDATED");
+    }
     return this.snapshot(entry);
   }
 
@@ -194,4 +258,4 @@ export class MatchmakingManager {
   }
 }
 
-export { BASE_RANGE, MAX_RANGE, RANGE_STEP, RANGE_STEP_MS };
+export { BASE_RANGE, MAX_RANGE, RANGE_STEP, RANGE_STEP_MS, LEASE_DURATION_MS, MAX_WAIT_MS, MAX_QUEUE_DEPTH };

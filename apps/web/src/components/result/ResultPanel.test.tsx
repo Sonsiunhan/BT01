@@ -53,4 +53,22 @@ describe("B6 ResultPanel", () => {
     expect(screen.getByText(/N\/P\/M: Xanh 3\/2\/1 · Đỏ 4\/4\/4 · Phe Đỏ chịu trách nhiệm/)).toBeInTheDocument();
     expect(screen.queryByText(/source|memory|log riêng/i)).not.toBeInTheDocument();
   });
+
+  it("renders a draw when status is FINISHED and winner is null", () => {
+    render(<ResultPanel status="FINISHED" winner={null} viewerSide="BLUE" resultReason={null} mode="AI" stats={stats} onRematch={vi.fn()} onBack={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "HÒA CỜ" })).toBeInTheDocument();
+    expect(screen.getByText("Ván đấu kết thúc với kết quả hòa.")).toBeInTheDocument();
+    expect(screen.getByText("ĐẤU LẠI")).toBeInTheDocument();
+  });
+});
+
+describe("test-v0.2 canonical blocked-turn integration", () => {
+  it.each([
+    ["BLUE", "Đối thủ không còn nước đi hợp lệ."],
+    ["RED", "Bạn không còn nước đi hợp lệ."],
+  ] as const)("shows NO_LEGAL_MOVES from viewer %s without claiming extinction", (viewerSide, message) => {
+    render(<ResultPanel status="FINISHED" winner="BLUE" viewerSide={viewerSide} resultReason="NO_LEGAL_MOVES" mode="UNRANKED" stats={stats} onBack={vi.fn()} />);
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.queryByText("Bạn đã mất toàn bộ quân.")).not.toBeInTheDocument();
+  });
 });

@@ -3,6 +3,24 @@ import type { FastifyInstance } from "fastify";
 
 import { AppError } from "../shared/errors/app-error.js";
 
+const SAFE_DETAIL_KEYS = new Set([
+  "reason", "status", "event", "moveCode", "capacity", "stateVersion", "currentStateVersion",
+  "expectedStateVersion", "roomVersion", "roomId", "matchId", "queueId", "currentMatchId",
+  "expectedMatchId", "side", "category", "playMode", "retryAfterMs", "retryAfterSeconds",
+  "limit", "resetAt",
+]);
+
+function publicDetails(details: Record<string, unknown>): Record<string, unknown> {
+  const safe: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(details)) {
+    if (!SAFE_DETAIL_KEYS.has(key)) continue;
+    if (typeof value === "string" && value.length <= 200) safe[key] = value;
+    else if (typeof value === "number" && Number.isFinite(value)) safe[key] = value;
+    else if (typeof value === "boolean") safe[key] = value;
+  }
+  return safe;
+}
+
 function publicEnvelope(error: unknown): { statusCode: number; body: ErrorEnvelope } {
   if (error instanceof AppError) {
     return {
@@ -12,7 +30,7 @@ function publicEnvelope(error: unknown): { statusCode: number; body: ErrorEnvelo
         message: error.message,
         retryable: error.retryable,
         severity: error.severity,
-        details: error.details
+        details: publicDetails(error.details)
       }
     };
   }
@@ -70,7 +88,11 @@ export function registerErrorHandler(app: FastifyInstance): void {
 
   app.setErrorHandler((error, request, reply) => {
     const response = publicEnvelope(error);
-    request.log.error({ err: error, publicCode: response.body.code }, "request failed");
+    request.log.error({
+      publicCode: response.body.code,
+      statusCode: response.statusCode,
+      errorType: error instanceof Error ? error.name : typeof error,
+    }, "request failed");
     return reply.status(response.statusCode).send(response.body);
   });
 }

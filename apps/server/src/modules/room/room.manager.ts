@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import type { CreateRoomRequest, JoinRoomRequest, RoomDetail, RoomSummary, SpectateRoomRequest, RoomPlayMode } from "@ottv2/contracts";
 
 import { AppError } from "../../shared/errors/app-error.js";
@@ -10,11 +10,13 @@ const FRIENDLY_NOUNS = ["Hammer", "Lotus", "Fox", "Orbit", "Tiger", "Comet"];
 const randomInviteId = () => `ref-${randomUUID()}`;
 
 export type RoomActor = { userId: string; username: string; displayName: string; rating?: number; principal?: "ACCOUNT" | "GUEST" };
-type RoomMember = RoomActor & { joinedAt: number; isHost: boolean };
+type RoomMember = RoomActor & { joinedAt: number; isHost: boolean; ready: boolean };
 type Referee = RoomActor & { connected: boolean; joinedAt: number };
 export type RefereeInvite = { inviteId: string; roomId: string; targetUserId: string; from: { userId: string; username: string; displayName: string }; role: "REFEREE"; expiresAt: number; status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" };
 type RoomState = {
   roomId: string;
+  roomGeneration: string;
+  roomVersion: number;
   name: string;
   mode: "UNRANKED" | "RANKED";
   playMode: RoomPlayMode;
@@ -29,6 +31,13 @@ type RoomState = {
   members: RoomMember[];
   spectatorIds: Set<string>;
   createdAt: number;
+  setupContext?: {
+    setupDescriptor: { version: "rps-v2" | "rps-v1"; seed?: number };
+    setupSignature?: string;
+  };
+  previousInitialSetup?: {
+    setupSignature: string;
+  };
 };
 
 type IdempotencyRecord = { fingerprint: string; roomId: string };
@@ -40,10 +49,29 @@ export class RoomManager {
   private readonly createIdempotency = new Map<string, IdempotencyRecord>();
   private readonly joinIdempotency = new Map<string, IdempotencyRecord>();
   private readonly refereeInvites = new Map<string, RefereeInvite>();
+  private readonly roomLocks = new Map<string, Promise<void>>();
 
   subscribe(listener: (rooms: RoomSummary[]) => void): () => void { this.listeners.add(listener); return () => this.listeners.delete(listener); }
 
   private publish(): void { const rooms = this.list(100); for (const listener of this.listeners) listener(rooms); }
+
+  private async runWithRoomLock<T>(roomId: string, action: () => Promise<T>): Promise<T> {
+    const currentLock = this.roomLocks.get(roomId) ?? Promise.resolve();
+    let release!: () => void;
+    const nextLock = new Promise<void>((resolve) => { release = resolve; });
+    const queuedLock = currentLock.then(() => nextLock);
+    this.roomLocks.set(roomId, queuedLock);
+
+    await currentLock;
+    try {
+      return await action();
+    } finally {
+      release();
+      if (this.roomLocks.get(roomId) === queuedLock) {
+        this.roomLocks.delete(roomId);
+      }
+    }
+  }
 
   async create(actor: RoomActor, input: CreateRoomRequest, idempotencyKey?: string): Promise<RoomDetail> {
     const fingerprint = JSON.stringify(input);
@@ -57,15 +85,21 @@ export class RoomManager {
       }
     }
     const roomId = this.generateRoomId();
+    const roomGeneration = randomUUID();
+    const roomVersion = 1;
     const passwordHash = input.password === undefined ? undefined : await hashSecret(input.password);
-    const member: RoomMember = { ...actor, joinedAt: Date.now(), isHost: true };
+    const member: RoomMember = { ...actor, joinedAt: Date.now(), isHost: true, ready: false };
     const playMode = input.playMode ?? "MANUAL";
     const refereeEnabled = input.refereeEnabled ?? false;
     if (actor.principal === "GUEST" && (input.hostRole ?? "PLAYER") === "REFEREE") throw new AppError("UNAUTHORIZED", "Guest không thể làm trọng tài.", 403, false, "FATAL_SESSION", { reason: "GUEST_REFEREE_FORBIDDEN" });
     if (input.hostRole === "REFEREE" && !refereeEnabled) throw new AppError("VALIDATION_ERROR", "Bật trọng tài trước khi chọn vai trò Trọng tài.", 400, false, "INVALID");
     if (input.visibility === "PUBLIC" && refereeEnabled && input.hostRole === "REFEREE") throw new AppError("VALIDATION_ERROR", "Phòng có chủ phòng làm trọng tài phải là Private.", 400, false, "INVALID");
+
+    const seed = randomInt(2_822_400);
     const room: RoomState = {
       roomId,
+      roomGeneration,
+      roomVersion,
       name: input.name?.trim() || this.generateFriendlyName(),
       mode: "UNRANKED",
       playMode,
@@ -80,6 +114,10 @@ export class RoomManager {
       ...(input.hostRole === "REFEREE" ? { referee: { ...actor, connected: false, joinedAt: Date.now() } } : {}),
       spectatorIds: new Set(),
       createdAt: Date.now(),
+      setupContext: {
+        setupDescriptor: { version: "rps-v2", seed },
+        setupSignature: `seed-${seed}`,
+      },
     };
     this.rooms.set(roomId, room);
     if (idempotencyKey) this.createIdempotency.set(`${actor.userId}:${idempotencyKey}`, { fingerprint, roomId });
@@ -90,9 +128,13 @@ export class RoomManager {
   async createRanked(host: RoomActor, opponent: RoomActor, timerSeconds: 30 | 60 | 300 | 600 | 1800 | 3600 = 300): Promise<RoomDetail> {
     if (host.userId === opponent.userId) throw new AppError("CONFLICT", "Không thể ghép tài khoản với chính mình.", 409, false, "INVALID");
     const roomId = this.generateRoomId();
+    const roomGeneration = randomUUID();
     const now = Date.now();
+    const seed = randomInt(2_822_400);
     const room: RoomState = {
       roomId,
+      roomGeneration,
+      roomVersion: 1,
       name: "Ranked Quick Match",
       mode: "RANKED",
       playMode: "MANUAL",
@@ -102,11 +144,15 @@ export class RoomManager {
       refereeEnabled: false,
       status: "WAITING",
       members: [
-        { ...host, joinedAt: now, isHost: true },
-        { ...opponent, joinedAt: now, isHost: false },
+        { ...host, joinedAt: now, isHost: true, ready: true },
+        { ...opponent, joinedAt: now, isHost: false, ready: true },
       ],
       spectatorIds: new Set(),
       createdAt: now,
+      setupContext: {
+        setupDescriptor: { version: "rps-v2", seed },
+        setupSignature: `seed-${seed}`,
+      },
     };
     this.rooms.set(roomId, room);
     this.publish();
@@ -164,6 +210,7 @@ export class RoomManager {
     if (room.members.some((member) => member.userId === targetUserId)) throw new AppError("CONFLICT", "Người chơi không thể đồng thời làm trọng tài.", 409, false, "INVALID", { reason: "PLAYER_REFEREE_CONFLICT" });
     const invite: RefereeInvite = { inviteId: randomInviteId(), roomId: room.roomId, targetUserId, from: { userId: actor.userId, username: actor.username, displayName: actor.displayName }, role: "REFEREE", expiresAt: Date.now() + ttlMs, status: "PENDING" };
     this.refereeInvites.set(invite.inviteId, invite);
+    room.roomVersion += 1;
     this.publish();
     return { ...invite };
   }
@@ -180,6 +227,7 @@ export class RoomManager {
     room.referee = { ...actor, connected: false, joinedAt: Date.now() };
     invite.status = "ACCEPTED";
     for (const other of this.refereeInvites.values()) if (other.roomId === room.roomId && other.inviteId !== invite.inviteId && other.status === "PENDING") other.status = "EXPIRED";
+    room.roomVersion += 1;
     this.publish();
     return this.serialize(room, actor.userId);
   }
@@ -212,6 +260,7 @@ export class RoomManager {
     const room = this.getRoom(roomId);
     if (room.referee?.userId !== userId) throw new AppError("UNAUTHORIZED", "Bạn không phải trọng tài của phòng này.", 403, false, "FATAL_SESSION", { reason: "REFEREE_REQUIRED" });
     room.referee.connected = connected;
+    room.roomVersion += 1;
     this.publish();
   }
 
@@ -221,6 +270,7 @@ export class RoomManager {
     if (room.status !== "WAITING") throw new AppError("CONFLICT", "Không thể rời vai trò trọng tài sau khi trận bắt đầu.", 409, false, "INVALID", { reason: "ROOM_CONFIG_LOCKED" });
     delete room.referee;
     for (const invite of this.refereeInvites.values()) if (invite.roomId === room.roomId && invite.status === "PENDING") invite.status = "EXPIRED";
+    room.roomVersion += 1;
     this.publish();
   }
 
@@ -233,6 +283,7 @@ export class RoomManager {
     if (room.spectatorIds.has(actor.userId)) throw new AppError("CONFLICT", "Spectator phải rời chế độ xem trước khi nhận vai trò trọng tài.", 409, false, "INVALID", { reason: "SPECTATOR_REFEREE_CONFLICT" });
     room.referee = { ...actor, connected: true, joinedAt: Date.now() };
     for (const invite of this.refereeInvites.values()) if (invite.roomId === room.roomId && invite.status === "PENDING") invite.status = "EXPIRED";
+    room.roomVersion += 1;
     this.publish();
   }
 
@@ -299,35 +350,79 @@ export class RoomManager {
 
   private async joinInternal(actor: RoomActor, roomId: string, input: JoinRoomRequest, idempotencyKey: string | undefined, bypassPassword: boolean): Promise<RoomDetail> {
     const normalizedRoomId = roomId.trim().toUpperCase();
-    const room = this.rooms.get(normalizedRoomId);
-    if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
-    const fingerprint = JSON.stringify({ roomId: normalizedRoomId, input });
-    if (idempotencyKey) {
-      const key = `${actor.userId}:${idempotencyKey}`;
-      const previous = this.joinIdempotency.get(key);
-      if (previous) {
-        if (previous.fingerprint !== fingerprint) throw new AppError("CONFLICT", "Idempotency-Key đã được dùng cho yêu cầu khác.", 409, false, "INVALID");
-        const existing = this.rooms.get(previous.roomId);
-        if (existing) return this.serialize(existing, actor.userId);
+    return this.runWithRoomLock(normalizedRoomId, async () => {
+      const room = this.rooms.get(normalizedRoomId);
+      if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
+
+      if (input.expectedGeneration && input.expectedGeneration !== room.roomGeneration) {
+        throw new AppError("CONFLICT", "Phòng đã thay đổi phiên bản. Hãy làm mới.", 409, false, "INVALID", {
+          reason: "STALE_ROOM_GENERATION",
+          expectedGeneration: input.expectedGeneration,
+          actualGeneration: room.roomGeneration,
+        });
       }
-    }
-    if (room.members.some((member) => member.userId === actor.userId)) return this.serialize(room, actor.userId);
-    if (room.referee?.userId === actor.userId) throw new AppError("CONFLICT", "Trọng tài không thể đồng thời là người chơi.", 409, false, "INVALID", { reason: "PLAYER_REFEREE_CONFLICT" });
-    if (room.members.length >= 2) throw new AppError("CONFLICT", "Phòng đã đủ người chơi.", 409, false, "INVALID");
-    if (!bypassPassword && room.passwordHash && (!input.password || !(await verifySecret(input.password, room.passwordHash)))) {
-      throw new AppError("UNAUTHORIZED", "Mật khẩu phòng không đúng.", 401, false, "INVALID");
-    }
-    room.members.push({ ...actor, joinedAt: Date.now(), isHost: false });
-    if (room.spectatorIds.delete(actor.userId)) this.revokeSpectatorStreams(normalizedRoomId, actor.userId);
-    this.publish();
-    if (idempotencyKey) this.joinIdempotency.set(`${actor.userId}:${idempotencyKey}`, { fingerprint, roomId: normalizedRoomId });
-    return this.serialize(room, actor.userId);
+      if (input.expectedVersion !== undefined && input.expectedVersion !== room.roomVersion) {
+        throw new AppError("CONFLICT", "Phiên bản phòng không khớp. Hãy tải lại.", 409, false, "INVALID", {
+          reason: "STALE_VERSION",
+          expectedVersion: input.expectedVersion,
+          actualVersion: room.roomVersion,
+        });
+      }
+
+      const fingerprint = JSON.stringify({ roomId: normalizedRoomId, input });
+      if (idempotencyKey) {
+        const key = `${actor.userId}:${idempotencyKey}`;
+        const previous = this.joinIdempotency.get(key);
+        if (previous) {
+          if (previous.fingerprint !== fingerprint) throw new AppError("CONFLICT", "Idempotency-Key đã được dùng cho yêu cầu khác.", 409, false, "INVALID");
+          const existing = this.rooms.get(previous.roomId);
+          if (existing) return this.serialize(existing, actor.userId);
+        }
+      }
+      if (room.members.some((member) => member.userId === actor.userId)) return this.serialize(room, actor.userId);
+      if (room.referee?.userId === actor.userId) throw new AppError("CONFLICT", "Trọng tài không thể đồng thời là người chơi.", 409, false, "INVALID", { reason: "PLAYER_REFEREE_CONFLICT" });
+      if (room.members.length >= 2) throw new AppError("CONFLICT", "Phòng đã đủ người chơi.", 409, false, "INVALID");
+      if (!bypassPassword && room.passwordHash && (!input.password || !(await verifySecret(input.password, room.passwordHash)))) {
+        throw new AppError("UNAUTHORIZED", "Mật khẩu phòng không đúng.", 401, false, "INVALID");
+      }
+      if (room.members.length >= 2) throw new AppError("CONFLICT", "Phòng đã đủ người chơi.", 409, false, "INVALID");
+
+      room.members.push({ ...actor, joinedAt: Date.now(), isHost: false, ready: false });
+      room.roomVersion += 1;
+      if (room.spectatorIds.delete(actor.userId)) this.revokeSpectatorStreams(normalizedRoomId, actor.userId);
+      this.publish();
+      if (idempotencyKey) this.joinIdempotency.set(`${actor.userId}:${idempotencyKey}`, { fingerprint, roomId: normalizedRoomId });
+      return this.serialize(room, actor.userId);
+    });
   }
 
   private getRoom(roomId: string): RoomState {
     const room = this.rooms.get(roomId.trim().toUpperCase());
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     return room;
+  }
+
+  setReady(actor: RoomActor, roomId: string, ready: boolean): RoomDetail {
+    const normalizedRoomId = roomId.trim().toUpperCase();
+    const room = this.getRoom(normalizedRoomId);
+    const member = room.members.find((m) => m.userId === actor.userId);
+    if (!member) throw new AppError("CONFLICT", "Bạn không ở trong phòng này.", 409, false, "INVALID");
+    if (room.status !== "WAITING") throw new AppError("CONFLICT", "Phòng đã bắt đầu trận đấu.", 409, false, "INVALID");
+    member.ready = ready;
+    room.roomVersion += 1;
+    this.publish();
+    return this.serialize(room, actor.userId);
+  }
+
+  canStart(roomId: string): { canStart: boolean; reason?: string } {
+    const room = this.getRoom(roomId);
+    if (room.status !== "WAITING") return { canStart: false, reason: "NOT_WAITING" };
+    if (room.members.length < 2) return { canStart: false, reason: "WAITING_FOR_PLAYERS" };
+    if (room.members.some((m) => !m.ready)) return { canStart: false, reason: "PLAYERS_NOT_READY" };
+    if (room.refereeEnabled && (!room.referee || !room.referee.connected)) {
+      return { canStart: false, reason: "REFEREE_NOT_CONNECTED" };
+    }
+    return { canStart: true };
   }
 
   leave(actor: RoomActor, roomId: string): RoomDetail | null {
@@ -347,6 +442,7 @@ export class RoomManager {
     if (wasHost) {
       for (const [memberIndex, member] of room.members.entries()) member.isHost = memberIndex === 0;
     }
+    room.roomVersion += 1;
     this.publish();
     return this.serialize(room, undefined);
   }
@@ -356,6 +452,7 @@ export class RoomManager {
     const room = this.rooms.get(roomId.trim().toUpperCase());
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     room.status = "PLAYING";
+    room.roomVersion += 1;
     this.publish();
   }
 
@@ -364,16 +461,16 @@ export class RoomManager {
   private generateRoomId(): string {
     for (let attempt = 0; attempt < 100; attempt += 1) {
       let id = "";
-      for (let index = 0; index < 6; index += 1) id += ROOM_ID_ALPHABET[Math.floor(Math.random() * ROOM_ID_ALPHABET.length)];
+      for (let index = 0; index < 6; index += 1) id += ROOM_ID_ALPHABET[randomInt(ROOM_ID_ALPHABET.length)];
       if (!this.rooms.has(id)) return id;
     }
     throw new AppError("SERVICE_UNAVAILABLE", "Không thể cấp Room ID lúc này.", 503, true, "RECOVERABLE");
   }
 
   private generateFriendlyName(): string {
-    const adjective = FRIENDLY_ADJECTIVES[Math.floor(Math.random() * FRIENDLY_ADJECTIVES.length)] ?? "Neon";
-    const noun = FRIENDLY_NOUNS[Math.floor(Math.random() * FRIENDLY_NOUNS.length)] ?? "Hammer";
-    return `${adjective} ${noun} ${Math.floor(10 + Math.random() * 90)}`;
+    const adjective = FRIENDLY_ADJECTIVES[randomInt(FRIENDLY_ADJECTIVES.length)] ?? "Neon";
+    const noun = FRIENDLY_NOUNS[randomInt(FRIENDLY_NOUNS.length)] ?? "Hammer";
+    return `${adjective} ${noun} ${randomInt(10, 100)}`;
   }
 
   private serialize(room: RoomState, viewerId: string | undefined, revealMembers = false): RoomDetail {
@@ -381,6 +478,8 @@ export class RoomManager {
     const host = room.members.find((member) => member.isHost);
     const summary: RoomSummary = {
       roomId: room.roomId,
+      roomGeneration: room.roomGeneration,
+      roomVersion: room.roomVersion,
       name: room.name,
       players: room.members.length,
       playerCapacity: 2,
@@ -406,7 +505,8 @@ export class RoomManager {
       role: isReferee ? "REFEREE" : (isMember ? "PLAYER" : "SPECTATOR"),
       isReferee,
       referee: room.referee ? { userId: room.referee.userId, username: room.referee.username, displayName: room.referee.displayName, connected: room.referee.connected } : null,
-      members: isMember || isReferee || revealMembers ? room.members.map(({ userId, username, displayName, isHost }) => ({ userId, username, displayName, isHost })) : [],
+      members: isMember || isReferee || revealMembers ? room.members.map(({ userId, username, displayName, isHost, ready }) => ({ userId, username, displayName, isHost, ready: ready ?? false })) : [],
+      setupDescriptor: (isMember || isReferee) && room.setupContext ? room.setupContext.setupDescriptor : undefined,
     };
   }
 }

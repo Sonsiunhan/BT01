@@ -211,9 +211,29 @@ describe("R1 queue exit", () => {
     vi.mocked(matchmakingApi.cancelQueue).mockRejectedValue(new ApiError("Mất kết nối"));
     vi.mocked(matchmakingApi.getQueue).mockResolvedValue({ queue: { ...queue, status: "CANCELLED" } });
     const { router } = renderQueue();
-    fireEvent.click(await screen.findByRole("button", { name: "Huỷ tìm trận" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Về sảnh" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/"));
     expect(matchmakingApi.getQueue).toHaveBeenCalledWith(queue.queueId);
+  });
+
+  it("cancels in-place and stays on the queue page when clicking Huỷ tìm trận", async () => {
+    const response = deferred<{ queue: MatchmakingSnapshot }>();
+    vi.mocked(matchmakingApi.cancelQueue).mockReturnValue(response.promise);
+    const { router } = renderQueue();
+    fireEvent.click(await screen.findByRole("button", { name: "Huỷ tìm trận" }));
+    expect(router.state.location.pathname).toBe("/queue");
+    await act(async () => response.resolve({ queue: { ...queue, status: "CANCELLED" } }));
+    expect(router.state.location.pathname).toBe("/queue");
+    expect(await screen.findByRole("heading", { name: "Hàng chờ đã đóng" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Về sảnh" })).toBeInTheDocument();
+  });
+
+  it("shows distinct loading label for UNRANKED mode", async () => {
+    const admission = deferred<{ queue: MatchmakingSnapshot }>();
+    vi.mocked(matchmakingApi.joinMatchmakingQueue).mockReturnValue(admission.promise);
+    renderQueue(false, "UNRANKED");
+    expect(screen.getByText("Đang vào hàng chờ Đấu thường…")).toBeInTheDocument();
+    await act(async () => admission.resolve({ queue: { ...queue, mode: "UNRANKED" } }));
   });
 
   it("keeps the queued page and retry enabled when cancellation cannot be confirmed", async () => {

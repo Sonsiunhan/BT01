@@ -1,0 +1,36 @@
+{
+  "source": "codex/security-network-repair",
+  "environment": "Fastify inject + dummy DatabasePort; no real DB",
+  "cases": [
+    {
+      "id": "SEC-10-CSRF-POS",
+      "pass": true,
+      "status": 204
+    },
+    {
+      "id": "SEC-10-CSRF-NEG",
+      "pass": true,
+      "status": 403
+    },
+    {
+      "id": "SEC-10-CSRF-EVIL",
+      "pass": true,
+      "status": 403,
+      "reason": "CSRF_ORIGIN_NOT_ALLOWED"
+    },
+    {
+      "id": "SEC-06-REDACTION",
+      "pass": true,
+      "status": 403,
+      "body": {
+        "code": "UNAUTHORIZED",
+        "message": "Không được phép.",
+        "retryable": false,
+        "severity": "INVALID",
+        "details": {
+          "reason": "ACCESS_DENIED"
+        }
+      }
+    }
+  ]
+}

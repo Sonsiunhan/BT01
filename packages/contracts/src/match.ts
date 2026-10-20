@@ -7,7 +7,8 @@ export const MatchModeSchema = z.enum(["UNRANKED", "RANKED"]);
 export const MatchSideSchema = z.enum(["BLUE", "RED"]);
 export const MatchPieceTypeSchema = z.enum(["R", "P", "S"]);
 export const MatchRuleStatusSchema = z.enum(["PLAYING", "FINISHED"]);
-export const MatchResultReasonSchema = z.enum(["EXTINCTION", "GOAL_REACHED", "TIMEOUT", "SURRENDER", "DISCONNECT_TIMEOUT", "SERVER_INTERRUPTION", "BOT_AUTHOR_FAULT", "BOT_INFRASTRUCTURE", "BOT_LIMIT_CRITERIA", "BOT_LIMIT_EXACT_TIE"]).nullable();
+export const MatchResultReasonSchema = z.enum(["EXTINCTION", "GOAL_REACHED", "NO_LEGAL_MOVES", "TIMEOUT", "SURRENDER", "DISCONNECT_TIMEOUT", "SERVER_INTERRUPTION", "BOT_AUTHOR_FAULT", "BOT_INFRASTRUCTURE", "BOT_LIMIT_CRITERIA", "BOT_LIMIT_EXACT_TIE"]).nullable();
+
 export const MatchPauseReasonSchema = z.enum(["REFEREE", "INFRASTRUCTURE", "PLAYER_DISCONNECT"]);
 export const MatchPauseCategorySchema = z.enum(["TECHNICAL_ISSUE", "RULE_QUESTION", "OTHER"]);
 export const MatchReplacementStatusSchema = z.enum(["IDLE", "NOMINATED", "APPROVED"]);
@@ -139,7 +140,12 @@ export const RematchRequestSchema = z.object({ stateVersion: z.number().int().no
 export const RefereeStopRequestSchema = z.object({ category: MatchPauseCategorySchema.optional().default("TECHNICAL_ISSUE") });
 export const RefereeReplacementNominateRequestSchema = z.object({ targetUserId: z.string().trim().min(1).max(120) });
 
+export type MatchCoordinate = z.infer<typeof MatchCoordinateSchema>;
+export type MatchSide = z.infer<typeof MatchSideSchema>;
+export type MatchPieceType = z.infer<typeof MatchPieceTypeSchema>;
 export type MatchStatus = z.infer<typeof MatchStatusSchema>;
+
+
 export type MatchResultReason = z.infer<typeof MatchResultReasonSchema>;
 export type MatchPauseReason = z.infer<typeof MatchPauseReasonSchema>;
 export type MatchPauseCategory = z.infer<typeof MatchPauseCategorySchema>;

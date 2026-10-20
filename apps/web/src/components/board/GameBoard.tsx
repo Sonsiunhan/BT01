@@ -18,6 +18,7 @@ export type GameBoardProps = {
   interactionSide?: Side | null;
   onMove?: (from: Coordinate, to: Coordinate) => void;
   disabled?: boolean;
+  thinkingSide?: Side | null;
 };
 
 function blueViewCoordinates(): Coordinate[] {
@@ -39,7 +40,7 @@ function sideLabel(side: Side | null): string {
   return side === "BLUE" ? "Xanh" : side === "RED" ? "Đỏ" : "—";
 }
 
-export function GameBoard({ state, viewSide, interactionSide = viewSide, onMove, disabled = false }: GameBoardProps) {
+export function GameBoard({ state, viewSide, interactionSide = viewSide, onMove, disabled = false, thinkingSide = null }: GameBoardProps) {
   const [selectedCoordinate, setSelectedCoordinate] = useState<Coordinate | null>(null);
   const [focusedCoordinate, setFocusedCoordinate] = useState<Coordinate>(() => coordinatesForView(viewSide)[0] ?? "a1");
   const squareRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -145,7 +146,14 @@ export function GameBoard({ state, viewSide, interactionSide = viewSide, onMove,
                   aria-selected={isSelected}
                 >
                   {goalSide && <span className="goal-marker" aria-hidden="true">◆</span>}
-                  {piece && <span className={`board-piece-token ${piece.side.toLowerCase()}`} aria-hidden="true"><PieceGlyph type={piece.type} token /></span>}
+                  {piece && (
+                    <span
+                      className={`board-piece-token ${piece.side.toLowerCase()}${thinkingSide && piece.side === thinkingSide ? " thinking-pulse" : ""}`}
+                      aria-hidden="true"
+                    >
+                      <PieceGlyph type={piece.type} token />
+                    </span>
+                  )}
                   <span className="board-coordinate">{coordinate}</span>
                 </button>
               );

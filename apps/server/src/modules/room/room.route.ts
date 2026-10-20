@@ -1,4 +1,4 @@
-import { CreateRoomRequestSchema, InviteRefereeRequestSchema, JoinRoomRequestSchema, SpectateRoomRequestSchema } from "@ottv2/contracts";
+import { CreateRoomRequestSchema, InviteRefereeRequestSchema, JoinRoomRequestSchema, SetReadyRequestSchema, SpectateRoomRequestSchema } from "@ottv2/contracts";
 import type { FastifyInstance } from "fastify";
 
 import { requireBody, readCookie } from "../auth/auth.http.js";
@@ -122,6 +122,13 @@ export async function registerRoomRoutes(app: FastifyInstance, auth: AuthService
     const result = rooms.leave(actorOf(context), request.params.roomId);
     if (!result) return reply.status(204).send();
     return reply.status(200).send({ room: result });
+  });
+
+  app.post<{ Params: { roomId: string } }>("/rooms/:roomId/ready", async (request, reply) => {
+    const context = await authenticateRoom(auth, rooms, request);
+    const input = requireBody(request.body ?? {}, SetReadyRequestSchema);
+    const room = rooms.setReady(actorOf(context), request.params.roomId, input.ready);
+    return reply.status(200).send({ room });
   });
 
   app.post<{ Params: { roomId: string } }>("/rooms/:roomId/referee/leave", async (request, reply) => {

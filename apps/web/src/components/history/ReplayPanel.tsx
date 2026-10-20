@@ -45,7 +45,7 @@ export function ReplayPanel({ replay, finalBoard }: ReplayPanelProps) {
 
   const state = frames[index] ?? frames[0];
   return <section className="history-replay robot-lab-replay-panel" aria-label="Replay trận đấu">
-    <div className="history-replay-heading"><div><p className="eyebrow">REPLAY · CHỈ XEM</p><h3>Diễn biến từng nước</h3><p className="history-replay-orientation">Bàn cờ cố định, canonical Xanh ở dưới.</p></div><strong>Nước {index}/{frames.length - 1}</strong></div>
+    <div className="history-replay-heading"><div><p className="eyebrow">REPLAY · CHỈ XEM</p><h3>Diễn biến từng nước</h3><p className="history-replay-orientation">Bàn cờ cố định, canonical Xanh ở dưới.</p></div><strong className="replay-step-counter shrink-0 whitespace-nowrap">Nước {index}/{frames.length - 1}</strong></div>
     <GameBoard state={state} viewSide="BLUE" interactionSide={null} disabled />
     <div className="history-replay-controls" aria-label="Điều khiển replay">
       <Button onClick={() => setPlaying((value) => !value)}>{playing ? "Tạm dừng" : "Phát"}</Button>

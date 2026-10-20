@@ -1,0 +1,17 @@
+{
+  "base": "C:\\Users\\Admin\\.codex\\worktrees\\security-network-repair-20261012\\BT01",
+  "started": {
+    "BLUE": 30000,
+    "RED": 30000
+  },
+  "during": {
+    "BLUE": 30000,
+    "RED": 30000
+  },
+  "after": {
+    "BLUE": 30000,
+    "RED": 30000
+  },
+  "pass": true,
+  "expected": "gameplay clocks preserve frozen reconnect grace time"
+}

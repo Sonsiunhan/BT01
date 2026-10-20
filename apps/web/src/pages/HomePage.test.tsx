@@ -50,8 +50,7 @@ describe("R6 Homepage / Robot Lab lobby", () => {
     expect(document.querySelector(".home-lobby-hero .hero-orb")).toBeNull();
     fireEvent.click(screen.getByRole("tab", { name: "Đấu chương trình" }));
     expect(screen.getByText("Bot Online")).toBeInTheDocument();
-    expect(screen.getByText("Tìm đối thủ Bot sau khi kiểm tra code")).toBeInTheDocument();
-    expect(screen.queryByText("Đấu bot qua phòng custom")).not.toBeInTheDocument();
+    expect(screen.getByText("Đấu bot qua phòng custom")).toBeInTheDocument();
     expect(screen.getByText("Bot Offline")).toBeInTheDocument();
     expect(screen.getByText("Thư viện Bot")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /ĐẤU BOT ONLINE/ })).toHaveAttribute("href", "/dau-chuong-trinh/online");

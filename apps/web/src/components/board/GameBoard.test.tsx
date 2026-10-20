@@ -113,4 +113,12 @@ describe("GameBoard", () => {
     act(() => fireEvent.keyDown(destination, { key: " " }));
     expect(onMove).toHaveBeenCalledWith("b1", "b2");
   });
+
+  it("adds thinking-pulse class to pieces when thinkingSide is set", () => {
+    render(<GameBoard state={createInitialState()} viewSide="BLUE" thinkingSide="RED" />);
+    const redPieces = document.querySelectorAll(".board-piece-token.red.thinking-pulse");
+    expect(redPieces.length).toBeGreaterThan(0);
+    const bluePieces = document.querySelectorAll(".board-piece-token.blue.thinking-pulse");
+    expect(bluePieces.length).toBe(0);
+  });
 });

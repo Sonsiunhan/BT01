@@ -97,6 +97,8 @@ HTTP generator phải đi nước hợp lệ và giữ identity/version/idempote
 
 Runbook bàn giao phải có commands test cụ thể, đường dẫn reports, người nhận sự cố và cách phân loại lỗi; lệnh trong bảng là nền tảng, không phải evidence đã chạy. DB migration/shared production operations và provider load tests cần authorization tương ứng.
 
+Runbook bàn giao chi tiết cho toàn bộ kỹ sư và tester được cung cấp tại: [`CAND-2-RUNBOOK.md`](./CAND-2-RUNBOOK.md) (bao gồm quy trình 4 bước: Mở gì → Chạy gì → Expected → Lỗi báo ai, kèm manifest định danh SHA/diff hash và composite fingerprint). Lệnh trong bảng là nền tảng, không phải evidence đã chạy. DB migration/shared production operations và provider load tests cần authorization tương ứng.
+
 ## 6. Nhiệm vụ và nghiệm thu
 
 | TASK_ID | Hạng mục | Điều kiện đạt |
