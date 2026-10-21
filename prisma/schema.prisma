@@ -415,6 +415,7 @@ model TournamentContract {
   taBindings                   TournamentContractTaBinding[]
   tournaments                  Tournament[]
   enrollments                  TournamentEnrollmentRecord[]
+  quotaLedgerEntries           TournamentQuotaLedgerRecord[]
 
   @@index([unitId, status])
   @@index([validTo])
@@ -475,6 +476,12 @@ model Tournament {
   staffAssignments          TournamentStaffAssignmentRecord[]
   adjudications             ManualAdjudicationRequestRecord[]
   scoreLedgerEntries        TournamentScoreLedgerRecord[]
+  quotaLedgerEntries        TournamentQuotaLedgerRecord[]
+  rosterImportBatches       RosterImportBatch[]
+  regulationsAcks           TournamentRegulationsAckRecord[]
+  incidents                 TournamentIncidentRecord[]
+  extensionRequests         TournamentExtensionRequestRecord[]
+  botCompatibilityReceipts  BotCompatibilityReceiptRecord[]
 
   @@index([contractId, status])
   @@index([status])
@@ -624,5 +631,186 @@ model TournamentAuditLogRecord {
   @@index([targetType, targetId, createdAt])
   @@index([actorUserId, createdAt])
 }
+
+model TournamentQuotaLedgerRecord {
+  id                  String             @id @default(uuid())
+  contractId          String
+  tournamentId        String
+  eventType           String
+  deltaReserved       Int
+  deltaConsumed       Int
+  quotaReservedAfter  Int
+  quotaConsumedAfter  Int
+  quotaRemainingAfter Int
+  actorUserId         String
+  reason              String?
+  createdAt           DateTime           @default(now())
+  contract            TournamentContract @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  tournament          Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, createdAt])
+  @@index([tournamentId, createdAt])
+}
+
+model SystemRoleAssignment {
+  id              String    @id @default(uuid())
+  userId          String
+  role            String
+  status          String    @default("ACTIVE")
+  grantedByUserId String
+  grantedAt       DateTime  @default(now())
+  revokedAt       DateTime?
+  revokeReason    String?
+
+  @@unique([userId, role])
+  @@index([role, status])
+}
+
+model AccountClaimToken {
+  id             String    @id @default(uuid())
+  tenantId       String
+  userId         String
+  email          String
+  tokenType      String    @default("ACTIVATION")
+  tokenHash      String    @unique
+  initialState   String    @default("UNCLAIMED")
+  status         String    @default("PENDING")
+  expiresAt      DateTime
+  claimedAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([tenantId, userId, status])
+  @@index([expiresAt, status])
+}
+
+model RosterImportBatch {
+  id               String                 @id @default(uuid())
+  tournamentId     String
+  tenantId         String
+  uploadedByUserId String
+  idempotencyKey   String
+  fileName         String
+  status           String                 @default("STAGED")
+  totalRows        Int                    @default(0)
+  validRows        Int                    @default(0)
+  invalidRows      Int                    @default(0)
+  expiresAt        DateTime
+  committedAt      DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  tournament       Tournament             @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  stageRows        RosterImportStageRow[]
+
+  @@unique([tournamentId, idempotencyKey])
+  @@index([tournamentId, status])
+  @@index([expiresAt, status])
+}
+
+model RosterImportStageRow {
+  id          String            @id @default(uuid())
+  batchId     String
+  sourceRowId String
+  personKey   String
+  displayName String
+  email       String?
+  metadata    Json?
+  errors      Json?
+  createdAt   DateTime          @default(now())
+  batch       RosterImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, sourceRowId])
+  @@index([batchId, personKey])
+}
+
+model SupportRecoveryTicket {
+  id               String    @id @default(uuid())
+  tenantId         String
+  userId           String
+  description      String
+  status           String    @default("OPEN")
+  notes            String?
+  resolvedByUserId String?
+  createdAt        DateTime  @default(now())
+  resolvedAt       DateTime?
+  updatedAt        DateTime  @updatedAt
+
+  @@index([tenantId, status, createdAt])
+  @@index([userId, status])
+}
+
+model TournamentRegulationsAckRecord {
+  id              String     @id @default(uuid())
+  tournamentId    String
+  configVersionId String
+  userId          String
+  personKey       String
+  acknowledgedAt  DateTime   @default(now())
+  tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, configVersionId, userId])
+  @@index([tournamentId, personKey])
+}
+
+model TournamentIncidentRecord {
+  id                    String     @id @default(uuid())
+  tournamentId          String
+  matchId               String
+  detectorType          String
+  status                String     @default("OPEN")
+  revision              Int        @default(1)
+  assignedRefereeUserId String?
+  summary               String
+  decisionAction        String?
+  decisionReason        String?
+  decidedByUserId       String?
+  decidedAt             DateTime?
+  reversedByTaUserId    String?
+  reverseReason         String?
+  reversedAt            DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  tournament            Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@index([tournamentId, status])
+  @@index([matchId, status])
+}
+
+model TournamentExtensionRequestRecord {
+  id                    String     @id @default(uuid())
+  tournamentId          String
+  requestedByTaUserId   String
+  requestedMinutes      Int
+  approvedMinutes       Int?
+  status                String     @default("PENDING")
+  reason                String
+  scheduleComparison    Json
+  reviewedByAdminUserId String?
+  reviewNote            String?
+  reviewedAt            DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  tournament            Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@index([tournamentId, status])
+  @@index([status, createdAt])
+}
+
+model BotCompatibilityReceiptRecord {
+  id                  String     @id @default(uuid())
+  tournamentId        String
+  participantId       String
+  botRevisionId       String
+  ruleSnapshotId      String
+  readinessStatus     String     @default("PENDING")
+  preflightDurationMs Int?
+  publicReason        String
+  checkedAt           DateTime   @default(now())
+  tournament          Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, participantId, botRevisionId, ruleSnapshotId])
+  @@index([tournamentId, readinessStatus])
+}
+
 
 

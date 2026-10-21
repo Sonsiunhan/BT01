@@ -271,7 +271,205 @@ CREATE TABLE "TournamentAuditLogRecord" (
 CREATE INDEX "TournamentAuditLogRecord_targetType_targetId_createdAt_idx" ON "TournamentAuditLogRecord"("targetType", "targetId", "createdAt");
 CREATE INDEX "TournamentAuditLogRecord_actorUserId_createdAt_idx" ON "TournamentAuditLogRecord"("actorUserId", "createdAt");
 
--- 13. Foreign Key Constraints (Restrict on Unit/Contract reference, Cascade on child records)
+-- 13. Create TournamentQuotaLedgerRecord table (L00 / P07 append-only quota ledger)
+CREATE TABLE "TournamentQuotaLedgerRecord" (
+    "id" TEXT NOT NULL,
+    "contractId" TEXT NOT NULL,
+    "tournamentId" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "deltaReserved" INTEGER NOT NULL,
+    "deltaConsumed" INTEGER NOT NULL,
+    "quotaReservedAfter" INTEGER NOT NULL,
+    "quotaConsumedAfter" INTEGER NOT NULL,
+    "quotaRemainingAfter" INTEGER NOT NULL,
+    "actorUserId" TEXT NOT NULL,
+    "reason" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TournamentQuotaLedgerRecord_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX "TournamentQuotaLedgerRecord_contractId_createdAt_idx" ON "TournamentQuotaLedgerRecord"("contractId", "createdAt");
+CREATE INDEX "TournamentQuotaLedgerRecord_tournamentId_createdAt_idx" ON "TournamentQuotaLedgerRecord"("tournamentId", "createdAt");
+
+-- 14. Create SystemRoleAssignment table (D00 / L01 system roles ADMIN & SUPPORT)
+CREATE TABLE "SystemRoleAssignment" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+    "grantedByUserId" TEXT NOT NULL,
+    "grantedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "revokedAt" TIMESTAMP(3),
+    "revokeReason" TEXT,
+
+    CONSTRAINT "SystemRoleAssignment_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX "SystemRoleAssignment_userId_role_key" ON "SystemRoleAssignment"("userId", "role");
+CREATE INDEX "SystemRoleAssignment_role_status_idx" ON "SystemRoleAssignment"("role", "status");
+
+-- 15. Create AccountClaimToken table (D00 P09 / P13 activation & reset tokens)
+CREATE TABLE "AccountClaimToken" (
+    "id" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "tokenType" TEXT NOT NULL DEFAULT 'ACTIVATION',
+    "tokenHash" TEXT NOT NULL,
+    "initialState" TEXT NOT NULL DEFAULT 'UNCLAIMED',
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "claimedAt" TIMESTAMP(3),
+    "revokedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AccountClaimToken_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX "AccountClaimToken_tokenHash_key" ON "AccountClaimToken"("tokenHash");
+CREATE INDEX "AccountClaimToken_tenantId_userId_status_idx" ON "AccountClaimToken"("tenantId", "userId", "status");
+CREATE INDEX "AccountClaimToken_expiresAt_status_idx" ON "AccountClaimToken"("expiresAt", "status");
+
+-- 16. Create RosterImportBatch & RosterImportStageRow tables (D00 P10)
+CREATE TABLE "RosterImportBatch" (
+    "id" TEXT NOT NULL,
+    "tournamentId" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "uploadedByUserId" TEXT NOT NULL,
+    "idempotencyKey" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'STAGED',
+    "totalRows" INTEGER NOT NULL DEFAULT 0,
+    "validRows" INTEGER NOT NULL DEFAULT 0,
+    "invalidRows" INTEGER NOT NULL DEFAULT 0,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "committedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RosterImportBatch_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX "RosterImportBatch_tournamentId_idempotencyKey_key" ON "RosterImportBatch"("tournamentId", "idempotencyKey");
+CREATE INDEX "RosterImportBatch_tournamentId_status_idx" ON "RosterImportBatch"("tournamentId", "status");
+CREATE INDEX "RosterImportBatch_expiresAt_status_idx" ON "RosterImportBatch"("expiresAt", "status");
+
+CREATE TABLE "RosterImportStageRow" (
+    "id" TEXT NOT NULL,
+    "batchId" TEXT NOT NULL,
+    "sourceRowId" TEXT NOT NULL,
+    "personKey" TEXT NOT NULL,
+    "displayName" TEXT NOT NULL,
+    "email" TEXT,
+    "metadata" JSONB,
+    "errors" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RosterImportStageRow_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX "RosterImportStageRow_batchId_sourceRowId_key" ON "RosterImportStageRow"("batchId", "sourceRowId");
+CREATE INDEX "RosterImportStageRow_batchId_personKey_idx" ON "RosterImportStageRow"("batchId", "personKey");
+
+-- 17. Create SupportRecoveryTicket & TournamentRegulationsAckRecord tables (D00 P12 & P18)
+CREATE TABLE "SupportRecoveryTicket" (
+    "id" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'OPEN',
+    "notes" TEXT,
+    "resolvedByUserId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolvedAt" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SupportRecoveryTicket_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX "SupportRecoveryTicket_tenantId_status_createdAt_idx" ON "SupportRecoveryTicket"("tenantId", "status", "createdAt");
+CREATE INDEX "SupportRecoveryTicket_userId_status_idx" ON "SupportRecoveryTicket"("userId", "status");
+
+CREATE TABLE "TournamentRegulationsAckRecord" (
+    "id" TEXT NOT NULL,
+    "tournamentId" TEXT NOT NULL,
+    "configVersionId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "personKey" TEXT NOT NULL,
+    "acknowledgedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TournamentRegulationsAckRecord_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX "TournamentRegulationsAckRecord_tournamentId_configVersionId_userId_key" ON "TournamentRegulationsAckRecord"("tournamentId", "configVersionId", "userId");
+CREATE INDEX "TournamentRegulationsAckRecord_tournamentId_personKey_idx" ON "TournamentRegulationsAckRecord"("tournamentId", "personKey");
+
+-- 18. Create TournamentIncidentRecord, TournamentExtensionRequestRecord & BotCompatibilityReceiptRecord (N00 IE02-IE12 & P16)
+CREATE TABLE "TournamentIncidentRecord" (
+    "id" TEXT NOT NULL,
+    "tournamentId" TEXT NOT NULL,
+    "matchId" TEXT NOT NULL,
+    "detectorType" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'OPEN',
+    "revision" INTEGER NOT NULL DEFAULT 1,
+    "assignedRefereeUserId" TEXT,
+    "summary" TEXT NOT NULL,
+    "decisionAction" TEXT,
+    "decisionReason" TEXT,
+    "decidedByUserId" TEXT,
+    "decidedAt" TIMESTAMP(3),
+    "reversedByTaUserId" TEXT,
+    "reverseReason" TEXT,
+    "reversedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "TournamentIncidentRecord_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX "TournamentIncidentRecord_tournamentId_status_idx" ON "TournamentIncidentRecord"("tournamentId", "status");
+CREATE INDEX "TournamentIncidentRecord_matchId_status_idx" ON "TournamentIncidentRecord"("matchId", "status");
+
+CREATE TABLE "TournamentExtensionRequestRecord" (
+    "id" TEXT NOT NULL,
+    "tournamentId" TEXT NOT NULL,
+    "requestedByTaUserId" TEXT NOT NULL,
+    "requestedMinutes" INTEGER NOT NULL,
+    "approvedMinutes" INTEGER,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "reason" TEXT NOT NULL,
+    "scheduleComparison" JSONB NOT NULL,
+    "reviewedByAdminUserId" TEXT,
+    "reviewNote" TEXT,
+    "reviewedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "TournamentExtensionRequestRecord_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX "TournamentExtensionRequestRecord_tournamentId_status_idx" ON "TournamentExtensionRequestRecord"("tournamentId", "status");
+CREATE INDEX "TournamentExtensionRequestRecord_status_createdAt_idx" ON "TournamentExtensionRequestRecord"("status", "createdAt");
+
+CREATE TABLE "BotCompatibilityReceiptRecord" (
+    "id" TEXT NOT NULL,
+    "tournamentId" TEXT NOT NULL,
+    "participantId" TEXT NOT NULL,
+    "botRevisionId" TEXT NOT NULL,
+    "ruleSnapshotId" TEXT NOT NULL,
+    "readinessStatus" TEXT NOT NULL DEFAULT 'PENDING',
+    "preflightDurationMs" INTEGER,
+    "publicReason" TEXT NOT NULL,
+    "checkedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "BotCompatibilityReceiptRecord_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX "BotCompatibilityReceiptRecord_tournamentId_participantId_botRevisionId_ruleSnapshotId_key" ON "BotCompatibilityReceiptRecord"("tournamentId", "participantId", "botRevisionId", "ruleSnapshotId");
+CREATE INDEX "BotCompatibilityReceiptRecord_tournamentId_readinessStatus_idx" ON "BotCompatibilityReceiptRecord"("tournamentId", "readinessStatus");
+
+-- 19. Foreign Key Constraints (Restrict on Unit/Contract reference, Cascade on child records)
 ALTER TABLE "TournamentContract" ADD CONSTRAINT "TournamentContract_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "Unit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "TournamentContractTaBinding" ADD CONSTRAINT "TournamentContractTaBinding_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "TournamentContract"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "Tournament" ADD CONSTRAINT "Tournament_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "TournamentContract"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -283,3 +481,11 @@ ALTER TABLE "TournamentEnrollmentRecord" ADD CONSTRAINT "TournamentEnrollmentRec
 ALTER TABLE "TournamentStaffAssignmentRecord" ADD CONSTRAINT "TournamentStaffAssignmentRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "ManualAdjudicationRequestRecord" ADD CONSTRAINT "ManualAdjudicationRequestRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "TournamentScoreLedgerRecord" ADD CONSTRAINT "TournamentScoreLedgerRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TournamentQuotaLedgerRecord" ADD CONSTRAINT "TournamentQuotaLedgerRecord_contractId_fkey" FOREIGN KEY ("contractId") REFERENCES "TournamentContract"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TournamentQuotaLedgerRecord" ADD CONSTRAINT "TournamentQuotaLedgerRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "RosterImportBatch" ADD CONSTRAINT "RosterImportBatch_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "RosterImportStageRow" ADD CONSTRAINT "RosterImportStageRow_batchId_fkey" FOREIGN KEY ("batchId") REFERENCES "RosterImportBatch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TournamentRegulationsAckRecord" ADD CONSTRAINT "TournamentRegulationsAckRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TournamentIncidentRecord" ADD CONSTRAINT "TournamentIncidentRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TournamentExtensionRequestRecord" ADD CONSTRAINT "TournamentExtensionRequestRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BotCompatibilityReceiptRecord" ADD CONSTRAINT "BotCompatibilityReceiptRecord_tournamentId_fkey" FOREIGN KEY ("tournamentId") REFERENCES "Tournament"("id") ON DELETE CASCADE ON UPDATE CASCADE;
