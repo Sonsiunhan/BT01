@@ -1,82 +1,75 @@
+import { z } from "zod";
+
 // DTO definitions for D00 – Account / Roster / Staff / Support / Onboarding
 
-/**
- * Account onboarding DTO – used for bootstrap and claim flows (P09, P13).
- */
-export interface AccountOnboardingDTO {
+export const AccountOnboardingDTOSchema = z.object({
   /** Unique tenant identifier */
-  tenantId: string;
+  tenantId: z.string().min(1),
   /** Identifier of the principal (user) */
-  userId: string;
+  userId: z.string().min(1),
   /** Desired username or email */
-  email: string;
+  email: z.string().min(1),
   /** Account state before activation (e.g., "UNCLAIMED") */
-  initialState: 'UNCLAIMED' | 'CLAIMED' | 'ACTIVE';
+  initialState: z.enum(["UNCLAIMED", "CLAIMED", "ACTIVE"]),
   /** Optional activation token (server‑generated, never exposed to client) */
-  activationToken?: string;
-  /** Timestamp when the token expires, if provided */
-  activationExpiresAt?: string; // ISO 8601
-}
+  activationToken: z.string().min(1).optional(),
+  /** Timestamp when the token expires, if provided (ISO 8601) */
+  activationExpiresAt: z.string().datetime().optional(),
+});
+export type AccountOnboardingDTO = z.infer<typeof AccountOnboardingDTOSchema>;
 
-/**
- * Roster import row DTO – each row from CSV/XLSX (P10).
- */
-export interface RosterImportRowDTO {
+export const RosterImportRowDTOSchema = z.object({
   /** External identifier from source file */
-  sourceRowId: string;
+  sourceRowId: z.string().min(1),
   /** Unique person key within the tournament */
-  personKey: string;
+  personKey: z.string().min(1),
   /** Display name of the participant */
-  displayName: string;
+  displayName: z.string().min(1),
   /** Email address (optional, may be synthetic) */
-  email?: string;
+  email: z.string().email().optional(),
   /** Additional custom fields (free‑form JSON) */
-  metadata?: Record<string, unknown>;
+  metadata: z.record(z.string(), z.unknown()).optional(),
   /** Validation errors for this row, if any */
-  errors?: string[];
-}
+  errors: z.array(z.string()).optional(),
+});
+export type RosterImportRowDTO = z.infer<typeof RosterImportRowDTOSchema>;
 
-/**
- * Staff invitation DTO – invitation flow (P11, P17).
- */
-export interface StaffInvitationDTO {
+export const StaffInvitationDTOSchema = z.object({
   /** Invitation identifier (UUID) */
-  invitationId: string;
+  invitationId: z.string().min(1),
   /** Tenant where the staff will operate */
-  tenantId: string;
+  tenantId: z.string().min(1),
   /** Email of the invited staff member */
-  staffEmail: string;
+  staffEmail: z.string().email(),
   /** Role being offered (e.g., "REFEREE", "STAFF") */
-  role: string;
-  /** Expiration timestamp of the invitation */
-  expiresAt: string; // ISO 8601
+  role: z.string().min(1),
+  /** Expiration timestamp of the invitation (ISO 8601) */
+  expiresAt: z.string().datetime(),
   /** Single‑use token for acceptance */
-  token: string;
+  token: z.string().min(1),
   /** Current status */
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'REVOKED' | 'EXPIRED';
+  status: z.enum(["PENDING", "ACCEPTED", "DECLINED", "REVOKED", "EXPIRED"]),
   /** Optional notes from the inviter */
-  notes?: string;
-}
+  notes: z.string().optional(),
+});
+export type StaffInvitationDTO = z.infer<typeof StaffInvitationDTOSchema>;
 
-/**
- * Support request DTO – support flow (P12).
- * Fields chosen based on clarification: requestId, tenantId, userId, description, status, createdAt, resolvedAt, notes.
- */
-export interface SupportRequestDTO {
+export const SupportRequestDTOSchema = z.object({
   /** Unique request identifier */
-  requestId: string;
+  requestId: z.string().min(1),
   /** Tenant context */
-  tenantId: string;
+  tenantId: z.string().min(1),
   /** Identifier of the user who opened the request */
-  userId: string;
+  userId: z.string().min(1),
   /** Free‑form description of the issue */
-  description: string;
+  description: z.string().min(1),
   /** Current status of the request */
-  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'ESCALATED' | 'CLOSED';
-  /** Timestamp of creation */
-  createdAt: string; // ISO 8601
-  /** Timestamp when the request was resolved (optional) */
-  resolvedAt?: string; // ISO 8601
+  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "ESCALATED", "CLOSED"]),
+  /** Timestamp of creation (ISO 8601) */
+  createdAt: z.string().datetime(),
+  /** Timestamp when the request was resolved (optional, ISO 8601) */
+  resolvedAt: z.string().datetime().optional(),
   /** Optional internal notes for support agents */
-  notes?: string;
-}
+  notes: z.string().optional(),
+});
+export type SupportRequestDTO = z.infer<typeof SupportRequestDTOSchema>;
