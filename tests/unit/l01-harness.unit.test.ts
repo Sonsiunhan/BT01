@@ -129,3 +129,193 @@ describe("L01 Harness - Game Rules v2", () => {
     });
   });
 });
+
+describe("N01 Harness - configurable board and movement", () => {
+  const ray = (directions: ReadonlyArray<{ fileDelta: number; rankDelta: number }>, maxDistance = 1, canJump = false) => ({
+    kind: "RAY" as const,
+    directions,
+    minDistance: 1,
+    maxDistance,
+    canJump,
+  });
+
+  const leap = (offsets: ReadonlyArray<{ fileDelta: number; rankDelta: number }>) => ({
+    kind: "LEAP" as const,
+    offsets,
+  });
+
+  const orthogonal = ray([
+    { fileDelta: 1, rankDelta: 0 },
+    { fileDelta: -1, rankDelta: 0 },
+    { fileDelta: 0, rankDelta: 1 },
+    { fileDelta: 0, rankDelta: -1 },
+  ], 4);
+
+  const makeProfile = (overrides: Partial<rules.RuleProfile> = {}): rules.RuleProfile => ({
+    version: "n01-test",
+    board: { rows: 5, cols: 15 },
+    initialTurn: "BLUE",
+    pieceCounts: {
+      BLUE: { R: 1, P: 1, S: 1 },
+      RED: { R: 1, P: 1, S: 1 },
+    },
+    layout: [
+      { id: "blue-r-1", side: "BLUE", type: "R", coordinate: "a3" },
+      { id: "blue-p-1", side: "BLUE", type: "P", coordinate: "e3" },
+      { id: "blue-s-1", side: "BLUE", type: "S", coordinate: "a1" },
+      { id: "red-r-1", side: "RED", type: "R", coordinate: "o5" },
+      { id: "red-p-1", side: "RED", type: "P", coordinate: "o3" },
+      { id: "red-s-1", side: "RED", type: "S", coordinate: "o1" },
+    ],
+    movementProfiles: {
+      BLUE: { R: [orthogonal], P: [leap([{ fileDelta: 2, rankDelta: 0 }])], S: [orthogonal] },
+      RED: { R: [ray([{ fileDelta: 0, rankDelta: -1 }], 4)], P: [orthogonal], S: [orthogonal] },
+    },
+    winConditions: [],
+    ...overrides,
+  });
+
+  it("supports rectangular 5..15 geometry without treating a coordinate outside the board as playable", () => {
+    const profile = makeProfile();
+    expect(rules.getBoardCoordinates(profile.board)).toHaveLength(75);
+    expect(rules.isCoordinateInBoard(profile.board, "o5")).toBe(true);
+    expect(rules.isCoordinateInBoard(profile.board, "o6")).toBe(false);
+    expect(rules.isCoordinateInBoard(profile.board, "p5")).toBe(false);
+    expect(rules.isCoordinateInBoard(profile.board, "a10")).toBe(false);
+  });
+
+  it("supports the agreed maximum 15x15 geometry", () => {
+    const board = { rows: 15, cols: 15 } as const;
+    expect(rules.getBoardCoordinates(board)).toHaveLength(225);
+    expect(rules.isCoordinateInBoard(board, "o15")).toBe(true);
+    expect(rules.isCoordinateInBoard(board, "p15")).toBe(false);
+  });
+
+  it("builds exact counts/layout and rejects collisions or count mismatches", () => {
+    const state = rules.createInitialState({ profile: makeProfile() });
+    expect(Object.values(state.board).filter((piece) => piece !== null)).toHaveLength(6);
+    expect(Object.isFrozen(state)).toBe(true);
+    expect(Object.isFrozen(state.board)).toBe(true);
+    expect(state.pieceCounts).toEqual({
+      BLUE: { R: 1, P: 1, S: 1 },
+      RED: { R: 1, P: 1, S: 1 },
+    });
+
+    const duplicate = makeProfile({
+      layout: [
+        { id: "blue-r-1", side: "BLUE", type: "R", coordinate: "a3" },
+        { id: "blue-r-2", side: "BLUE", type: "R", coordinate: "a3" },
+      ],
+    });
+    expect(rules.validateRuleProfile(duplicate).map((issue) => issue.code)).toContain("LAYOUT_COLLISION");
+
+    const duplicateId = makeProfile({
+      layout: [
+        { id: "same-id", side: "BLUE", type: "R", coordinate: "a3" },
+        { id: "same-id", side: "BLUE", type: "P", coordinate: "e3" },
+        { id: "blue-s-1", side: "BLUE", type: "S", coordinate: "a1" },
+        { id: "red-r-1", side: "RED", type: "R", coordinate: "o5" },
+        { id: "red-p-1", side: "RED", type: "P", coordinate: "o3" },
+        { id: "red-s-1", side: "RED", type: "S", coordinate: "o1" },
+      ],
+    });
+    expect(rules.validateRuleProfile(duplicateId).map((issue) => issue.code)).toContain("LAYOUT_DUPLICATE_ID");
+
+    const outside = makeProfile({
+      layout: makeProfile().layout.map((entry, index) => index === 0 ? { ...entry, coordinate: "a10" as rules.Coordinate } : entry),
+    });
+    expect(rules.validateRuleProfile(outside).map((issue) => issue.code)).toContain("LAYOUT_OUT_OF_BOUNDS");
+  });
+
+  it("enumerates RAY blockers and finite jump paths", () => {
+    const blocked = rules.createInitialState({ profile: makeProfile({
+      layout: [
+        { id: "blue-r-1", side: "BLUE", type: "R", coordinate: "a3" },
+        { id: "red-s-1", side: "RED", type: "S", coordinate: "c3" },
+        { id: "blue-p-1", side: "BLUE", type: "P", coordinate: "d3" },
+      ],
+      pieceCounts: {
+        BLUE: { R: 1, P: 1, S: 0 },
+        RED: { R: 0, P: 0, S: 1 },
+      },
+      movementProfiles: {
+        BLUE: { R: [ray([{ fileDelta: 1, rankDelta: 0 }], 4, false)], P: [orthogonal], S: [orthogonal] },
+        RED: { R: [orthogonal], P: [orthogonal], S: [orthogonal] },
+      },
+    }) });
+    expect(rules.getLegalDestinations(blocked, "BLUE", "a3")).toEqual(["b3", "c3"]);
+
+    const jumping = rules.createInitialState({ profile: makeProfile({
+      layout: [
+        { id: "blue-r-1", side: "BLUE", type: "R", coordinate: "a3" },
+        { id: "blue-p-1", side: "BLUE", type: "P", coordinate: "b3" },
+      ],
+      pieceCounts: {
+        BLUE: { R: 1, P: 1, S: 0 },
+        RED: { R: 0, P: 0, S: 0 },
+      },
+      movementProfiles: {
+        BLUE: { R: [ray([{ fileDelta: 1, rankDelta: 0 }], 4, true)], P: [orthogonal], S: [orthogonal] },
+        RED: { R: [orthogonal], P: [orthogonal], S: [orthogonal] },
+      },
+    }) });
+    expect(rules.getLegalDestinations(jumping, "BLUE", "a3")).toContain("c3");
+  });
+
+  it("enumerates LEAP offsets without inspecting intermediate squares and keeps side profiles separate", () => {
+    const state = rules.createInitialState({ profile: makeProfile() });
+    expect(rules.getLegalDestinations(state, "BLUE", "e3")).toEqual(["g3"]);
+    expect(rules.getLegalDestinations({ ...state, currentTurn: "RED" }, "RED", "o5")).toEqual(["o4"]);
+  });
+
+  it("does not auto-win at setup and only reaches a static goal after an accepted move", () => {
+    const profile = makeProfile({
+      layout: [
+        { id: "blue-r-1", side: "BLUE", type: "R", coordinate: "n5" },
+        { id: "blue-p-1", side: "BLUE", type: "P", coordinate: "e3" },
+        { id: "blue-s-1", side: "BLUE", type: "S", coordinate: "a1" },
+        { id: "red-r-1", side: "RED", type: "R", coordinate: "o4" },
+        { id: "red-p-1", side: "RED", type: "P", coordinate: "o3" },
+        { id: "red-s-1", side: "RED", type: "S", coordinate: "o1" },
+      ],
+      movementProfiles: {
+        BLUE: { R: [ray([{ fileDelta: 1, rankDelta: 0 }])], P: [orthogonal], S: [orthogonal] },
+        RED: { R: [orthogonal], P: [orthogonal], S: [orthogonal] },
+      },
+      winConditions: ["GOAL_REACHED"],
+      goalProfiles: { BLUE: { mode: "STATIC", cell: "o5" } },
+    });
+    const initial = rules.createInitialState({ profile });
+    expect(initial.status).toBe("PLAYING");
+    expect(initial.winner).toBeNull();
+
+    const result = rules.applyMove(initial, { side: "BLUE", from: "n5", to: "o5" });
+    expect(result.kind).toBe("accepted");
+    if (result.kind === "accepted") {
+      expect(result.state.status).toBe("FINISHED");
+      expect(result.state.winner).toBe("BLUE");
+      expect(result.state.resultReason).toBe("GOAL_REACHED");
+    }
+
+    const ownGoal = rules.validateRuleProfile({ ...profile, layout: profile.layout.map((entry, index) => index === 0 ? { ...entry, coordinate: "o5" as rules.Coordinate } : entry) });
+    expect(ownGoal.map((issue) => issue.code)).toContain("INITIAL_OWN_GOAL");
+  });
+
+  it("rejects profiles over the agreed pattern and offset caps", () => {
+    const tooManyPatterns = makeProfile({
+      movementProfiles: {
+        BLUE: { R: Array.from({ length: 17 }, () => orthogonal), P: [orthogonal], S: [orthogonal] },
+        RED: { R: [orthogonal], P: [orthogonal], S: [orthogonal] },
+      },
+    });
+    expect(rules.validateRuleProfile(tooManyPatterns).map((issue) => issue.code)).toContain("PATTERN_LIMIT_EXCEEDED");
+
+    const tooManyOffsets = makeProfile({
+      movementProfiles: {
+        BLUE: { R: [leap(Array.from({ length: 226 }, (_, index) => ({ fileDelta: (index % 15) - 7, rankDelta: Math.floor(index / 15) - 7 })))], P: [orthogonal], S: [orthogonal] },
+        RED: { R: [orthogonal], P: [orthogonal], S: [orthogonal] },
+      },
+    });
+    expect(rules.validateRuleProfile(tooManyOffsets).map((issue) => issue.code)).toContain("LEAP_OFFSET_LIMIT_EXCEEDED");
+  });
+});
