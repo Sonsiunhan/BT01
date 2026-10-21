@@ -477,19 +477,19 @@ Use the installed package manager/runtime version; record environment failures h
 |R4|DONE|R4 platform contracts/roles/ACL, corrected disconnect+pause rules, central scheduler, atomic FileMatchPersistence with process restart probe, session revocation and source-only migration are evidenced in `docs/r4-platform-evidence.md`. R8/R10/R11/R13/R17 own later UI/Bot/replay boundaries|
 |R5|DONE|Robot Lab shared tokens, shell, original brand/glyph assets, board presentation, motion/quality policy and release-style rules are evidenced in `docs/r5-foundation-evidence.md`; page-specific Waves and device QA remain open|
 |R6|DONE|Homepage / Room Browser / Friends Preview evidence in §8.6|
-|R7|DONE|Queue / Waiting Room evidence in [`docs/r7-queue-waiting-evidence.md`](./r7-queue-waiting-evidence.md); root DB-touching build and independent review remain explicitly bounded|
-|R8|DONE|Manual Game / Referee evidence in [`docs/r8-manual-referee-evidence.md`](./r8-manual-referee-evidence.md); physical devices, independent review and broad R19/R20 release gates remain bounded|
-|R9|DONE|Workbench / Private Bot Library evidence in [`docs/r9-workbench-library-evidence.md`](./r9-workbench-library-evidence.md); Bot Online/Offline runtime remains R10/R11|
-|R10|DONE|Bot Online preparation, separate unranked Bot queue, read-only observer/strategy rail, revision fencing, pinned Wasmtime/CPython-WASI execution, private checkpoint persistence, two-process restart fencing and fail-closed cancellation are evidenced in [`docs/r10-bot-online-evidence.md`](./r10-bot-online-evidence.md). Browser/device visual matrix and independent final BA/QA remain R19/R20 gates.|
-|R11|DONE|AI/Offline/Guest compatibility and Bot Offline evidence in [`docs/r11-bot-offline-evidence.md`](./r11-bot-offline-evidence.md); physical-device and independent final review remain R19/R20 gates|
-|R12|DONE|Friends/invitations evidence in [`docs/r12-friends-invitations-evidence.md`](./r12-friends-invitations-evidence.md); independent review, physical devices and R19/R20 release matrix remain bounded|
-|R13|DONE|History/Replay/Audit evidence in [`docs/r13-history-replay-evidence.md`](./r13-history-replay-evidence.md); independent review, physical devices and R19/R20 release matrix remain bounded|
-|R14|DONE|Profiles evidence in [`docs/r14-profile-evidence.md`](./r14-profile-evidence.md)|
-|R15|DONE|Settings/local data evidence in [`docs/r15-settings-evidence.md`](./r15-settings-evidence.md)|
-|R16|DONE|Auth/Guest boundary evidence in [`docs/r16-auth-evidence.md`](./r16-auth-evidence.md)|
-|R17|DONE|Spectator/public timeline/error fallback evidence in [`docs/r17-spectator-fallback-evidence.md`](./r17-spectator-fallback-evidence.md)|
-|R18|DONE|Result/Rematch evidence in [`docs/r18-result-rematch-evidence.md`](./r18-result-rematch-evidence.md); R19/R20 device, independent review and final release gates remain open|
-|R19|DONE|Cross-page QA/cleanup evidence in [`docs/r19-cross-page-qa-evidence.md`](./r19-cross-page-qa-evidence.md): representative 30/30 and full 43/43 browser E2E, 320–1920 viewport matrix, axe zero serious/critical violations, web 40/123, server 128 pass with 3 explicit runtime skips, typecheck/lint/build/provider gates pass. Physical devices, screenshots/CWV and independent final BA/QA remain R20 gates|
+|R7|DONE|Queue / Waiting Room evidence in `docs/r7-queue-waiting-evidence.md`; root DB-touching build and independent review remain explicitly bounded|
+|R8|DONE|Manual Game / Referee evidence in `docs/r8-manual-referee-evidence.md`; physical devices, independent review and broad R19/R20 release gates remain bounded|
+|R9|DONE|Workbench / Private Bot Library evidence in `docs/r9-workbench-library-evidence.md`; Bot Online/Offline runtime remains R10/R11|
+|R10|DONE|Bot Online preparation, separate unranked Bot queue, read-only observer/strategy rail, revision fencing, pinned Wasmtime/CPython-WASI execution, private checkpoint persistence, two-process restart fencing and fail-closed cancellation are evidenced in `docs/r10-bot-online-evidence.md`. Browser/device visual matrix and independent final BA/QA remain R19/R20 gates.|
+|R11|DONE|AI/Offline/Guest compatibility and Bot Offline evidence in `docs/r11-bot-offline-evidence.md`; physical-device and independent final review remain R19/R20 gates|
+|R12|DONE|Friends/invitations evidence in `docs/r12-friends-invitations-evidence.md`; independent review, physical devices and R19/R20 release matrix remain bounded|
+|R13|DONE|History/Replay/Audit evidence in `docs/r13-history-replay-evidence.md`; independent review, physical devices and R19/R20 release matrix remain bounded|
+|R14|DONE|Profiles evidence in `docs/r14-profile-evidence.md`|
+|R15|DONE|Settings/local data evidence in `docs/r15-settings-evidence.md`|
+|R16|DONE|Auth/Guest boundary evidence in `docs/r16-auth-evidence.md`|
+|R17|DONE|Spectator/public timeline/error fallback evidence in `docs/r17-spectator-fallback-evidence.md`|
+|R18|DONE|Result/Rematch evidence in `docs/r18-result-rematch-evidence.md`; R19/R20 device, independent review and final release gates remain open|
+|R19|DONE|Cross-page QA/cleanup evidence in `docs/r19-cross-page-qa-evidence.md`: representative 30/30 and full 43/43 browser E2E, 320–1920 viewport matrix, axe zero serious/critical violations, web 40/123, server 128 pass with 3 explicit runtime skips, typecheck/lint/build/provider gates pass. Physical devices, screenshots/CWV and independent final BA/QA remain R20 gates|
 |R20|BLOCKED|Desktop implementation/local gates and the deterministic 1440×900 baseline pass; the user explicitly waived physical Chrome Android/Safari iOS checks. Independent BA/QA, approved screenshot comparison and release-grade CWV artifacts remain open; no push is authorized until the remaining gates pass|
 
 **R20 scope amendment (2026-10-04):** The user waived physical Chrome Android and Safari iOS testing for this execution and requested desktop-first acceptance. The waiver is recorded as `WAIVED_BY_USER`, not as a device-test pass; it does not waive independent final review, approved visual comparison or release-grade performance evidence.
@@ -554,7 +554,7 @@ Use the installed package manager/runtime version; record environment failures h
 
 **Automated evidence:** focused R3 tests 17/17 PASS (including NFKC fullwidth reflection rejection); full safe workspace unit/contract 15 files / 76 tests PASS; Bot SDK build/typecheck/lint PASS; repository typecheck/lint/build and `git diff --check` are recorded below after the final run. The local four-guest Fastify-under-Wasmtime-load harness passes with no database mutation, and public bundle license files are hash-recorded in `r3-runtime-evidence.json`. No production Bot Online/Offline path, provider scheduler, restart recovery, database migration, paid service or player-code execution was introduced.
 
-**Security/runtime boundary:** the manifest [`docs/r3-bot-limit-manifest.json`](./r3-bot-limit-manifest.json) freezes equal protocol limits and records the pinned probes as verified while the Wave review remains open; this remains feasibility evidence for later R9/R10/R11 integration, not permission to execute arbitrary player code in production. The adapter remains fail-closed (`NOT_PROVEN` without an explicit isolated adapter; `TEST_ADAPTER_ONLY` for tests), and private source/memory/logs are not exposed. Local free-class simulation and independent fixture review pass. The single Render Free Web Service now provides public API/SPA, CORS, bounded headroom and rollout evidence, but the actual isolated Bot runner, scheduler, commit path and restart recovery remain unproven and are not enabled. Pinned runtime license texts are checked in under `docs/licenses/` and copied into the public Pyodide bundle; optional Pyodide lock-catalog packages are not shipped. Official references, notices and free Render constraints are recorded in [`docs/r3-runtime-feasibility.md`](./r3-runtime-feasibility.md) and [`docs/r3-runtime-notices.md`](./r3-runtime-notices.md).
+**Security/runtime boundary:** the manifest [`docs/r3-bot-limit-manifest.json`](./r3-bot-limit-manifest.json) freezes equal protocol limits and records the pinned probes as verified while the Wave review remains open; this remains feasibility evidence for later R9/R10/R11 integration, not permission to execute arbitrary player code in production. The adapter remains fail-closed (`NOT_PROVEN` without an explicit isolated adapter; `TEST_ADAPTER_ONLY` for tests), and private source/memory/logs are not exposed. Local free-class simulation and independent fixture review pass. The single Render Free Web Service now provides public API/SPA, CORS, bounded headroom and rollout evidence, but the actual isolated Bot runner, scheduler, commit path and restart recovery remain unproven and are not enabled. Pinned runtime license texts are checked in under `docs/licenses/` and copied into the public Pyodide bundle; optional Pyodide lock-catalog packages are not shipped. Official references, notices and free Render constraints are recorded in `docs/r3-runtime-feasibility.md` and [`docs/r3-runtime-notices.md`](./r3-runtime-notices.md).
 
 **Independent review:** the read-only BA/security review rechecked the final fixture boundary and found no P0/P1 in the compatibility scope; NFKC normalization, supplied-sentinel binding, readonly unlink/rename, SDK-shaped whole-match, per-turn reset, cross-origin fixtures and license metadata are evidenced. It correctly keeps provider free-class hardware/scheduler/restart evidence open because local simulation is not provider evidence. No production Bot readiness is claimed.
 
@@ -564,7 +564,7 @@ Update this table with real evidence as work completes. Do not mark R3 security 
 
 ### 8.4 R4 execution report — Match lifecycle, room roles and durable recovery
 
-**Status: DONE for R4 platform scope.** The platform contracts, authoritative room-role ACL, lifecycle/pause/disconnect rules, scheduler and durable persistence seam are evidenced in [`docs/r4-platform-evidence.md`](./r4-platform-evidence.md). Later Referee UI/device/replacement, Bot execution and replay/audit clients remain in their declared Waves.
+**Status: DONE for R4 platform scope.** The platform contracts, authoritative room-role ACL, lifecycle/pause/disconnect rules, scheduler and durable persistence seam are evidenced in `docs/r4-platform-evidence.md`. Later Referee UI/device/replacement, Bot execution and replay/audit clients remain in their declared Waves.
 
 **Implemented:** custom-room Manual/Bot and Referee/Spectator contracts; one-use account-only Referee invite/accept/decline/leave ACL; Referee Start/Stop/Resume/Hold endpoints; server PAUSED/RESUMING state; central one-scheduler-per-match advancement; fixed player-side disconnect grace semantics; Referee pause disconnect composition and pause caps; source-only Prisma move/checkpoint/event models and migration; deterministic in-memory persistence seam; atomic FileMatchPersistence with exclusive locking, fsync+rename, monotonic fencing and checkpoint/event restore; and session logout/expiry stream revocation.
 
@@ -576,7 +576,7 @@ Update this table with real evidence as work completes. Do not mark R3 security 
 
 ### 8.5 R5 execution report — Robot Lab foundation
 
-**Status: DONE for R5 shared foundation scope.** The Robot Lab visual contract is now implemented as shared tokens, shell presentation, original SVG brand/glyph assets, canonical board treatment, explicit motion/quality policy and responsive/release-style rules. The full R5 evidence is recorded in [`docs/r5-foundation-evidence.md`](./r5-foundation-evidence.md).
+**Status: DONE for R5 shared foundation scope.** The Robot Lab visual contract is now implemented as shared tokens, shell presentation, original SVG brand/glyph assets, canonical board treatment, explicit motion/quality policy and responsive/release-style rules. The full R5 evidence is recorded in `docs/r5-foundation-evidence.md`.
 
 **Harness before → after:** the pre-fix board harness still observed 18 internal `R/P/S` type badges and the Robot Lab foundation modules were absent. After the fix, the focused Robot Lab foundation suite is 7/7, the canonical GameBoard suite is 9/9, and the existing shared foundation suite is 5/5. The focused harness verifies A1/I9 occupancy/orientation invariants, no piece-type badges, 18 deterministic white-glove glyphs, semantic palette keys, RobotLabMark accessibility, reduced/low motion policy and the 3:1 glyph/body contrast floor. Measured outline/body contrast is 7.73:1/7.57:1 in light blue/red and 8.92:1/8.30:1 in dark blue/red.
 
@@ -588,7 +588,7 @@ Update this table with real evidence as work completes. Do not mark R3 security 
 
 ### 8.6 R6 execution report — Homepage / Room Browser / Friends Preview
 
-**Status: DONE for R6 page scope.** Evidence is recorded in [`docs/r6-home-evidence.md`](./r6-home-evidence.md). The Homepage now follows the Robot Lab direction: compact profile/Guest identity, requested CHAN greeting, one primary Online entry with a remembered valid queue choice, grouped manual/program cards, a non-clipped full Room Browser route and readable Friends preview. The technical ready strip and the header's always-on “Đã kết nối” decoration were removed; outage feedback appears only when degraded/error state affects the page.
+**Status: DONE for R6 page scope.** Evidence is recorded in `docs/r6-home-evidence.md`. The Homepage now follows the Robot Lab direction: compact profile/Guest identity, requested CHAN greeting, one primary Online entry with a remembered valid queue choice, grouped manual/program cards, a non-clipped full Room Browser route and readable Friends preview. The technical ready strip and the header's always-on “Đã kết nối” decoration were removed; outage feedback appears only when degraded/error state affects the page.
 
 **Harness before → after:** the pre-fix Homepage harness failed 2/2 on the Ranked-only CTA, stale copy and missing mode groups. The focused R6 suite now passes 5/5: two Homepage cases, one full RoomBrowser filter/load-more case and two active-match resume-hint cases. The full web suite passes 26 files/83 tests.
 
@@ -600,7 +600,7 @@ Update this table with real evidence as work completes. Do not mark R3 security 
 
 ### 8.7 R7 execution report — Queue / Waiting Room
 
-**Status: DONE for the local R7 Queue/Waiting Room scope.** Full evidence is recorded in [`docs/r7-queue-waiting-evidence.md`](./r7-queue-waiting-evidence.md).
+**Status: DONE for the local R7 Queue/Waiting Room scope.** Full evidence is recorded in `docs/r7-queue-waiting-evidence.md`.
 
 The Queue now presents a calm Robot Lab search stage with truthful Ranked metrics and Vietnamese match-found/transition copy; the decorative radar rings were removed. The extracted `CreateRoomForm` exposes Manual/Bot, Public/Private/password, timer, independent Referee and Spectator toggles, spectator capacity, and host role selection with Public-host-Referee validation. `WaitingRoom` renders two player slots, a separate Referee slot, spectator count/capacity, room-code copy, role tags and server-gated Ready/Start states. Referee invite failures no longer produce unhandled promise rejections.
 
@@ -612,7 +612,7 @@ The room-detail endpoint is now member-scoped so the frontend receives the autho
 
 ### 8.8 R8 execution report — Manual Game / Referee
 
-**Status: DONE for the local R8 Manual Game / Referee scope.** Full evidence is recorded in [`docs/r8-manual-referee-evidence.md`](./r8-manual-referee-evidence.md).
+**Status: DONE for the local R8 Manual Game / Referee scope.** Full evidence is recorded in `docs/r8-manual-referee-evidence.md`.
 
 GameRoom now exposes server-authoritative Referee Stop with the approved public reason groups, a centered focus-trapped nondismissible pause overlay, elapsed pause time, Referee-only Resume, the three-second RESUMING preparation and Referee `Giữ dừng`. Players and Spectators remain read-only; clocks, board moves, surrender, Ready and revision-changing actions stay locked in every non-PLAYING state. The public event rail records pause/resume events without exposing private Bot source, memory or logs. Referee and Spectator views keep canonical Blue below and never rotate on turn changes.
 
@@ -624,7 +624,7 @@ Referee disconnect recovery is now a real consent path: while paused, a player n
 
 ### 8.9 R9 execution report — Workbench / Private Library
 
-**Status: DONE for the local R9 Workbench/Private Library scope.** Full evidence is recorded in [`docs/r9-workbench-library-evidence.md`](./r9-workbench-library-evidence.md).
+**Status: DONE for the local R9 Workbench/Private Library scope.** Full evidence is recorded in `docs/r9-workbench-library-evidence.md`.
 
 `/bot-lab` now renders the approved three-region Robot Lab Workbench: private bot/revision list, explicit upload/sample/preflight surface, and a private inspector with read-only source, digest/SDK/schema metadata, test log, export/delete and explicit Online/Offline selection. Empty, upload, invalid, ready, preflight pass/fail, quota and active-reference conflict states are visible; source is never included in public list payloads. Account Library retention is owner-managed, while temporary match expiry is disclosed separately.
 
@@ -636,7 +636,7 @@ The server route/service uses `@ottv2/bot-sdk`'s real static validator and froze
 
 ### 8.10 R10 execution report — Bot Online
 
-**Status: DONE.** The local Bot Online product seam and the separate unranked Bot queue are implemented and evidenced in [`docs/r10-bot-online-evidence.md`](./r10-bot-online-evidence.md). Account owners choose a PASSED revision, create or join an Unranked Bot room with independent Referee/Spectator toggles, and enter a read-only observer surface with public strategy state. The server accepts only tested revisions, maintains one pending candidate per Bot, applies the latest candidate at the next owned turn, commits only legal moves through `MatchManager`, cancels in-flight work on Referee pause, wires a pinned Wasmtime/CPython-WASI adapter, and persists private references/memory through an explicit checkpoint adapter without leaking source/memory/private logs.
+**Status: DONE.** The local Bot Online product seam and the separate unranked Bot queue are implemented and evidenced in `docs/r10-bot-online-evidence.md`. Account owners choose a PASSED revision, create or join an Unranked Bot room with independent Referee/Spectator toggles, and enter a read-only observer surface with public strategy state. The server accepts only tested revisions, maintains one pending candidate per Bot, applies the latest candidate at the next owned turn, commits only legal moves through `MatchManager`, cancels in-flight work on Referee pause, wires a pinned Wasmtime/CPython-WASI adapter, and persists private references/memory through an explicit checkpoint adapter without leaking source/memory/private logs.
 
 The R10 service Harness is 7/7 with pinned runtime, the adapter Harness is 2/2, Bot queue admission is 9/9, the bounded server regression is 24 files/118 tests (3 explicit runtime-env skips), the focused Queue/Bot Online web suite is 16/16 and the bounded full web regression is 31 files/99 tests. Package/server/web typecheck, web lint, server build including the R3 artifact/probe gate, web build and `git diff --check` pass. The two-process restart probe passes with a stale-checkpoint fence. No Python player source was executed in an application process or native unrestricted subprocess; the real pinned adapter runs only in the Wasmtime supervisor.
 
@@ -644,7 +644,7 @@ The R10 service Harness is 7/7 with pinned runtime, the adapter Harness is 2/2, 
 
 ### 8.11 R11 execution report — AI / Offline / Bot Offline
 
-**Status: DONE for the R11 acceptance scope.** Full evidence is recorded in [`docs/r11-bot-offline-evidence.md`](./r11-bot-offline-evidence.md).
+**Status: DONE for the R11 acceptance scope.** Full evidence is recorded in `docs/r11-bot-offline-evidence.md`.
 
 The existing Guest/AI/Offline 2P routes remain compatible and local-only. Legacy Guest storage is migrated without deletion, Guest identity remains stable, and `LocalGamePage` uses the canonical rule engine/clock/result path with fixed Blue orientation and a visible two-person handoff. The former Bot Offline preparation route is now a real two-slot Robot Lab controller: Blue and Red independently load a sample or `.py` file, run SDK preflight, become Ready, and observe a read-only board with Run/Pause/Step/Speed controls. Pause waits at a safe turn boundary and Step commits exactly one turn.
 
@@ -656,7 +656,7 @@ The browser runner validates source with `@ottv2/bot-sdk`, executes only in a mo
 
 ### 8.12 R12 execution report — Friends / Invitations
 
-**Status: DONE for the R12 implementation scope.** Full evidence is recorded in [`docs/r12-friends-invitations-evidence.md`](./r12-friends-invitations-evidence.md).
+**Status: DONE for the R12 implementation scope.** Full evidence is recorded in `docs/r12-friends-invitations-evidence.md`.
 
 The canonical Friends page now provides four accessible tabs (Bạn bè, Lời mời, Đã gửi, Tìm người chơi), dominant identity/presence cards, keyboard-safe more/block actions with focus restore, a small Robot Lab empty-state, explicit stale-presence disclosure/retry, and responsive mobile stacking. The invite composer separates Người chơi from Trọng tài; player invitations explicitly choose Chơi trực tiếp or Đấu chương trình and the server verifies the room's authoritative mode before issuing a one-use invitation. Referee inbox/list/accept/decline is account-bound and reuses the authoritative room ACL; Guest cannot acquire the Referee role. Room invite cards expose mode and expiry, and expired actions are removed rather than left actionable. Social presence SSE now uses the configured CORS allowlist instead of a hard-coded localhost origin.
 
@@ -666,7 +666,7 @@ Static review covered privacy/block policy, Guest/account boundaries, ACL/expiry
 
 ### 8.13 R13 execution report — History / Replay / Audit
 
-**Status: DONE for the R13 implementation scope.** Full evidence is recorded in [`docs/r13-history-replay-evidence.md`](./r13-history-replay-evidence.md).
+**Status: DONE for the R13 implementation scope.** Full evidence is recorded in `docs/r13-history-replay-evidence.md`.
 
 The History page now distinguishes account history from on-device summaries, exposes the approved Online/AI/Offline/Bot filters, labels replay availability and keeps aborted/infrastructure outcomes neutral. Match snapshots persist canonical moves and an allowlisted public timeline; the History service writes them with the match, deduplicates retry writes without losing `playMode`, maps Bot Online separately and provides an explicit final-board-only fallback for legacy rows. Bot terminal outcomes expose server-authoritative N/P/M criteria, the published Red-wins-exact-tie rule, and separate author-fault/infrastructure reasons. The read-only Replay panel uses the canonical rules engine, fixed Blue-bottom orientation and Play/Pause/Step controls. The authenticated audit route downloads JSON containing only public match data, replay/timeline and retention metadata; private Bot source, memory, diagnostics and logs are excluded.
 
@@ -678,7 +678,7 @@ The History page now distinguishes account history from on-device summaries, exp
 
 ### 8.14 R14 execution report — Profiles
 
-**Status: DONE for the R14 implementation scope.** Full evidence is recorded in [`docs/r14-profile-evidence.md`](./r14-profile-evidence.md).
+**Status: DONE for the R14 implementation scope.** Full evidence is recorded in `docs/r14-profile-evidence.md`.
 
 Self/public profiles now keep identity/avatar dominant, label Ranked Elo separately from Bot results, and expose a safe aggregate `botStats` computed only from finished Bot matches. Aborted/infrastructure and manual rows are excluded, and Bot results never update human Elo. Public payloads continue to omit full name, credentials, private Library/source and Guest identity data. The account profile exposes an account-only Bot Library shortcut while the Guest profile never does.
 
@@ -692,7 +692,7 @@ Unauthenticated `/ho-so` falls back to the persistent local Guest identity only 
 
 ### 8.15 R15 execution report — Settings / Diagnostics / Local data
 
-**Status: DONE for the local R15 implementation scope.** Full evidence is recorded in [`docs/r15-settings-evidence.md`](./r15-settings-evidence.md).
+**Status: DONE for the local R15 implementation scope.** Full evidence is recorded in `docs/r15-settings-evidence.md`.
 
 Settings now exposes the Robot Lab-compatible appearance/audio controls plus explicit `Chẩn đoán` and `Dữ liệu` tabs. Diagnostics reports the pinned Offline kit version, cache readiness and missing-cache guidance; technical browser details stay collapsed and are not rendered as Home decoration or public room data. Local-data controls export only a `LOCAL_DEVICE_ONLY` JSON payload containing Guest identity, local saves/history, Bot Offline session and cache status, and clear those device stores only after confirmation. Account profile, Elo, cloud history and account Bot Library are not called or deleted. Active local sessions and running Bot Offline state fail closed with a visible recovery message.
 
@@ -702,7 +702,7 @@ Settings now exposes the Robot Lab-compatible appearance/audio controls plus exp
 
 ### 8.16 R16 execution report — Auth / Guest fallback / session boundaries
 
-**Status: DONE for the local R16 acceptance scope.** Full evidence is recorded in [`docs/r16-auth-evidence.md`](./r16-auth-evidence.md).
+**Status: DONE for the local R16 acceptance scope.** Full evidence is recorded in `docs/r16-auth-evidence.md`.
 
 Login, Register and Forgot Password now share the Robot Lab auth shell with the solid OTT v2 wordmark while preserving the existing Vietnamese form labels, inline validation, pending/error states, password visibility control and one-time recovery-code acknowledgement. Login accepts only a same-origin in-app `returnTo`; external, protocol-relative, control-character and authentication-loop targets fail closed, while safe query/hash state is preserved for Workbench drafts and filters. Account-required Workbench, Bot Online, Queue, Room, Friends, Profile, Settings and expired-session paths now carry safe return context where a return is meaningful.
 
@@ -716,7 +716,7 @@ Static review covered same-origin redirect validation, auth-loop prevention, Gue
 
 ### 8.17 R17 execution report — Spectator / Error fallback / public match consumer
 
-**Status: DONE for the local R17 implementation scope.** Full evidence is recorded in [`docs/r17-spectator-fallback-evidence.md`](./r17-spectator-fallback-evidence.md).
+**Status: DONE for the local R17 implementation scope.** Full evidence is recorded in `docs/r17-spectator-fallback-evidence.md`.
 
 Spectator now consumes the server-provided public timeline from initial snapshots, resync snapshots and live SSE payloads. It renders only public labels, sequence/side and Bot revision numbers; private Bot source, memory, logs and diagnostics remain outside the public consumer. The board stays canonical with Xanh at the bottom, has no interaction side, and every cell is disabled. Referee pause state remains visible with elapsed time and no spectator Resume action, while Rời phòng and reconnect/resync behavior remain available.
 
@@ -728,7 +728,7 @@ Static review covers fixed orientation, read-only role permissions, public/priva
 
 ### 8.18 R18 execution report — Result / Rematch
 
-**Status: DONE for the local R18 implementation scope.** Full evidence is recorded in [`docs/r18-result-rematch-evidence.md`](./r18-result-rematch-evidence.md).
+**Status: DONE for the local R18 implementation scope.** Full evidence is recorded in `docs/r18-result-rematch-evidence.md`.
 
 ResultPanel now presents clear win/loss/neutral outcomes for every canonical result reason and both player perspectives. Bot limit, author-fault and infrastructure results show the public N/P/M adjudication and fault side without exposing source, memory, private logs or diagnostics. Ranked Elo remains restricted to non-neutral Ranked results, and the result duration subtracts authoritative Referee pause time from the active match duration. Celebration effects remain event-based and respect the existing Reduced/Low motion policy.
 
@@ -740,7 +740,7 @@ No Python ran in the application process or an unrestricted native subprocess; n
 
 ### 8.19 R19 execution report — Cross-page QA / cleanup
 
-**Status: DONE for the local R19 scope.** Full evidence is recorded in [`docs/r19-cross-page-qa-evidence.md`](./r19-cross-page-qa-evidence.md).
+**Status: DONE for the local R19 scope.** Full evidence is recorded in `docs/r19-cross-page-qa-evidence.md`.
 
 The RED harness started with 16 failures in the 30-test representative browser matrix. R19 fixed the WCAG contrast tokens, made API fixtures independent of whether the browser ran against the Vite dev origin or same-origin preview, completed the current History/Friends/Referee-invite fixture contract, and restored the Homepage internal room-list scroll surface without hiding returned rooms. The GREEN representative matrix is **30/30 PASS**; the full `tests/e2e` suite is **43/43 PASS**.
 
@@ -750,7 +750,7 @@ Review preserved fixed board orientation, Vietnamese copy, role/ACL boundaries, 
 
 ### 8.20 R20 execution report — Final acceptance
 
-**Status: BLOCKED.** The available local gates pass and the complete report is recorded in [`docs/r20-final-acceptance-evidence.md`](./r20-final-acceptance-evidence.md), but R20's mandatory security/release evidence is not available.
+**Status: BLOCKED.** The available local gates pass and the complete report is recorded in `docs/r20-final-acceptance-evidence.md`, but R20's mandatory security/release evidence is not available.
 
 **Continuation 2026-10-05:** Guest Bot Online GB01–GB06 is now accepted as a separate scoped local workstream: server **160/160 PASS**, web **169/169 PASS**, rebuilt real-API browser **9/9 PASS** and independent scoped review **PASS**. Desktop baseline harness was corrected for same-origin Guest endpoints and rerun with seven 1440×900 routes, `consoleErrors=[]`, `notFoundResponses=[]`, `requestFailures=[]` and no horizontal overflow. These artifacts strengthen local V10 evidence but do not close R20: Offline production release activation remains fail-closed pending its explicit security/release gate; approved visual comparison, release-grade CWV, verified production backup, separate approval for the three new Guest migrations and exact-SHA Linux Render evidence remain outstanding.
 
@@ -768,7 +768,7 @@ The final local continuation also ran Chrome DevTools Lighthouse/performance che
 
 A read-only request to the Render Free URL during this continuation remained on Render's cold-start `Application loading` interstitial for more than 20 seconds. It is recorded as hosting-state evidence only; no production Lighthouse/CWV result is inferred.
 
-The deterministic desktop harness captured seven pages at 1440×900 with no horizontal overflow, no unexpected request failures and no console errors; the manifest records expected Guest 401 probes and navigation teardown aborts separately. The companion audit is recorded in [`docs/r20-desktop-ui-audit.md`](./r20-desktop-ui-audit.md). This is a new baseline capture, not a comparison against an approved reference image.
+The deterministic desktop harness captured seven pages at 1440×900 with no horizontal overflow, no unexpected request failures and no console errors; the manifest records expected Guest 401 probes and navigation teardown aborts separately. The companion audit is recorded in `docs/r20-desktop-ui-audit.md`. This is a new baseline capture, not a comparison against an approved reference image.
 
 Guest Bot Online has an independent scoped PASS in `docs/robot-lab-visual-reference/v10-independent-review.md`; the final whole-system BA/QA verdict, approved screenshot comparison and release-grade Core Web Vitals remain **NOT RUN/INCONCLUSIVE**. The user explicitly waived physical Chrome Android/Safari iOS execution for this desktop-first continuation; the waiver is recorded, not treated as a device-test pass. Automated browser emulation cannot substitute for independent-human evidence, so R20 is not DONE and no push/deploy/database migration was performed. Safe next action is to attach the remaining whole-system review, approved visual comparison and release-grade CWV artifacts, then request the separately authorized push to `origin/main`.
 
