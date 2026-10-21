@@ -5,7 +5,7 @@
 **Trang:** P04 — Cấu hình luật  
 **Dependency:** N00  
 **Gate:** G0  
-**Trạng thái:** PLAN APPROVED — Q1–Q5 chọn A; G0 PASS về yêu cầu; sẵn sàng bắt đầu N01; chưa sửa code
+**Trạng thái:** IMPLEMENTED — Q1–Q5 chọn A; G0 PASS; evidence và giới hạn còn lại ở `N01-RESULT-2026-10-21.md`
 
 **G0 evidence:** `docs/tournament-initialization/support/N00-INDEPENDENT-REVIEW-2026-10-21.md` kết luận 93/93 covered (100%), 0 partial, 0 open, không còn P0/P1 requirement gap trong checklist đã công bố. G0 chỉ xác nhận coverage đặc tả; không thay thế test engine/runtime/capacity.
 

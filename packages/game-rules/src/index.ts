@@ -5,6 +5,7 @@
 export const GAME_RULES_PACKAGE_VERSION = "0.1.0" as const;
 
 export * from "./types.js";
+export * from "./profiles.js";
 export * from "./coordinates.js";
 export * from "./setup.js";
 export * from "./engine.js";
