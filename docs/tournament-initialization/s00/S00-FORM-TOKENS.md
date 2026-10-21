@@ -1,5 +1,7 @@
 # S00 — Form contract và semantic tokens
 
+> Revision 2: hình học và typography theo [S00-DESIGN-R2.md](S00-DESIGN-R2.md), bổ sung `--lab-bevel`, `--lab-panel`, `--lab-panel-strong` từ `robot-lab.css`. P01 dùng thẻ; `ServerTable` dành P14. Field labels, accessible errors và ACK contract bên dưới tiếp tục áp dụng.
+
 ## 1. Token authority
 
 Nguồn token duy nhất hiện có là `apps/web/src/foundation/tokens.ts`. S00 không thêm CSS variable hay màu hex riêng. Component mới phải dùng semantic token để light/dark/system và reduced motion đổi cùng một chỗ.

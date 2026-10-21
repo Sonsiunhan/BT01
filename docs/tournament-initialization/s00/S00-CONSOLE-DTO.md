@@ -2,13 +2,16 @@
 
 Các DTO dưới đây là payload proposal để Long/Đức xác nhận ở G1. Chúng không phải TypeScript source và không cho client nắm authority. Payload thật phải nằm trong `packages/contracts`, server kiểm actor/tenant/scope/revision trước khi trả.
 
+Revision 3: dùng [S00-TRACEABILITY.md](S00-TRACEABILITY.md) và thiết kế R2 làm handoff hiện hành. UI context là scoped grant, không phải danh sách global role mới. Capability/status names bên dưới vẫn là proposal chờ G1.
+
 ## 1. Kiểu dùng chung
 
 ```text
 ActorSummary {
   actorId: string              // server supplied, opaque
   displayName: string          // đã lọc theo policy
-  role: SYSTEM_ADMIN | TOURNAMENT_ADMIN | REFEREE | STAFF | SUPPORT_AGENT
+  displayContext: SYSTEM_ADMIN | TOURNAMENT_ADMIN | REFEREE | BROADCAST_OBSERVER | BROADCAST_ADMIN
+  scopedGrants: string[]       // confirmed server grants only; mapping remains pending G1
   tenantScope: string[]        // chỉ trả scope cần cho màn hiện tại
 }
 
@@ -83,11 +86,11 @@ TournamentListItem {
   tournamentId: string
   name: string
   slug: string
-  status: DRAFT | SUBMITTED | UNDER_REVIEW | APPROVED | ROSTER_OPEN |
+  status: DRAFT | SUBMITTED | UNDER_REVIEW | CHANGES_REQUESTED | REJECTED | APPROVED | ROSTER_OPEN |
           READY | RUNNING | PAUSED | ENDED | REVIEWING | FINALIZED | ARCHIVED | CANCELLED
   visibility: PRIVATE | PUBLIC | UNLISTED
-  startAt: Instant
-  endAt: Instant
+  startAt: Instant | null      // null only in DRAFT/CHANGES_REQUESTED before schedule validation
+  endAt: Instant | null        // submitted/approved profile must have a validated schedule
   timezone: IanaZone
   ownerDisplay: string
   readiness: { state: READY | BLOCKED | CHECKING; blockerCount: number }
@@ -140,6 +143,27 @@ TournamentDetailView {
   extensionSummary: { pending: number; capRemainingMinutes?: number }
   permittedActions: string[]
   context: RevisionContext
+}
+
+MatchCenterView {
+  activeRound: CTF | CUSTOM
+  overview: TournamentOverview
+  ctfSchedule?: MatchRow[]       // ngày đấu CTF và toàn bộ trận theo lịch
+  customSchedule?: MatchRow[]    // thứ tự từ import, không suy ra bracket semantics
+  permittedActions: string[]
+  broadcast: { canView: boolean; canPrepare: boolean }
+  context: RevisionContext
+}
+
+MatchRow {
+  matchId: string
+  scheduledAt: Instant
+  boardLabel: string
+  blueLabel: string
+  redLabel: string
+  status: SCHEDULED | RUNNING | ENDED | PAUSED
+  streamChannel?: string
+  permittedActions: string[]
 }
 
 IncidentSummary {

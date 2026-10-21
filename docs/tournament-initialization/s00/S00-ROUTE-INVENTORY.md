@@ -20,11 +20,11 @@
 
 `/admin/tournaments/:tournamentId/rules`, `/adjudication` và `/readiness` là route con của P03/P04/P05/P16 do Nam/Long đăng ký theo ownership; S00 chỉ yêu cầu shell giữ vị trí tab và capability boundary.
 
-## 2. Alias và redirect
+## 2. Alias và redirect — DEFERRED, chưa có alias cũ được xác minh
 
-Alias chỉ được dùng khi cùng screen contract và cùng ACL; không tạo implementation fork.
+Các đường dẫn trong bảng là ý tưởng chưa đăng ký, không phải alias đang tồn tại. Không cần triển khai chúng để đóng S00. Chỉ bổ sung nếu G1/route registry quyết định; cùng screen contract và ACL, không tạo implementation fork.
 
-| Alias cũ/đề xuất | Canonical | Quy tắc |
+| Ý tưởng alias chưa đăng ký | Canonical proposal | Quy tắc |
 |---|---|---|
 | `/quan-ly-giai` | `/admin/tournaments` | Redirect sau khi auth/capability resolve. |
 | `/quan-ly-giai/:id` | `/admin/tournaments/:tournamentId` | Preserve ID, không preserve query không hợp lệ. |

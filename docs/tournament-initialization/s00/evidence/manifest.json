@@ -1,0 +1,106 @@
+{
+  "at": "2026-10-21T06:38:20.179Z",
+  "status": "READY FOR HUMAN REVIEW / PARTIAL VALIDATION",
+  "scope": "S00 synthetic prototype/design only · revision 4 delta",
+  "sourceSha256": "0bf009d45c622aa78808feab8dcd09e49f0d65969950222c7d6bf424c495528d",
+  "browser": "155.0.4283.62",
+  "assertions": {
+    "passed": 121,
+    "failed": 0
+  },
+  "axe": {
+    "screens": 10,
+    "violations": 0,
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  "manualGates": {
+    "viewport": "PASS",
+    "zoom200Model": "PASS",
+    "contrast": "PASS",
+    "copy": "PASS",
+    "screenReader": "NOT RUN"
+  },
+  "fieldIds": 82,
+  "brokenLinks": [],
+  "commands": [
+    "node docs/tournament-initialization/s00/build-preview.cjs",
+    "node docs/tournament-initialization/s00/verify-complete.cjs",
+    "node docs/tournament-initialization/s00/verify-accessibility.cjs",
+    "node docs/tournament-initialization/s00/verify-manual-gates.cjs",
+    "node docs/tournament-initialization/s00/record-evidence.cjs"
+  ],
+  "sources": [
+    {
+      "path": "preview.html",
+      "sha256": "0bf009d45c622aa78808feab8dcd09e49f0d65969950222c7d6bf424c495528d"
+    },
+    {
+      "path": "preview-app.js",
+      "sha256": "324aad76e12a20ddb2fb84c229600daf4923b28c21f63fca49d2bc0e56501cb0"
+    },
+    {
+      "path": "preview-shell.html",
+      "sha256": "6f1ca857fa3fa1e23b5214e4e7444fe8fb548eed3e16c85fe484bf7c43405d6a"
+    },
+    {
+      "path": "preview-base.css",
+      "sha256": "2d3d1ab95d8c338f65aa8feb5ddd6d77361e3f41be126df47ce66bbe1e6d75bb"
+    },
+    {
+      "path": "preview-extra.css",
+      "sha256": "3495438c6f8f1d3edd0427dbb4d41284013b02748f13f3f016438d4e35a948b1"
+    },
+    {
+      "path": "build-preview.cjs",
+      "sha256": "7ed821b02a3f23bb1b1c89355254922c29422b6a338d75bb82d925e744a146dd"
+    },
+    {
+      "path": "verify-complete.cjs",
+      "sha256": "f2f95e2bf696c03af5c303b433971e03082f4937161bdd1e906b5fd654aec6b9"
+    },
+    {
+      "path": "verify-accessibility.cjs",
+      "sha256": "b6f87ff65769b00086f25e4f30d273a351872df6bfaf77355908b00749d7aaf1"
+    },
+    {
+      "path": "verify-manual-gates.cjs",
+      "sha256": "63a2dd46c25448e7c56392aa0f08030c6ef85ecac355afc8f1069870eb119493"
+    },
+    {
+      "path": "implementation_plan.md",
+      "sha256": "2149c2b240793c6609fae67555813f623a8e052f09120b9a366efbfd073b650d"
+    },
+    {
+      "path": "S00-TRACEABILITY.md",
+      "sha256": "b244bc3a919d7a31ea1b1dce487f2f2e4222f9b175d7f24aab91e3db549e87d9"
+    },
+    {
+      "path": "S00-ACCEPTANCE.md",
+      "sha256": "eb8748a02ad1ad757cf5acfad6df3355e3a994b53fe5da47cf49a047e169d1c0"
+    },
+    {
+      "path": "S00-INDEPENDENT-REVIEW.md",
+      "sha256": "63e7d8445b509ce584c2ec25506a3490aecad4e11de55f149cac9ebf0708e9d2"
+    },
+    {
+      "path": "S00-REQUIREMENT-DELTA-2026-10-21.md",
+      "sha256": "9b9acd5cefcd5a825eab675b544209d6002bda8c1fb84cedd67b2165bbf37a57"
+    }
+  ],
+  "pending": [
+    "Human visual/copy acceptance",
+    "Real screen reader session",
+    "Real browser zoom/device manual",
+    "Axe color-contrast incomplete manual evaluation",
+    "L00/G1 contract freeze"
+  ],
+  "historicalNonFinal": [
+    "evidence/browser-failure.json",
+    "S00-INDEPENDENT-REVIEW.md revision 3 verdict"
+  ],
+  "productionCodeChanged": false,
+  "databaseMutations": false,
+  "pushed": false
+}

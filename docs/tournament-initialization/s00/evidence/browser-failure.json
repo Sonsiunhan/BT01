@@ -1,0 +1,210 @@
+{
+  "checks": [
+    {
+      "ac": "AC-04",
+      "message": "Three cards on first page",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Pagination changes results",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Filter resets cursor",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Search no-results recovery",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "SA cannot create",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Denied actor sees no private cards",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Recovery cannot elevate denied actor to TA",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Conflict scenario cannot change actor",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Mode selector only offers Người đấu Người or Bot đấu Bot",
+      "pass": true
+    },
+    {
+      "ac": "AC-02",
+      "message": "BA/SA profile fields are present in the first step",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Error summary receives focus",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Field error linked",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Error link focuses field",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Save rejects names longer than 120 characters",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Dirty navigation guard",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Native dialog traps keyboard",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Cancel preserves draft",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Save pending blocks duplicate",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Schedule invalid blocked",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Board lower bound",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Goal inactive fields hidden",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Cycle interval applicable",
+      "pass": true
+    },
+    {
+      "ac": "AC-05",
+      "message": "Four wizard steps",
+      "pass": true
+    },
+    {
+      "ac": "AC-17",
+      "message": "Confirmation exposes the complete BA/SA field map",
+      "pass": true
+    },
+    {
+      "ac": "AC-05",
+      "message": "Submit explicitly synthetic",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Human only has no Bot input",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Normalized submitted snapshot omits inactive Bot/goal settings",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Save-discard-reactivate Bot/goal fields remain editable",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Bot safety and compatibility check is mandatory",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Initial Elo is fixed at 1000",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Retention is fixed at 90 days",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Odd max plies is blocked",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Bot/goal fields validate and reach confirmation",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Error recovery keeps draft",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Conflict compare",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Observer is limited to match-center tabs",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Custom table preserves imported match order",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Observer opens a read-only match panel without broadcast controls",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Broadcast Admin opens the broadcast panel",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Broadcast panel exposes match/channel/layout context",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Match panel preserves row status and participants",
+      "pass": true
+    }
+  ],
+  "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-command=\"close-panel\"]').first()\u001b[22m\n"
+}

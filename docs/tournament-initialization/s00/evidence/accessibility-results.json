@@ -1,0 +1,118 @@
+{
+  "at": "2026-10-21T06:28:47.386Z",
+  "browser": "155.0.4283.62",
+  "sha256": "0bf009d45c622aa78808feab8dcd09e49f0d65969950222c7d6bf424c495528d",
+  "scope": "WCAG2A/AA + 2.1AA automated; not screen reader certification; incomplete items require manual review",
+  "results": [
+    {
+      "theme": "dark",
+      "page": "list",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 8
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "draft",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "detail",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 8
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "audit",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 3
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "offline",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "list",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 8
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "draft",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "detail",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 8
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "audit",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 3
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "offline",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    }
+  ]
+}

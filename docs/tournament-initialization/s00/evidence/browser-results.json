@@ -1,0 +1,705 @@
+{
+  "at": "2026-10-21T06:28:40.211Z",
+  "browser": "155.0.4283.62",
+  "sha256": "0bf009d45c622aa78808feab8dcd09e49f0d65969950222c7d6bf424c495528d",
+  "checks": [
+    {
+      "ac": "AC-04",
+      "message": "Three cards on first page",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Pagination changes results",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Filter resets cursor",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Search no-results recovery",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "SA cannot create",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Denied actor sees no private cards",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Recovery cannot elevate denied actor to TA",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Conflict scenario cannot change actor",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Mode selector only offers Người đấu Người or Bot đấu Bot",
+      "pass": true
+    },
+    {
+      "ac": "AC-02",
+      "message": "BA/SA profile fields are present in the first step",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Error summary receives focus",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Field error linked",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Error link focuses field",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Save rejects names longer than 120 characters",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Dirty navigation guard",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Native dialog traps keyboard",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Cancel preserves draft",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Save pending blocks duplicate",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Schedule invalid blocked",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Board lower bound",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Goal inactive fields hidden",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Cycle interval applicable",
+      "pass": true
+    },
+    {
+      "ac": "AC-05",
+      "message": "Four wizard steps",
+      "pass": true
+    },
+    {
+      "ac": "AC-17",
+      "message": "Confirmation exposes the complete BA/SA field map",
+      "pass": true
+    },
+    {
+      "ac": "AC-05",
+      "message": "Submit explicitly synthetic",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Human only has no Bot input",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Normalized submitted snapshot omits inactive Bot/goal settings",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Save-discard-reactivate Bot/goal fields remain editable",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Bot safety and compatibility check is mandatory",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Initial Elo is fixed at 1000",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Retention is fixed at 90 days",
+      "pass": true
+    },
+    {
+      "ac": "AC-06",
+      "message": "Odd max plies is blocked",
+      "pass": true
+    },
+    {
+      "ac": "AC-07",
+      "message": "Bot/goal fields validate and reach confirmation",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Error recovery keeps draft",
+      "pass": true
+    },
+    {
+      "ac": "AC-08",
+      "message": "Conflict compare",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "Observer is limited to match-center tabs",
+      "pass": true
+    },
+    {
+      "ac": "AC-04",
+      "message": "Custom table preserves imported match order",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Observer opens a read-only match panel without broadcast controls",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Broadcast Admin opens the broadcast panel",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Broadcast panel exposes match/channel/layout context",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Broadcast layout/channel selection persists in the preview session",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Match panel preserves row status and participants",
+      "pass": true
+    },
+    {
+      "ac": "AC-09",
+      "message": "Running shortage warning",
+      "pass": true
+    },
+    {
+      "ac": "AC-09",
+      "message": "Startup shortage blocker",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Arrow key changes tab",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Unavailable referee recovery",
+      "pass": true
+    },
+    {
+      "ac": "AC-03",
+      "message": "No referee exact-tie action",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Decision reason required",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Assigned referee directly decides",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Rollback preserves event history",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Finalized locks rollback",
+      "pass": true
+    },
+    {
+      "ac": "AC-10",
+      "message": "Expired lease removes access",
+      "pass": true
+    },
+    {
+      "ac": "AC-11",
+      "message": "Cap overflow rejected",
+      "pass": true
+    },
+    {
+      "ac": "AC-11",
+      "message": "Pending preserves end time",
+      "pass": true
+    },
+    {
+      "ac": "AC-11",
+      "message": "UNKNOWN blocks approval",
+      "pass": true
+    },
+    {
+      "ac": "AC-11",
+      "message": "CONFLICT blocks approval",
+      "pass": true
+    },
+    {
+      "ac": "AC-11",
+      "message": "At end_at approval disabled",
+      "pass": true
+    },
+    {
+      "ac": "AC-11",
+      "message": "Partial approval updates granted minutes",
+      "pass": true
+    },
+    {
+      "ac": "AC-12",
+      "message": "Audit safe field diff",
+      "pass": true
+    },
+    {
+      "ac": "AC-12",
+      "message": "No credentials in audit",
+      "pass": true
+    },
+    {
+      "ac": "AC-15",
+      "message": "Escape restores panel opener",
+      "pass": true
+    },
+    {
+      "ac": "AC-12",
+      "message": "Audit pagination",
+      "pass": true
+    },
+    {
+      "ac": "AC-12",
+      "message": "Audit filter",
+      "pass": true
+    },
+    {
+      "ac": "AC-13",
+      "message": "Four Offline entries",
+      "pass": true
+    },
+    {
+      "ac": "AC-13",
+      "message": "Unavailable stays blocked",
+      "pass": true
+    },
+    {
+      "ac": "AC-13",
+      "message": "Human Offline target",
+      "pass": true
+    },
+    {
+      "ac": "AC-14",
+      "message": "Recovery state empty",
+      "pass": true
+    },
+    {
+      "ac": "AC-14",
+      "message": "Recovery state loading",
+      "pass": true
+    },
+    {
+      "ac": "AC-14",
+      "message": "Recovery state pending",
+      "pass": true
+    },
+    {
+      "ac": "AC-14",
+      "message": "Recovery state error",
+      "pass": true
+    },
+    {
+      "ac": "AC-14",
+      "message": "Recovery state forbidden",
+      "pass": true
+    },
+    {
+      "ac": "AC-14",
+      "message": "Recovery state expired",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "320 dark list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "320 dark audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "320 dark offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "320 dark panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 dark list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 dark audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 dark offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 dark panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 light list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 light audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 light offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "375 light panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "768 dark list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "768 dark audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "768 dark offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "768 dark panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1366 dark list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1366 dark audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1366 dark offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1366 dark panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 dark list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 dark audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 dark offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 dark panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 light list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 light audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 light offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "1440 light panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "720 dark list controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "720 dark audit controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "720 dark offline controls fit: ",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "720 dark panel fits",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "dark text contrast 15.00 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "dark muted contrast 8.10 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "dark mint text contrast 11.55 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "dark button contrast 9.83 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "dark warning contrast 9.56 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "dark focus contrast 9.53 >= 3",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "dark input boundary contrast 9.25 >= 3",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "light text contrast 14.94 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "light muted contrast 6.31 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "light mint text contrast 5.51 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "light button contrast 5.51 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "light warning contrast 4.96 >= 4.5",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "light focus contrast 4.62 >= 3",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "light input boundary contrast 5.55 >= 3",
+      "pass": true
+    },
+    {
+      "ac": "AC-16",
+      "message": "Reduced motion removes transitions",
+      "pass": true
+    },
+    {
+      "ac": "AC-14",
+      "message": "Zero page errors",
+      "pass": true
+    },
+    {
+      "ac": "AC-17",
+      "message": "Source unchanged during evidence run",
+      "pass": true
+    }
+  ],
+  "contrasts": [
+    {
+      "theme": "dark",
+      "name": "text",
+      "ratio": 14.997693543659908,
+      "min": 4.5
+    },
+    {
+      "theme": "dark",
+      "name": "muted",
+      "ratio": 8.1002366986409,
+      "min": 4.5
+    },
+    {
+      "theme": "dark",
+      "name": "mint text",
+      "ratio": 11.554224203567426,
+      "min": 4.5
+    },
+    {
+      "theme": "dark",
+      "name": "button",
+      "ratio": 9.834767995634191,
+      "min": 4.5
+    },
+    {
+      "theme": "dark",
+      "name": "warning",
+      "ratio": 9.556899098117263,
+      "min": 4.5
+    },
+    {
+      "theme": "dark",
+      "name": "focus",
+      "ratio": 9.534706387202524,
+      "min": 3
+    },
+    {
+      "theme": "dark",
+      "name": "input boundary",
+      "ratio": 9.24528709630635,
+      "min": 3
+    },
+    {
+      "theme": "light",
+      "name": "text",
+      "ratio": 14.944236290290547,
+      "min": 4.5
+    },
+    {
+      "theme": "light",
+      "name": "muted",
+      "ratio": 6.3101031822239,
+      "min": 4.5
+    },
+    {
+      "theme": "light",
+      "name": "mint text",
+      "ratio": 5.5141442604936355,
+      "min": 4.5
+    },
+    {
+      "theme": "light",
+      "name": "button",
+      "ratio": 5.5141442604936355,
+      "min": 4.5
+    },
+    {
+      "theme": "light",
+      "name": "warning",
+      "ratio": 4.964903218840728,
+      "min": 4.5
+    },
+    {
+      "theme": "light",
+      "name": "focus",
+      "ratio": 4.624657440128794,
+      "min": 3
+    },
+    {
+      "theme": "light",
+      "name": "input boundary",
+      "ratio": 5.550085011197322,
+      "min": 3
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Synthetic only",
+    "720px reflow models 1440px at 200%; real browser zoom manual NOT RUN",
+    "Real screen reader NOT RUN",
+    "Host Lucide rendering not tested by standalone runner"
+  ]
+}

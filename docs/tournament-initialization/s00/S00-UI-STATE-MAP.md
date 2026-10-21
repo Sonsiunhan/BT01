@@ -1,5 +1,7 @@
 # S00 — Wireframe và state map console
 
+> Revision 1 — giữ để truy vết. Bố cục hiện hành theo [revision 2](S00-DESIGN-R2.md): header ngang, panel Robot Lab bo góc/cạnh đế, P01 dạng thẻ, metadata kỹ thuật mở khi cần. Sidebar, status strip toàn cục và hướng “góc rõ” bên dưới đã được thay thế.
+
 ## 1. Hướng thiết kế
 
 | Trục | Quyết định |
@@ -95,15 +97,17 @@ Thông tin ─ Thời gian ─ Bàn & luật ─ Kết quả ─ Điều lệ
 ## 6. P03 — Chi tiết/điều hành
 
 ```text
-← Danh sách / Giải A-2026                  [state] [revision] [Thao tác ▾]
-[Tổng quan] [Cấu hình] [Readiness] [Trận đấu • incident count] [Nhân sự]
-┌ Blocker summary ┐ ┌ Schedule ┐ ┌ Rules snapshot ┐ ┌ Staffing ┐
-│ 2 cần xử lí     │ │ start/end│ │ v3 • digest    │ │ X/N READY │
-└─────────────────┘ └──────────┘ └────────────────┘ └───────────┘
-Timeline / audit excerpt / next allowed transition
+← Danh sách / Giải A-2026                  [state] [Thao tác ▾]
+[Tổng quan] [Vòng CTF] [Vòng Custom] [Sẵn sàng]
+┌ Diễn biến giải ┐ ┌ Lịch giải ┐ ┌ Luật ┐ ┌ Nhân sự ┐
+│ live/finished   │ │ start/end │ │ v3   │ │ 2/2 sẵn sàng │
+└─────────────────┘ └───────────┘ └──────┘ └──────────────┘
+Vòng CTF: bảng ngày đấu + toàn bộ trận, từng dòng mở được trận
+Vòng Custom: bảng trận từ import, giữ thứ tự TA sắp xếp, không áp thể thức
 ```
 
 - `RUNNING` vẫn hiển thị cảnh báo staffing khi số Referee dưới ngưỡng; không tự dừng giải.
+- Observer và Broadcast Admin có thể mở match-center và từng trận theo grant; Broadcast Admin có surface phát sóng riêng, không nhận quyền phân xử.
 - Incident panel nằm trong trang quản lí giải. Case có badge bền vững, assignment/referee lease đã lọc, không dùng toast làm queue.
 - Gia hạn hiển thị `currentEndAt`, request, cap còn lại và trạng thái đối chiếu lịch; pending không đổi lịch.
 - Các transition (submit, cancel, pause, publish, request extension) chỉ render từ `permittedActions` và state machine server.
