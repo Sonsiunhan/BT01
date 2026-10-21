@@ -1,8 +1,8 @@
 # L00 — Kế hoạch thiết kế trang SA và hợp nhất API/data proposal
 
-Ngày 21/10/2026, Asia/Bangkok. Revision 1. **PLAN READY FOR REVIEW — L00 NOT STARTED.**
+Ngày 21/10/2026, Asia/Bangkok. Revision 2. **L00 EXECUTED — DESIGN HANDOFF COMPLETE; APPLICATION/DB WORK NOT STARTED.**
 
-Chỉ đạo hiện hành: đọc `docs/tournament-initialization`, lập kế hoạch L00, đưa lên nhánh `nam-backup-team` rebase từ `main`, **chưa thực thi L00**. Commit này chỉ bổ sung kế hoạch; không tạo wireframe/DTO/harness của L00, sửa application, chạy DB hoặc mở L01. Việc push tài liệu được cho phép bởi chính yêu cầu này; không mở rộng thành quyền deploy, push main hoặc migrate DB chung.
+Chỉ đạo hiện hành: đọc `docs/tournament-initialization`, lập kế hoạch L00, đưa lên nhánh `nam-backup-team` rebase từ `main`, sau đó thực thi L00. Lượt này đã tạo các artifact thiết kế/wireframe/API-data/method ownership/acceptance/result trong `l00/`; không sửa application, chạy DB hoặc mở L01. Việc push tài liệu được cho phép bởi chính yêu cầu này; không mở rộng thành quyền deploy, push main hoặc migrate DB chung.
 
 ## 1. Nguồn và phạm vi đã kiểm tra
 
@@ -88,7 +88,7 @@ Review trace toàn phạm vi, quyền, race, Vietnamese copy, keyboard/theme/vie
 
 ## 5. Tiêu chí nghiệm thu L00
 
-Tất cả là required, trạng thái hiện tại **NOT RUN** vì user chưa yêu cầu thực thi L00. Kiểm checklist này không phải coverage 93/93 N00.
+Tất cả là required. Sau thực thi, trạng thái artifact được ghi trong [`L00-ACCEPTANCE.md`](L00-ACCEPTANCE.md); các gate application/runtime/DB/browser vẫn NOT RUN. Kiểm checklist này không phải coverage 93/93 N00.
 
 | AC | Điều kiện/hành động → kết quả, điều cấm | Verification khi thực thi / trace |
 |---|---|---|
@@ -111,4 +111,4 @@ Tất cả là required, trạng thái hiện tại **NOT RUN** vì user chưa y
 - Mốc 21/10 08:00–09:00 là allocation lịch sử, chưa là giờ thực tế L00 hoặc cam kết effort. Không khởi động clock thực thi, đổi deadline hoặc duyệt thêm ngày.
 - Rollback riêng kế hoạch mới bằng revert commit kế hoạch; không reset lịch sử kế thừa hoặc xóa worktree người dùng.
 
-Kết quả lượt lập kế hoạch: đọc nguồn và source, chuẩn bị kế hoạch có phạm vi/ownership/dependency/AC. **L00, L01, application tests, runtime, DB, browser và independent review L00: NOT RUN.**
+Kết quả lượt này: L00 design handoff đã thực thi và có evidence trong `l00/`. **L01, application tests, runtime, DB, browser và independent review L00: NOT RUN.**
