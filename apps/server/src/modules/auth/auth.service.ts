@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { PrismaClient, Session, User, UserProfile, UserStats } from "@prisma/client";
 import type {
   ChangePasswordRequest,
@@ -8,6 +9,10 @@ import type {
   RecoverRequest,
   RegisterRequest,
   PresenceVisibility,
+  CreateTaAccountRequest,
+  BindTaContractRequest,
+  BindTaContractResponse,
+  RevokeTaResponse,
 } from "@ottv2/contracts";
 
 import { AppError } from "../../shared/errors/app-error.js";
@@ -105,7 +110,165 @@ export class AuthService {
 
   constructor(private readonly db?: PrismaClient) {}
 
-  async createGuestSession(input: { clientId: string; displayName: string }): Promise<{ token: string; displayName: string }> {
+  private requireSystemAdmin(context: AuthContext): void {
+    if (context.principal !== "ACCOUNT") {
+      throw new AppError("UNAUTHORIZED", "Principal not authenticated as ACCOUNT", 401, false, "FATAL_SESSION");
+    }
+    const userRole = (context.user as any).role;
+    const userRoles: string[] = ((context.user as any).roles as string[]) ?? [];
+    if (userRole !== "SYSTEM_ADMIN" && !userRoles.includes("ADMIN") && !userRoles.includes("SYSTEM_ADMIN")) {
+      throw new AppError("UNAUTHORIZED", "Only System Admin can perform this operation", 403, false, "INVALID");
+    }
+  }
+
+  /**
+   * Bootstrap a Tournament Admin (TA) account.
+   * Only a SYSTEM_ADMIN may invoke this.
+   * Idempotent – if a TA already exists, returns the existing one.
+   */
+  async bootstrapTA(context: AuthContext): Promise<SelfProfile> {
+    this.requireSystemAdmin(context);
+    const db = this.requireDb();
+    // Check if a TA already exists
+    const existing = await db.user.findFirst({ where: { role: "TOURNAMENT_ADMIN" }, include: includeData });
+    if (existing) {
+      return toSelf(existing);
+    }
+    // Create a new TA account
+    const username = `ta_${crypto.randomUUID()}`;
+    const password = crypto.randomBytes(12).toString("base64");
+    const passwordHash = await hashSecret(password);
+    const recoveryCode = createRecoveryCode();
+    const recoveryCodeHash = await hashSecret(recoveryCode);
+    const user = await db.user.create({
+      data: {
+        fullName: "Tournament Admin",
+        displayName: "Tournament Admin",
+        username,
+        usernameNormalized: username.toLowerCase(),
+        passwordHash,
+        recoveryCodeHash,
+        role: "TOURNAMENT_ADMIN",
+        profile: { create: {} },
+        stats: { create: {} },
+      },
+      include: includeData,
+    });
+    // Do not expose password or hash; return self profile
+    return toSelf(user);
+  }
+
+  async listTA(context: AuthContext): Promise<SelfProfile[]> {
+    this.requireSystemAdmin(context);
+    const db = this.requireDb();
+    const rows = await db.user.findMany({
+      where: { role: "TOURNAMENT_ADMIN" },
+      include: includeData,
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map((u) => toSelf(u));
+  }
+
+  async createTA(context: AuthContext, input: CreateTaAccountRequest): Promise<SelfProfile> {
+    this.requireSystemAdmin(context);
+    const db = this.requireDb();
+    const usernameNormalized = normalizeUsername(input.username);
+    const duplicate = await db.user.findUnique({ where: { usernameNormalized } });
+    if (duplicate) throw new AppError("CONFLICT", "Username đã được sử dụng.", 409, false, "INVALID");
+
+    const password = input.password ?? crypto.randomBytes(12).toString("base64");
+    const passwordHash = await hashSecret(password);
+    const recoveryCode = createRecoveryCode();
+    const recoveryCodeHash = await hashSecret(recoveryCode);
+
+    const user = await db.user.create({
+      data: {
+        fullName: input.fullName.trim(),
+        displayName: input.displayName.trim(),
+        username: input.username.trim(),
+        usernameNormalized,
+        passwordHash,
+        recoveryCodeHash,
+        role: "TOURNAMENT_ADMIN",
+        profile: { create: {} },
+        stats: { create: {} },
+      },
+      include: includeData,
+    });
+    return toSelf(user);
+  }
+
+  async bindTA(context: AuthContext, taId: string, input: BindTaContractRequest): Promise<BindTaContractResponse> {
+    this.requireSystemAdmin(context);
+    const db = this.requireDb();
+    const ta = await db.user.findUnique({ where: { id: taId } });
+    if (!ta || (ta as any).role !== "TOURNAMENT_ADMIN") {
+      throw new AppError("NOT_FOUND", "Không tìm thấy Tournament Admin tương ứng.", 404, false, "INVALID");
+    }
+    const contract = await db.tournamentContract.findUnique({ where: { id: input.contractId } });
+    if (!contract) {
+      throw new AppError("NOT_FOUND", "Không tìm thấy hợp đồng giải đấu.", 404, false, "INVALID");
+    }
+
+    const binding = await db.tournamentContractTaBinding.upsert({
+      where: {
+        contractId_userId: {
+          contractId: input.contractId,
+          userId: taId,
+        },
+      },
+      create: {
+        contractId: input.contractId,
+        userId: taId,
+        username: ta.username,
+        displayName: ta.displayName,
+        status: "ACTIVE",
+        grantedByUserId: context.user.id,
+      },
+      update: {
+        status: "ACTIVE",
+        revokedAt: null,
+        revokeReason: null,
+        grantedByUserId: context.user.id,
+        grantedAt: new Date(),
+      },
+    });
+
+    return {
+      id: binding.id,
+      contractId: binding.contractId,
+      userId: binding.userId,
+      status: binding.status as "ACTIVE" | "REVOKED",
+      grantedAt: binding.grantedAt,
+    };
+  }
+
+  async revokeTA(context: AuthContext, taId: string): Promise<RevokeTaResponse> {
+    this.requireSystemAdmin(context);
+    const db = this.requireDb();
+    const ta = await db.user.findUnique({ where: { id: taId } });
+    if (!ta || (ta as any).role !== "TOURNAMENT_ADMIN") {
+      throw new AppError("NOT_FOUND", "Không tìm thấy Tournament Admin tương ứng.", 404, false, "INVALID");
+    }
+
+    await db.user.update({
+      where: { id: taId },
+      data: { role: "USER" },
+    });
+
+    await db.tournamentContractTaBinding.updateMany({
+      where: { userId: taId, status: "ACTIVE" },
+      data: { status: "REVOKED", revokedAt: new Date(), revokeReason: "TA role revoked by System Admin" },
+    });
+
+    return {
+      success: true,
+      userId: taId,
+      message: "Thu hồi quyền Tournament Admin thành công.",
+    };
+  }
+
+    async createGuestSession(input: { clientId: string; displayName: string }): Promise<{ token: string; displayName: string }> {
     const nowMs = Date.now();
     for (const [key, entry] of this.guestSessions) if (entry.expiresAt <= nowMs) this.guestSessions.delete(key);
     if (this.guestSessions.size >= MAX_GUEST_SESSIONS) throw new AppError("RATE_LIMITED", "Hệ thống Guest đang quá tải. Hãy thử lại sau.", 429, true, "RECOVERABLE");

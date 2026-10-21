@@ -32,6 +32,8 @@ export const routes = {
 
   // Admin Console Routes (S00 Route Inventory / S01 Router Registration)
   admin: "/admin",
+  adminTa: "/admin/ta",
+  adminAccounts: "/admin/accounts",
   adminTournaments: "/admin/tournaments",
   adminTournamentNew: "/admin/tournaments/new",
   adminTournamentEdit: "/admin/tournaments/:tournamentId/edit",

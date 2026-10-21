@@ -24,6 +24,7 @@ const BotOfflinePage = lazy(() => import("../pages/BotOfflinePage"));
 
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
+const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 
 export function AppRouter() {
   return (
@@ -65,6 +66,8 @@ export function AppRouter() {
       {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}
       <Route element={<AdminLayout />}>
         <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
+        <Route path={routes.adminTa} element={<AdminTaPage />} />
+        <Route path={routes.adminAccounts} element={<AdminTaPage />} />
         <Route
           path={routes.adminTournaments}
           element={
