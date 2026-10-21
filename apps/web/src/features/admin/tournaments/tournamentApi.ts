@@ -208,7 +208,7 @@ export function matchesStatusGroup(
     case "PENDING_REVIEW":
       return status === "SUBMITTED" || status === "UNDER_REVIEW";
     case "APPROVED":
-      return status === "APPROVED" || status === "READY" || status === "ROSTER_OPEN";
+      return status === "APPROVED" || status === "READY" || status === "ROSTER_OPEN" || status === "SCHEDULED";
     case "RUNNING":
       return status === "RUNNING" || status === "PAUSED";
     case "FINISHED":

@@ -228,8 +228,9 @@ export function getStatusBadgeConfig(status: TournamentLifecycleStatus): {
       };
     case "READY":
     case "ROSTER_OPEN":
+    case "SCHEDULED":
       return {
-        label: "Sẵn sàng",
+        label: "Lên lịch / Sẵn sàng",
         bg: "color-mix(in srgb, #10B981 15%, var(--surface))",
         color: "#34D399",
         border: "color-mix(in srgb, #10B981 40%, transparent)",
