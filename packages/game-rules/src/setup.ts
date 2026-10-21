@@ -1,37 +1,69 @@
-import { BOARD_COORDINATES } from "./coordinates.js";
-import type { Board, Piece, PieceCounts, PieceType, RuleState, Side, RulesVersion, SetupDescriptor } from "./types.js";
+import { getBoardCoordinates, isCoordinateInBoard } from "./coordinates.js";
+import {
+  MAX_BOARD_DIMENSION,
+  MAX_LEAP_OFFSETS_PER_PROFILE,
+  MAX_MOVEMENT_PATTERNS_PER_TYPE,
+  MIN_BOARD_DIMENSION,
+  createDefaultMovementProfiles,
+} from "./profiles.js";
+import type {
+  Board,
+  BoardSpec,
+  GoalProfile,
+  LayoutEntry,
+  MovementPattern,
+  Piece,
+  PieceCounts,
+  PieceType,
+  RuleProfile,
+  RuleProfileValidationCode,
+  RuleProfileValidationIssue,
+  RuleState,
+  Side,
+  RulesVersion,
+} from "./types.js";
 
 type SetupEntry = readonly [coordinate: string, type: PieceType];
 
+const LEGACY_BOARD: BoardSpec = Object.freeze({ rows: 9, cols: 9 });
 const BLUE_SETUP: readonly SetupEntry[] = [
   ["b1", "R"], ["c1", "P"], ["d1", "S"],
   ["e1", "R"], ["f1", "P"], ["g1", "S"],
   ["h1", "R"], ["i1", "P"], ["a1", "S"],
 ];
-
 const RED_SETUP: readonly SetupEntry[] = [
   ["a9", "P"], ["b9", "R"], ["c9", "S"],
   ["d9", "P"], ["e9", "R"], ["f9", "S"],
   ["g9", "P"], ["h9", "R"], ["i9", "S"],
 ];
+const SIDES: readonly Side[] = ["BLUE", "RED"];
+const PIECE_TYPES: readonly PieceType[] = ["R", "P", "S"];
 
-function emptyBoard(): Record<string, Piece | null> {
-  return Object.fromEntries(BOARD_COORDINATES.map((coordinate) => [coordinate, null]));
+function emptyBoard(board: BoardSpec = LEGACY_BOARD): Record<string, Piece | null> {
+  return Object.fromEntries(getBoardCoordinates(board).map((coordinate) => [coordinate, null]));
 }
 
 function emptyCounts(v2 = false): Record<Side, Record<PieceType, number>> {
-  const c = v2 ? 6 : 3;
+  const count = v2 ? 6 : 3;
   return {
-    BLUE: { R: c, P: c, S: c },
-    RED: { R: c, P: c, S: c },
+    BLUE: { R: count, P: count, S: count },
+    RED: { R: count, P: count, S: count },
   };
 }
 
-function placeSetup(board: Record<string, Piece | null>, side: Side, setup: readonly SetupEntry[], ordinals?: Record<PieceType, number>): void {
+function placeSetup(
+  board: Record<string, Piece | null>,
+  side: Side,
+  setup: readonly SetupEntry[],
+  ordinals?: Record<PieceType, number>,
+  layout?: LayoutEntry[],
+): void {
   const ords = ordinals ?? { R: 0, P: 0, S: 0 };
   for (const [coordinate, type] of setup) {
     ords[type] += 1;
-    board[coordinate] = { id: `${side.toLowerCase()}-${type.toLowerCase()}-${ords[type]}`, side, type };
+    const id = `${side.toLowerCase()}-${type.toLowerCase()}-${ords[type]}`;
+    board[coordinate] = { id, side, type };
+    layout?.push({ id, side, type, coordinate: coordinate as LayoutEntry["coordinate"] });
   }
 }
 
@@ -47,7 +79,6 @@ export function unrankRow(rank: number): PieceType[] {
   for (let i = 0; i < 9; i++) {
     const waysP = combinations(r, p - 1, s);
     const waysR = combinations(r - 1, p, s);
-    
     if (rank < waysP) {
       result.push("P");
       p--;
@@ -57,7 +88,7 @@ export function unrankRow(rank: number): PieceType[] {
       r--;
     } else {
       result.push("S");
-      rank -= (waysP + waysR);
+      rank -= waysP + waysR;
       s--;
     }
   }
@@ -70,7 +101,6 @@ export function rankRow(pieces: PieceType[]): number {
   for (const piece of pieces) {
     const waysP = combinations(r, p - 1, s);
     const waysR = combinations(r - 1, p, s);
-    
     if (piece === "P") {
       p--;
     } else if (piece === "R") {
@@ -88,75 +118,220 @@ export function selectSetupSeed(row1Rank: number, row2Rank: number): number {
   return row1Rank * 1680 + row2Rank;
 }
 
-export function createInitialState(options?: { version?: RulesVersion; seed?: number }): RuleState {
-  const version = options?.version ?? "rps-v1";
-  const board = emptyBoard();
-  
-  if (version === "rps-v1") {
-    placeSetup(board, "BLUE", BLUE_SETUP);
-    placeSetup(board, "RED", RED_SETUP);
-    const pieceCounts = emptyCounts(false);
-    return {
-      board: board as Board,
-      pieceCounts: pieceCounts as PieceCounts,
-      currentTurn: "BLUE",
-      status: "PLAYING",
-      winner: null,
-      resultReason: null,
-    };
-  } else {
-    const seed = options?.seed ?? 0;
-    const row1Rank = Math.floor(seed / 1680) % 1680;
-    const row2Rank = seed % 1680;
-    
-    const blueRow1 = unrankRow(row1Rank);
-    const blueRow2 = unrankRow(row2Rank);
-    const redRow9 = [...blueRow1].reverse();
-    const redRow8 = [...blueRow2].reverse();
-    
-    const FILES = ["a", "b", "c", "d", "e", "f", "g", "h", "i"];
-    
-    const blueSetup: SetupEntry[] = [];
-    const redSetup: SetupEntry[] = [];
-    
-    for (let i = 0; i < 9; i++) {
-      blueSetup.push([`${FILES[i]}1`, blueRow1[i] as PieceType]);
-      blueSetup.push([`${FILES[i]}2`, blueRow2[i] as PieceType]);
-      redSetup.push([`${FILES[i]}9`, redRow9[i] as PieceType]);
-      redSetup.push([`${FILES[i]}8`, redRow8[i] as PieceType]);
+function validationIssue(code: RuleProfileValidationCode, path: string, message: string): RuleProfileValidationIssue {
+  return { code, path, message };
+}
+
+function countLayout(layout: readonly LayoutEntry[]): Record<Side, Record<PieceType, number>> {
+  const result: Record<Side, Record<PieceType, number>> = {
+    BLUE: { R: 0, P: 0, S: 0 },
+    RED: { R: 0, P: 0, S: 0 },
+  };
+  for (const entry of layout) result[entry.side][entry.type] += 1;
+  return result;
+}
+
+function validatePattern(pattern: MovementPattern, path: string, issues: RuleProfileValidationIssue[]): number {
+  if (pattern.kind === "RAY") {
+    if (!Number.isInteger(pattern.minDistance) || !Number.isInteger(pattern.maxDistance) || pattern.minDistance < 1 || pattern.maxDistance < pattern.minDistance) {
+      issues.push(validationIssue("INVALID_DISTANCE", path, "RAY distance phải là số nguyên hữu hạn với 1 ≤ minDistance ≤ maxDistance."));
     }
-    
-    const blueOrds = { R: 0, P: 0, S: 0 };
-    const redOrds = { R: 0, P: 0, S: 0 };
-    
-    placeSetup(board, "BLUE", blueSetup, blueOrds);
-    placeSetup(board, "RED", redSetup, redOrds);
-    
-    const pieceCounts = emptyCounts(true);
-    return {
-      board: board as Board,
-      pieceCounts: pieceCounts as PieceCounts,
-      currentTurn: "BLUE",
-      status: "PLAYING",
-      winner: null,
-      resultReason: null,
-    };
+    for (const [index, direction] of pattern.directions.entries()) {
+      const valid = Number.isInteger(direction.fileDelta)
+        && Number.isInteger(direction.rankDelta)
+        && Math.abs(direction.fileDelta) <= 1
+        && Math.abs(direction.rankDelta) <= 1
+        && (direction.fileDelta !== 0 || direction.rankDelta !== 0);
+      if (!valid) issues.push(validationIssue("INVALID_DIRECTION", `${path}.directions[${index}]`, "Direction RAY phải là vector 8 hướng khác không."));
+    }
+    return 0;
+  }
+
+  let offsets = 0;
+  for (const [index, offset] of pattern.offsets.entries()) {
+    offsets += 1;
+    const valid = Number.isInteger(offset.fileDelta)
+      && Number.isInteger(offset.rankDelta)
+      && (offset.fileDelta !== 0 || offset.rankDelta !== 0);
+    if (!valid) issues.push(validationIssue("INVALID_LEAP_OFFSET", `${path}.offsets[${index}]`, "LEAP offset phải là vector nguyên khác không."));
+  }
+  return offsets;
+}
+
+export function validateRuleProfile(profile: RuleProfile): readonly RuleProfileValidationIssue[] {
+  const issues: RuleProfileValidationIssue[] = [];
+  const board = profile.board;
+  if (!Number.isInteger(board.rows) || !Number.isInteger(board.cols)) {
+    issues.push(validationIssue("BOARD_DIMENSION_NOT_INTEGER", "board", "Số hàng/cột phải là số nguyên."));
+  } else if (board.rows < MIN_BOARD_DIMENSION || board.rows > MAX_BOARD_DIMENSION || board.cols < MIN_BOARD_DIMENSION || board.cols > MAX_BOARD_DIMENSION) {
+    issues.push(validationIssue("BOARD_DIMENSION_OUT_OF_RANGE", "board", `Mỗi chiều bàn phải nằm trong khoảng ${MIN_BOARD_DIMENSION}..${MAX_BOARD_DIMENSION}.`));
+  }
+
+  const seenCoordinates = new Set<string>();
+  const seenIds = new Set<string>();
+  const actualCounts = countLayout(profile.layout);
+  for (const [index, entry] of profile.layout.entries()) {
+    if (!isCoordinateInBoard(board, entry.coordinate)) issues.push(validationIssue("LAYOUT_OUT_OF_BOUNDS", `layout[${index}].coordinate`, "Quân phải nằm trong board profile."));
+    if (seenCoordinates.has(entry.coordinate)) issues.push(validationIssue("LAYOUT_COLLISION", `layout[${index}].coordinate`, "Không được có hai quân trên cùng một ô."));
+    seenCoordinates.add(entry.coordinate);
+    if (seenIds.has(entry.id)) issues.push(validationIssue("LAYOUT_DUPLICATE_ID", `layout[${index}].id`, "ID quân phải duy nhất trong layout."));
+    seenIds.add(entry.id);
+  }
+
+  for (const side of SIDES) {
+    for (const type of PIECE_TYPES) {
+      const patterns = profile.movementProfiles?.[side]?.[type];
+      if (actualCounts[side][type] !== profile.pieceCounts[side][type]) {
+        issues.push(validationIssue("COUNTS_MISMATCH", `pieceCounts.${side}.${type}`, "pieceCounts phải khớp layout explicit."));
+      }
+      if (!Array.isArray(patterns) || patterns.length === 0) {
+        issues.push(validationIssue("MISSING_MOVEMENT_PROFILE", `movementProfiles.${side}.${type}`, "Mỗi side × type phải có movement profile."));
+        continue;
+      }
+      if (patterns.length > MAX_MOVEMENT_PATTERNS_PER_TYPE) {
+        issues.push(validationIssue("PATTERN_LIMIT_EXCEEDED", `movementProfiles.${side}.${type}`, `Không vượt quá ${MAX_MOVEMENT_PATTERNS_PER_TYPE} patterns.`));
+      }
+      patterns.forEach((pattern, patternIndex) => validatePattern(pattern, `movementProfiles.${side}.${type}[${patternIndex}]`, issues));
+    }
+  }
+
+  const leapOffsets = SIDES.flatMap((side) => PIECE_TYPES.flatMap((type) => profile.movementProfiles?.[side]?.[type] ?? []))
+    .filter((pattern): pattern is Extract<MovementPattern, { kind: "LEAP" }> => pattern.kind === "LEAP")
+    .reduce((total, pattern) => total + pattern.offsets.length, 0);
+  if (leapOffsets > MAX_LEAP_OFFSETS_PER_PROFILE) issues.push(validationIssue("LEAP_OFFSET_LIMIT_EXCEEDED", "movementProfiles", `Tổng LEAP offsets không vượt quá ${MAX_LEAP_OFFSETS_PER_PROFILE} cho một profile.`));
+
+  for (const side of SIDES) {
+    const goal: GoalProfile | undefined = profile.goalProfiles?.[side];
+    if (goal?.mode === "STATIC") {
+      if (!isCoordinateInBoard(board, goal.cell)) issues.push(validationIssue("GOAL_OUT_OF_BOUNDS", `goalProfiles.${side}.cell`, "Ô đích phải nằm trong board profile."));
+      if (profile.winConditions?.includes("GOAL_REACHED") && profile.layout.some((entry) => entry.side === side && entry.coordinate === goal.cell)) {
+        issues.push(validationIssue("INITIAL_OWN_GOAL", `goalProfiles.${side}.cell`, "Không đặt quân own trên đích tĩnh ban đầu."));
+      }
+    }
+  }
+  return Object.freeze(issues);
+}
+
+export class RuleProfileValidationError extends Error {
+  readonly issues: readonly RuleProfileValidationIssue[];
+
+  constructor(issues: readonly RuleProfileValidationIssue[]) {
+    super("INVALID_RULE_PROFILE");
+    this.name = "RuleProfileValidationError";
+    this.issues = issues;
   }
 }
 
+function freezePattern(pattern: MovementPattern): MovementPattern {
+  if (pattern.kind === "RAY") return Object.freeze({ ...pattern, directions: Object.freeze(pattern.directions.map((direction) => Object.freeze({ ...direction }))) });
+  return Object.freeze({ ...pattern, offsets: Object.freeze(pattern.offsets.map((offset) => Object.freeze({ ...offset }))) });
+}
+
+function cloneAndFreezeProfile(profile: RuleProfile): RuleProfile {
+  const freezeMovement = (side: Side) => Object.freeze({
+    R: Object.freeze(profile.movementProfiles[side].R.map(freezePattern)),
+    P: Object.freeze(profile.movementProfiles[side].P.map(freezePattern)),
+    S: Object.freeze(profile.movementProfiles[side].S.map(freezePattern)),
+  });
+  const frozenGoalProfiles: Partial<Record<Side, GoalProfile>> = {};
+  for (const side of SIDES) {
+    const goal = profile.goalProfiles?.[side];
+    if (goal !== undefined) frozenGoalProfiles[side] = Object.freeze({ ...goal });
+  }
+  return Object.freeze({
+    ...profile,
+    board: Object.freeze({ ...profile.board }),
+    pieceCounts: Object.freeze({ BLUE: Object.freeze({ ...profile.pieceCounts.BLUE }), RED: Object.freeze({ ...profile.pieceCounts.RED }) }),
+    layout: Object.freeze(profile.layout.map((entry) => Object.freeze({ ...entry }))),
+    movementProfiles: Object.freeze({ BLUE: freezeMovement("BLUE"), RED: freezeMovement("RED") }),
+    winConditions: Object.freeze([...(profile.winConditions ?? [])]),
+    ...(profile.goalProfiles === undefined ? {} : { goalProfiles: Object.freeze(frozenGoalProfiles) }),
+  });
+}
+
+function profileForSetup(version: RulesVersion, pieceCounts: PieceCounts, layout: readonly LayoutEntry[]): RuleProfile {
+  return {
+    version,
+    board: LEGACY_BOARD,
+    initialTurn: "BLUE",
+    pieceCounts,
+    layout,
+    movementProfiles: createDefaultMovementProfiles(),
+    winConditions: ["EXTINCTION", "GOAL_REACHED"],
+    goalProfiles: {
+      BLUE: { mode: "STATIC", cell: "i9" },
+      RED: { mode: "STATIC", cell: "a1" },
+    },
+  };
+}
+
+function stateFromProfile(profile: RuleProfile, immutable = true): RuleState {
+  const issues = validateRuleProfile(profile);
+  if (issues.length > 0) throw new RuleProfileValidationError(issues);
+  const board = emptyBoard(profile.board);
+  for (const entry of profile.layout) {
+    const piece = { id: entry.id, side: entry.side, type: entry.type };
+    board[entry.coordinate] = immutable ? Object.freeze(piece) : piece;
+  }
+  const frozenProfile = cloneAndFreezeProfile(profile);
+  const frozenBoard = (immutable ? Object.freeze(board) : board) as Board;
+  const state: RuleState = {
+    board: frozenBoard,
+    pieceCounts: frozenProfile.pieceCounts,
+    currentTurn: frozenProfile.initialTurn ?? "BLUE",
+    status: "PLAYING",
+    winner: null,
+    resultReason: null,
+    ruleProfile: frozenProfile,
+  };
+  return immutable ? Object.freeze(state) : state;
+}
+
+export function createInitialStateFromProfile(profile: RuleProfile): RuleState {
+  return stateFromProfile(profile);
+}
+
+export function createInitialState(options?: { version?: RulesVersion; seed?: number; profile?: RuleProfile }): RuleState {
+  if (options?.profile !== undefined) return createInitialStateFromProfile(options.profile);
+  const version = options?.version ?? "rps-v1";
+  const layout: LayoutEntry[] = [];
+  const board = emptyBoard();
+
+  if (version === "rps-v1") {
+    placeSetup(board, "BLUE", BLUE_SETUP, undefined, layout);
+    placeSetup(board, "RED", RED_SETUP, undefined, layout);
+    return stateFromProfile(profileForSetup(version, emptyCounts(false) as PieceCounts, layout), false);
+  }
+
+  const seed = options?.seed ?? 0;
+  const row1Rank = Math.floor(seed / 1680) % 1680;
+  const row2Rank = seed % 1680;
+  const files = ["a", "b", "c", "d", "e", "f", "g", "h", "i"];
+  const blueRow1 = unrankRow(row1Rank);
+  const blueRow2 = unrankRow(row2Rank);
+  const redRow9 = [...blueRow1].reverse();
+  const redRow8 = [...blueRow2].reverse();
+  const blueSetup: SetupEntry[] = [];
+  const redSetup: SetupEntry[] = [];
+  for (let i = 0; i < 9; i++) {
+    blueSetup.push([`${files[i]}1`, blueRow1[i] as PieceType]);
+    blueSetup.push([`${files[i]}2`, blueRow2[i] as PieceType]);
+    redSetup.push([`${files[i]}9`, redRow9[i] as PieceType]);
+    redSetup.push([`${files[i]}8`, redRow8[i] as PieceType]);
+  }
+  placeSetup(board, "BLUE", blueSetup, { R: 0, P: 0, S: 0 }, layout);
+  placeSetup(board, "RED", redSetup, { R: 0, P: 0, S: 0 }, layout);
+  return stateFromProfile(profileForSetup(version, emptyCounts(true) as PieceCounts, layout), false);
+}
+
 export function generateSetupSeed(readByte: () => number): number {
-  const MAX_ACCEPT = 2822400 * 5; // 14112000
+  const MAX_ACCEPT = 2822400 * 5;
   for (let i = 0; i < 8; i++) {
     const b1 = readByte();
     const b2 = readByte();
     const b3 = readByte();
-    
-    // Ensure bytes are valid 0-255 (though injected source should guarantee this)
     const val = ((b1 & 0xff) << 16) | ((b2 & 0xff) << 8) | (b3 & 0xff);
-    
-    if (val < MAX_ACCEPT) {
-      return val % 2822400;
-    }
+    if (val < MAX_ACCEPT) return val % 2822400;
   }
   throw new Error("Failed to generate setup seed within 8 rejection sampling iterations");
 }

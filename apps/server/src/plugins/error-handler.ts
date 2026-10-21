@@ -7,7 +7,8 @@ const SAFE_DETAIL_KEYS = new Set([
   "reason", "status", "event", "moveCode", "capacity", "stateVersion", "currentStateVersion",
   "expectedStateVersion", "roomVersion", "roomId", "matchId", "queueId", "currentMatchId",
   "expectedMatchId", "side", "category", "playMode", "retryAfterMs", "retryAfterSeconds",
-  "limit", "resetAt",
+  "limit", "resetAt", "field", "blockerCode", "contractId", "tournamentId", "unitCode",
+  "quotaRemaining", "expectedRevision", "currentRevision", "adjudicationRequestId", "finishSequence",
 ]);
 
 function publicDetails(details: Record<string, unknown>): Record<string, unknown> {
