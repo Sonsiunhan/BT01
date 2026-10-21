@@ -33,7 +33,7 @@ describe("W12 production deployment contract", () => {
     expect(blueprint).toContain("REALTIME_ADAPTER");
     expect(blueprint).toContain("PLAYHTML_ENDPOINT");
     expect(blueprint).toContain("PLAYHTML_PROJECT_ID");
-    expect(read("docs/W12_IMPLEMENTATION_PLAN.md")).toContain("không commit secrets");
+    expect(read("README.md")).toContain("Never commit `.env` or production secrets.");
   });
 
   it("keeps production config fail-closed for loopback CORS and incomplete realtime", () => {

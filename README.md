@@ -63,4 +63,6 @@ The smoke runner checks the single-service health/metrics endpoints, CORS allowl
 
 ## Documentation
 
-The frozen v0.1 specifications and implementation plans are in [`docs`](docs).
+Core specifications are in [`docs`](docs). Start with [SRS](docs/SRS.md), the [frontend plan](docs/implementation_plan_frontend_v0.2.md), and the [frontend rebuild plan](docs/implementation_plan_robot_lab_visual_rebuild.md).
+
+Current tournament requirements and N00 decisions are in [`docs/tournament-initialization`](docs/tournament-initialization). Old W/B/R/P phase plans and reports have been removed; runtime license notices and artifact manifests are retained.
