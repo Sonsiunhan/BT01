@@ -3,8 +3,9 @@
 ## Thứ tự đọc
 
 1. **[Đặc tả BA + SA](OTTv2_Dac_Ta_BA_SA_Khoi_Tao_Giai_v1.0.md)** — mọi thành viên đọc mục 1–6, 8, 12, 14–16; đây là tài liệu nghiệp vụ chính đã hiệu chỉnh. Mục 7.3 chứa toàn bộ F01–F82, mục 16 chứa T001–T081.
-2. **[Phân công và lịch bàn giao](DELIVERY-PLAN.md)** — mọi thành viên đọc phạm vi trang mình, task, dependency, file ownership, mốc export/tích hợp và điều kiện nghiệm thu.
-3. **[Bảng task CSV](DELIVERY-TASKS.csv)** — lọc theo tên để nhận việc và theo dõi giờ nộp; khung giờ thực làm có trong cột WorkSegments_UTC7.
+2. **[Lịch cuốn chiếu V3](DELIVERY-PLAN-V3-CUON-CHIEU.md)** — lịch thực thi hiện hành: page đóng theo ngày, chuỗi task từng người và lớp hardening cuối.
+3. **[Phân công và lịch bàn giao V2](DELIVERY-PLAN.md)** — candidate cũ để đối chiếu phạm vi, dependency, file ownership và các mốc export/tích hợp.
+4. **[Bảng task CSV](DELIVERY-TASKS.csv)** — dữ liệu task gốc; khi có khác biệt về thứ tự page, ưu tiên lịch cuốn chiếu V3.
 
 ## Đọc sâu theo phần phụ trách
 
