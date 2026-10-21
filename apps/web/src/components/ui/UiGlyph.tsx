@@ -12,6 +12,7 @@ export type UiGlyphName =
   | "clock"
   | "spectator"
   | "settings"
+  | "warning"
   | "empty";
 
 type Props = SVGProps<SVGSVGElement> & { name: UiGlyphName; size?: number };
@@ -42,6 +43,8 @@ export function UiGlyph({ name, size = 18, ...props }: Props) {
       return <svg {...common}><path d="M2.8 12s3.1-5.1 9.2-5.1 9.2 5.1 9.2 5.1-3.1 5.1-9.2 5.1S2.8 12 2.8 12Z" /><circle cx="12" cy="12" r="2.2" /></svg>;
     case "settings":
       return <svg {...common}><path d="m9.7 3.7.6 1.8a7.2 7.2 0 0 1 3.4 0l.6-1.8 2.1.9-.7 1.8a7.4 7.4 0 0 1 2.4 2.4l1.8-.7.9 2.1-1.8.6a7.2 7.2 0 0 1 0 3.4l1.8.6-.9 2.1-1.8-.7a7.4 7.4 0 0 1-2.4 2.4l.7 1.8-2.1.9-.6-1.8a7.2 7.2 0 0 1-3.4 0l-.6 1.8-2.1-.9.7-1.8a7.4 7.4 0 0 1-2.4-2.4l-1.8.7-.9-2.1 1.8-.6a7.2 7.2 0 0 1 0-3.4l-1.8-.6.9-2.1 1.8.7a7.4 7.4 0 0 1 2.4-2.4l-.7-1.8 2.1-.9Z" /><circle cx="12" cy="12" r="2.7" /></svg>;
+    case "warning":
+      return <svg {...common}><path d="m12 3 9 16H3L12 3Z" /><path d="M12 9v4m0 3h.01" /></svg>;
     case "empty":
       return <svg {...common}><circle cx="12" cy="12" r="8.5" /><path d="M8.5 12h7" /></svg>;
   }

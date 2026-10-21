@@ -22,6 +22,9 @@ import { DisabledRealtimeAdapter } from "../../apps/server/src/realtime/disabled
 
 const PORT = 3300;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+// MatchManager accepts only UUID command IDs so retries cannot accidentally
+// share a legacy marker across principals or operations.
+const REHEARSAL_COMMAND_ID = "00000000-0000-4000-8000-000000000001";
 
 const env = {
   NODE_ENV: "test",
@@ -126,13 +129,13 @@ export async function runCand2RestartRehearsal() {
     console.log(`  ✓ Match ${activeMatch.matchId} started in room ${room.roomId} (status: ${activeMatch.status}, version: ${activeMatch.stateVersion})`);
 
     // Execute first legal move
-    const moveRes = matches1.move(roomDetail, blueActor, "e1", "e2", activeMatch.stateVersion, "cmd-rehearsal-001");
+    const moveRes = matches1.move(roomDetail, blueActor, "e1", "e2", activeMatch.stateVersion, REHEARSAL_COMMAND_ID);
     console.log(`  ✓ Executed move e1->e2: stateVersion bumped to ${moveRes.stateVersion}`);
     // Capture durable checkpoint and command ledger entry for restart recovery
     const checkpoint = matches1.checkpoint(matches1.getMatch(roomDetail));
     const rehearsalCommandKey = {
       principalId: blueActor.userId,
-      commandId: "cmd-rehearsal-001",
+      commandId: REHEARSAL_COMMAND_ID,
       targetId: room.roomId,
       operation: "MOVE",
     };
@@ -192,17 +195,17 @@ export async function runCand2RestartRehearsal() {
     // Idempotent retry of pre-restart commandId
     const cachedAck = ledger2.get({
       principalId: blueActor.userId,
-      commandId: "cmd-rehearsal-001",
+      commandId: REHEARSAL_COMMAND_ID,
       targetId: room.roomId,
       operation: "MOVE",
     });
     if (!cachedAck) {
-      throw new Error("Expected command ledger entry for cmd-rehearsal-001 to be restored");
+      throw new Error(`Expected command ledger entry for ${REHEARSAL_COMMAND_ID} to be restored`);
     }
-    console.log(`  ✓ Command ledger status for cmd-rehearsal-001: PRESERVED (outcome: ${cachedAck.outcome}, version: ${cachedAck.stateVersion})`);
+    console.log(`  ✓ Command ledger status for ${REHEARSAL_COMMAND_ID}: PRESERVED (outcome: ${cachedAck.outcome}, version: ${cachedAck.stateVersion})`);
 
     // Verify exactly-once idempotency across restart boundary
-    const retryRes = matches2.move(roomDetail, blueActor, "e1", "e2", activeMatch.stateVersion, "cmd-rehearsal-001");
+    const retryRes = matches2.move(roomDetail, blueActor, "e1", "e2", activeMatch.stateVersion, REHEARSAL_COMMAND_ID);
     if (retryRes.stateVersion !== moveRes.stateVersion) {
       throw new Error(`Idempotency retry across restart bumped stateVersion: ${retryRes.stateVersion} !== ${moveRes.stateVersion}`);
     }

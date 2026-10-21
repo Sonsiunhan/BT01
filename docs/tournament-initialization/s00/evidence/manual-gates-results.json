@@ -1,0 +1,226 @@
+{
+  "at": "2026-10-21T06:37:45.825Z",
+  "scope": "S00 manual-gate approximation; no real screen-reader session",
+  "previewSha256": "0bf009d45c622aa78808feab8dcd09e49f0d65969950222c7d6bf424c495528d",
+  "viewport": {
+    "status": "PASS",
+    "checks": [
+      {
+        "width": 320,
+        "page": "list",
+        "scrollWidth": 320,
+        "viewportWidth": 320
+      },
+      {
+        "width": 320,
+        "page": "draft",
+        "scrollWidth": 320,
+        "viewportWidth": 320
+      },
+      {
+        "width": 320,
+        "page": "detail",
+        "scrollWidth": 320,
+        "viewportWidth": 320
+      },
+      {
+        "width": 320,
+        "page": "audit",
+        "scrollWidth": 320,
+        "viewportWidth": 320
+      },
+      {
+        "width": 320,
+        "page": "offline",
+        "scrollWidth": 320,
+        "viewportWidth": 320
+      },
+      {
+        "width": 375,
+        "page": "list",
+        "scrollWidth": 375,
+        "viewportWidth": 375
+      },
+      {
+        "width": 375,
+        "page": "draft",
+        "scrollWidth": 375,
+        "viewportWidth": 375
+      },
+      {
+        "width": 375,
+        "page": "detail",
+        "scrollWidth": 375,
+        "viewportWidth": 375
+      },
+      {
+        "width": 375,
+        "page": "audit",
+        "scrollWidth": 375,
+        "viewportWidth": 375
+      },
+      {
+        "width": 375,
+        "page": "offline",
+        "scrollWidth": 375,
+        "viewportWidth": 375
+      },
+      {
+        "width": 768,
+        "page": "list",
+        "scrollWidth": 768,
+        "viewportWidth": 768
+      },
+      {
+        "width": 768,
+        "page": "draft",
+        "scrollWidth": 768,
+        "viewportWidth": 768
+      },
+      {
+        "width": 768,
+        "page": "detail",
+        "scrollWidth": 768,
+        "viewportWidth": 768
+      },
+      {
+        "width": 768,
+        "page": "audit",
+        "scrollWidth": 768,
+        "viewportWidth": 768
+      },
+      {
+        "width": 768,
+        "page": "offline",
+        "scrollWidth": 768,
+        "viewportWidth": 768
+      },
+      {
+        "width": 1024,
+        "page": "list",
+        "scrollWidth": 1024,
+        "viewportWidth": 1024
+      },
+      {
+        "width": 1024,
+        "page": "draft",
+        "scrollWidth": 1024,
+        "viewportWidth": 1024
+      },
+      {
+        "width": 1024,
+        "page": "detail",
+        "scrollWidth": 1024,
+        "viewportWidth": 1024
+      },
+      {
+        "width": 1024,
+        "page": "audit",
+        "scrollWidth": 1024,
+        "viewportWidth": 1024
+      },
+      {
+        "width": 1024,
+        "page": "offline",
+        "scrollWidth": 1024,
+        "viewportWidth": 1024
+      },
+      {
+        "width": 1366,
+        "page": "list",
+        "scrollWidth": 1366,
+        "viewportWidth": 1366
+      },
+      {
+        "width": 1366,
+        "page": "draft",
+        "scrollWidth": 1366,
+        "viewportWidth": 1366
+      },
+      {
+        "width": 1366,
+        "page": "detail",
+        "scrollWidth": 1366,
+        "viewportWidth": 1366
+      },
+      {
+        "width": 1366,
+        "page": "audit",
+        "scrollWidth": 1366,
+        "viewportWidth": 1366
+      },
+      {
+        "width": 1366,
+        "page": "offline",
+        "scrollWidth": 1366,
+        "viewportWidth": 1366
+      },
+      {
+        "width": 1440,
+        "page": "list",
+        "scrollWidth": 1440,
+        "viewportWidth": 1440
+      },
+      {
+        "width": 1440,
+        "page": "draft",
+        "scrollWidth": 1440,
+        "viewportWidth": 1440
+      },
+      {
+        "width": 1440,
+        "page": "detail",
+        "scrollWidth": 1440,
+        "viewportWidth": 1440
+      },
+      {
+        "width": 1440,
+        "page": "audit",
+        "scrollWidth": 1440,
+        "viewportWidth": 1440
+      },
+      {
+        "width": 1440,
+        "page": "offline",
+        "scrollWidth": 1440,
+        "viewportWidth": 1440
+      }
+    ]
+  },
+  "zoom200Model": {
+    "status": "PASS",
+    "viewport": "720px model for 1440px at 200%",
+    "checks": [
+      {
+        "page": "list",
+        "scrollWidth": 360,
+        "scrollHeight": 1524
+      },
+      {
+        "page": "draft",
+        "scrollWidth": 360,
+        "scrollHeight": 1922
+      },
+      {
+        "page": "detail",
+        "scrollWidth": 360,
+        "scrollHeight": 1258
+      }
+    ]
+  },
+  "contrast": {
+    "status": "PASS",
+    "minRatio": 4.8499950834337335,
+    "sampled": 38,
+    "failing": []
+  },
+  "copy": {
+    "status": "PASS",
+    "forbiddenFound": []
+  },
+  "screenReader": {
+    "status": "NOT RUN",
+    "reason": "Không có NVDA/JAWS/Narrator session trong môi trường hiện tại."
+  },
+  "note": "Screen-reader thật vẫn NOT RUN; kết quả này không thay thế human visual/copy acceptance."
+}

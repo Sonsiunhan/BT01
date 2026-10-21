@@ -1,0 +1,432 @@
+<div id="s00-lab" role="region" aria-label="Bản thiết kế console Robot Lab tương tác">
+<style>
+#s00-lab{--base:light-dark(#EAF0F5,#0B1421);--panel:light-dark(#FDFEFE,#142134);--raised:light-dark(#E3EBF2,#1E3048);--ink:light-dark(#10283C,#F1F7FC);--muted:light-dark(#486278,#A5BACD);--mint:light-dark(#007381,#69EEE7);--onmint:light-dark(#FDFEFE,#07332F);--line:light-dark(#C4D3DE,#38506A);--amber:light-dark(#8C5800,#FFD487);--green:light-dark(#18795B,#70D7B1);--depth:light-dark(#CBD7E1,#030A13);font:14px/1.55 'Be Vietnam Pro',system-ui,sans-serif;color:var(--ink);background:var(--base);border-radius:22px;overflow:hidden;isolation:isolate}
+#s00-lab *{box-sizing:border-box}#s00-lab button,#s00-lab input,#s00-lab select{font:inherit}#s00-lab button{color:inherit;cursor:pointer}#s00-lab button:focus-visible,#s00-lab input:focus-visible,#s00-lab select:focus-visible{outline:3px solid var(--mint);outline-offset:3px}#s00-lab header{display:flex;align-items:center;gap:24px;padding:20px 26px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}#s00-lab .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.04em}#s00-lab .brandmark{padding:7px 10px;background:var(--mint);color:var(--onmint);border-radius:4px 4px 12px 4px;box-shadow:0 4px var(--depth);transform:skewX(-7deg)}#s00-lab .brand small{display:block;font-size:10px;letter-spacing:.13em;font-weight:500;color:var(--muted)}#s00-lab .mainnav{display:flex;gap:8px;flex:1}#s00-lab .plain{border:0;background:transparent;border-radius:9px;padding:9px 12px}#s00-lab .mainnav button.active{background:var(--mint);color:var(--onmint);box-shadow:0 4px var(--depth)}#s00-lab .actor{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:12px}#s00-lab .avatar{background:var(--raised);border:1px solid var(--line);border-radius:50%;width:34px;height:34px;display:grid;place-items:center;color:var(--mint)}#s00-lab .previewbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--raised);padding:9px 26px;color:var(--muted);font-size:12px}#s00-lab select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:4px 8px;max-width:100%}#s00-lab .previewbar span{margin-right:auto}#s00-lab .content{padding:26px;min-height:540px;background-image:linear-gradient(color-mix(in srgb,var(--mint) 3%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--mint) 3%,transparent) 1px,transparent 1px);background-size:40px 40px}#s00-lab h1{font-size:28px;letter-spacing:-.04em;line-height:1.2;margin:5px 0}#s00-lab h2{font-size:18px;letter-spacing:-.02em;margin:0}#s00-lab p{margin:5px 0;color:var(--muted)}#s00-lab .eyebrow{font:11px/1.5 monospace;letter-spacing:.12em;color:var(--mint)}#s00-lab .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}#s00-lab .between{justify-content:space-between}#s00-lab .heading{margin-bottom:24px}#s00-lab .action{border:1px solid var(--line);background:var(--raised);border-radius:10px;padding:10px 15px;box-shadow:0 4px var(--depth);display:inline-flex;align-items:center;gap:8px;font-weight:650;transition:transform 160ms}#s00-lab .action:hover{transform:translateY(-2px)}#s00-lab .primary{background:var(--mint);color:var(--onmint);border-color:var(--mint)}#s00-lab .tabs{display:flex;gap:5px;border-bottom:1px solid var(--line);margin:0 0 22px;flex-wrap:wrap}#s00-lab .tabs button{background:transparent;border:0;padding:10px 14px;color:var(--muted);border-bottom:2px solid transparent}#s00-lab .tabs button.active{border-color:var(--mint);color:var(--mint)}#s00-lab .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}#s00-lab .panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 4px var(--depth);min-width:0;position:relative}#s00-lab .panel::before{content:'';position:absolute;top:12px;right:16px;width:18px;height:3px;border-radius:3px;background:var(--line)}#s00-lab .badge{display:inline-flex;align-items:center;gap:6px;color:var(--mint);font-size:12px}#s00-lab .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}#s00-lab .warm{color:var(--amber)}#s00-lab .subtle{color:var(--muted)}#s00-lab .tour-title{margin:22px 0 4px;font-size:20px}#s00-lab .mono{font-family:monospace;font-variant-numeric:tabular-nums}#s00-lab .meta{display:flex;gap:14px;margin:20px 0;color:var(--muted);font-size:12px;flex-wrap:wrap}#s00-lab .foot{border-top:1px solid var(--line);padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}#s00-lab .go{border:0;background:var(--raised);color:var(--mint);width:34px;height:34px;border-radius:10px;display:grid;place-items:center}#s00-lab input,#s00-lab textarea{background:var(--base);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--ink);width:100%;font:inherit}#s00-lab .search{max-width:255px}#s00-lab .toolbar{margin-bottom:18px}#s00-lab .formgrid{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}#s00-lab .fields{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}#s00-lab label{display:grid;gap:7px;color:var(--muted);font-size:12px}#s00-lab label.full{grid-column:1/-1}#s00-lab .steps{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}#s00-lab .step{padding:7px 12px;border-radius:20px;background:var(--raised);color:var(--muted);font-size:12px}#s00-lab .step.active{background:var(--mint);color:var(--onmint)}#s00-lab .summaryline{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}#s00-lab .stats{display:flex;gap:30px;margin:18px 0 25px;flex-wrap:wrap}#s00-lab .stats b{font-size:27px;display:block;letter-spacing:-.04em}#s00-lab .stats small{color:var(--muted)}#s00-lab .split{display:grid;grid-template-columns:1.65fr 1fr;gap:20px}#s00-lab .notice{display:flex;gap:12px;align-items:center;border-left:3px solid var(--amber);padding:12px 16px;background:var(--raised);border-radius:0 10px 10px 0;margin:15px 0}#s00-lab .match{display:grid;grid-template-columns:1fr auto 1fr auto;gap:12px;align-items:center;padding:17px 0;border-bottom:1px solid var(--line)}#s00-lab .cell{width:28px;height:28px;border-radius:50%;background:var(--raised);display:inline-grid;place-items:center;color:var(--mint);font:12px monospace}#s00-lab table{width:100%;border-collapse:collapse;text-align:left}#s00-lab th{color:var(--muted);font-size:12px;font-weight:500}#s00-lab th,#s00-lab td{padding:15px 9px;border-bottom:1px solid var(--line)}#s00-lab .tablewrap{overflow-x:auto}#s00-lab .tools{display:grid;grid-template-columns:1fr 1fr;gap:18px}#s00-lab .tool{display:flex;align-items:center;gap:18px;text-align:left;width:100%;color:var(--ink);cursor:pointer}#s00-lab .toolicon{width:54px;height:54px;border-radius:16px;background:var(--raised);color:var(--mint);display:grid;place-items:center;flex-shrink:0}#s00-lab .tool small{display:block;color:var(--muted);margin-top:5px}#s00-lab .tool .arrow{margin-left:auto;color:var(--mint)}#s00-lab .empty{padding:65px 20px;text-align:center;background:var(--panel);border-radius:20px;border:1px solid var(--line)}#s00-lab .empty i{display:inline-block;color:var(--mint);margin-bottom:20px}#s00-lab .empty .action{margin-top:18px}#s00-lab .toast{padding:12px 16px;background:var(--raised);border-radius:12px;border-left:3px solid var(--mint);margin-top:18px}#s00-lab .detailbox{margin-top:16px;padding:16px;background:var(--raised);border-radius:12px}#s00-lab [hidden]{display:none!important}#s00-lab .skeleton{height:180px;border-radius:20px;background:var(--raised)}#s00-lab .footerhint{margin-top:23px;font-size:11px;color:var(--muted)}
+@media(max-width:740px){#s00-lab header{padding:18px;gap:14px}#s00-lab .mainnav{order:3;flex-basis:100%;flex-wrap:wrap}#s00-lab .actor{margin-left:auto}#s00-lab .content{padding:20px 16px}#s00-lab .previewbar{padding:10px 16px}#s00-lab .grid{grid-template-columns:1fr}#s00-lab .formgrid,#s00-lab .split{grid-template-columns:1fr}#s00-lab .tools{grid-template-columns:1fr}#s00-lab h1{font-size:24px}#s00-lab .fields{grid-template-columns:1fr}#s00-lab .search{max-width:none}#s00-lab .actor .actorname{display:none}#s00-lab .match{gap:8px;font-size:12px}#s00-lab .mainnav .plain{padding:8px}#s00-lab input{font-size:16px}}
+@media(prefers-reduced-motion:reduce){#s00-lab *{transition:none!important}}
+#s00-lab { color-scheme: light dark; }
+#s00-lab .previewbar label{min-width:0;flex:1 1 135px;max-width:100%}
+#s00-lab .previewbar select{width:100%;min-width:0}
+#s00-lab .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0 }
+#s00-lab .workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
+#s00-lab .workspace.has-panel{grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr)}
+#s00-lab .workspace.has-panel .split,#s00-lab .workspace.has-panel .formgrid{grid-template-columns:1fr}
+#s00-lab .workspace-main{min-width:0}#s00-lab .sidepanel{border-color:var(--mint)}
+#s00-lab .formgrid,#s00-lab .split{align-items:start}
+#s00-lab .panel-body{margin-top:20px;display:grid;gap:14px}#s00-lab .panel-body .action{margin:5px 0}
+#s00-lab .panel-body form{display:grid;gap:10px}#s00-lab .panel-body code{overflow-wrap:anywhere}
+#s00-lab .field{display:grid;gap:7px;align-content:start;min-width:0}#s00-lab .field.full{grid-column:1/-1}
+#s00-lab input[type=checkbox]{width:22px;height:22px;accent-color:var(--mint)}
+#s00-lab .form-actions{margin:24px 0 16px}#s00-lab .steps{list-style:none;padding:0}
+#s00-lab details{margin:15px 0}#s00-lab summary{cursor:pointer;color:var(--ink);padding:10px 0;font-weight:650}
+#s00-lab .mini-board{display:grid;grid-template-columns:repeat(5,1fr);width:150px;gap:2px;margin-top:15px}
+#s00-lab .mini-board span{background:var(--raised);aspect-ratio:1;display:grid;place-items:center}
+#s00-lab .mini-board .goal-cell{background:var(--mint);color:var(--onmint)}
+#s00-lab .pagination{margin:24px 0 0}#s00-lab .fixture-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0;padding:10px;background:var(--raised);border-radius:10px}
+#s00-lab .fixture-controls label{display:flex;align-items:center;gap:8px}
+#s00-lab .audit-filter{max-width:220px;margin-bottom:18px}
+#s00-lab .errorbox,#s00-lab .field-error{color:var(--amber)}#s00-lab .errorbox{background:var(--raised);padding:15px;border-left:3px solid var(--amber);border-radius:10px;margin-top:14px}
+#s00-lab .errorbox a{color:inherit}#s00-lab [aria-invalid=true]{border:2px solid var(--amber)}
+#s00-lab .summaryline>*{min-width:0;overflow-wrap:anywhere}#s00-lab [disabled]{opacity:.65;cursor:not-allowed;transform:none!important}
+#s00-lab .field-map{min-width:680px}#s00-lab .field-map th,#s00-lab .field-map td{vertical-align:top;text-align:left;padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--muted) 30%,transparent)}#s00-lab .field-map th:first-child{min-width:210px}#s00-lab .field-map td:nth-child(2){white-space:nowrap}
+#s00-lab dialog{background:var(--panel);color:var(--ink);border:1px solid var(--mint);border-radius:20px;padding:24px;max-width:min(480px,calc(100% - 32px))}
+#s00-lab dialog::backdrop{background:rgba(0,0,0,.5)}#s00-lab dialog p{margin:15px 0}
+#s00-lab .panel-body .notice{display:block}#s00-lab .panel-body li{overflow-wrap:anywhere}
+#s00-lab input,#s00-lab select,#s00-lab textarea{border-color:var(--muted)}
+#s00-lab .go,#s00-lab .action{min-height:40px}#s00-lab .tool strong{font-size:18px}
+@media(max-width:1000px){#s00-lab .workspace.has-panel{grid-template-columns:1fr}}
+@media(max-width:740px){#s00-lab .actor{display:none}#s00-lab .previewbar label{flex:1;min-width:120px}#s00-lab .match{grid-template-columns:1fr auto 1fr}#s00-lab .match button{grid-column:1/-1}#s00-lab .action,#s00-lab .plain,#s00-lab .tabs button{min-height:44px}#s00-lab .fixture-controls label{flex-wrap:wrap}#s00-lab select,#s00-lab input,#s00-lab textarea{font-size:16px}#s00-lab .row{overflow-wrap:anywhere}#s00-lab .notice{flex-wrap:wrap}}
+</style>
+<header><div class="brand"><span class="brandmark">OTT</span><span>OTT v2<small>OẲN TÙ TÌ</small></span></div><nav class="mainnav" aria-label="Điều hướng quản trị"><button type="button" class="plain active" data-command="page:list">Giải đấu</button><button type="button" class="plain" data-command="page:audit">Nhật ký</button><button type="button" class="plain" data-command="page:offline">Công cụ Offline</button></nav><div class="actor"><span class="avatar">N</span><span id="actor-label">Nam · Chủ giải</span></div></header>
+<div class="previewbar"><span>Bản thiết kế S00 · Dữ liệu minh họa</span><label>Vai trò xem thử<select id="s00-role"><option value="ta">Chủ giải · TA</option><option value="sa">Quản trị hệ thống · SA</option><option value="ref">Trọng tài · Đức</option><option value="observer">Observer · Chỉ xem</option><option value="broadcast">Broadcast Admin · Phát sóng</option><option value="denied">Không có quyền</option></select></label><label>Trạng thái xem thử<select id="s00-state"><option value="ready">Có dữ liệu</option><option value="empty">Trống</option><option value="loading">Đang tải</option><option value="pending">Đang gửi</option><option value="error">Lỗi kết nối</option><option value="forbidden">Không có quyền</option><option value="expired">Phiên hết hạn</option><option value="conflict">Xung đột bản nháp</option></select></label><label>Giao diện<select id="theme"><option value="system">Theo hệ thống</option><option value="dark">Tối</option><option value="light">Sáng</option></select></label></div>
+<div id="s00-live" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+<main class="content" id="s00-content"></main>
+<dialog id="s00-leave" aria-labelledby="leave-title" aria-describedby="leave-copy"><h2 id="leave-title">Rời bản nháp?</h2><p id="leave-copy">Có thay đổi chưa lưu. Rời trang sẽ bỏ trạng thái chưa lưu; không ghi lên hệ thống.</p><div class="row"><button type="button" class="action primary" data-command="leave-cancel" autofocus>Ở lại</button><button type="button" class="action" data-command="leave-confirm">Rời trang</button></div></dialog>
+
+<script>
+// S00 synthetic interaction model. No application services, secrets or player Python.
+(() => {
+  const root = document.getElementById('s00-lab');
+  const host = root.querySelector('#s00-content');
+  const live = root.querySelector('#s00-live');
+  const dialog = root.querySelector('#s00-leave');
+  const state = {
+    page: 'list', role: 'ta', view: 'ready', tab: 'overview', filter: 'all', query: '', pageNo: 1, selected: 'arena',
+    step: 0, dirty: false, saving: false, saved: false, submitted: false, errors: {},
+    draft: { name: '', slug: '', description: '', organizer: 'Đại học Bách khoa', mode: 'HUMAN_ONLY', visibility: 'PRIVATE', expected: 256, max: 256, allowedUnits: 'BK-2026', timeModel: 'FIXED_WINDOW', zone: 'Asia/Ho_Chi_Minh', rosterOpen: '2026-10-21T08:00', rosterClose: '2026-10-22T08:00', start: '2026-10-23T08:00', end: '2026-10-24T17:00', dailyWindows: '', maintenance: '', maxDay: 12, maxTotal: 0, baseTemplate: 'RPS_ARENA_V1', rows: 9, cols: 9, sameMovement: true, movementProfile: 'RAY_LEAP', goal: true, goalMode: 'STATIC', goalCell: 'E5', interval: 2, firstMove: 'BLUE_FIRST', sideSwap: 'ALTERNATE', clockProfile: 'STANDARD_300', turnLimit: 300, maxPlies: 120, eventPolicy: 'COMPARE_CRITERIA', reconnect: 60, idleForfeit: 180, cpu: 500, memory: 256, fileSize: 512, totalCompute: 30000, runtime: 'PYTHON_SANDBOX_V1', qualification: true, poolMax: 3, submissionsDay: 5, botSwitch: false, scoring: 'ELO_WEIGHTED_V1', rating: 'ELO_1000_FIXED', band: 100, bandExpand: 50, rematch: 3, affectsRating: false, finalization: 'AUTO_FINAL', topN: 10, referee: true, minRef: 2, observerIds: 'broadcast-team', regulations: 'Thi đấu theo luật đã công bố. Xác nhận điều lệ trước trận đầu.', ack: true, displayIdentity: 'NAME_UNIT_MASKED', spectator: 'STAFF_ONLY', retention: 90, draw: false, material: 1, tieOrder: 'WEIGHTED_MATERIAL → GOAL_DISTANCE → MOBILITY', finalTie: 'SECOND_MOVER_WINS', tieTimeout: 300, fallback: 'SECOND_MOVER_WINS' },
+    panel: null, opener: null, incident: 'OPEN', referee: 'duc', decision: null, history: [], decisionKind: 'stop', assigned: null,
+    phase: 'RUNNING', readyRefs: 3, extension: null, schedule: 'UNKNOWN', scheduleChecked: false, broadcastSelections: {},
+    minutes: 60, extensionReason: '', approved: 0, expired: false, final: false, auditFilter: 'all', auditPage: 1,
+    tools: { library: 'AVAILABLE', bot: 'UNAVAILABLE', mixed: 'BLOCKED', human: 'AVAILABLE' }
+  };
+  let savedDraft = { ...state.draft };
+  let submittedProfile = null;
+  const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const icon = n => `<i data-lucide="${n}" aria-hidden="true"></i>`;
+  const action = (text, command, primary = false, attrs = '') => `<button type="button" class="action ${primary ? 'primary' : ''}" data-command="${command}" ${attrs}>${text}</button>`;
+  const nav = (text, page, primary = false) => action(text, `page:${page}`, primary);
+  const label = { ta: 'Nam · Chủ giải', sa: 'Long · Quản trị hệ thống', ref: 'Đức · Trọng tài', observer: 'Observer · Chỉ xem', broadcast: 'Broadcast Admin · Phát sóng', denied: 'Người ngoài phạm vi' };
+  const tours = [
+    { id: 'arena', name: 'Robot Arena 2026', unit: 'Đại học Bách khoa', status: 'Đang diễn ra', key: 'live', date: '21 — 24 Th10', people: '256 thí sinh', note: '2 sự cố cần xử lí' },
+    { id: 'code', name: 'Code & Conquer', unit: 'CLB Lập trình', status: 'Sắp diễn ra', key: 'soon', date: '25 — 27 Th10', people: '128 thí sinh', note: 'Còn 1 điều kiện' },
+    { id: 'draft', name: 'Autumn Open', unit: 'Khoa Công nghệ', status: 'Bản nháp', key: 'draft', date: 'Chưa đặt lịch', people: 'Chưa mở đăng ký', note: 'Tiếp tục cấu hình' },
+    { id: 'winter', name: 'Winter Challenge', unit: 'CLB Robot', status: 'Sắp diễn ra', key: 'soon', date: '01 — 03 Th11', people: '64 thí sinh', note: 'Đang chuẩn bị' }
+  ];
+  const auditRows = [
+    ['10:24', 'Nam · TA', 'Gia hạn', 'Gửi yêu cầu gia hạn', 'end_at', '24/10 17:00', 'Chờ duyệt +60 phút'],
+    ['10:12', 'Đức · Trọng tài', 'Sự cố', 'Dừng trận #032', 'incident.status', 'OPEN', 'IN_PROGRESS'],
+    ['09:45', 'Long · SA', 'Cấu hình', 'Duyệt cấu hình giải', 'config.status', 'UNDER_REVIEW', 'APPROVED'],
+    ['09:18', 'Nam · TA', 'Cấu hình', 'Cập nhật bản nháp', 'name', 'Robot Arena', 'Robot Arena 2026']
+  ];
+  const fieldGroups = [
+    ['A · Hồ sơ, đối tượng và thể thức', 'F01–F14', 'Thông tin', 'Hợp đồng, tên, mã đường dẫn, mô tả, đơn vị, hiển thị, phương thức thi, quy mô và phạm vi đơn vị.'],
+    ['B · Thời gian', 'F15–F22', 'Thời gian', 'Mô hình lịch, múi giờ, mở/đóng danh sách, bắt đầu/kết thúc, khung giờ, bảo trì và giới hạn trận.'],
+    ['C · Bàn, quân và chuyển động', 'F23–F35', 'Luật & vận hành', 'Mẫu luật, kích thước bàn, số quân, bố cục, profile di chuyển, khoảng cách, nhảy, capture và preview kiểm luật.'],
+    ['D · Ô đích theo từng bên', 'F36–F42', 'Luật & vận hành', 'STATIC/CYCLE/SEEDED, ô đích, chu kỳ, seed, stream và xử lí khi đích có quân.'],
+    ['E · Lượt, đồng hồ và kết quả', 'F43–F48', 'Luật & vận hành', 'Bên đi trước, đổi bên, clock, giới hạn nước, event result, nối lại và bỏ trận.'],
+    ['F · Bot theo phương thức thi', 'F49–F54', 'Luật & vận hành', 'Runtime, CPU, bộ nhớ, kích thước tệp, tổng compute, qualification, pool và chính sách đổi Bot.'],
+    ['G · Điểm, nhân sự và quyền xem', 'F55–F66', 'Luật & vận hành', 'Scoring, Elo 1000 cố định, pairing, finalization, Top N, Referee, Observer/Broadcast, điều lệ, danh tính, spectator và retention 90 ngày cố định.'],
+    ['H · Hệ thống', 'F67–F72', 'Sau khi tạo nháp', 'ID, version, approval envelope, audit, readiness, roster và activation do server/workflow tạo.'],
+    ['I · Phân xử cuối trận', 'F73–F82', 'Luật & vận hành', 'Hòa, material weights, thứ tự tiebreak, manual policy, timeout, fallback, người quyết định và công bố.']
+  ];
+  const matchData = {
+    ctf: [
+      ['CTF-001', '21/10 · 09:00', 'Bàn 01', 'Nguyễn An', 'Trần Bình', 'Đang diễn ra', 'Kênh 1', true],
+      ['CTF-002', '21/10 · 09:00', 'Bàn 02', 'Lê Chi', 'Phạm Dũng', 'Đang diễn ra', 'Kênh 2', false],
+      ['CTF-003', '21/10 · 09:30', 'Bàn 03', 'Hoàng Giang', 'Vũ Hà', 'Sắp diễn ra', 'Kênh 1', false],
+      ['CTF-004', '22/10 · 09:00', 'Bàn 01', 'Đỗ Khang', 'Bùi Lan', 'Đã kết thúc', 'Kênh 3', false]
+    ],
+    custom: [
+      ['CUS-101', '23/10 · 09:00', 'Bàn 01', 'Bot Alpha', 'Bot Delta', 'Đang diễn ra', 'Kênh 1', false],
+      ['CUS-102', '23/10 · 09:30', 'Bàn 02', 'Bot Echo', 'Bot Foxtrot', 'Sắp diễn ra', 'Kênh 2', false],
+      ['CUS-103', '24/10 · 10:00', 'Bàn 03', 'Bot Golf', 'Bot Hotel', 'Đã kết thúc', 'Kênh 1', false]
+    ]
+  };
+  const matchById = id => [...matchData.ctf, ...matchData.custom].find(row => row[0] === id);
+  function announce(text) { live.textContent = text; }
+  function focus(selector) { const el = root.querySelector(selector); if (el) el.focus(); }
+  function title(k, text, buttons = '') { return `<div class="row between heading"><div><div class="eyebrow">${k}</div><h1 id="s00-title" tabindex="-1">${text}</h1></div><div class="row">${buttons}</div></div>`; }
+  function paging(page, count, prefix) { return `<nav class="row between pagination" aria-label="Phân trang ${prefix === 'list' ? 'giải đấu' : 'nhật ký'}">${action('← Trước', `${prefix}-prev`, false, page <= 1 ? 'disabled' : '')}<span>Trang ${page} / ${Math.max(1, count)}</span>${action('Tiếp →', `${prefix}-next`, false, page >= count ? 'disabled' : '')}</nav>`; }
+  function list() {
+    const filtered = tours.filter(t => (state.filter === 'all' || t.key === state.filter) && t.name.toLocaleLowerCase('vi').includes(state.query.toLocaleLowerCase('vi')));
+    const pages = Math.ceil(filtered.length / 3); state.pageNo = Math.max(1, Math.min(state.pageNo, pages || 1));
+    return title('QUẢN LÍ GIẢI', 'Giải đấu', state.role === 'ta' ? nav('+ Tạo giải', 'draft', true) : '') +
+      `<div class="row between toolbar"><div class="tabs" aria-label="Lọc trạng thái">${[['all', 'Tất cả'], ['live', 'Đang diễn ra'], ['soon', 'Sắp diễn ra'], ['draft', 'Bản nháp']].map(([key, text]) => `<button type="button" data-command="filter:${key}" aria-pressed="${state.filter === key}" class="${state.filter === key ? 'active' : ''}">${text}</button>`).join('')}</div><label class="search">Tìm giải<input id="s00-search" value="${esc(state.query)}" maxlength="200" placeholder="Tên giải hoặc mã giải"></label></div>` +
+      `<div id="s00-results">${cards(filtered, pages)}</div>`;
+  }
+  function cards(filtered, pages) {
+    return filtered.length ? `<div class="grid">${filtered.slice((state.pageNo - 1) * 3, state.pageNo * 3).map(t => `<article class="panel tour"><span class="badge">${t.status}</span><h2 class="tour-title">${t.name}</h2><p>${t.unit}</p><div class="meta"><span>${t.date}</span><span>${t.people}</span></div><div class="foot"><span class="${t.id === 'arena' ? 'warm' : 'subtle'}">${t.note}</span>${action(icon('arrow-up-right') + '<span class="sr-only">Mở ' + t.name + '</span>', `open:${t.id}`)}</div></article>`).join('')}</div>${paging(state.pageNo, pages, 'list')}` : `<div class="empty"><h2>Không tìm thấy giải</h2><p>Thử tên khác hoặc bỏ bộ lọc.</p>${action('Xóa bộ lọc', 'clear-filter')}</div>`;
+  }
+  function field(key, text, type = 'text', opts = {}) {
+    const id = 'field-' + key; const error = state.errors[key];
+    const attrs = `id="${id}" name="${key}" ${opts.required ? 'required' : ''} ${opts.disabled ? 'disabled' : ''} ${error ? `aria-invalid="true" aria-describedby="${id}-error"` : ''}`;
+    let control;
+    if (opts.options) control = `<select ${attrs}>${opts.options.map(([v, t]) => `<option value="${v}" ${String(state.draft[key]) === String(v) ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+    else if (type === 'checkbox') control = `<input ${attrs} type="checkbox" ${state.draft[key] ? 'checked' : ''}>`;
+    else if (type === 'textarea') control = `<textarea ${attrs} rows="3" maxlength="2000">${esc(state.draft[key])}</textarea>`;
+    else control = `<input ${attrs} type="${type}" value="${esc(state.draft[key])}" ${opts.min != null ? `min="${opts.min}"` : ''} ${opts.max != null ? `max="${opts.max}"` : ''}>`;
+    return `<div class="field ${opts.full ? 'full' : ''}"><label for="${id}">${text}</label>${control}${opts.hint ? `<span class="subtle">${opts.hint}</span>` : ''}${error ? `<span class="field-error" id="${id}-error">${error}</span>` : ''}</div>`;
+  }
+  function summaryErrors() { return Object.keys(state.errors).length ? `<div id="s00-errors" class="errorbox" role="alert" tabindex="-1"><strong>Kiểm tra các trường được đánh dấu</strong><ul>${Object.entries(state.errors).map(([k, v]) => `<li><a href="#field-${k}" data-field="${k}">${v}</a></li>`).join('')}</ul></div>` : ''; }
+  function normalized() {
+    const d = { ...state.draft };
+    d.rating = 'ELO_1000_FIXED';
+    d.retention = 90;
+    if (d.mode === 'BOT_ONLY') d.qualification = true;
+    if (d.mode !== 'BOT_ONLY') ['runtime', 'cpu', 'memory', 'fileSize', 'totalCompute', 'qualification', 'poolMax', 'submissionsDay', 'botSwitch'].forEach(k => delete d[k]);
+    if (!d.goal) ['goalMode', 'goalCell', 'interval'].forEach(k => delete d[k]);
+    else if (d.goalMode === 'STATIC') delete d.interval;
+    if (!d.referee) delete d.minRef;
+    return d;
+  }
+  function fieldCoverage() {
+    return `<details open><summary>Danh mục cấu hình theo BA/SA · 82 trường</summary><p class="subtle">Bản prototype cho thấy đầy đủ phạm vi và nơi xử lí. Trường có nhãn “Sau khi tạo nháp” do server/workflow sinh hoặc được hoàn thiện ở bước roster/readiness.</p><div class="tablewrap" role="region" aria-label="Danh mục trường khởi tạo" tabindex="0"><table class="field-map"><thead><tr><th scope="col">Nhóm</th><th scope="col">Trường</th><th scope="col">Xuất hiện ở</th><th scope="col">Phạm vi</th></tr></thead><tbody>${fieldGroups.map(([group, ids, phase, scope]) => `<tr><th scope="row">${group}</th><td class="mono">${ids}</td><td><span class="badge">${phase}</span></td><td>${scope}</td></tr>`).join('')}</tbody></table></div></details>`;
+  }
+  function draft() {
+    const d = state.draft;
+    const steps = ['Thông tin', 'Thời gian', 'Luật & vận hành', 'Xác nhận'];
+    let form = '';
+    if (state.step === 0) form = field('name', 'Tên giải', 'text', { required: true, full: true }) + field('slug', 'Mã đường dẫn', 'text') + field('description', 'Mô tả', 'textarea', { full: true }) + `<div class="field"><label for="field-contract">Hợp đồng</label><select id="field-contract"><option>BK-2026 · Đại học Bách khoa</option></select></div>` + field('organizer', 'Đơn vị tổ chức', 'select', { options: [['Đại học Bách khoa', 'Đại học Bách khoa']] }) + field('mode', 'Phương thức thi', 'select', { options: [['HUMAN_ONLY', 'Người đấu Người'], ['BOT_ONLY', 'Bot đấu Bot']] }) + field('visibility', 'Hiển thị', 'select', { options: [['PRIVATE', 'Riêng tư'], ['UNLISTED', 'Không niêm yết'], ['PUBLIC', 'Công khai']] }) + field('expected', 'Quy mô dự kiến', 'number', { min: 1, max: 4000 }) + field('max', 'Số thí sinh tối đa', 'number', { min: 1, max: 4000 }) + field('allowedUnits', 'Phạm vi đơn vị', 'select', { options: [['BK-2026', 'Đại học Bách khoa']] });
+    if (state.step === 1) form = field('timeModel', 'Mô hình lịch', 'select', { options: [['FIXED_WINDOW', 'Một khoảng thời gian'], ['MULTIDAY', 'Nhiều ngày thi']] }) + field('zone', 'Múi giờ', 'select', { options: [['Asia/Ho_Chi_Minh', 'Việt Nam · UTC+7']] }) + field('rosterOpen', 'Mở danh sách', 'datetime-local', { required: true }) + field('rosterClose', 'Đóng danh sách', 'datetime-local', { required: true }) + field('start', 'Bắt đầu giải', 'datetime-local', { required: true }) + field('end', 'Kết thúc giải', 'datetime-local', { required: true }) + field('dailyWindows', 'Khung giờ thi mỗi ngày', 'text') + field('maintenance', 'Khoảng bảo trì', 'text') + field('maxDay', 'Số trận tối đa mỗi thí sinh/ngày', 'number', { min: 1, max: 100 }) + field('maxTotal', 'Số trận tối đa mỗi thí sinh', 'number', { min: 0, max: 1000 });
+    if (state.step === 2) form = `<details open><summary>Bàn, quân và chuyển động</summary><div class="fields">${field('baseTemplate', 'Mẫu luật', 'select', { options: [['RPS_ARENA_V1', 'RPS Arena · bản chuẩn']] })}${field('rows', 'Số hàng', 'number', { min: 5, max: 15 })}${field('cols', 'Số cột', 'number', { min: 5, max: 15 })}${field('sameMovement', 'Dùng cùng luật đi cho hai bên', 'checkbox')}${field('movementProfile', 'Mẫu di chuyển', 'select', { options: [['RAY_LEAP', 'RAY 8 hướng + LEAP hữu hạn']] })}</div><p>Preview bám profile luật; cấu hình chi tiết theo từng loại quân/bên là phần RuleEditor và contract G1.</p><div class="mini-board" aria-label="Bàn minh họa, không kiểm nước đi">${Array.from({ length: 25 }, (_, i) => `<span class="${i === 12 && d.goal ? 'goal-cell' : ''}">${i === 12 && d.goal ? '◎' : ''}</span>`).join('')}</div></details><details open><summary>Đích, lượt và đồng hồ</summary><div class="fields">${field('goal', 'Bật điều kiện thắng khi tới đích', 'checkbox')}${d.goal ? field('goalMode', 'Kiểu đích', 'select', { options: [['STATIC', 'Tĩnh'], ['CYCLE', 'Chu kỳ'], ['SEEDED', 'Theo seed']] }) + field('goalCell', d.goalMode === 'STATIC' ? 'Ô đích mẫu' : 'Ô ứng viên mẫu', 'text') + (d.goalMode !== 'STATIC' ? field('interval', 'Đổi sau số vòng', 'number', { min: 1, max: 100 }) : '') : ''}${field('firstMove', 'Bên đi trước', 'select', { options: [['BLUE_FIRST', 'BLUE đi trước'], ['RED_FIRST', 'RED đi trước'], ['SEEDED', 'Theo seed']] })}${field('sideSwap', 'Phân bên trận kế tiếp', 'select', { options: [['ALTERNATE', 'Đổi bên luân phiên'], ['FIXED', 'Giữ cố định']] })}${field('clockProfile', 'Hồ sơ đồng hồ', 'select', { options: [['STANDARD_300', 'Chuẩn · 300 giây/nước']] })}${field('turnLimit', 'Giới hạn thời gian mỗi nước (giây)', 'number', { min: 1, max: 3600 })}${field('maxPlies', 'Giới hạn số nước', 'number', { min: 2, max: 1000 })}${field('eventPolicy', 'Xử lí tình huống kết thúc', 'select', { options: [['COMPARE_CRITERIA', 'So sánh tiêu chí'], ['WIN_LOSS', 'Thắng / thua theo sự kiện']] })}</div></details><details open><summary>Nhân sự, phát sóng và điều lệ</summary><div class="fields">${d.mode === 'BOT_ONLY' ? field('runtime', 'Hồ sơ runtime Bot', 'select', { options: [['PYTHON_SANDBOX_V1', 'Sandbox Bot đã kiểm chứng']] }) + field('cpu', 'CPU mỗi nước Bot (ms)', 'number', { min: 1, max: 500 }) + field('memory', 'Bộ nhớ Bot (MB)', 'number', { min: 1, max: 4096 }) + field('fileSize', 'Kích thước tệp Bot (KB)', 'number', { min: 1, max: 10240 }) + field('totalCompute', 'Tổng compute Bot mỗi bên/trận (ms)', 'number', { min: 1, max: 3600000 }) + field('qualification', 'Kiểm tra an toàn và tương thích', 'checkbox', { disabled: true, hint: 'Bắt buộc theo chính sách Bot; hệ thống luôn bật.' }) : '<p class="full">Giải Người đấu Người không cần hồ sơ Bot.</p>'}${field('referee', 'Bắt buộc có trọng tài', 'checkbox')}${d.referee ? field('minRef', 'Số trọng tài tối thiểu đã sẵn sàng', 'number', { min: 1, max: 20 }) : ''}${field('observerIds', 'Nhóm Observer/Broadcast được xem', 'text')}${field('scoring', 'Preset tính điểm', 'select', { options: [['ELO_WEIGHTED_V1', 'ELO theo preset đã duyệt']] })}${field('rating', 'Elo khởi tạo', 'select', { disabled: true, hint: 'Elo 1000 là cố định theo chính sách; không có tuỳ chọn nén.', options: [['ELO_1000_FIXED', 'Elo 1000 · cố định']] })}${field('finalization', 'Cách chốt kết quả', 'select', { options: [['AUTO_FINAL', 'Tự chốt theo luật'], ['FREEZE_REVIEW', 'Chờ cửa sổ rà soát']] })}${field('topN', 'Số vị trí công bố', 'number', { min: 1, max: 100 })}${field('displayIdentity', 'Hiển thị danh tính trên BXH', 'select', { options: [['NAME_UNIT_MASKED', 'Tên và đơn vị đã che bớt'], ['FULL_NAME', 'Tên đầy đủ theo quyền']] })}${field('spectator', 'Quyền xem trực tiếp', 'select', { options: [['STAFF_ONLY', 'Staff được phân công'], ['ROSTER_ONLY', 'Người trong giải']] })}${field('retention', 'Thời gian lưu dữ liệu (ngày)', 'number', { min: 90, max: 90, disabled: true, hint: '90 ngày cố định sau FINALIZED hoặc CANCELLED.' })}${field('regulations', 'Điều lệ', 'textarea', { full: true })}${field('ack', 'Yêu cầu xác nhận điều lệ', 'checkbox')}</div></details>`;
+    if (state.step === 3) form = `<div class="full"><h2>Kiểm tra hồ sơ</h2>${[['Tên giải', d.name], ['Phương thức thi', d.mode === 'BOT_ONLY' ? 'Bot đấu Bot' : 'Người đấu Người'], ['Lịch', `${d.start.replace('T', ' ')} → ${d.end.replace('T', ' ')}`], ['Bàn', `${d.rows} × ${d.cols}`], ['Mẫu di chuyển', d.movementProfile], ['Đích', d.goal ? d.goalMode : 'Không áp dụng'], ['Bot runtime', d.mode === 'BOT_ONLY' ? d.runtime : 'Không áp dụng'], ['Trọng tài tối thiểu', d.referee ? `${d.minRef} người đã sẵn sàng` : 'Không bắt buộc'], ['Observer/Broadcast', d.observerIds]].map(([k, v]) => `<div class="summaryline"><span>${k}</span><strong>${esc(v)}</strong></div>`).join('')}<p>Roster, lời mời nhân sự và readiness thật hoàn thiện sau duyệt; bản nháp không bị chặn bởi dữ liệu chưa đến bước đó.</p>${fieldCoverage()}</div>`;
+    return title('GIẢI ĐẤU / BẢN NHÁP', d.name ? esc(d.name) : 'Tạo giải đấu', nav('← Danh sách', 'list')) +
+      `<ol class="steps" aria-label="Các bước tạo giải">${steps.map((t, i) => `<li class="step ${i === state.step ? 'active' : ''}" ${i === state.step ? 'aria-current="step"' : ''}>${i + 1} · ${t}</li>`).join('')}</ol>` +
+      `<div class="formgrid"><section class="panel"><h2 id="step-title" tabindex="-1">${steps[state.step]}</h2>${summaryErrors()}<form id="s00-form" novalidate><div class="${state.step === 2 ? '' : 'fields'}">${form}</div><div class="row form-actions">${state.step > 0 ? action('← Quay lại', 'step-back') : ''}<button type="submit" class="action primary" ${state.saving ? 'disabled' : ''}>${state.step === 3 ? 'Gửi duyệt thử' : 'Tiếp tục →'}</button>${action(state.saving ? 'Đang lưu…' : 'Lưu nháp thử', 'save', false, state.saving ? 'disabled' : '')}</div></form><p id="draft-status" role="status">${state.saving ? 'Đang lưu bản nháp minh họa…' : state.submitted ? 'Đã gửi hồ sơ minh họa. Chưa gửi lên hệ thống.' : state.dirty ? 'Có thay đổi chưa lưu.' : state.saved ? 'Đã lưu trong phiên xem thử.' : 'Bản nháp mới · Chưa lưu'}</p>${state.view === 'conflict' ? '<div class="notice">Bản server minh họa đã thay đổi. Bản nhập của bạn được giữ.</div>' + action('Đối chiếu bản', 'compare') + action('Dùng bản server', 'server-draft') : ''}</section><aside class="panel"><span class="eyebrow">HỢP ĐỒNG ĐƯỢC CHỌN</span><h2>BK-2026</h2><div class="summaryline"><span>Lượt còn lại</span><b>4 / 5</b></div><div class="summaryline"><span>Quy mô tối đa</span><b>4.000 người</b></div><div class="summaryline"><span>Thời hạn</span><span>31/12/2026</span></div><p>Giữ một lượt khi lưu nháp thật. Bản xem thử không trừ lượt.</p></aside></div>`;
+  }
+  function validate(step = state.step) {
+    const d = state.draft, e = {};
+    if (step === 0 || step === 3) {
+      if (d.name.trim().length < 3 || d.name.trim().length > 120) e.name = 'Tên giải cần từ 3 đến 120 ký tự.';
+      if (!d.slug.trim() && d.name.trim()) d.slug = d.name.trim().toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (!Number.isInteger(+d.expected) || +d.expected < 1 || +d.expected > 4000) e.expected = 'Quy mô dự kiến phải là số nguyên từ 1 đến 4.000.';
+      if (!Number.isInteger(+d.max) || +d.max < 1 || +d.max > 4000) e.max = 'Quy mô tối đa phải là số nguyên từ 1 đến 4.000.';
+      else if (+d.expected > +d.max) e.expected = 'Quy mô dự kiến không được vượt quy mô tối đa.';
+    }
+    if (step === 1 || step === 3) {
+      for (const k of ['rosterOpen', 'rosterClose', 'start', 'end']) if (!d[k] || !Number.isFinite(Date.parse(d[k]))) e[k] = 'Cần nhập thời gian hợp lệ.';
+      if (!(d.rosterOpen < d.rosterClose)) e.rosterClose = 'Đóng danh sách phải sau thời điểm mở.';
+      if (!(d.rosterClose <= d.start)) e.start = 'Bắt đầu phải từ thời điểm đóng danh sách trở đi.';
+      if (!(d.start < d.end)) e.end = 'Kết thúc phải sau thời điểm bắt đầu.';
+    }
+    if (step === 2 || step === 3) {
+      for (const k of ['rows', 'cols']) if (!Number.isInteger(+d[k]) || +d[k] < 5 || +d[k] > 15) e[k] = 'Mỗi chiều bàn phải là số nguyên từ 5 đến 15.';
+      const bounds = [['maxDay', 1, 100], ['maxTotal', 0, 1000], ['turnLimit', 1, 3600], ['maxPlies', 2, 1000], ['reconnect', 0, 3600], ['idleForfeit', 0, 3600], ['topN', 1, 100]];
+      if (d.mode === 'BOT_ONLY') bounds.push(['memory', 1, 4096], ['fileSize', 1, 10240], ['totalCompute', 1, 3600000], ['poolMax', 1, 100], ['submissionsDay', 1, 100]);
+      for (const [k, min, max] of bounds) if (d[k] != null && (!Number.isInteger(+d[k]) || +d[k] < min || +d[k] > max)) e[k] = `${k} phải là số nguyên từ ${min} đến ${max}.`;
+      if (d.maxPlies != null && Number.isInteger(+d.maxPlies) && +d.maxPlies % 2 !== 0) e.maxPlies = 'Giới hạn số nước phải là số chẵn để kết thúc đủ lượt hai bên.';
+      if (d.goal && !/^[A-O](?:[1-9]|1[0-5])$/.test(d.goalCell)) e.goalCell = 'Ô đích cần có dạng A1 đến O15.';
+      else if (d.goal && (d.goalCell.charCodeAt(0) - 64 > +d.cols || +d.goalCell.slice(1) > +d.rows)) e.goalCell = 'Ô đích phải nằm trong bàn đã chọn.';
+      if (d.goal && d.goalMode !== 'STATIC' && (!Number.isInteger(+d.interval) || +d.interval < 1 || +d.interval > 100)) e.interval = 'Chu kỳ mẫu phải từ 1 đến 100 vòng; bounds G1 còn chờ freeze.';
+      if (d.mode === 'BOT_ONLY' && (!Number.isInteger(+d.cpu) || +d.cpu < 1 || +d.cpu > 500)) e.cpu = 'CPU mỗi nước Bot phải từ 1 đến 500 ms; đây chưa chứng minh runtime enforce.';
+      if (d.mode === 'BOT_ONLY' && d.qualification !== true) e.qualification = 'Kiểm tra an toàn và tương thích là bắt buộc với Bot.';
+      if (d.rating !== 'ELO_1000_FIXED') e.rating = 'Elo khởi tạo là 1000 cố định theo chính sách.';
+      if (+d.retention !== 90) e.retention = 'Thời gian lưu cố định là 90 ngày.';
+      if (d.referee && (!Number.isInteger(+d.minRef) || +d.minRef < 1 || +d.minRef > 20)) e.minRef = 'Số trọng tài mẫu phải từ 1 đến 20; bounds G1 còn chờ freeze.';
+      if (!d.regulations.trim()) e.regulations = 'Cần có điều lệ trước gửi duyệt.';
+    }
+    state.errors = e;
+    if (Object.keys(e).length) { if (step === 3) { const k = Object.keys(e)[0]; state.step = ['name', 'slug', 'expected', 'max'].includes(k) ? 0 : ['start', 'end', 'rosterClose', 'rosterOpen'].includes(k) ? 1 : 2; } render(); focus('#s00-errors'); announce('Có lỗi nhập liệu. Bản nháp vẫn được giữ.'); return false; } return true;
+  }
+  function tabs() {
+    const list = state.role === 'ref' ? [['matches', 'Case được giao']] : ['observer', 'broadcast'].includes(state.role) ? [['overview', 'Tổng quan'], ['matches', 'Vòng CTF'], ['custom', 'Vòng Custom']] : [['overview', 'Tổng quan'], ['matches', 'Vòng CTF'], ['custom', 'Vòng Custom'], ['ready', 'Sẵn sàng']];
+    return `<div class="tabs" role="tablist" aria-label="Chi tiết giải">${list.map(([id, t]) => `<button type="button" id="tab-${id}" role="tab" aria-controls="detail-tab" aria-selected="${state.tab === id}" tabindex="${state.tab === id ? 0 : -1}" class="${state.tab === id ? 'active' : ''}" data-command="tab:${id}">${t}</button>`).join('')}</div>`;
+  }
+  function detail() {
+    if (state.role === 'ref') state.tab = 'matches';
+    const controls = ['ta', 'sa'].includes(state.role) ? `<div class="fixture-controls"><label>Giai đoạn<select id="phase"><option ${state.phase === 'READY' ? 'selected' : ''}>READY</option><option ${state.phase === 'RUNNING' ? 'selected' : ''}>RUNNING</option></select></label><label>Trọng tài đã sẵn sàng<select id="refs"><option value="1" ${state.readyRefs === 1 ? 'selected' : ''}>1 / 2</option><option value="3" ${state.readyRefs === 3 ? 'selected' : ''}>3 / 2</option></select></label><label>Chốt giải<input id="finalized" type="checkbox" ${state.final ? 'checked' : ''}></label></div>` : '';
+    let body;
+    if (state.tab === 'matches' || state.tab === 'custom') body = matches();
+    else if (state.tab === 'ready') body = `<section class="panel"><h2>Điều kiện vận hành</h2>${['Cấu hình đã duyệt', 'Luật phiên bản v3', 'Runtime theo hồ sơ đã chọn'].map(t => `<div class="summaryline"><span>${t}</span><span class="badge">Đạt trong tình huống mẫu</span></div>`).join('')}<div class="summaryline"><span>Trọng tài đã sẵn sàng</span><b>${state.readyRefs}/2</b></div>${staffing()}</section>`;
+    else body = `<div class="split"><section class="panel"><div class="row between"><h2>Diễn biến giải</h2><span class="badge">${state.phase === 'RUNNING' ? 'Đang diễn ra' : 'Chờ bắt đầu'}</span></div><div class="stats"><div><b>256</b><small>Thí sinh</small></div><div><b>32</b><small>Trận đang đấu</small></div><div><b>184</b><small>Đã hoàn thành</small></div></div>${staffing()}<div class="notice"><span>Bảng lịch đấu</span>${action('Vòng CTF →', 'tab:matches', true)}${action('Vòng Custom →', 'tab:custom')}</div><div class="row between"><span>Kết thúc ${endLabel()}</span>${state.role === 'ta' ? action('Xin gia hạn', 'panel:extension') : state.role === 'sa' ? action('Xem yêu cầu gia hạn', 'panel:extension') : ''}</div></section><aside class="panel"><h2>Phát sóng</h2><p>${state.role === 'broadcast' ? 'Mở từng trận để chọn kênh và chuẩn bị nội dung phát sóng.' : state.role === 'observer' ? 'Mở từng trận để theo dõi dữ liệu được cấp. Observer không điều khiển phát sóng.' : 'Observer và Broadcast Admin được cấp quyền xem theo phạm vi giải.'}</p>${action('Mở bảng CTF', 'tab:matches')}</aside></div>`;
+    const selected = tours.find(t => t.id === state.selected) || tours[0];
+    if (selected.id !== 'arena') return title('GIẢI ĐẤU', esc(selected.name), nav('← Danh sách', 'list')) + `<section class="panel"><span class="badge">${selected.status}</span><h2>${selected.unit}</h2><p>${selected.date} · ${selected.people}</p><p>Hồ sơ minh họa này chưa có trận hoặc sự cố. Luồng điều hành đầy đủ dùng giải Robot Arena 2026.</p></section>`;
+    return title('GIẢI ĐẤU / ROBOT ARENA', selected.name, !['ref', 'observer', 'broadcast'].includes(state.role) ? nav('← Danh sách', 'list') : '') + `<div class="row between"><span class="badge">${state.final ? 'Đã chốt · Chỉ xem' : state.phase === 'RUNNING' ? 'Đang diễn ra' : 'Chờ bắt đầu'} · Luật v3</span><span class="subtle">Riêng tư · Dữ liệu minh họa</span></div>${controls}${tabs()}<section id="detail-tab" role="tabpanel" aria-labelledby="tab-${state.tab}">${body}</section>`;
+  }
+  function staffing() { return state.readyRefs < 2 ? `<div class="notice" data-staffing="${state.phase === 'RUNNING' ? 'warning' : 'blocker'}">${state.phase === 'RUNNING' ? 'Nhân sự trọng tài đang thiếu; giải vẫn tiếp tục theo lịch.' : 'Chưa thể bắt đầu: cần tối thiểu 2 trọng tài đã sẵn sàng.'}</div>` : '<p>Đã đủ số trọng tài tối thiểu theo cấu hình.</p>'; }
+  function endLabel() { return `24/10 · ${String(17 + Math.floor(state.approved / 60)).padStart(2, '0')}:${String(state.approved % 60).padStart(2, '0')}`; }
+  function matches() {
+    if (state.role === 'ref' && state.assigned !== 'duc') return `<section class="empty"><h2>Chưa có case được giao</h2><p>Bạn chỉ xem và xử lí sự cố còn grant hợp lệ của mình.</p></section>`;
+    const custom = state.tab === 'custom';
+    const rows = custom ? matchData.custom : matchData.ctf;
+    const visible = state.role === 'ref' ? rows.slice(0, 1) : rows;
+    const titleText = state.role === 'ref' ? 'Case được giao' : custom ? 'Vòng Custom · Lịch trận import' : 'Vòng CTF · Lịch thi đấu';
+    return `<section class="panel"><div class="row between"><div><h2>${titleText}</h2><p class="subtle">${custom ? 'Trận được đưa lên từ bảng import và giữ đúng thứ tự Tournament Admin sắp xếp.' : 'Các ngày đấu và toàn bộ trận CTF trong giải.'}</p></div><span class="badge">${visible.length} trận</span></div><div class="tablewrap" role="region" aria-label="Bảng lịch trận" tabindex="0"><table><thead><tr><th scope="col">Mã</th><th scope="col">Ngày giờ</th><th scope="col">Bàn</th><th scope="col">Cặp đấu</th><th scope="col">Trạng thái</th><th scope="col">Phát sóng</th><th scope="col"></th></tr></thead><tbody>${visible.map(r => `<tr><td class="mono">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><strong>${r[3]}</strong><br><span class="subtle">vs ${r[4]}</span></td><td><span class="badge">${r[5]}</span></td><td>${r[6]}</td><td><div class="row">${action(['observer', 'broadcast'].includes(state.role) ? 'Mở trận' : state.role === 'ref' ? 'Xem case' : 'Xem trận', `panel:match-${r[0]}`, true)}${['ta', 'ref'].includes(state.role) && r[7] ? action('Sự cố', 'panel:incident') : ''}</div></td></tr>`).join('')}</tbody></table></div></section>`;
+  }
+  function audit() {
+    const rows = auditRows.map((r, i) => ({ r, i })).filter(({ r }) => state.auditFilter === 'all' || r[2] === state.auditFilter);
+    const count = Math.ceil(rows.length / 2); state.auditPage = Math.min(state.auditPage, count || 1);
+    return title('QUẢN TRỊ', 'Nhật ký') + `<label class="audit-filter">Hoạt động<select id="audit-filter">${['all', 'Gia hạn', 'Sự cố', 'Cấu hình'].map(t => `<option value="${t}" ${t === state.auditFilter ? 'selected' : ''}>${t === 'all' ? 'Tất cả' : t}</option>`).join('')}</select></label><section class="panel"><div class="tablewrap" role="region" aria-label="Bảng nhật ký cuộn ngang" tabindex="0"><table><thead><tr><th scope="col">Thời gian</th><th scope="col">Người thực hiện</th><th scope="col">Hoạt động</th><th scope="col">Chi tiết</th></tr></thead><tbody>${rows.slice((state.auditPage - 1) * 2, state.auditPage * 2).map(({ r, i }) => `<tr><td class="mono">${r[0]}</td><td>${r[1]}</td><td>${r[3]}</td><td>${action('Xem', 'panel:audit-' + i, false, `aria-label="Xem ${r[3]}"`)}</td></tr>`).join('')}</tbody></table></div>${paging(state.auditPage, count, 'audit')}</section>`;
+  }
+  const toolInfo = {
+    library: ['folder-code', 'Kho Bot', 'Quản lí chiến thuật của bạn', '/bot-lab', 'BotWorkbenchPage'],
+    bot: ['cpu', 'Bot Offline', 'Chạy hai Bot trên thiết bị', '/dau-chuong-trinh/offline', 'BotOfflinePage'],
+    mixed: ['swords', 'Người – Bot', 'Luyện tập cùng Python Bot', null, 'DEPENDENCY_PENDING: human–Python consumer'],
+    human: ['users', 'Người – Người', 'Cùng chơi trên một thiết bị', '/offline', 'LocalGamePage OFFLINE']
+  };
+  function offline() { return title('ROBOT LAB', 'Công cụ Offline') + `<div class="tools">${Object.entries(toolInfo).map(([id, [ic, t, hint]]) => `<button type="button" class="panel tool" data-command="panel:tool-${id}"><span class="toolicon">${icon(ic)}</span><span><strong>${t}</strong><small>${hint}</small><span class="badge ${state.tools[id] === 'AVAILABLE' ? '' : 'warm'}">${state.tools[id] === 'AVAILABLE' ? 'Có lối vào' : state.tools[id] === 'BLOCKED' ? 'Chờ consumer' : 'Runtime chưa sẵn sàng'}</span></span><span class="arrow">${icon('arrow-up-right')}</span></button>`).join('')}</div>`; }
+  function renderPanel() {
+    const p = state.panel; if (!p) return '';
+    let body = '', text = '';
+    if (p.startsWith('match-')) {
+      const id = p.slice(6); const match = matchById(id) || ['UNKNOWN', 'Chưa có lịch', '—', '—', '—', 'Không xác định', '—', false]; text = `Trận ${match[0]}`;
+      body = `<div class="summaryline"><span>Trạng thái</span><strong>${match[5]}</strong></div><div class="summaryline"><span>Ngày giờ</span><strong>${match[1]}</strong></div><div class="summaryline"><span>Bàn</span><strong>${match[2]}</strong></div><div class="summaryline"><span>Cặp đấu</span><strong>${match[3]} vs ${match[4]}</strong></div><div class="summaryline"><span>Kênh</span><strong>${match[6]}</strong></div><div class="summaryline"><span>Mục đích</span><strong>${['observer', 'broadcast'].includes(state.role) ? state.role === 'broadcast' ? 'Theo dõi và chuẩn bị phát sóng' : 'Theo dõi dữ liệu được cấp' : state.role === 'ref' ? 'Kiểm tra case được giao' : 'Điều hành theo quyền'}</strong></div>${state.role === 'broadcast' ? `<div class="notice">Broadcast Admin có thể chọn kênh và chuẩn bị bố cục phát sóng cho trận này.</div>${action('Mở bảng phát sóng', 'broadcast-open:' + id, true)}` : state.role === 'observer' ? '<div class="notice">Observer chỉ xem dữ liệu được cấp; không điều khiển kết quả hoặc phát sóng.</div>' : state.role === 'ref' ? '<p>Case được giao mở trong màn hình trọng tài. Không có quyền phân xử exact-tie.</p>' : '<p>Chi tiết trận mở theo scope quản trị. Quyết định và kết quả vẫn do server/role authority.</p>'}${match[7] && ['ta', 'ref'].includes(state.role) ? action(state.role === 'ref' ? 'Xem case' : 'Mở sự cố', 'panel:incident') : ''}`;
+    } else if (p === 'broadcast') {
+      const match = matchById(state.broadcastMatch || 'CTF-001') || matchData.ctf[0]; const selection = state.broadcastSelections[match[0]] || { layout: 'Toàn cảnh bàn + đồng hồ', channel: match[6] }; text = 'Chuẩn bị phát sóng';
+      body = `<div class="summaryline"><span>Trận</span><strong>${match[0]} · ${match[3]} vs ${match[4]}</strong></div><div class="summaryline"><span>Lịch</span><strong>${match[1]} · ${match[6]}</strong></div><label for="broadcast-layout">Bố cục phát sóng<select id="broadcast-layout"><option ${selection.layout === 'Toàn cảnh bàn + đồng hồ' ? 'selected' : ''}>Toàn cảnh bàn + đồng hồ</option><option ${selection.layout === 'Hai bảng đấu + diễn biến' ? 'selected' : ''}>Hai bảng đấu + diễn biến</option><option ${selection.layout === 'Chỉ bảng kết quả' ? 'selected' : ''}>Chỉ bảng kết quả</option></select></label><label for="broadcast-channel">Kênh phát<select id="broadcast-channel"><option ${selection.channel === match[6] ? 'selected' : ''}>${match[6]}</option><option ${selection.channel === 'Kênh 2' ? 'selected' : ''}>Kênh 2</option><option ${selection.channel === 'Kênh 3' ? 'selected' : ''}>Kênh 3</option></select></label><p class="subtle">Bản xem thử lưu lựa chọn trong phiên này; không kết nối kênh thật.</p>${action('Xác nhận bố cục thử', 'broadcast-ready', true)}`;
+    } else if (p === 'incident') {
+      text = 'Sự cố trận #032';
+      body = `<p>Người chơi yêu cầu tạm dừng. Yêu cầu không tự dừng trận.</p><div class="summaryline"><span>Trạng thái</span><strong>${state.incident}</strong></div>`;
+      if (state.role === 'ta' && !state.final) body += `<label for="candidate">Trọng tài được gợi ý</label><select id="candidate"><option value="duc" ${state.referee === 'duc' ? 'selected' : ''}>Đức · Đang sẵn sàng · 0 case</option><option value="unavailable" ${state.referee === 'unavailable' ? 'selected' : ''}>Không có người phù hợp lúc này</option></select><div class="row form-actions">${action(state.assigned ? 'Giao lại case' : 'Giao xử lí', 'assign', true)}</div><p id="assignment-message">${state.assigned ? 'Đã giao cho Đức. Chờ nhận case.' : 'Hệ thống chỉ gợi ý; grant phải được kiểm tra khi giao.'}</p>`;
+      if (state.role === 'ref' && state.assigned === 'duc' && !state.final && ['ASSIGNED', 'IN_PROGRESS'].includes(state.incident)) body += state.incident === 'ASSIGNED' ? action('Nhận case', 'accept', true) : `<form id="incident-form" novalidate><label for="decision-kind">Quyết định</label><select id="decision-kind"><option value="stop">Dừng trận</option><option value="resume">Tiếp tục khi đủ điều kiện</option><option value="void">Hủy kết quả</option><option value="forfeit">Xử thua bên vi phạm</option><option value="disqualify">Loại thí sinh khỏi trận mới/BXH hợp lệ</option></select><label for="decision-reason">Lý do</label><textarea id="decision-reason" required rows="3"></textarea><p>Không gỡ blocker hạ tầng khác. Pause tối đa 10 phút/lần, 30 phút cộng dồn/trận.</p><button type="submit" class="action primary">Ra quyết định</button></form>`;
+      if (state.decision) body += `<div class="notice"><span>Quyết định: ${esc(state.decision.text)} · ${esc(state.decision.reason)}</span></div>${state.role === 'ta' && !state.final && !state.decision.reversed ? action('Hủy quyết định / Rollback', 'rollback-open') : ''}`;
+      if (state.final) body += '<p>Giải đã FINALIZED. Mọi quyết định và rollback bị khóa.</p>';
+      body += `<details><summary>Lịch sử xử lí</summary><ol>${state.history.map(t => `<li>${esc(t)}</li>`).join('') || '<li>Chưa có thay đổi.</li>'}</ol></details>`;
+      if (state.role === 'ta' && !state.final) body += `<details><summary>Tình huống lỗi assignment</summary><div class="row">${action('Mô phỏng conflict', 'assignment-conflict')}${action('Mô phỏng hết lease', 'assignment-expire')}</div></details>`;
+    } else if (p === 'tie') {
+      text = 'Exact-tie trận #041'; body = state.role !== 'ta' ? '<p>Chỉ TA chủ giải được phân xử exact-tie.</p>' : `<p>Gameplay đã đóng băng. Snapshot v3 · Còn thời hạn 300 giây trong tình huống mẫu.</p><form id="tie-form" novalidate><label for="tie-winner">Bên thắng</label><select id="tie-winner"><option value="BLUE">BLUE</option><option value="RED">RED</option></select><label for="tie-reason">Lý do</label><textarea id="tie-reason" required></textarea><button class="action primary" ${state.final ? 'disabled' : ''}>Xác nhận phân xử thử</button></form>`;
+    } else if (p === 'extension') {
+      text = 'Gia hạn giải';
+      body = `<div class="summaryline"><span>Kết thúc hiện tại</span><b>${endLabel()}</b></div><div class="summaryline"><span>Còn tối đa</span><b>${120 - state.approved} phút</b></div><p>${state.expired ? 'Đã tới giờ kết thúc. Không thể duyệt hoặc mở lại giải.' : 'Pending không thay đổi lịch hoặc clock trận.'}</p>`;
+      if (state.extension) body += `<div class="notice">Yêu cầu ${state.extension.minutes} phút · ${esc(state.extension.reason)} · ${state.extension.status}</div>`;
+      if (state.role === 'ta') body += `<form id="extension-form" novalidate><label for="extension-minutes">Số phút xin thêm</label><input id="extension-minutes" type="number" min="1" max="${120 - state.approved}" value="${state.minutes}" required><label for="extension-reason">Lý do</label><textarea id="extension-reason" required>${esc(state.extensionReason)}</textarea><button class="action primary" ${state.expired || state.final || state.approved >= 120 || state.extension?.status === 'PENDING' ? 'disabled' : ''}>Gửi yêu cầu thử</button></form>`;
+      if (state.role === 'sa' && state.extension?.status === 'PENDING') body += `<label for="schedule">Tình huống đối chiếu</label><select id="schedule">${['UNKNOWN', 'CLEAR', 'CONFLICT'].map(v => `<option ${state.schedule === v ? 'selected' : ''}>${v}</option>`).join('')}</select>${action('Đối chiếu lịch', 'compare-schedule')}<div id="schedule-result">${state.scheduleChecked ? scheduleResult() : 'Chưa đối chiếu lịch.'}</div><form id="approval-form" novalidate><label for="grant-minutes">Số phút duyệt</label><input id="grant-minutes" type="number" min="1" max="${Math.min(state.extension.minutes, 120 - state.approved)}" value="${Math.min(state.extension.minutes, 120 - state.approved)}"><label for="approval-reason">Lý do quyết định</label><textarea id="approval-reason" required></textarea><div class="row form-actions"><button class="action primary" ${!canApprove() ? 'disabled' : ''}>Duyệt thử</button>${action('Từ chối', 'reject-extension', false, state.expired || state.final ? 'disabled' : '')}</div></form>`;
+      body += `<details><summary>Tình huống thời gian</summary><label>Đã tới end_at<input id="expired" type="checkbox" ${state.expired ? 'checked' : ''}></label></details>`;
+    } else if (p.startsWith('audit-')) {
+      const r = auditRows[+p.split('-')[1]]; text = r[3]; body = `<dl><dt>Người thực hiện</dt><dd>${r[1]}</dd><dt>Thời điểm</dt><dd>21/10/2026 · ${r[0]} UTC+7</dd><dt>Lý do</dt><dd>Điều chỉnh theo hồ sơ đã xác minh (minh họa).</dd><dt>Trường thay đổi</dt><dd><code>${r[4]}</code></dd><dt>Trước → Sau</dt><dd>${r[5]} → ${r[6]}</dd></dl><details><summary>Thông tin đối soát</summary><p>Event DEMO-${p} · Revision 3 · Metadata đã lọc.</p></details>`;
+    } else if (p.startsWith('tool-')) {
+      const key = p.slice(5), t = toolInfo[key]; text = t[1];
+      body = `<p>${state.tools[key] === 'AVAILABLE' ? 'Lối vào đã tồn tại trong frontend. Không khởi chạy game thật từ prototype.' : state.tools[key] === 'UNAVAILABLE' ? 'Runtime chưa được kiểm chứng trong phiên này. Chưa thể bắt đầu.' : 'Chờ consumer Người–Python Bot được xác minh; không thay bằng AI heuristic.'}</p><div class="summaryline"><span>Điểm nối</span><code>${t[3] || 'Chưa chốt route'}</code></div>${state.tools[key] !== 'AVAILABLE' ? action('Kiểm tra lại thử', 'retry-tool:' + key) : action('Xem màn chuẩn bị', 'prepare-tool:' + key)}<details><summary>Dependency triển khai</summary><p>${t[4]}</p></details>`;
+    } else if (p === 'compare') { text = 'Đối chiếu bản nháp'; body = `<p>Bản đang nhập: ${esc(state.draft.name || '(chưa có tên)')}</p><p>Bản server minh họa: Robot Arena · revision 5</p><div class="row">${action('Giữ bản của tôi', 'keep-draft', true)}${action('Dùng bản server', 'server-draft')}</div>`; }
+    else if (p === 'rollback') { text = 'Hủy quyết định trọng tài'; body = `<p>Giữ lịch sử; tính lại kết quả/điểm/Elo bị ảnh hưởng. Không quay ngược bàn hoặc trận đã diễn ra.</p><form id="rollback-form" novalidate><label for="rollback-reason">Lý do hủy</label><textarea id="rollback-reason" required></textarea><button class="action primary">Xác nhận rollback thử</button></form>`; }
+    return `<aside class="panel sidepanel" aria-labelledby="panel-title"><div class="row between"><h2 id="panel-title" tabindex="-1">${text}</h2>${action('Đóng', 'close-panel')}</div><div class="panel-body">${body}</div><div id="panel-feedback" role="status" aria-live="polite"></div></aside>`;
+  }
+  function canApprove() { return state.role === 'sa' && state.scheduleChecked && state.schedule === 'CLEAR' && !state.expired && !state.final && state.extension?.status === 'PENDING'; }
+  function scheduleResult() { return state.schedule === 'CLEAR' ? 'CLEAR · Không có lịch xung đột trong tình huống mẫu. Duyệt thật phải kiểm lại nguyên tử.' : state.schedule === 'CONFLICT' ? 'CONFLICT · Trùng lịch bảo trì 18:00–19:00. Chưa thể duyệt.' : 'UNKNOWN · Chưa có dữ liệu capacity đáng tin cậy. Chưa thể duyệt.'; }
+  function fallback() {
+    if (state.view === 'loading' || state.view === 'pending') return title('QUẢN LÍ GIẢI', state.view === 'loading' ? 'Đang tải' : 'Đang gửi thao tác') + `<section class="panel" aria-busy="true"><p>${state.view === 'loading' ? 'Đang tải dữ liệu minh họa…' : 'Chờ ACK minh họa. Không gửi lại thao tác khi đang chờ.'}</p>${action('Kết thúc tình huống thử', 'recover')}</section>`;
+    const map = { empty: ['Chưa có dữ liệu', 'Bạn có thể tạo bản nháp đầu tiên.'], forbidden: ['Không có quyền truy cập', 'Không hiển thị dữ liệu ngoài phạm vi.'], error: ['Không thể kết nối', 'Dữ liệu và bản nháp đang nhập vẫn được giữ.'], expired: ['Phiên đăng nhập hết hạn', 'Xác thực lại trước khi tiếp tục. Không tự gửi lại thao tác.'] };
+    const [h, p] = map[state.role === 'denied' ? 'forbidden' : state.view] || map.forbidden;
+    return `<div class="empty"><h1 id="s00-title" tabindex="-1">${h}</h1><p>${p}</p>${action(state.view === 'expired' ? 'Đăng nhập lại thử' : state.view === 'error' ? 'Thử lại' : 'Về trang được phép', 'recover', true)}</div>`;
+  }
+  function pageAllowed(page) {
+    if (state.role === 'denied') return false;
+    if (['ref', 'observer', 'broadcast'].includes(state.role)) return page === 'detail';
+    if (page === 'draft') return state.role === 'ta';
+    return ['list', 'detail', 'audit', 'offline'].includes(page);
+  }
+  function panelAllowed(panelId) {
+    if (state.role === 'observer') return panelId.startsWith('match-');
+    if (state.role === 'broadcast') return panelId.startsWith('match-') || panelId === 'broadcast';
+    if (state.role === 'ref') return panelId.startsWith('match-') || panelId === 'incident';
+    return true;
+  }
+  function render() {
+    const allowed = pageAllowed(state.page);
+    const ready = ['ready', 'conflict'].includes(state.view) && allowed;
+    if (state.view === 'conflict' && state.page !== 'draft') state.view = 'ready';
+    root.querySelector('.mainnav').hidden = ['ref', 'observer', 'broadcast', 'denied'].includes(state.role);
+    root.querySelector('#actor-label').textContent = label[state.role];
+    root.querySelector('#s00-role').value = state.role; root.querySelector('#s00-state').value = state.view;
+    host.innerHTML = ready ? `<div class="workspace ${state.panel ? 'has-panel' : ''}"><div class="workspace-main">${({ list, draft, detail, audit, offline }[state.page])()}</div>${renderPanel()}</div>` : fallback();
+    host.querySelectorAll('form button:not([type])').forEach(button => button.type = 'submit');
+    host.querySelectorAll('.tabs[aria-label]:not([role])').forEach(group => group.setAttribute('role', 'group'));
+    host.querySelectorAll('.mini-board').forEach(board => board.setAttribute('role', 'img'));
+    root.querySelectorAll('.mainnav button').forEach(b => { const active = b.dataset.command === `page:${state.page}` || b.dataset.command === 'page:list' && ['detail', 'draft'].includes(state.page); b.classList.toggle('active', active); if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    if (globalThis.lucide) lucide.createIcons();
+  }
+  function panel(p) { state.opener = document.activeElement?.dataset.command || ''; state.panel = p; render(); focus('#panel-title'); }
+  function closePanel() { const command = state.opener; state.panel = null; render(); const el = [...root.querySelectorAll('[data-command]')].find(b => b.dataset.command === command); el?.focus(); }
+  function changePage(page) { const go = () => { state.page = page; state.panel = null; state.view = 'ready'; state.errors = {}; render(); focus('#s00-title'); persist(); }; if (state.page === 'draft' && state.dirty && page !== 'draft') confirmLeave(go); else go(); }
+  let leaveAction = null;
+  function confirmLeave(fn) { leaveAction = fn; dialog.showModal(); }
+  function persist() { window.openai?.setWidgetState?.({ modelContent: { page: state.page, role: state.role }, privateContent: null })?.catch(() => {}); }
+  function feedback(text, error = false) { const el = root.querySelector('#panel-feedback'); if (el) { el.textContent = text; el.setAttribute('role', error ? 'alert' : 'status'); } announce(text); }
+  function updateField(el) {
+    if (!el.name || !(el.name in state.draft)) return;
+    state.draft[el.name] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? +el.value : el.value;
+    state.dirty = true; state.saved = false; state.submitted = false;
+    // Errors describe the previous validation snapshot. Editing invalidates that snapshot;
+    // the next step/submit validates again without retaining an obsolete error badge.
+    for (const key of [el.name, ...(['rows', 'cols'].includes(el.name) ? ['goalCell'] : [])]) {
+      delete state.errors[key];
+      const control = root.querySelector('#field-' + key);
+      control?.removeAttribute('aria-invalid'); control?.removeAttribute('aria-describedby');
+      root.querySelector('#field-' + key + '-error')?.remove();
+    }
+    const summary = root.querySelector('#s00-errors'); if (summary) summary.outerHTML = summaryErrors();
+    root.querySelector('#draft-status')?.replaceChildren(document.createTextNode('Có thay đổi chưa lưu.'));
+  }
+  root.addEventListener('input', e => {
+    const el = e.target;
+    if (el.id === 's00-search') { state.query = el.value; state.pageNo = 1; const filtered = tours.filter(t => (state.filter === 'all' || t.key === state.filter) && t.name.toLowerCase().includes(state.query.toLowerCase())); root.querySelector('#s00-results').innerHTML = cards(filtered, Math.ceil(filtered.length / 3)); if (globalThis.lucide) lucide.createIcons(); }
+    updateField(el);
+    if (el.id === 'extension-reason') state.extensionReason = el.value;
+    if (el.id === 'extension-minutes') state.minutes = +el.value;
+  });
+  root.addEventListener('change', e => {
+    const el = e.target;
+    if (el.id === 's00-role') { const role = el.value; const go = () => { state.role = role; state.panel = null; state.view = 'ready'; state.query = ''; state.errors = {}; if (['ref', 'observer', 'broadcast'].includes(role)) { state.page = 'detail'; state.selected = 'arena'; state.tab = role === 'ref' ? 'matches' : 'overview'; } else if (state.page === 'draft' && role !== 'ta') state.page = 'list'; render(); focus('#s00-title'); persist(); }; if (state.page === 'draft' && state.dirty) { el.value = state.role; confirmLeave(go); } else go(); return; }
+    if (el.id === 's00-state') { state.view = el.value; if (state.view === 'conflict') { if (state.role === 'ta') state.page = 'draft'; else state.view = 'forbidden'; } state.panel = null; render(); announce('Trạng thái xem thử đã thay đổi.'); return; }
+    if (el.id === 'phase') state.phase = el.value;
+    if (el.id === 'refs') state.readyRefs = +el.value;
+    if (el.id === 'finalized') state.final = el.checked;
+    if (el.id === 'candidate') { state.referee = el.value; return; }
+    if (el.id === 'schedule') { state.schedule = el.value; state.scheduleChecked = false; }
+    if (el.id === 'expired') state.expired = el.checked;
+    if (el.id === 'audit-filter') { state.auditFilter = el.value; state.auditPage = 1; }
+    if (el.id === 'theme') { root.style.colorScheme = el.value === 'system' ? 'light dark' : el.value; return; }
+    if (el.id === 'decision-kind') { state.decisionKind = el.value; return; }
+    updateField(el);
+    if (['mode', 'goal', 'goalMode', 'referee'].includes(el.name)) { render(); focus('#field-' + el.name); }
+    else if (['phase', 'refs', 'finalized', 'schedule', 'expired', 'audit-filter'].includes(el.id)) { render(); focus('#' + el.id); }
+  });
+  root.addEventListener('click', e => {
+    const fieldLink = e.target.closest('[data-field]'); if (fieldLink) { e.preventDefault(); focus('#field-' + fieldLink.dataset.field); return; }
+    const b = e.target.closest('button[data-command]'); if (!b || b.disabled) return;
+    const c = b.dataset.command;
+    if (c.startsWith('page:')) { const target = c.slice(5); if (!pageAllowed(target)) { feedback('Vai trò này chỉ có quyền xem match-center được cấp.', true); return; } changePage(target); return; }
+    if (c.startsWith('open:')) { state.selected = c.slice(5); changePage(c === 'open:draft' ? 'draft' : 'detail'); return; }
+    if (c.startsWith('panel:')) { const target = c.slice(6); if (!panelAllowed(target)) { feedback('Vai trò này không có quyền mở panel quản trị này.', true); return; } panel(target); return; }
+    if (c === 'broadcast-open' && state.role === 'broadcast') { state.broadcastMatch = 'CTF-001'; panel('broadcast'); return; }
+    if (c.startsWith('broadcast-open:') && state.role === 'broadcast') { state.broadcastMatch = c.slice(15); panel('broadcast'); return; }
+    if (c === 'broadcast-ready' && state.role === 'broadcast') { const id = state.broadcastMatch || 'CTF-001'; state.broadcastSelections[id] = { layout: root.querySelector('#broadcast-layout')?.value || 'Toàn cảnh bàn + đồng hồ', channel: root.querySelector('#broadcast-channel')?.value || 'Kênh 1' }; feedback('Đã lưu bố cục phát sóng minh họa cho ' + id + ' trong phiên này. Không kết nối kênh thật trong prototype.'); return; }
+    if (c === 'close-panel') { closePanel(); return; }
+    if (c === 'leave-cancel') { dialog.close(); leaveAction = null; return; }
+    if (c === 'leave-confirm') { dialog.close(); state.draft = { ...savedDraft }; state.dirty = false; leaveAction?.(); leaveAction = null; return; }
+    if (c.startsWith('filter:')) { state.filter = c.slice(7); state.pageNo = 1; render(); focus(`[data-command="${c}"]`); return; }
+    if (c === 'clear-filter') { state.query = ''; state.filter = 'all'; state.pageNo = 1; render(); focus('#s00-search'); return; }
+    if (c === 'list-prev' || c === 'list-next') { state.pageNo += c.endsWith('next') ? 1 : -1; render(); focus('#s00-title'); return; }
+    if (c === 'audit-prev' || c === 'audit-next') { state.auditPage += c.endsWith('next') ? 1 : -1; render(); focus('#s00-title'); return; }
+    if (c.startsWith('tab:')) { state.page = 'detail'; state.tab = c.slice(4); state.panel = null; render(); focus('#tab-' + state.tab); return; }
+    if (c === 'step-back') { state.step--; state.errors = {}; render(); focus('#step-title'); return; }
+    if (c === 'save') {
+      if (state.draft.name.trim().length < 3 || state.draft.name.trim().length > 120) { state.errors = { name: 'Lưu nháp cần tên từ 3 đến 120 ký tự và hợp đồng hợp lệ.' }; state.step = 0; render(); focus('#s00-errors'); return; }
+      if (state.view === 'conflict') { panel('compare'); return; }
+      state.saving = true; state.submitted = false; render(); setTimeout(() => { state.saving = false; state.saved = true; state.dirty = false; savedDraft = { ...state.draft }; root.dataset.savedKeys = Object.keys(normalized()).join(','); render(); focus('[data-command="save"]'); announce('Đã lưu trong phiên xem thử. Không ghi DB.'); }, 350); return;
+    }
+    if (c === 'compare') { panel('compare'); return; }
+    if (c === 'keep-draft') { state.view = 'ready'; state.dirty = true; state.panel = null; render(); announce('Giữ bản của bạn để tiếp tục sửa. Chưa ghi đè bản server.'); return; }
+    if (c === 'server-draft') { confirmLeave(() => { state.draft.name = 'Robot Arena · bản server'; state.dirty = false; state.view = 'ready'; state.panel = null; render(); }); return; }
+    if (c === 'recover') { if (state.role === 'denied') { announce('Bạn vẫn chưa có quyền. Dùng bộ chọn Vai trò xem thử để chuyển tình huống; thao tác này không cấp quyền tài khoản.'); focus('#s00-role'); return; } state.view = 'ready'; if (state.role === 'ref') state.page = 'detail'; render(); focus('#s00-title'); return; }
+    if (c === 'assign') {
+      if (state.role !== 'ta' || state.final) return;
+      if (state.referee === 'unavailable') { feedback('Không có trọng tài khả dụng. Giữ case chờ và chuyển TA theo dõi.', true); return; }
+      state.assigned = 'duc'; state.incident = 'ASSIGNED'; state.history.push('TA giao case cho Đức, chờ nhận.'); render(); focus('#panel-title'); return;
+    }
+    if (c === 'accept' && state.role === 'ref' && state.assigned === 'duc' && !state.final) { state.incident = 'IN_PROGRESS'; state.history.push('Đức nhận case.'); render(); focus('#panel-title'); return; }
+    if (c === 'assignment-conflict') { feedback('Assignment revision đã đổi. Không ghi thay đổi; tải lại case để tiếp tục.', true); return; }
+    if (c === 'assignment-expire') { state.assigned = null; state.incident = 'EXPIRED'; state.history.push('Lease hết hạn; quyền người cũ thu hồi.'); render(); focus('#panel-title'); return; }
+    if (c === 'rollback-open' && state.role === 'ta' && !state.final) { panel('rollback'); return; }
+    if (c === 'compare-schedule') { state.scheduleChecked = true; render(); focus('#panel-title'); announce(scheduleResult()); return; }
+    if (c === 'reject-extension' && state.role === 'sa' && !state.expired && !state.final && state.extension?.status === 'PENDING') { const reason = root.querySelector('#approval-reason').value.trim(); if (!reason) { root.querySelector('#approval-reason').setAttribute('aria-invalid', 'true'); feedback('Cần lý do từ chối.', true); focus('#approval-reason'); return; } state.extension.status = 'REJECTED'; render(); focus('#panel-title'); return; }
+    if (c.startsWith('retry-tool:')) { feedback('Đã thử kiểm tra minh họa: dependency/runtime vẫn chưa được xác minh. Không cấp READY.'); return; }
+    if (c.startsWith('prepare-tool:')) { feedback('Màn chuẩn bị: xác nhận lựa chọn và kiểm tra consumer trước khi chuyển sang lối vào đã ghi. Không khởi chạy trong prototype.'); return; }
+  });
+  function invalidPanel(id, text) { const el = root.querySelector('#' + id); el.setAttribute('aria-invalid', 'true'); el.setAttribute('aria-describedby', 'panel-feedback'); feedback(text, true); el.focus(); }
+  root.addEventListener('submit', e => {
+    e.preventDefault(); const id = e.target.id;
+    if (id === 's00-form') { if (state.saving || state.role !== 'ta' || !validate()) return; if (state.step < 3) { state.step++; render(); focus('#step-title'); } else { if (state.view === 'conflict') { panel('compare'); return; } state.saved = true; state.submitted = true; state.dirty = false; submittedProfile = normalized(); savedDraft = { ...state.draft }; root.dataset.submittedKeys = Object.keys(submittedProfile).join(','); render(); announce('Đã gửi hồ sơ minh họa; chưa gửi lên hệ thống.'); } }
+    if (id === 'incident-form' && state.role === 'ref' && state.assigned === 'duc' && state.incident === 'IN_PROGRESS' && !state.final) {
+      const reason = root.querySelector('#decision-reason').value.trim(); if (!reason) return invalidPanel('decision-reason', 'Cần lý do ra quyết định.');
+      const el = root.querySelector('#decision-kind'); state.decision = { text: el.selectedOptions[0].textContent, reason, reversed: false }; state.incident = 'RESOLVED'; state.history.push(`Đức: ${state.decision.text}; lý do: ${reason}. Không cần TA duyệt.`); render(); focus('#panel-title'); announce('Đã ghi quyết định minh họa.');
+    }
+    if (id === 'rollback-form' && state.role === 'ta' && !state.final && state.decision && !state.decision.reversed) {
+      const reason = root.querySelector('#rollback-reason').value.trim(); if (!reason) return invalidPanel('rollback-reason', 'Cần lý do rollback.');
+      state.decision.reversed = true; state.history.push('TA tạo event bù: ' + reason); state.panel = 'incident'; render(); focus('#panel-title'); feedback('Đang tính lại projection minh họa. Không quay ngược bàn, không xóa lịch sử.');
+    }
+    if (id === 'tie-form' && state.role === 'ta' && !state.final) { const reason = root.querySelector('#tie-reason').value.trim(); if (!reason) return invalidPanel('tie-reason', 'Cần lý do phân xử.'); feedback('Quyết định exact-tie minh họa đã ghi; không thay đổi trận thật.'); e.target.querySelector('button').disabled = true; }
+    if (id === 'extension-form' && state.role === 'ta' && !state.expired && !state.final && state.extension?.status !== 'PENDING') {
+      const n = +root.querySelector('#extension-minutes').value, reason = root.querySelector('#extension-reason').value.trim();
+      if (!Number.isInteger(n) || n < 1 || n > 120 - state.approved) return invalidPanel('extension-minutes', `Xin thêm từ 1 đến ${120 - state.approved} phút cộng dồn còn lại.`);
+      if (!reason) return invalidPanel('extension-reason', 'Cần lý do xin gia hạn.');
+      state.extension = { minutes: n, reason, status: 'PENDING' }; state.scheduleChecked = false; render(); focus('#panel-title'); feedback('Chờ SA duyệt. Giờ kết thúc hiện tại giữ nguyên.');
+    }
+    if (id === 'approval-form' && canApprove()) {
+      const n = +root.querySelector('#grant-minutes').value, reason = root.querySelector('#approval-reason').value.trim();
+      if (!Number.isInteger(n) || n < 1 || n > Math.min(state.extension.minutes, 120 - state.approved)) return invalidPanel('grant-minutes', 'Thời lượng duyệt vượt yêu cầu hoặc cap còn lại.');
+      if (!reason) return invalidPanel('approval-reason', 'Cần lý do quyết định.');
+      state.approved += n; state.extension.status = n < state.extension.minutes ? 'PARTIALLY_APPROVED' : 'APPROVED'; render(); focus('#panel-title'); feedback('Lịch minh họa đã cập nhật. Trận đang chơi giữ clock riêng.');
+    }
+  });
+  root.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && state.panel && !dialog.open) { e.preventDefault(); closePanel(); }
+    const tab = e.target.closest('[role="tab"]');
+    if (tab && ['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) { e.preventDefault(); const all = [...root.querySelectorAll('[role="tab"]')]; const i = all.indexOf(tab); all[e.key === 'Home' ? 0 : e.key === 'End' ? all.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + all.length) % all.length].click(); }
+  });
+  dialog.addEventListener('cancel', () => { leaveAction = null; });
+  dialog.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const buttons = [...dialog.querySelectorAll('button:not([disabled])')];
+    const first = buttons[0], last = buttons[buttons.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  // Saved host state is presentation-only. It never stores draft text, source or sensitive data.
+  const saved = window.openai?.widgetState?.modelContent;
+  if (saved && ['list', 'detail', 'audit', 'offline'].includes(saved.page) && ['ta', 'sa', 'ref', 'observer', 'broadcast', 'denied'].includes(saved.role)) { state.page = saved.page; state.role = saved.role; }
+  render();
+})();
+
+</script>
+</div>

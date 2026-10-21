@@ -1,0 +1,148 @@
+const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
+const { chromium } = require('playwright');
+const dir = __dirname, out = path.join(dir, 'evidence'); fs.mkdirSync(out, { recursive: true });
+const html = fs.readFileSync(path.join(dir, 'preview.html'), 'utf8');
+const checks = [];
+(async () => {
+  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' }); page.setDefaultTimeout(5000);
+  const errors = []; page.on('pageerror', e => errors.push(e.message));
+  const assert = (ok, ac, message) => { checks.push({ ac, message, pass: !!ok }); if (!ok) throw new Error(ac + ': ' + message); };
+  const cmd = c => page.locator(`[data-command="${c}"]`).first(), field = k => page.locator('#field-' + k);
+  const role = r => page.locator('#s00-role').selectOption(r);
+  const state = s => page.locator('#s00-state').selectOption(s);
+  const snap = name => page.screenshot({ path: path.join(out, name + '.png'), fullPage: true });
+  const submit = id => page.locator('#' + id + ' button[type=submit]').click();
+  const save = async () => { await cmd('save').click(); await page.waitForFunction(() => document.querySelector('#draft-status').textContent.includes('Đã lưu')); };
+  try {
+    await page.setContent('<!doctype html><html lang="vi"><meta charset="utf-8"><style>body{margin:0}</style>' + html + '</html>');
+    assert(await page.locator('.tour').count() === 3, 'AC-04', 'Three cards on first page');
+    await cmd('list-next').click(); assert((await page.locator('.tour').innerText()).includes('Winter Challenge'), 'AC-04', 'Pagination changes results');
+    await cmd('filter:soon').click(); assert(await page.locator('.tour').count() === 2, 'AC-04', 'Filter resets cursor');
+    await page.locator('#s00-search').fill('missing'); assert(await page.getByRole('heading', { name: 'Không tìm thấy giải' }).count() === 1, 'AC-04', 'Search no-results recovery');
+    await cmd('clear-filter').click(); await snap('p01-dark-desktop');
+    await role('sa'); assert(await cmd('page:draft').count() === 0, 'AC-03', 'SA cannot create');
+    await role('denied'); assert(await page.locator('.tour').count() === 0, 'AC-03', 'Denied actor sees no private cards');
+    await cmd('recover').click(); assert(await page.locator('#s00-role').inputValue() === 'denied' && await page.locator('.tour').count() === 0, 'AC-03', 'Recovery cannot elevate denied actor to TA');
+    await state('conflict'); assert(await page.locator('#s00-role').inputValue() === 'denied', 'AC-03', 'Conflict scenario cannot change actor');
+    await role('ta'); await cmd('page:draft').click();
+    assert(await field('mode').locator('option').count() === 2 && !(await field('mode').innerText()).includes('Hybrid'), 'AC-07', 'Mode selector only offers Người đấu Người or Bot đấu Bot');
+    assert(await field('expected').count() === 1 && await field('allowedUnits').count() === 1, 'AC-02', 'BA/SA profile fields are present in the first step');
+    await submit('s00-form');
+    assert(await page.locator('#s00-errors').evaluate(el => el === document.activeElement), 'AC-06', 'Error summary receives focus');
+    assert(await field('name').getAttribute('aria-describedby') === 'field-name-error', 'AC-15', 'Field error linked');
+    await page.locator('[data-field=name]').click(); assert(await field('name').evaluate(el => el === document.activeElement), 'AC-15', 'Error link focuses field');
+    await field('name').fill('X'.repeat(121)); await cmd('save').click(); assert(await field('name').getAttribute('aria-invalid') === 'true', 'AC-06', 'Save rejects names longer than 120 characters');
+    await field('name').fill('Giải kiểm thử S00'); await cmd('page:list').click();
+    assert(await page.locator('#s00-leave').evaluate(el => el.open), 'AC-08', 'Dirty navigation guard');
+    await cmd('leave-confirm').focus(); await page.keyboard.press('Tab'); assert(await cmd('leave-cancel').evaluate(el => el === document.activeElement), 'AC-15', 'Native dialog traps keyboard');
+    await page.keyboard.press('Escape'); assert(await field('name').inputValue() === 'Giải kiểm thử S00', 'AC-08', 'Cancel preserves draft');
+    await cmd('save').click(); assert(await page.locator('#s00-form button[type=submit]').isDisabled(), 'AC-08', 'Save pending blocks duplicate');
+    await page.waitForFunction(() => document.querySelector('#draft-status').textContent.includes('Đã lưu'));
+    await submit('s00-form'); await field('end').fill('2026-10-22T07:00'); await submit('s00-form');
+    assert(await field('end').getAttribute('aria-invalid') === 'true', 'AC-06', 'Schedule invalid blocked');
+    await field('end').fill('2026-10-24T17:00'); await submit('s00-form');
+    await field('rows').fill('4'); await submit('s00-form'); assert(await field('rows').getAttribute('aria-invalid') === 'true', 'AC-06', 'Board lower bound');
+    await field('rows').fill('9'); await field('goal').uncheck(); assert(await field('goalCell').count() === 0, 'AC-07', 'Goal inactive fields hidden');
+    await field('goal').check(); await field('goalMode').selectOption('CYCLE'); assert(await field('interval').count() === 1, 'AC-07', 'Cycle interval applicable');
+    await snap('p02-rules-dark'); await submit('s00-form'); assert((await page.locator('#s00-content').innerText()).includes('Kiểm tra hồ sơ'), 'AC-05', 'Four wizard steps');
+    assert((await page.locator('#s00-content').innerText()).includes('F01–F14') && (await page.locator('#s00-content').innerText()).includes('F73–F82'), 'AC-17', 'Confirmation exposes the complete BA/SA field map');
+    await submit('s00-form'); assert((await page.locator('#draft-status').innerText()).includes('Chưa gửi lên hệ thống'), 'AC-05', 'Submit explicitly synthetic');
+    await cmd('step-back').click(); await cmd('step-back').click(); await cmd('step-back').click(); await field('mode').selectOption('HUMAN_ONLY');
+    await submit('s00-form'); await submit('s00-form'); assert(await field('cpu').count() === 0, 'AC-07', 'Human only has no Bot input');
+    await field('goal').uncheck(); await submit('s00-form'); await submit('s00-form');
+    const keys = (await page.locator('#s00-lab').getAttribute('data-submitted-keys')).split(',');
+    assert(!keys.includes('cpu') && !keys.includes('goalMode') && !keys.includes('goalCell') && !keys.includes('interval'), 'AC-07', 'Normalized submitted snapshot omits inactive Bot/goal settings');
+    await cmd('step-back').click();
+    await save(); await field('rows').fill('8'); await cmd('page:list').click(); await cmd('leave-confirm').click();
+    await cmd('page:draft').click(); await cmd('step-back').click(); await cmd('step-back').click(); await field('mode').selectOption('BOT_ONLY');
+    await submit('s00-form'); await submit('s00-form'); await field('goal').check(); await field('cpu').fill('200'); await field('goalCell').fill('F6');
+    assert(await page.locator('#field-cpu').inputValue() === '200' && await page.locator('#field-goalCell').inputValue() === 'F6', 'AC-07', 'Save-discard-reactivate Bot/goal fields remain editable');
+    assert(await field('qualification').isDisabled() && await field('qualification').isChecked(), 'AC-07', 'Bot safety and compatibility check is mandatory');
+    assert(await field('rating').isDisabled() && await field('rating').inputValue() === 'ELO_1000_FIXED', 'AC-07', 'Initial Elo is fixed at 1000');
+    assert(await field('retention').isDisabled() && await field('retention').inputValue() === '90', 'AC-07', 'Retention is fixed at 90 days');
+    await field('maxPlies').fill('3'); await submit('s00-form'); assert(await field('maxPlies').getAttribute('aria-invalid') === 'true', 'AC-06', 'Odd max plies is blocked'); await field('maxPlies').fill('120');
+    await submit('s00-form'); assert(await page.locator('#s00-errors').count() === 0 && (await page.locator('#s00-content').innerText()).includes('Bot runtime'), 'AC-07', 'Bot/goal fields validate and reach confirmation');
+    await cmd('step-back').click();
+    await state('error'); await cmd('recover').click(); assert(await field('rows').inputValue() === '9', 'AC-08', 'Error recovery keeps draft');
+    await state('conflict'); await cmd('compare').click(); assert(await page.locator('#panel-title').innerText() === 'Đối chiếu bản nháp', 'AC-08', 'Conflict compare');
+    await cmd('keep-draft').click(); await save(); await cmd('page:list').click(); await cmd('open:arena').click();
+    await role('observer'); assert(await page.locator('#tab-matches').innerText() === 'Vòng CTF' && await page.locator('#tab-custom').count() === 1 && await page.locator('#tab-ready').count() === 0 && await page.locator('.mainnav').isHidden(), 'AC-03', 'Observer is limited to match-center tabs');
+    await cmd('tab:custom').click(); assert((await page.locator('#detail-tab').innerText()).includes('CUS-101') && (await page.locator('#detail-tab').innerText()).includes('import'), 'AC-04', 'Custom table preserves imported match order');
+    await page.locator('[data-command="panel:match-CUS-101"]').click(); assert((await page.locator('#panel-title').innerText()).includes('CUS-101') && (await page.locator('.sidepanel').innerText()).includes('Theo dõi') && await page.locator('[data-command^="broadcast-open"]').count() === 0, 'AC-10', 'Observer opens a read-only match panel without broadcast controls');
+    await cmd('close-panel').click(); await role('broadcast'); await cmd('tab:matches').click(); await page.locator('[data-command="panel:match-CTF-001"]').click(); assert((await page.locator('.sidepanel').innerText()).includes('phát sóng') && await page.locator('[data-command^="broadcast-open"]').count() === 1, 'AC-10', 'Broadcast Admin opens the broadcast panel');
+    await page.locator('[data-command^="broadcast-open"]').click(); assert(await page.locator('#panel-title').innerText() === 'Chuẩn bị phát sóng' && await page.locator('#broadcast-layout').count() === 1, 'AC-10', 'Broadcast panel exposes match/channel/layout context'); await page.locator('#broadcast-layout').selectOption({ label: 'Hai bảng đấu + diễn biến' }); await page.locator('#broadcast-channel').selectOption({ label: 'Kênh 2' }); await cmd('broadcast-ready').click(); await cmd('close-panel').click(); await page.locator('[data-command="panel:match-CTF-001"]').click(); await page.locator('[data-command^="broadcast-open"]').click(); assert(await page.locator('#broadcast-layout').inputValue() === 'Hai bảng đấu + diễn biến' && await page.locator('#broadcast-channel').inputValue() === 'Kênh 2', 'AC-10', 'Broadcast layout/channel selection persists in the preview session');
+    await cmd('close-panel').click(); await cmd('tab:matches').click(); await page.locator('[data-command="panel:match-CTF-004"]').click(); assert((await page.locator('.sidepanel').innerText()).includes('Đã kết thúc') && (await page.locator('.sidepanel').innerText()).includes('Đỗ Khang'), 'AC-10', 'Match panel preserves row status and participants');
+    await cmd('close-panel').click(); await role('ta'); await cmd('tab:overview').click();
+    await page.locator('#refs').selectOption('1'); assert(await page.locator('[data-staffing=warning]').count() === 1, 'AC-09', 'Running shortage warning');
+    await page.locator('#phase').selectOption('READY'); assert(await page.locator('[data-staffing=blocker]').count() === 1, 'AC-09', 'Startup shortage blocker');
+    await page.locator('#phase').selectOption('RUNNING'); await page.locator('#tab-overview').focus(); await page.keyboard.press('ArrowRight');
+    assert(await page.locator('#tab-matches').getAttribute('aria-selected') === 'true', 'AC-15', 'Arrow key changes tab');
+    await cmd('panel:incident').click(); await page.locator('#candidate').selectOption('unavailable'); await cmd('assign').click();
+    assert((await page.locator('#panel-feedback').innerText()).includes('Không có trọng tài'), 'AC-10', 'Unavailable referee recovery');
+    await page.locator('#candidate').selectOption('duc'); await cmd('assign').click(); await role('ref'); await cmd('panel:incident').click(); await cmd('accept').click();
+    assert(await cmd('panel:tie').count() === 0, 'AC-03', 'No referee exact-tie action');
+    await submit('incident-form'); assert(await page.locator('#decision-reason').getAttribute('aria-invalid') === 'true', 'AC-10', 'Decision reason required');
+    await page.locator('#decision-reason').fill('Đã xác minh yêu cầu tạm dừng.'); await submit('incident-form');
+    assert((await page.locator('.sidepanel').innerText()).includes('RESOLVED'), 'AC-10', 'Assigned referee directly decides');
+    await snap('p03-referee'); await role('ta'); await cmd('panel:incident').click(); await cmd('rollback-open').click();
+    await page.locator('#rollback-reason').fill('Đính chính theo bằng chứng.'); await page.locator('#rollback-form button').click();
+    await page.getByText('Lịch sử xử lí', { exact: true }).click();
+    assert((await page.locator('.sidepanel').innerText()).includes('event bù'), 'AC-10', 'Rollback preserves event history');
+    await page.locator('#finalized').check(); assert(await cmd('rollback-open').count() === 0, 'AC-10', 'Finalized locks rollback'); await page.locator('#finalized').uncheck();
+    await page.getByText('Tình huống lỗi assignment', { exact: true }).click();
+    await cmd('assignment-expire').click(); await role('ref'); assert((await page.locator('#s00-content').innerText()).includes('Chưa có case'), 'AC-10', 'Expired lease removes access');
+    await role('ta'); await cmd('tab:overview').click(); await cmd('panel:extension').click();
+    await page.locator('#extension-minutes').fill('121'); await page.locator('#extension-reason').fill('Bù gián đoạn hạ tầng.'); await page.locator('#extension-form button').click();
+    assert(await page.locator('#extension-minutes').getAttribute('aria-invalid') === 'true', 'AC-11', 'Cap overflow rejected');
+    await page.locator('#extension-minutes').fill('60'); await page.locator('#extension-form button').click();
+    assert((await page.locator('.sidepanel').innerText()).includes('17:00'), 'AC-11', 'Pending preserves end time');
+    await role('sa'); await cmd('panel:extension').click(); await cmd('compare-schedule').click();
+    assert(await page.locator('#approval-form button[type=submit]').isDisabled(), 'AC-11', 'UNKNOWN blocks approval');
+    await page.locator('#schedule').selectOption('CONFLICT'); await cmd('compare-schedule').click(); assert(await page.locator('#approval-form button[type=submit]').isDisabled(), 'AC-11', 'CONFLICT blocks approval');
+    await page.locator('#schedule').selectOption('CLEAR'); await cmd('compare-schedule').click(); await page.getByText('Tình huống thời gian', { exact: true }).click(); await page.locator('#expired').check();
+    assert(await page.locator('#approval-form button[type=submit]').isDisabled(), 'AC-11', 'At end_at approval disabled');
+    await page.getByText('Tình huống thời gian', { exact: true }).click(); await page.locator('#expired').uncheck(); await page.locator('#approval-reason').fill('Capacity và hợp đồng phù hợp.'); await page.locator('#grant-minutes').fill('30');
+    await submit('approval-form'); assert((await page.locator('.sidepanel').innerText()).includes('PARTIALLY_APPROVED') && (await page.locator('.sidepanel').innerText()).includes('17:30'), 'AC-11', 'Partial approval updates granted minutes');
+    await cmd('close-panel').click(); await cmd('page:audit').click(); await cmd('panel:audit-0').click();
+    assert((await page.locator('.sidepanel').innerText()).includes('end_at'), 'AC-12', 'Audit safe field diff');
+    assert(!/activationToken|sourceCode|password|PRIVATE_LOG_CANARY/.test(await page.locator('#s00-content').innerText()), 'AC-12', 'No credentials in audit');
+    await page.keyboard.press('Escape'); assert(await cmd('panel:audit-0').evaluate(el => el === document.activeElement), 'AC-15', 'Escape restores panel opener');
+    await cmd('audit-next').click(); assert((await page.locator('tbody').innerText()).includes('Cập nhật bản nháp'), 'AC-12', 'Audit pagination');
+    await page.locator('#audit-filter').selectOption('Gia hạn'); assert(await page.locator('tbody tr').count() === 1, 'AC-12', 'Audit filter');
+    await cmd('page:offline').click(); assert(await page.locator('.tool').count() === 4, 'AC-13', 'Four Offline entries');
+    await cmd('panel:tool-mixed').click(); await cmd('retry-tool:mixed').click(); assert((await page.locator('#panel-feedback').innerText()).includes('Không cấp READY'), 'AC-13', 'Unavailable stays blocked');
+    await cmd('close-panel').click(); await cmd('panel:tool-human').click(); assert((await page.locator('.sidepanel').innerText()).includes('/offline'), 'AC-13', 'Human Offline target'); await snap('p15-offline');
+    for (const s of ['empty','loading','pending','error','forbidden','expired']) { await state(s); assert((await page.locator('#s00-content').innerText()).length > 0, 'AC-14', 'Recovery state ' + s); await cmd('recover').click(); }
+    for (const [w,h] of [[320,812],[375,812],[768,1024],[1366,768],[1440,900],[720,450]]) {
+      await page.setViewportSize({width:w,height:h});
+      for (const theme of w===375||w===1440?['dark','light']:['dark']) {
+        await page.locator('#theme').selectOption(theme);
+        for (const n of ['list','audit','offline']) {
+          await cmd('page:'+n).click();
+          const over=await page.evaluate(()=>[...document.querySelectorAll('#s00-lab button,#s00-lab input,#s00-lab select,#s00-lab textarea,#s00-lab h1,#s00-lab h2')].filter(el=>el.getClientRects().length&&!el.closest('.tablewrap')).filter(el=>{const r=el.getBoundingClientRect();return r.left< -1||r.right>innerWidth+1}).map(el=>el.outerHTML.slice(0,90)));
+          assert(over.length===0&&await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'AC-16',`${w} ${theme} ${n} controls fit: ${over.join()}`);
+        }
+        await cmd('page:list').click(); await cmd('open:arena').click(); await cmd('panel:extension').click();
+        assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'AC-16',`${w} ${theme} panel fits`); await cmd('close-panel').click();
+        if(w===375||w===1440)await snap(`p03-${theme}-${w}`);
+      }
+    }
+    const contrasts=[];
+    for(const theme of ['dark','light']){
+      await page.locator('#theme').selectOption(theme);
+      contrasts.push(...await page.evaluate(theme=>{
+        const root=document.querySelector('#s00-lab');const color=v=>{const x=document.createElement('span');x.style.color=v;root.appendChild(x);const c=getComputedStyle(x).color;x.remove();return c.match(/[\d.]+/g).slice(0,3).map(Number)};
+        const lum=a=>a.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
+        const ratio=(a,b)=>{const x=lum(color(a)),y=lum(color(b));return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+        return[['text','var(--ink)','var(--panel)',4.5],['muted','var(--muted)','var(--panel)',4.5],['mint text','var(--mint)','var(--panel)',4.5],['button','var(--onmint)','var(--mint)',4.5],['warning','var(--amber)','var(--raised)',4.5],['focus','var(--mint)','var(--raised)',3],['input boundary','var(--muted)','var(--base)',3]].map(([name,a,b,min])=>({theme,name,ratio:ratio(a,b),min}));
+      },theme));
+    }
+    contrasts.forEach(c=>assert(c.ratio>=c.min,'AC-16',`${c.theme} ${c.name} contrast ${c.ratio.toFixed(2)} >= ${c.min}`));
+    await page.emulateMedia({reducedMotion:'reduce'}); assert(await cmd('page:list').evaluate(el=>getComputedStyle(el).transitionDuration)==='0s','AC-16','Reduced motion removes transitions');
+    assert(errors.length===0,'AC-14','Zero page errors');
+    assert(html === fs.readFileSync(path.join(dir,'preview.html'),'utf8'), 'AC-17', 'Source unchanged during evidence run');
+    fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify({at:new Date().toISOString(),browser:await browser.version(),sha256:crypto.createHash('sha256').update(html).digest('hex'),checks,contrasts,errors,limitations:['Synthetic only','720px reflow models 1440px at 200%; real browser zoom manual NOT RUN','Real screen reader NOT RUN','Host Lucide rendering not tested by standalone runner']},null,2)+'\n');
+    console.log(`PASS ${checks.length} assertions; evidence/browser-results.json and screenshots. Real screen reader / human acceptance NOT RUN.`);
+  }finally{await browser.close()}
+})().catch(e=>{fs.writeFileSync(path.join(out,'browser-failure.json'),JSON.stringify({checks,error:String(e)},null,2));console.error(e);process.exitCode=1});

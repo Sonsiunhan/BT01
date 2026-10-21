@@ -87,7 +87,7 @@ Route aliases phải render cùng một screen contract; không tạo implementa
 
 ### Wave B0 — contract, fixtures và state-matrix (đã thực thi)
 
-**Output:** [B0_FRONTEND_FOUNDATION.md](B0_FRONTEND_FOUNDATION.md), canonical fixture tại `tests/fixtures/frontend-fixtures.ts` và unit coverage tại `tests/unit/b0-frontend-fixtures.unit.test.ts`.
+**Output:** B0_FRONTEND_FOUNDATION.md, canonical fixture tại `tests/fixtures/frontend-fixtures.ts` và unit coverage tại `tests/unit/b0-frontend-fixtures.unit.test.ts`.
 
 - [x] Decision log và source-of-truth đã khóa.
 - [x] Route/alias state-matrix skeleton đã có owner, trạng thái bắt buộc và acceptance dimensions.
@@ -168,7 +168,7 @@ Các type tối thiểu: MOVE, SELECT, CAPTURE, GOAL_TENSION, MATCH_FOUND, READY
 
 ### Wave B1 execution evidence (đã thực thi)
 
-Chi tiết: [B1_SHARED_FOUNDATION.md](B1_SHARED_FOUNDATION.md).
+Chi tiết: B1_SHARED_FOUNDATION.md.
 
 - [x] Semantic token source + Light/Dark/System application.
 - [x] Space Grotesk / Be Vietnam Pro / data font stack và Vietnamese glyph-safe line-height baseline.
@@ -181,7 +181,7 @@ Chi tiết: [B1_SHARED_FOUNDATION.md](B1_SHARED_FOUNDATION.md).
 
 ### Wave B2 execution evidence (đã thực thi)
 
-Chi tiết: [B2_AUTH_FOUNDATION.md](B2_AUTH_FOUNDATION.md).
+Chi tiết: B2_AUTH_FOUNDATION.md.
 
 - [x] Login/Register/Forgot/Recovery dùng cùng Arena token, typography và frosted-glass output.
 - [x] Inline field validation, stable labels/IDs, ARIA error association và pending lock.
@@ -318,7 +318,7 @@ Desktop 3 cột:
 
 ### Wave B5 execution evidence (đã thực thi)
 
-Chi tiết: [B5_GAMEVIEW_ONLINE_ROOM.md](B5_GAMEVIEW_ONLINE_ROOM.md).
+Chi tiết: B5_GAMEVIEW_ONLINE_ROOM.md.
 
 - [x] Online Blue/Red viewer perspective cố định; không xoay theo current turn.
 - [x] Realtime event dedupe theo `messageId`, `stateVersion`, `sequence`; semantic event bus vẫn nhận event hợp lệ.
@@ -351,7 +351,7 @@ Chi tiết: [B5_GAMEVIEW_ONLINE_ROOM.md](B5_GAMEVIEW_ONLINE_ROOM.md).
 
 ### Wave B6 execution evidence (đã thực thi)
 
-Chi tiết: [B6_RESULT_REMATCH.md](B6_RESULT_REMATCH.md).
+Chi tiết: B6_RESULT_REMATCH.md.
 
 - [x] ResultPanel cinematic phân biệt Victory/Defeat/neutral interruption, reason copy, stats và reduced-motion.
 - [x] Ranked Elo before/after/delta count-up dùng rank config chung; non-ranked/local không hiển thị Elo.
@@ -484,7 +484,7 @@ Tabs/sections:
 
 ### Wave B11 execution evidence (đã thực thi)
 
-Chi tiết: [B11_GUEST_AI_OFFLINE.md](B11_GUEST_AI_OFFLINE.md).
+Chi tiết: B11_GUEST_AI_OFFLINE.md.
 
 - [x] Guest identity và history chỉ lưu local; import sau login giữ one-time decision, retry và dedupe.
 - [x] AI Normal dùng shared rules/board, fixed orientation, local timer và không mở realtime.
@@ -563,7 +563,7 @@ Chi tiết: [B11_GUEST_AI_OFFLINE.md](B11_GUEST_AI_OFFLINE.md).
 
 ### Wave B13 execution evidence (đã thực thi)
 
-Chi tiết: [B13_CROSS_CUTTING_QA.md](B13_CROSS_CUTTING_QA.md).
+Chi tiết: B13_CROSS_CUTTING_QA.md.
 
 - [x] Semantic board grid: row/gridcell structure, roving focus, Arrow/Enter/Space/Escape and live selection state.
 - [x] Axe WCAG 2A/2AA scans across public/auth/recovery, history/social/settings/local and online game families: 0 critical/serious violations.
@@ -688,7 +688,7 @@ Chỉ khi Wave B14 pass mới được tuyên bố **100% frontend/UI/UX v0.2**.
 
 ### Wave B14 execution evidence (đã thực thi)
 
-Chi tiết: [B14_RELEASE_GATE.md](B14_RELEASE_GATE.md).
+Chi tiết: B14_RELEASE_GATE.md.
 
 - [x] Production release gate audits route inventory, canonical a1/i9 setup, vector-only UI decoration and forbidden WebGL/video.
 - [x] All 16 06B synthesized SFX cues are present behind one shared lazy AudioContext; BGM is opt-in, lazy, attributed and budgeted.
