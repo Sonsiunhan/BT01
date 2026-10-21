@@ -9,6 +9,7 @@
 | GAP-03 | Naming of contracts module | Decided to use the `account` namespace under `packages/contracts/src/account`. | Resolved (account namespace) |
 | GAP-04 | Support request enum values | Proposed enum values (`OPEN`, `IN_PROGRESS`, `RESOLVED`, `ESCALATED`, `CLOSED`). | Resolved (proposed) |
 | GAP-05 | Roster import duplicate handling | Duplicate rows in import must produce a validation error list requiring user correction. | Resolved (error list) |
+| GAP-06 | Tenant ID & Roles in User model | Prisma `User` model lacks `tenantId` and `roles` fields required by the tenant guard. Guard assumes these are provided by authentication service; this is a SPEC GAP to be addressed in future schema updates. | Open |
 
 ## Decisions Made
 
