@@ -1,6 +1,6 @@
 # L00 — Kế hoạch thiết kế trang SA và hợp nhất API/data proposal
 
-Ngày 21/10/2026, Asia/Bangkok. Revision 2. **L00 EXECUTED — DESIGN HANDOFF COMPLETE; APPLICATION/DB WORK NOT STARTED.**
+Ngày 21/10/2026, Asia/Bangkok. Revision 3. **L00 DONE — SCOPE COMPLETE; APPLICATION/DB WORK BELONGS TO LATER TASKS.**
 
 Chỉ đạo hiện hành: đọc `docs/tournament-initialization`, lập kế hoạch L00, đưa lên nhánh `nam-backup-team` rebase từ `main`, sau đó thực thi L00. Lượt này đã tạo các artifact thiết kế/wireframe/API-data/method ownership/acceptance/result trong `l00/`; không sửa application, chạy DB hoặc mở L01. Việc push tài liệu được cho phép bởi chính yêu cầu này; không mở rộng thành quyền deploy, push main hoặc migrate DB chung.
 

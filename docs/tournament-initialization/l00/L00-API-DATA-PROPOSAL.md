@@ -6,6 +6,45 @@ Revision 1. **PROPOSAL — chưa phải compiled contract, migration hoặc rout
 
 Reuse `SemanticEnvelope` and `ErrorEnvelope` from `@ottv2/contracts`. Every response is scoped to a trusted principal resolved server-side and carries `serverNow`, `asOf` and resource revision where applicable. Client supplied `actorId`, role, unit scope, owner, capability, quota usage or result authority is ignored/rejected.
 
+## Contract skeleton delivered by L00
+
+The following skeleton is the boundary that L01 will compile. It is intentionally expressed as a semantic contract here so the three page consumers can align without introducing a second protocol:
+
+```text
+AdminUnitApi {
+  list(query, ctx): Page<Unit>
+  get(unitId, ctx): Unit
+  create(command, ctx): AuthoritativeAck<Unit>
+  update(unitId, command, expectedRevision, ctx): AuthoritativeAck<Unit>
+}
+
+AdminContractApi {
+  list(query, ctx): Page<Contract>
+  get(contractId, ctx): Contract
+  create(command, ctx): AuthoritativeAck<Contract>
+  update(contractId, command, expectedRevision, ctx): AuthoritativeAck<Contract>
+  activate(contractId, expectedRevision, ctx): AuthoritativeAck<Contract>
+}
+
+AdminApprovalApi {
+  list(query, ctx): Page<ApprovalRequest>
+  get(requestId, ctx): ApprovalRequest
+  decide(requestId, decision, expectedRevision, ctx): AuthoritativeAck<ApprovalRequest>
+  requestExtension(tournamentId, command, ctx): AuthoritativeAck<ExtensionRequest>
+  decideExtension(requestId, decision, expectedRevision, ctx): AuthoritativeAck<ExtensionRequest>
+}
+
+AuthoritativeAck<T> {
+  value: T
+  eventId: OpaqueId
+  resourceRevision: string
+  serverNow: Instant
+  idempotencyKey: string
+}
+```
+
+Every method returns either this ACK/page shape or the shared `ErrorEnvelope`; field errors use `details.fieldPath` and a safe message key. `SemanticEnvelope` carries protocol version/message ID/type/timestamp and optional resource sequence; no method accepts client authority fields. This is the required L00 skeleton, while TypeScript/Zod implementation and schema freeze remain L01.
+
 ```text
 RequestContext {
   principal: TrustedPrincipal        // from auth/D00 port, never request body
