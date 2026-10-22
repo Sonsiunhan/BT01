@@ -1,0 +1,57 @@
+{
+  "manifestVersion": "1.0.0",
+  "owner": "Long",
+  "scope": "L00..L13 Tournament Initialization",
+  "generatedAt": "2026-10-21T13:10:00+07:00",
+  "gates": {
+    "gateG0": {
+      "status": "WAITING_G0",
+      "constantExport": "CANDIDATE_POLICY_DEFAULTS_V1",
+      "contractPath": "packages/contracts/src/tournament-initialization.ts",
+      "note": "Section 15 defaults are parameterized under CANDIDATE_POLICY_DEFAULTS_V1 with g0ApprovalStatus = G0_PENDING_CONFIRMATION."
+    },
+    "blockerB1": {
+      "status": "BLOCKED_NO_LOCAL_POSTGRES_DAEMON",
+      "guardScript": "scripts/network/disposable-db.mjs",
+      "guardSelfCheck": "PASS (3/3 rejection cases verified)",
+      "note": "No PostgreSQL daemon listening on 127.0.0.1:5432; verified via Prisma client generation, expand-only SQL static checks, and serialized InMemory + Fastify HTTP integration tests."
+    }
+  },
+  "deliverables": {
+    "contracts": [
+      "packages/contracts/src/tournament-initialization.ts",
+      "packages/contracts/src/account/d00.dto.ts"
+    ],
+    "prisma": [
+      "prisma/schema.prisma",
+      "prisma/migrations/20261021100000_l01_tournament_initialization/migration.sql"
+    ],
+    "backendModules": [
+      "apps/server/src/modules/tournament-foundation/audit.port.ts",
+      "apps/server/src/modules/tournament-foundation/tournament-store.ts",
+      "apps/server/src/modules/tournament-foundation/unit-contract.service.ts",
+      "apps/server/src/modules/tournament-foundation/foundation.route.ts",
+      "apps/server/src/modules/tournament-core/core-draft.service.ts",
+      "apps/server/src/modules/tournament-core/approval.service.ts",
+      "apps/server/src/modules/tournament-core/lifecycle.service.ts",
+      "apps/server/src/modules/tournament-core/admission-gate.service.ts",
+      "apps/server/src/modules/tournament-core/adjudication-ledger.service.ts",
+      "apps/server/src/modules/tournament-core/tournament-core.route.ts",
+      "apps/server/src/modules/tournament-core/index.ts"
+    ],
+    "frontendModules": [
+      "apps/web/src/features/admin/services/tournamentAdminApi.ts",
+      "apps/web/src/features/admin/units/UnitsAdminPage.tsx",
+      "apps/web/src/features/admin/contracts/ContractsAdminPage.tsx",
+      "apps/web/src/features/admin/approvals/ApprovalsAdminPage.tsx",
+      "apps/web/src/features/admin/long-routes.tsx"
+    ],
+    "tests": [
+      "tests/contract/tournament-l01.contract.test.ts",
+      "tests/unit/tournament-l02-l08.unit.test.ts",
+      "tests/unit/tournament-l09-concurrency.unit.test.ts",
+      "apps/web/src/features/admin/admin-pages.test.tsx",
+      "tests/integration/tournament-l10-e2e-flow.integration.test.ts"
+    ]
+  }
+}

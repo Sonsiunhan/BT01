@@ -179,6 +179,18 @@ export async function registerTournamentCoreRoutes(
     }
   );
 
+  app.get<{ Params: { tournamentId: string } }>(
+    "/api/admin/approvals/:tournamentId",
+    async (request, reply) => {
+      const actor = await resolveTournamentRequestActor(request, auth, store);
+      const detail = approvalService.getApprovalDetail(
+        actor,
+        request.params.tournamentId
+      );
+      return reply.status(200).send(detail);
+    }
+  );
+
   app.post<{ Params: { tournamentId: string }; Body: ApprovalDecisionInput }>(
     "/api/admin/approvals/:tournamentId/decision",
     async (request, reply) => {
