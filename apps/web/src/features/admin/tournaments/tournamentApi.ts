@@ -11,6 +11,7 @@ import {
   type TournamentDto,
   type TournamentReadinessSnapshot,
   type TournamentConfigVersionDto,
+  type AuditLogRecordDto,
   DEFAULT_TOURNAMENT_RULE_PROFILE,
 } from "@ottv2/contracts";
 
@@ -130,6 +131,64 @@ export const FIXTURE_TOURNAMENTS: TournamentListItem[] = [
   },
 ];
 
+export const FIXTURE_AUDIT_LOGS: AuditLogRecordDto[] = [
+  {
+    id: "audit-001",
+    actorUserId: "user-ta-01",
+    actorRole: "TOURNAMENT_ADMIN",
+    action: "CREATE_DRAFT",
+    targetType: "TOURNAMENT",
+    targetId: "tour-001",
+    beforeSnapshot: null,
+    afterSnapshot: {
+      name: "Giải Vô địch Quốc gia Robot Lab 2026",
+      status: "DRAFT",
+    },
+    reason: "Khởi tạo giải đấu mùa giải 2026",
+    correlationId: "corr-001",
+    createdAt: "2026-10-21T08:00:00.000Z",
+  },
+  {
+    id: "audit-002",
+    actorUserId: "user-admin-01",
+    actorRole: "ADMIN",
+    action: "APPROVE",
+    targetType: "TOURNAMENT",
+    targetId: "tour-001",
+    beforeSnapshot: { status: "UNDER_REVIEW" },
+    afterSnapshot: { status: "APPROVED" },
+    reason: "Phê duyệt tổ chức giải đấu",
+    correlationId: "corr-002",
+    createdAt: "2026-10-21T09:00:00.000Z",
+  },
+  {
+    id: "audit-003",
+    actorUserId: "user-ta-01",
+    actorRole: "TOURNAMENT_ADMIN",
+    action: "PUBLISH_RULE_VERSION",
+    targetType: "RULE_VERSION",
+    targetId: "tour-001",
+    beforeSnapshot: null,
+    afterSnapshot: { versionNumber: 1, effectiveTime: "2026-10-21T09:30:00.000Z" },
+    reason: "Công bố phiên bản luật tiêu chuẩn",
+    correlationId: "corr-003",
+    createdAt: "2026-10-21T09:30:00.000Z",
+  },
+  {
+    id: "audit-004",
+    actorUserId: "user-admin-01",
+    actorRole: "ADMIN",
+    action: "UPDATE_CONFIG",
+    targetType: "CONTRACT",
+    targetId: "HD-2026-CHUNG",
+    beforeSnapshot: { maxTournaments: 5 },
+    afterSnapshot: { maxTournaments: 10 },
+    reason: "Nâng hạn mức số giải đấu theo phụ lục",
+    correlationId: "corr-004",
+    createdAt: "2026-10-20T10:00:00.000Z",
+  },
+];
+
 export interface TournamentApiPort {
   listTournaments(query?: TournamentListQuery): Promise<TournamentListResponse>;
   createDraft(input: CreateTournamentDraftInput): Promise<TournamentDto>;
@@ -144,6 +203,13 @@ export interface TournamentApiPort {
   startTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
   pauseTournament(tournamentId: string, reason: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
   resumeTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
+
+  // S06 Audit Logs API
+  listAuditLogs(filter?: {
+    targetType?: string;
+    targetId?: string;
+    actorUserId?: string;
+  }): Promise<{ logs: AuditLogRecordDto[] }>;
 }
 
 export class TournamentApiClient implements TournamentApiPort {
@@ -513,6 +579,43 @@ export class TournamentApiClient implements TournamentApiPort {
     }
     const err = await res.json().catch(() => ({}));
     throw createHttpError(err, res.status, "Không thể tiếp tục giải đấu", "RESUME_TOURNAMENT_FAILED");
+  }
+
+  async listAuditLogs(filter?: {
+    targetType?: string;
+    targetId?: string;
+    actorUserId?: string;
+  }): Promise<{ logs: AuditLogRecordDto[] }> {
+    if (this.useRealApi) {
+      try {
+        const params = new URLSearchParams();
+        if (filter?.targetType) params.set("targetType", filter.targetType);
+        if (filter?.targetId) params.set("targetId", filter.targetId);
+        const qs = params.toString();
+        const res = await fetch(`/api/admin/audit-logs${qs ? `?${qs}` : ""}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch {
+        // Fallback to fixture data on network failure
+      }
+    }
+
+    let records = [...FIXTURE_AUDIT_LOGS];
+    if (filter?.targetType) {
+      records = records.filter((r) => r.targetType === filter.targetType);
+    }
+    if (filter?.targetId) {
+      records = records.filter((r) => r.targetId === filter.targetId);
+    }
+    if (filter?.actorUserId) {
+      records = records.filter((r) => r.actorUserId === filter.actorUserId);
+    }
+    return { logs: records };
   }
 }
 

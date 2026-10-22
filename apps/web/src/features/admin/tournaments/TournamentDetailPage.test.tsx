@@ -134,6 +134,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       startTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "RUNNING" } }),
       pauseTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "PAUSED" } }),
       resumeTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "RUNNING" } }),
+      listAuditLogs: vi.fn().mockResolvedValue({ logs: [] }),
     };
   });
 

@@ -34,6 +34,7 @@ const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotRea
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
 const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
 const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
+const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
 
 export function AppRouter() {
   return (
@@ -116,25 +117,11 @@ export function AppRouter() {
         <Route path={routes.adminTournamentBotReadiness} element={<BotReadinessPage />} />
         <Route
           path={routes.adminAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán hệ thống"
-              targetTask="S06"
-              description="Lịch sử các thao tác quản trị toàn hệ thống đã được lọc và che dấu dữ liệu nhạy cảm."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminTournamentAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán giải đấu"
-              targetTask="S06"
-              description="Truy vết các thao tác thay đổi cấu hình, phân công nhân sự và duyệt trận trong giải đấu."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminOffline}

@@ -90,6 +90,7 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
       startTournament: vi.fn(),
       pauseTournament: vi.fn(),
       resumeTournament: vi.fn(),
+      listAuditLogs: vi.fn(),
     };
   });
 
