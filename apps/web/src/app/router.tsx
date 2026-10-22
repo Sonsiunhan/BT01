@@ -25,6 +25,7 @@ const BotOfflinePage = lazy(() => import("../pages/BotOfflinePage"));
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
+const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 
 export function AppRouter() {
@@ -72,25 +73,11 @@ export function AppRouter() {
         <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route
           path={routes.adminTournamentNew}
-          element={
-            <AdminRoutePending
-              pageCode="P02"
-              title="Khởi tạo giải đấu mới (Wizard)"
-              targetTask="S03"
-              description="Wizard 4 bước khởi tạo hồ sơ giải đấu, cấu hình thể thức và chuẩn bị nộp duyệt."
-            />
-          }
+          element={<TournamentWizardPage />}
         />
         <Route
           path={routes.adminTournamentEdit}
-          element={
-            <AdminRoutePending
-              pageCode="P02"
-              title="Chỉnh sửa bản nháp giải đấu"
-              targetTask="S03"
-              description="Cập nhật cấu hình bản nháp giải đấu đang mở hoặc giải được yêu cầu chỉnh sửa."
-            />
-          }
+          element={<TournamentWizardPage />}
         />
         <Route
           path={routes.adminTournamentDetail}

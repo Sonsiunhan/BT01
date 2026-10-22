@@ -37,6 +37,11 @@ import { PrismaTournamentPreviewScopeReader, TournamentRulesPreviewService } fro
 import { RosterService, registerRosterRoutes } from "./modules/roster/index.js";
 import { registerTournamentRuleVersionRoutes } from "./modules/tournament-versioning/versioning.route.js";
 import type { TournamentVersioningPort } from "./modules/tournament-versioning/versioning.port.js";
+import {
+  createTournamentRuntimeBundle,
+  registerTournamentInitializationRoutes,
+  type TournamentRuntimeBundle,
+} from "./modules/tournament-core/index.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -69,6 +74,7 @@ export type BuildAppOptions = {
   rosterService?: RosterService;
   /** L05-owned canonical version store; N04 only registers its typed adapter. */
   tournamentVersioning?: TournamentVersioningPort;
+  tournamentBundle?: TournamentRuntimeBundle;
 };
 
 function createRealtime(env: AppEnv, app: FastifyInstance): RealtimePort {
@@ -142,6 +148,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
   await registerRosterRoutes(app, auth, rosterService);
   if (options.tournamentVersioning) await registerTournamentRuleVersionRoutes(app, auth, options.tournamentVersioning);
+  const tournamentBundle = options.tournamentBundle ?? createTournamentRuntimeBundle();
+  await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   const botProbe = () => ({
     status: botRuntimeAdapter ? ("ok" as const) : ("degraded" as const),
     reason: botRuntimeAdapter ? undefined : "wasmtime-unconfigured",

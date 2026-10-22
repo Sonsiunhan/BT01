@@ -1,9 +1,16 @@
-import type {
-  TournamentListItem,
-  TournamentListQuery,
-  TournamentListResponse,
-  TournamentLifecycleStatus,
+import {
+  type TournamentListItem,
+  type TournamentListQuery,
+  type TournamentListResponse,
+  type TournamentLifecycleStatus,
+  createDefaultCoreConfig,
 } from "./tournamentTypes";
+import {
+  type CreateTournamentDraftInput,
+  type PatchTournamentDraftInput,
+  type TournamentDto,
+  DEFAULT_TOURNAMENT_RULE_PROFILE,
+} from "@ottv2/contracts";
 
 // Baseline fixture data for development and tests (complying with S00 / Robot Lab)
 export const FIXTURE_TOURNAMENTS: TournamentListItem[] = [
@@ -101,6 +108,10 @@ export const FIXTURE_TOURNAMENTS: TournamentListItem[] = [
 
 export interface TournamentApiPort {
   listTournaments(query?: TournamentListQuery): Promise<TournamentListResponse>;
+  createDraft(input: CreateTournamentDraftInput): Promise<TournamentDto>;
+  patchDraft(tournamentId: string, input: PatchTournamentDraftInput): Promise<TournamentDto>;
+  getDraft(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: any[] }>;
+  deleteDraft(tournamentId: string): Promise<{ deleted: boolean; quotaRefunded: boolean }>;
 }
 
 export class TournamentApiClient implements TournamentApiPort {
@@ -194,6 +205,233 @@ export class TournamentApiClient implements TournamentApiPort {
       timestamp: new Date().toISOString(),
     };
   }
+
+  async createDraft(input: CreateTournamentDraftInput): Promise<TournamentDto> {
+    try {
+      const res = await fetch("/api/tournaments/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(input),
+      });
+      if (res.ok) {
+        const body = await res.json();
+        return body.tournament;
+      }
+      const err = await res.json().catch(() => ({}));
+      const error = new Error(err.message || "Không thể tạo bản nháp giải đấu");
+      (error as any).statusCode = res.status;
+      (error as any).code = err.code || "CREATE_DRAFT_FAILED";
+      (error as any).details = err.details;
+      throw error;
+    } catch (e: any) {
+      if (e.statusCode) throw e;
+      // In offline / test-fixture mode, generate a mock TournamentDto
+      const now = new Date().toISOString();
+      const mockDto: TournamentDto = {
+        id: `draft-${Date.now()}`,
+        contractId: input.contractId,
+        contractCode: "CONTRACT-DEFAULT",
+        unitId: "unit-001",
+        ownerTaUserId: "ta-current",
+        status: "DRAFT",
+        revision: 1,
+        activeConfigVersionId: null,
+        activeConfigVersionNumber: 0,
+        approvedSnapshot: null,
+        everApproved: false,
+        quotaRefunded: false,
+        coreConfig: input.coreConfig,
+        ruleProfile: (input.ruleProfile || {
+          rulesVersion: "rps-v1",
+          setupParityMode: "STANDARD_CANONICAL",
+          turnSeconds: 30,
+          totalMatchSeconds: 600,
+          rankedModeAllowed: false,
+          allowSpectators: true,
+          spectatorChat: false,
+          refereeAssignmentMode: "ANY_AVAILABLE",
+          minActiveReferees: 1,
+          manualAdjudicationDeadlineSeconds: 300,
+          manualAdjudicationFallbackPolicy: "RANDOM_SEEDED",
+          aiRosterPolicy: "RESTRICTED",
+          allowedBotSlugs: [],
+        }) as any,
+        submittedAt: null,
+        approvedAt: null,
+        rejectedAt: null,
+        changesRequestedAt: null,
+        lastReviewNote: null,
+        startedAt: null,
+        pausedAt: null,
+        pauseReason: null,
+        endedAt: null,
+        cancelledAt: null,
+        cancelReason: null,
+        finalizedAt: null,
+        copiedFromTournamentId: null,
+        createdAt: now,
+        updatedAt: now,
+      };
+      return mockDto;
+    }
+  }
+
+  async getDraft(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: any[] }> {
+    try {
+      const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+      const err = await res.json().catch(() => ({}));
+      const error = new Error(err.message || "Không thể tải bản nháp");
+      (error as any).statusCode = res.status;
+      (error as any).code = err.code || "GET_DRAFT_FAILED";
+      throw error;
+    } catch (e: any) {
+      if (e.statusCode) throw e;
+      // Fixture fallback
+      const found = FIXTURE_TOURNAMENTS.find((t) => t.tournamentId === tournamentId);
+      const now = new Date().toISOString();
+      const mock: TournamentDto = {
+        id: tournamentId,
+        contractId: "contract-001",
+        contractCode: "CONTRACT-DEFAULT",
+        unitId: found?.unitId || "unit-001",
+        ownerTaUserId: "ta-current",
+        status: (found?.status as any) || "DRAFT",
+        revision: 1,
+        activeConfigVersionId: null,
+        activeConfigVersionNumber: 0,
+        approvedSnapshot: null,
+        everApproved: false,
+        quotaRefunded: false,
+        coreConfig: createDefaultCoreConfig({
+          tournamentName: found?.name || "Giải đấu nháp",
+          tournamentCode: found?.slug || "giai-dau-nhap",
+          description: "Mô tả giải đấu nháp",
+          timezone: found?.timezone || "Asia/Ho_Chi_Minh",
+          scheduledStartAt: found?.startAt || now,
+          scheduledEndAt: found?.endAt || new Date(Date.now() + 86400000 * 7).toISOString(),
+          competitionMode: "HUMAN_ONLINE",
+          maxParticipants: found?.maxParticipants || 32,
+          minParticipantsToStart: 4,
+          organizersText: found?.ownerDisplay || "Đơn vị tổ chức",
+          audienceScope: found?.visibility === "PUBLIC" ? "PUBLIC_REGISTERED" : "INTERNAL_UNIT",
+        }),
+        ruleProfile: DEFAULT_TOURNAMENT_RULE_PROFILE,
+        submittedAt: null,
+        approvedAt: null,
+        rejectedAt: null,
+        changesRequestedAt: null,
+        lastReviewNote: null,
+        startedAt: null,
+        pausedAt: null,
+        pauseReason: null,
+        endedAt: null,
+        cancelledAt: null,
+        cancelReason: null,
+        finalizedAt: null,
+        copiedFromTournamentId: null,
+        createdAt: now,
+        updatedAt: now,
+      };
+      return { tournament: mock, configVersions: [] };
+    }
+  }
+
+  async patchDraft(tournamentId: string, input: PatchTournamentDraftInput): Promise<TournamentDto> {
+    const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(input),
+    });
+    if (res.ok) {
+      const body = await res.json();
+      return body.tournament;
+    }
+    const err = await res.json().catch(() => ({}));
+    const error = new Error(err.message || "Không thể cập nhật bản nháp giải đấu");
+    (error as any).statusCode = res.status;
+    (error as any).code = err.code || (res.status === 409 ? "CONFLICT" : "PATCH_DRAFT_FAILED");
+    (error as any).details = err.details;
+    throw error;
+  }
+
+  async deleteDraft(tournamentId: string): Promise<{ deleted: boolean; quotaRefunded: boolean }> {
+    const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+    const err = await res.json().catch(() => ({}));
+    const error = new Error(err.message || "Không thể xóa bản nháp giải đấu");
+    (error as any).statusCode = res.status;
+    (error as any).code = err.code || "DELETE_DRAFT_FAILED";
+    throw error;
+  }
+}
+
+// Local draft buffer persistence helpers for offline recovery and network resilience
+const DRAFT_BUFFER_PREFIX = "ottv2_tournament_draft_buffer_";
+const memoryStorage = new Map<string, string>();
+
+function getStorageItem(key: string): string | null {
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      return window.localStorage.getItem(key);
+    }
+  } catch {
+    // fallback
+  }
+  return memoryStorage.get(key) ?? null;
+}
+
+function setStorageItem(key: string, value: string): void {
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(key, value);
+      return;
+    }
+  } catch {
+    // fallback
+  }
+  memoryStorage.set(key, value);
+}
+
+function removeStorageItem(key: string): void {
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+  } catch {
+    // fallback
+  }
+  memoryStorage.delete(key);
+}
+
+export function saveLocalDraftBuffer<T>(key: string, data: T): void {
+  setStorageItem(`${DRAFT_BUFFER_PREFIX}${key}`, JSON.stringify(data));
+}
+
+export function getLocalDraftBuffer<T>(key: string): T | null {
+  const item = getStorageItem(`${DRAFT_BUFFER_PREFIX}${key}`);
+  if (!item) return null;
+  try {
+    return JSON.parse(item) as T;
+  } catch {
+    return null;
+  }
+}
+
+export function clearLocalDraftBuffer(key: string): void {
+  removeStorageItem(`${DRAFT_BUFFER_PREFIX}${key}`);
 }
 
 export function matchesStatusGroup(
@@ -219,3 +457,4 @@ export function matchesStatusGroup(
 }
 
 export const defaultTournamentApi = new TournamentApiClient();
+
