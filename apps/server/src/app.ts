@@ -129,7 +129,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   await registerCors(app, env.corsOrigins);
   registerErrorHandler(app);
-  const tournamentBundle = options.tournamentBundle ?? createTournamentRuntimeBundle();
+  const tournamentBundle = options.tournamentBundle ?? createTournamentRuntimeBundle({
+    database: database instanceof PrismaDatabase ? database.client : undefined,
+  });
   await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   // Register API diagnostics before the SPA catch-all so provider evidence
   // remains reachable even on Fastify/router versions that prefer insertion
@@ -149,7 +151,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
   if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
   await registerRosterRoutes(app, auth, rosterService);
-  if (options.tournamentVersioning) await registerTournamentRuleVersionRoutes(app, auth, options.tournamentVersioning);
+  const tournamentVersioning = options.tournamentVersioning ?? tournamentBundle.versioningAdapter;
+  await registerTournamentRuleVersionRoutes(app, auth, tournamentVersioning);
   const botProbe = () => ({
     status: botRuntimeAdapter ? ("ok" as const) : ("degraded" as const),
     reason: botRuntimeAdapter ? undefined : "wasmtime-unconfigured",
