@@ -770,12 +770,14 @@ export class TournamentLifecycleService {
 
   /**
    * T027: PAUSED stops new match admission without altering scheduledEndAt.
+   * Differentiates ADMISSION_PAUSE_ONLY (default) vs FULL_MATCH_STOP (freezes active matches).
    */
   async pauseTournament(
     actor: TournamentActorContext,
     tournamentId: string,
     reason: string,
-    expectedRevision?: number
+    expectedRevision?: number,
+    pauseMode: "ADMISSION_PAUSE_ONLY" | "FULL_MATCH_STOP" = "ADMISSION_PAUSE_ONLY"
   ): Promise<TournamentDto> {
     if (!reason || reason.trim().length < 3) {
       throw createTournamentError({
@@ -818,6 +820,20 @@ export class TournamentLifecycleService {
         });
       }
 
+      // If FULL_MATCH_STOP is requested, pause all in-progress matches for this tournament
+      let stoppedMatchesCount = 0;
+      if (pauseMode === "FULL_MATCH_STOP") {
+        for (const [matchId, match] of this.store.matches.entries()) {
+          if (match.tournamentId === tournamentId && match.status === "RUNNING") {
+            this.store.matches.set(matchId, {
+              ...match,
+              status: "PAUSED",
+            });
+            stoppedMatchesCount += 1;
+          }
+        }
+      }
+
       const updated = TournamentDtoSchema.parse({
         ...tournament,
         status: "PAUSED",
@@ -835,7 +851,7 @@ export class TournamentLifecycleService {
         targetId: tournamentId,
         beforeSnapshot: tournament,
         afterSnapshot: updated,
-        reason: reason.trim(),
+        reason: `${reason.trim()} (mode: ${pauseMode}, stoppedMatches: ${stoppedMatchesCount})`,
         correlationId: actor.correlationId ?? null,
         nowIso,
       });
@@ -893,6 +909,16 @@ export class TournamentLifecycleService {
         return ended;
       }
 
+      // Resume any matches of this tournament that were PAUSED
+      for (const [matchId, match] of this.store.matches.entries()) {
+        if (match.tournamentId === tournamentId && match.status === "PAUSED") {
+          this.store.matches.set(matchId, {
+            ...match,
+            status: "RUNNING",
+          });
+        }
+      }
+
       const updated = TournamentDtoSchema.parse({
         ...tournament,
         status: "RUNNING",
@@ -941,6 +967,17 @@ export class TournamentLifecycleService {
             updatedAt: nowIso,
           });
           this.store.tournaments.set(id, updated);
+          this.store.audit.append({
+            actorUserId: "SYSTEM_SCHEDULER",
+            actorRole: "ADMIN",
+            action: "TOURNAMENT_AUTO_ENDED",
+            targetType: "TOURNAMENT",
+            targetId: id,
+            beforeSnapshot: tournament,
+            afterSnapshot: updated,
+            reason: `Đã đến thời điểm kết thúc theo lịch (${tournament.coreConfig.scheduledEndAt})`,
+            nowIso,
+          });
           endedTournaments.push(updated);
         }
       }
@@ -953,13 +990,19 @@ export class TournamentLifecycleService {
    * T013 & T029: Cancels a tournament before ENDED.
    * - Never refunds quota if the tournament was ever APPROVED (everApproved === true).
    * - Atomically cancels all WAITING ManualAdjudicationRequests for this tournament.
+   * - Atomically cancels all in-progress matches and pending change requests.
    */
   async cancelTournament(
     actor: TournamentActorContext,
     tournamentId: string,
     reason: string,
     expectedRevision?: number
-  ): Promise<{ tournament: TournamentDto; cancelledAdjudicationsCount: number }> {
+  ): Promise<{
+    tournament: TournamentDto;
+    cancelledAdjudicationsCount: number;
+    cancelledMatchesCount: number;
+    cancelledChangeRequestsCount: number;
+  }> {
     if (!reason || reason.trim().length < 3) {
       throw createTournamentError({
         code: "VALIDATION_ERROR",
@@ -1010,7 +1053,7 @@ export class TournamentLifecycleService {
         });
       }
 
-      // Atomically cancel any WAITING manual adjudications (T029)
+      // 1. Atomically cancel any WAITING manual adjudications (T029)
       let cancelledAdjudicationsCount = 0;
       for (const [adjId, adj] of this.store.adjudicationRequests.entries()) {
         if (adj.tournamentId === tournamentId && adj.status === "WAITING") {
@@ -1025,11 +1068,51 @@ export class TournamentLifecycleService {
         }
       }
 
-      // Notice: T013 — Do NOT refund contract quota if everApproved === true!
+      // 2. Atomically cancel any in-progress matches
+      let cancelledMatchesCount = 0;
+      for (const [matchId, match] of this.store.matches.entries()) {
+        if (
+          match.tournamentId === tournamentId &&
+          (match.status === "RUNNING" ||
+            match.status === "PAUSED" ||
+            match.status === "PAUSED_ADJUDICATION")
+        ) {
+          this.store.matches.set(matchId, {
+            ...match,
+            status: "CANCELLED",
+            endedAt: nowIso,
+          });
+          cancelledMatchesCount += 1;
+        }
+      }
+
+      // 3. Atomically cancel any PENDING ChangeRequests
+      let cancelledChangeRequestsCount = 0;
+      for (const [crId, cr] of this.store.changeRequests.entries()) {
+        if (cr.tournamentId === tournamentId && cr.status === "PENDING") {
+          this.store.changeRequests.set(crId, {
+            ...cr,
+            status: "CANCELLED",
+            reviewNote: `Giải đấu bị hủy: ${reason.trim()}`,
+            reviewedAt: nowIso,
+            updatedAt: nowIso,
+          });
+          cancelledChangeRequestsCount += 1;
+        }
+      }
+
+      // 4. Notice: T013 — Quota refund invariant
+      let quotaRefunded = tournament.quotaRefunded;
+      if (!tournament.everApproved && !tournament.quotaRefunded) {
+        contract.quotaReservedCount = Math.max(0, contract.quotaReservedCount - 1);
+        quotaRefunded = true;
+      }
+
       const updated = TournamentDtoSchema.parse({
         ...tournament,
         status: "CANCELLED",
         revision: tournament.revision + 1,
+        quotaRefunded,
         cancelledAt: nowIso,
         cancelReason: reason.trim(),
         updatedAt: nowIso,
@@ -1049,7 +1132,12 @@ export class TournamentLifecycleService {
         nowIso,
       });
 
-      return { tournament: updated, cancelledAdjudicationsCount };
+      return {
+        tournament: updated,
+        cancelledAdjudicationsCount,
+        cancelledMatchesCount,
+        cancelledChangeRequestsCount,
+      };
     });
   }
 
