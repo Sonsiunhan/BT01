@@ -47,7 +47,7 @@ export interface PinnedMatchRecord {
   pinnedConfigVersionNumber: number;
   blueParticipantId: string;
   redParticipantId: string;
-  status: "RUNNING" | "PAUSED_ADJUDICATION" | "FINISHED" | "CANCELLED";
+  status: "RUNNING" | "PAUSED" | "PAUSED_ADJUDICATION" | "FINISHED" | "CANCELLED";
   winnerSide: "BLUE" | "RED" | null;
   finishSequence: number | null;
   createdAt: string;

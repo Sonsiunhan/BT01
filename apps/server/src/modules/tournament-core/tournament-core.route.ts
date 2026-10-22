@@ -321,7 +321,11 @@ export async function registerTournamentCoreRoutes(
 
   app.post<{
     Params: { tournamentId: string };
-    Body: { reason: string; expectedRevision?: number };
+    Body: {
+      reason: string;
+      pauseMode?: "ADMISSION_PAUSE_ONLY" | "FULL_MATCH_STOP";
+      expectedRevision?: number;
+    };
   }>(
     "/api/tournaments/:tournamentId/pause",
     async (request, reply) => {
@@ -330,7 +334,8 @@ export async function registerTournamentCoreRoutes(
         actor,
         request.params.tournamentId,
         request.body?.reason ?? "",
-        request.body?.expectedRevision
+        request.body?.expectedRevision,
+        request.body?.pauseMode
       );
       return reply.status(200).send({ tournament });
     }

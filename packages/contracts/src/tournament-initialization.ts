@@ -804,6 +804,47 @@ export type PublishWithinEnvelopeRuleUpdateInput = z.infer<
 >;
 
 // ============================================================================
+// 7.1. Lifecycle Operation Inputs (L07: T027..T030)
+// ============================================================================
+
+export const PauseModeSchema = z.enum([
+  "ADMISSION_PAUSE_ONLY",
+  "FULL_MATCH_STOP",
+]);
+export type PauseMode = z.infer<typeof PauseModeSchema>;
+
+export const PauseTournamentInputSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Vui lòng nhập lý do tạm dừng giải đấu (ít nhất 3 ký tự).")
+    .max(1000),
+  pauseMode: PauseModeSchema.optional().default("ADMISSION_PAUSE_ONLY"),
+  expectedRevision: z.number().int().positive().optional(),
+});
+export type PauseTournamentInput = z.infer<typeof PauseTournamentInputSchema>;
+
+export const ResumeTournamentInputSchema = z.object({
+  expectedRevision: z.number().int().positive().optional(),
+});
+export type ResumeTournamentInput = z.infer<typeof ResumeTournamentInputSchema>;
+
+export const CancelTournamentInputSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Bắt buộc nhập lý do hủy giải đấu (ít nhất 3 ký tự).")
+    .max(1000),
+  expectedRevision: z.number().int().positive().optional(),
+});
+export type CancelTournamentInput = z.infer<typeof CancelTournamentInputSchema>;
+
+export const FinalizeTournamentInputSchema = z.object({
+  expectedRevision: z.number().int().positive().optional(),
+});
+export type FinalizeTournamentInput = z.infer<typeof FinalizeTournamentInputSchema>;
+
+// ============================================================================
 // 8. Readiness Aggregate (P03: T025, T026)
 // ============================================================================
 
