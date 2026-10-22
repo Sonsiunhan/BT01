@@ -22,9 +22,15 @@ const BotOnlinePage = lazy(() => import("../pages/BotOnlinePage"));
 const BotWorkbenchPage = lazy(() => import("../pages/BotWorkbenchPage"));
 const BotOfflinePage = lazy(() => import("../pages/BotOfflinePage"));
 
+const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
+const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
+const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
+const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
+
 export function AppRouter() {
   return (
     <Routes>
+      {/* Client Player Shell */}
       <Route element={<AppLayout />}>
         <Route path={routes.home} element={<HomePage />} />
         <Route path={routes.login} element={<LoginPage />} />
@@ -56,8 +62,128 @@ export function AppRouter() {
         <Route path={routes.botOnline} element={<BotOnlinePage />} />
         <Route path={routes.botOffline} element={<BotOfflinePage />} />
         <Route path={routes.botWorkbench} element={<BotWorkbenchPage />} />
-        <Route path="*" element={<NotFoundPage />} />
       </Route>
+
+      {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}
+      <Route element={<AdminLayout />}>
+        <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
+        <Route path={routes.adminTa} element={<AdminTaPage />} />
+        <Route path={routes.adminAccounts} element={<AdminTaPage />} />
+        <Route path={routes.adminTournaments} element={<TournamentListPage />} />
+        <Route
+          path={routes.adminTournamentNew}
+          element={
+            <AdminRoutePending
+              pageCode="P02"
+              title="Khởi tạo giải đấu mới (Wizard)"
+              targetTask="S03"
+              description="Wizard 4 bước khởi tạo hồ sơ giải đấu, cấu hình thể thức và chuẩn bị nộp duyệt."
+            />
+          }
+        />
+        <Route
+          path={routes.adminTournamentEdit}
+          element={
+            <AdminRoutePending
+              pageCode="P02"
+              title="Chỉnh sửa bản nháp giải đấu"
+              targetTask="S03"
+              description="Cập nhật cấu hình bản nháp giải đấu đang mở hoặc giải được yêu cầu chỉnh sửa."
+            />
+          }
+        />
+        <Route
+          path={routes.adminTournamentDetail}
+          element={
+            <AdminRoutePending
+              pageCode="P03"
+              title="Chi tiết & Match-Center giải đấu"
+              targetTask="S05"
+              description="Tổng quan tiến độ giải đấu, bảng lịch trận CTF/Custom và panel giám sát theo thời gian thực."
+            />
+          }
+        />
+        <Route
+          path={routes.adminTournamentOperations}
+          element={
+            <AdminRoutePending
+              pageCode="P03"
+              title="Điều hành & Xử lý sự cố giải đấu"
+              targetTask="S05"
+              description="Các thao tác điều hành giải đấu, xử lý hoãn trận, gia hạn và nhật ký sự cố trọng tài."
+            />
+          }
+        />
+        <Route
+          path={routes.adminAudit}
+          element={
+            <AdminRoutePending
+              pageCode="P14"
+              title="Nhật ký kiểm toán hệ thống"
+              targetTask="S06"
+              description="Lịch sử các thao tác quản trị toàn hệ thống đã được lọc và che dấu dữ liệu nhạy cảm."
+            />
+          }
+        />
+        <Route
+          path={routes.adminTournamentAudit}
+          element={
+            <AdminRoutePending
+              pageCode="P14"
+              title="Nhật ký kiểm toán giải đấu"
+              targetTask="S06"
+              description="Truy vết các thao tác thay đổi cấu hình, phân công nhân sự và duyệt trận trong giải đấu."
+            />
+          }
+        />
+        <Route
+          path={routes.adminOffline}
+          element={
+            <AdminRoutePending
+              pageCode="P15"
+              title="Hub công cụ Offline"
+              targetTask="S08"
+              description="Cổng truy cập tập trung vào các công cụ thực thi offline: Kho Bot, Đấu Bot và Phòng luyện tập."
+            />
+          }
+        />
+        <Route
+          path={routes.adminOfflineBots}
+          element={
+            <AdminRoutePending
+              pageCode="P15"
+              title="Kho Bot của tôi"
+              targetTask="S08"
+              description="Quản lí danh sách mã nguồn Bot cá nhân và theo dõi trạng thái tương thích với các bộ luật."
+            />
+          }
+        />
+        <Route
+          path={routes.adminOfflinePracticeHumanBot}
+          element={
+            <AdminRoutePending
+              pageCode="P15"
+              title="Phòng tập Người – Bot Offline"
+              targetTask="S08"
+              description="Môi trường thi đấu luyện tập cục bộ giữa người chơi và Bot Python trong sandbox an toàn."
+            />
+          }
+        />
+        <Route
+          path={routes.adminOfflinePracticeHumanHuman}
+          element={
+            <AdminRoutePending
+              pageCode="P15"
+              title="Phòng tập Người – Người Offline"
+              targetTask="S08"
+              description="Chế độ chơi hai người trên cùng một thiết bị với luật thi đấu tùy biến."
+            />
+          }
+        />
+      </Route>
+
+      {/* 404 Catch-All */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

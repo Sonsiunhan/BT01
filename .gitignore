@@ -22,3 +22,4 @@ prisma/*.db
 prisma/*.db-journal
 
 .agents/
+.claude/

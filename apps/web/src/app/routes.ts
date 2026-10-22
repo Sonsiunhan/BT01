@@ -29,4 +29,20 @@ export const routes = {
   botOnline: "/dau-chuong-trinh/online",
   botOffline: "/dau-chuong-trinh/offline",
   botWorkbench: "/bot-lab",
+
+  // Admin Console Routes (S00 Route Inventory / S01 Router Registration)
+  admin: "/admin",
+  adminTa: "/admin/ta",
+  adminAccounts: "/admin/accounts",
+  adminTournaments: "/admin/tournaments",
+  adminTournamentNew: "/admin/tournaments/new",
+  adminTournamentEdit: "/admin/tournaments/:tournamentId/edit",
+  adminTournamentDetail: "/admin/tournaments/:tournamentId",
+  adminTournamentOperations: "/admin/tournaments/:tournamentId/operations",
+  adminAudit: "/admin/audit",
+  adminTournamentAudit: "/admin/tournaments/:tournamentId/audit",
+  adminOffline: "/admin/offline",
+  adminOfflineBots: "/admin/offline/bots",
+  adminOfflinePracticeHumanBot: "/admin/offline/practice/human-bot",
+  adminOfflinePracticeHumanHuman: "/admin/offline/practice/human-human",
 } as const;
