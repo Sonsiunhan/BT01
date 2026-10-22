@@ -11,6 +11,7 @@ import {
 } from "./tournamentApi";
 import {
   createDefaultCoreConfig,
+  tournamentDtoToDraftFormData,
   type DraftFormData,
 } from "./tournamentTypes";
 import {
@@ -143,40 +144,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         setServerRevision(dto.revision);
         setFormData((prev) => ({
           ...prev,
-          tournamentId: dto.id,
-          name: dto.coreConfig.tournamentName,
-          slug: dto.coreConfig.tournamentCode,
-          description: dto.coreConfig.shortDescription || "",
-          contractId: dto.contractId,
-          organizerUnitId: dto.unitId,
-          visibility: dto.coreConfig.audienceScope === "PUBLIC_REGISTERED" ? "PUBLIC" : "PRIVATE",
-          timezone: dto.coreConfig.timezone,
-          startAt: dto.coreConfig.scheduledStartAt || "",
-          endAt: dto.coreConfig.scheduledEndAt || "",
-          rosterOpenAt: dto.coreConfig.registrationOpenAt || "",
-          rosterCloseAt: dto.coreConfig.registrationCloseAt || "",
-          competitionMode: dto.coreConfig.competitionMode,
-          minParticipants: dto.coreConfig.minParticipantsToStart,
-          maxParticipants: dto.coreConfig.maxParticipants,
-          checkinRequired: dto.coreConfig.checkinRequired,
-          allowedUnitCodes: dto.coreConfig.allowedUnitCodes || [],
-          checkinOpenAt: dto.coreConfig.checkinOpenAt || "",
-          checkinCloseAt: dto.coreConfig.checkinCloseAt || "",
-          botDeadlineAt: dto.coreConfig.botDeadlineAt || "",
-          organizersText: dto.coreConfig.organizersText || "Ban Tổ chức Giải đấu",
-          maxMatchesPerPlayer: dto.coreConfig.maxMatchesPerPlayer ?? null,
-          maxPairMeetings: dto.coreConfig.maxPairMeetings ?? 2,
-          rematchCooldownMinutes: dto.coreConfig.rematchCooldownMinutes ?? 5,
-          maxConcurrentMatches: dto.coreConfig.maxConcurrentMatches ?? 8,
-          byeScorePoints: dto.coreConfig.byeScorePoints ?? 0,
-          spectatorPolicy: dto.coreConfig.spectatorPolicy || "ROSTER_ONLY",
-          chatPolicy: dto.coreConfig.chatPolicy || "SPECTATOR_MUTED",
-          leaderboardVisibility: dto.coreConfig.leaderboardVisibility || "LIVE_PUBLIC",
-          initialScore: dto.coreConfig.initialScore ?? 1000,
-          initialElo: dto.coreConfig.initialElo ?? 1000,
-          kFactor: dto.coreConfig.kFactor ?? 32,
-          scoreFloor: dto.coreConfig.scoreFloor ?? 0,
-          expectedRevision: dto.revision,
+          ...tournamentDtoToDraftFormData(dto),
         }));
       })
       .catch((err: unknown) => {
@@ -303,15 +271,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       setServerRevision(dto.revision);
       setFormData((prev) => ({
         ...prev,
-        name: dto.coreConfig.tournamentName,
-        slug: dto.coreConfig.tournamentCode,
-        description: dto.coreConfig.shortDescription || "",
-        timezone: dto.coreConfig.timezone,
-        startAt: dto.coreConfig.scheduledStartAt || "",
-        endAt: dto.coreConfig.scheduledEndAt || "",
-        competitionMode: dto.coreConfig.competitionMode,
-        maxParticipants: dto.coreConfig.maxParticipants,
-        expectedRevision: dto.revision,
+        ...tournamentDtoToDraftFormData(dto),
       }));
       setConflictWarning(null);
       setErrorMessage(null);
