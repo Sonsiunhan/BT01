@@ -44,6 +44,38 @@ export default function AdminTaPage() {
   // Bootstrap state
   const [bootstrapPending, setBootstrapPending] = useState(false);
 
+  const handleOpenCreateModal = () => {
+    setCreateError(null);
+    setCreateForm({ fullName: "", displayName: "", username: "", password: "" });
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    if (createPending) return;
+    setShowCreateModal(false);
+    setCreateError(null);
+  };
+
+  const handleOpenBindModal = (ta: TaUserItem) => {
+    setBindingTa(ta);
+    setBindContractId("");
+    setBindNotes("");
+    setBindError(null);
+  };
+
+  const handleCloseBindModal = () => {
+    if (bindPending) return;
+    setBindingTa(null);
+    setBindError(null);
+    setBindContractId("");
+    setBindNotes("");
+  };
+
+  const handleCloseRevokeModal = () => {
+    if (revokePending) return;
+    setRevokingTa(null);
+  };
+
   const handleBootstrap = async () => {
     setBootstrapPending(true);
     try {
@@ -63,7 +95,7 @@ export default function AdminTaPage() {
     setStatusCode(null);
     try {
       const data = await fetchTaList();
-      setTaList(data.items);
+      setTaList(data.items ?? []);
     } catch (err) {
       if (err instanceof ApiError) {
         setStatusCode(err.status ?? null);
@@ -91,7 +123,7 @@ export default function AdminTaPage() {
         username: createForm.username.trim(),
       };
       if (createForm.password.trim()) {
-        payload.password = createForm.password;
+        payload.password = createForm.password.trim();
       }
       const res = await createTaAccount(payload);
       notify(`Tạo tài khoản Tournament Admin "${res.user.displayName}" thành công!`, "success");
@@ -206,7 +238,7 @@ export default function AdminTaPage() {
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <Button variant="secondary" onClick={loadList} disabled={loading} data-testid="refresh-btn">
+          <Button variant="secondary" onClick={loadList} disabled={loading || bootstrapPending} data-testid="refresh-btn">
             Làm mới
           </Button>
           <Button
@@ -217,7 +249,12 @@ export default function AdminTaPage() {
           >
             {bootstrapPending ? "Đang khởi tạo..." : "⚡ Khởi tạo nhanh TA"}
           </Button>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)} data-testid="open-create-ta-btn">
+          <Button
+            variant="primary"
+            onClick={handleOpenCreateModal}
+            disabled={bootstrapPending}
+            data-testid="open-create-ta-btn"
+          >
             + Tạo tài khoản TA
           </Button>
         </div>
@@ -264,7 +301,12 @@ export default function AdminTaPage() {
             >
               {bootstrapPending ? "Đang khởi tạo..." : "Khởi tạo nhanh TA (Bootstrap)"}
             </Button>
-            <Button variant="primary" onClick={() => setShowCreateModal(true)} data-testid="empty-create-btn">
+            <Button
+              variant="primary"
+              onClick={handleOpenCreateModal}
+              disabled={bootstrapPending}
+              data-testid="empty-create-btn"
+            >
               Tạo tài khoản TA đầu tiên
             </Button>
           </div>
@@ -279,14 +321,18 @@ export default function AdminTaPage() {
             background: "var(--surface)",
           }}
         >
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }} data-testid="ta-table">
+          <table
+            style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}
+            aria-label="Danh sách Tournament Admin"
+            data-testid="ta-table"
+          >
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)", background: "color-mix(in srgb, var(--surface) 90%, black)" }}>
-                <th style={{ padding: "0.75rem 1rem" }}>Tên đăng nhập</th>
-                <th style={{ padding: "0.75rem 1rem" }}>Tên hiển thị</th>
-                <th style={{ padding: "0.75rem 1rem" }}>Họ và tên</th>
-                <th style={{ padding: "0.75rem 1rem" }}>Vai trò</th>
-                <th style={{ padding: "0.75rem 1rem" }}>Thao tác</th>
+                <th scope="col" style={{ padding: "0.75rem 1rem" }}>Tên đăng nhập</th>
+                <th scope="col" style={{ padding: "0.75rem 1rem" }}>Tên hiển thị</th>
+                <th scope="col" style={{ padding: "0.75rem 1rem" }}>Họ và tên</th>
+                <th scope="col" style={{ padding: "0.75rem 1rem" }}>Vai trò</th>
+                <th scope="col" style={{ padding: "0.75rem 1rem" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -316,7 +362,8 @@ export default function AdminTaPage() {
                       <Button
                         variant="secondary"
                         style={{ fontSize: "0.8rem", padding: "0.25rem 0.5rem" }}
-                        onClick={() => setBindingTa(ta)}
+                        onClick={() => handleOpenBindModal(ta)}
+                        aria-label={`Gán hợp đồng cho ${ta.displayName}`}
                         data-testid={`bind-btn-${ta.id}`}
                       >
                         Gán hợp đồng
@@ -325,6 +372,7 @@ export default function AdminTaPage() {
                         variant="danger"
                         style={{ fontSize: "0.8rem", padding: "0.25rem 0.5rem" }}
                         onClick={() => setRevokingTa(ta)}
+                        aria-label={`Thu hồi quyền của ${ta.displayName}`}
                         data-testid={`revoke-btn-${ta.id}`}
                       >
                         Thu hồi
@@ -342,12 +390,15 @@ export default function AdminTaPage() {
       {showCreateModal && (
         <Modal
           open={showCreateModal}
+          dismissible={!createPending}
           title="Tạo tài khoản Tournament Admin mới"
-          onClose={() => setShowCreateModal(false)}
+          onClose={handleCloseCreateModal}
         >
           <form onSubmit={handleCreateSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }} data-testid="create-ta-modal">
             {createError && (
               <div
+                role="alert"
+                aria-live="polite"
                 style={{
                   padding: "0.75rem",
                   color: "var(--danger)",
@@ -361,15 +412,24 @@ export default function AdminTaPage() {
               </div>
             )}
             <div>
-              <label htmlFor="create-fullname" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem" }}>
+              <label htmlFor="create-fullname" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", fontWeight: 600 }}>
                 Họ và tên *
               </label>
               <input
                 id="create-fullname"
                 type="text"
                 required
+                minLength={2}
+                maxLength={100}
                 className="input"
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  padding: "0.65rem 0.75rem",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--surface-raised)",
+                  color: "var(--text)",
+                }}
                 value={createForm.fullName}
                 onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })}
                 placeholder="Ví dụ: Nguyễn Văn Quản Trị"
@@ -377,15 +437,24 @@ export default function AdminTaPage() {
               />
             </div>
             <div>
-              <label htmlFor="create-displayname" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem" }}>
+              <label htmlFor="create-displayname" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", fontWeight: 600 }}>
                 Tên hiển thị *
               </label>
               <input
                 id="create-displayname"
                 type="text"
                 required
+                minLength={2}
+                maxLength={100}
                 className="input"
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  padding: "0.65rem 0.75rem",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--surface-raised)",
+                  color: "var(--text)",
+                }}
                 value={createForm.displayName}
                 onChange={(e) => setCreateForm({ ...createForm, displayName: e.target.value })}
                 placeholder="Ví dụ: TA Quản Trị"
@@ -393,7 +462,7 @@ export default function AdminTaPage() {
               />
             </div>
             <div>
-              <label htmlFor="create-username" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem" }}>
+              <label htmlFor="create-username" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", fontWeight: 600 }}>
                 Tên đăng nhập * (ít nhất 3 ký tự, chỉ chữ cái, số, _, -)
               </label>
               <input
@@ -401,8 +470,17 @@ export default function AdminTaPage() {
                 type="text"
                 required
                 minLength={3}
+                maxLength={32}
+                pattern="^[a-zA-Z0-9_-]+$"
                 className="input"
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  padding: "0.65rem 0.75rem",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--surface-raised)",
+                  color: "var(--text)",
+                }}
                 value={createForm.username}
                 onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
                 placeholder="Ví dụ: ta_tournament_01"
@@ -410,15 +488,23 @@ export default function AdminTaPage() {
               />
             </div>
             <div>
-              <label htmlFor="create-password" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem" }}>
+              <label htmlFor="create-password" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", fontWeight: 600 }}>
                 Mật khẩu (tùy chọn, để trống sẽ tự tạo ngẫu nhiên)
               </label>
               <input
                 id="create-password"
                 type="password"
                 minLength={8}
+                maxLength={128}
                 className="input"
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  padding: "0.65rem 0.75rem",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--surface-raised)",
+                  color: "var(--text)",
+                }}
                 value={createForm.password}
                 onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
                 placeholder="Tối thiểu 8 ký tự"
@@ -426,7 +512,7 @@ export default function AdminTaPage() {
               />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
-              <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>
+              <Button type="button" variant="secondary" disabled={createPending} onClick={handleCloseCreateModal}>
                 Hủy
               </Button>
               <Button type="submit" variant="primary" pending={createPending} data-testid="submit-create-ta-btn">
@@ -441,12 +527,15 @@ export default function AdminTaPage() {
       {bindingTa && (
         <Modal
           open={Boolean(bindingTa)}
+          dismissible={!bindPending}
           title={`Gán hợp đồng cho ${bindingTa.displayName} (${bindingTa.username})`}
-          onClose={() => setBindingTa(null)}
+          onClose={handleCloseBindModal}
         >
           <form onSubmit={handleBindSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }} data-testid="bind-ta-modal">
             {bindError && (
               <div
+                role="alert"
+                aria-live="polite"
                 style={{
                   padding: "0.75rem",
                   color: "var(--danger)",
@@ -460,7 +549,7 @@ export default function AdminTaPage() {
               </div>
             )}
             <div>
-              <label htmlFor="bind-contract-id" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem" }}>
+              <label htmlFor="bind-contract-id" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", fontWeight: 600 }}>
                 Mã hoặc ID Hợp đồng giải đấu *
               </label>
               <input
@@ -468,7 +557,14 @@ export default function AdminTaPage() {
                 type="text"
                 required
                 className="input"
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  padding: "0.65rem 0.75rem",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--surface-raised)",
+                  color: "var(--text)",
+                }}
                 value={bindContractId}
                 onChange={(e) => setBindContractId(e.target.value)}
                 placeholder="Nhập ID hợp đồng (ví dụ: contract-uuid-123)"
@@ -476,13 +572,23 @@ export default function AdminTaPage() {
               />
             </div>
             <div>
-              <label htmlFor="bind-notes" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem" }}>
+              <label htmlFor="bind-notes" style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.85rem", fontWeight: 600 }}>
                 Ghi chú (tùy chọn)
               </label>
               <textarea
                 id="bind-notes"
+                maxLength={500}
                 className="input"
-                style={{ width: "100%", height: "80px", resize: "vertical" }}
+                style={{
+                  width: "100%",
+                  height: "80px",
+                  resize: "vertical",
+                  padding: "0.65rem 0.75rem",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--surface-raised)",
+                  color: "var(--text)",
+                }}
                 value={bindNotes}
                 onChange={(e) => setBindNotes(e.target.value)}
                 placeholder="Ghi chú phân công phụ trách giải đấu..."
@@ -490,7 +596,7 @@ export default function AdminTaPage() {
               />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
-              <Button type="button" variant="secondary" onClick={() => setBindingTa(null)}>
+              <Button type="button" variant="secondary" disabled={bindPending} onClick={handleCloseBindModal}>
                 Hủy
               </Button>
               <Button type="submit" variant="primary" pending={bindPending} data-testid="submit-bind-ta-btn">
@@ -505,8 +611,9 @@ export default function AdminTaPage() {
       {revokingTa && (
         <Modal
           open={Boolean(revokingTa)}
+          dismissible={!revokePending}
           title="Xác nhận thu hồi quyền Tournament Admin"
-          onClose={() => setRevokingTa(null)}
+          onClose={handleCloseRevokeModal}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }} data-testid="revoke-confirm-modal">
             <p>
@@ -517,7 +624,7 @@ export default function AdminTaPage() {
               Sau khi thu hồi, tài khoản sẽ chuyển về vai trò người dùng thường (USER) và toàn bộ quyền quản trị giải đấu đã gán sẽ bị hủy hiệu lực.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
-              <Button type="button" variant="secondary" onClick={() => setRevokingTa(null)}>
+              <Button type="button" variant="secondary" disabled={revokePending} onClick={handleCloseRevokeModal}>
                 Hủy
               </Button>
               <Button
