@@ -83,6 +83,12 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
       getDraft: vi.fn(),
       patchDraft: vi.fn(),
       deleteDraft: vi.fn(),
+      getTournamentDetail: vi.fn(),
+      getTournamentReadiness: vi.fn(),
+      openScheduled: vi.fn(),
+      startTournament: vi.fn(),
+      pauseTournament: vi.fn(),
+      resumeTournament: vi.fn(),
     };
   });
 

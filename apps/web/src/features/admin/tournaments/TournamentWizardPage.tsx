@@ -11,9 +11,14 @@ import {
 } from "./tournamentApi";
 import {
   createDefaultCoreConfig,
+  tournamentDtoToDraftFormData,
   type DraftFormData,
 } from "./tournamentTypes";
-import { DEFAULT_TOURNAMENT_RULE_PROFILE, type TournamentDto } from "@ottv2/contracts";
+import {
+  DEFAULT_TOURNAMENT_RULE_PROFILE,
+  validateTournamentCoreConfigSemantics,
+  type TournamentDto,
+} from "@ottv2/contracts";
 
 interface TournamentWizardPageProps {
   apiClient?: TournamentApiPort;
@@ -38,6 +43,25 @@ const DEFAULT_FORM_DATA: DraftFormData = {
   minParticipants: 4,
   maxParticipants: 32,
   checkinRequired: false,
+  allowedUnitCodes: ["unit-fit-vnu"],
+  checkinOpenAt: "",
+  checkinCloseAt: "",
+  botDeadlineAt: "",
+  organizersText: "Ban Tổ chức Giải đấu",
+  regulationsText: "Điều lệ tiêu chuẩn Robot Lab",
+  contactChannel: "contact@fit.vnu.edu.vn",
+  maxMatchesPerPlayer: null,
+  maxPairMeetings: 2,
+  rematchCooldownMinutes: 5,
+  maxConcurrentMatches: 8,
+  byeScorePoints: 0,
+  spectatorPolicy: "ROSTER_ONLY",
+  chatPolicy: "SPECTATOR_MUTED",
+  leaderboardVisibility: "LIVE_PUBLIC",
+  initialScore: 1000,
+  initialElo: 1000,
+  kFactor: 32,
+  scoreFloor: 0,
 };
 
 function slugify(text: string): string {
@@ -120,23 +144,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         setServerRevision(dto.revision);
         setFormData((prev) => ({
           ...prev,
-          tournamentId: dto.id,
-          name: dto.coreConfig.tournamentName,
-          slug: dto.coreConfig.tournamentCode,
-          description: dto.coreConfig.shortDescription || "",
-          contractId: dto.contractId,
-          organizerUnitId: dto.unitId,
-          visibility: dto.coreConfig.audienceScope === "PUBLIC_REGISTERED" ? "PUBLIC" : "PRIVATE",
-          timezone: dto.coreConfig.timezone,
-          startAt: dto.coreConfig.scheduledStartAt || "",
-          endAt: dto.coreConfig.scheduledEndAt || "",
-          rosterOpenAt: dto.coreConfig.registrationOpenAt || "",
-          rosterCloseAt: dto.coreConfig.registrationCloseAt || "",
-          competitionMode: dto.coreConfig.competitionMode,
-          minParticipants: dto.coreConfig.minParticipantsToStart,
-          maxParticipants: dto.coreConfig.maxParticipants,
-          checkinRequired: dto.coreConfig.checkinRequired,
-          expectedRevision: dto.revision,
+          ...tournamentDtoToDraftFormData(dto),
         }));
       })
       .catch((err: unknown) => {
@@ -182,15 +190,31 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       tournamentCode: formData.slug || `TOUR_${Date.now()}`,
       tournamentName: formData.name || "Bản nháp giải đấu chưa đặt tên",
       description: formData.description,
-      organizersText: "Ban Tổ chức Giải đấu",
+      organizersText: formData.organizersText || "Ban Tổ chức Giải đấu",
       competitionMode: formData.competitionMode,
       audienceScope: formData.visibility === "PUBLIC" ? "PUBLIC_REGISTERED" : "INTERNAL_UNIT",
+      allowedUnitCodes: formData.allowedUnitCodes,
       scheduledStartAt: effectiveStart,
       scheduledEndAt: effectiveEnd,
       maxParticipants: formData.maxParticipants,
       minParticipantsToStart: formData.minParticipants,
       timezone: formData.timezone,
       checkinRequired: formData.checkinRequired,
+      checkinOpenAt: formData.checkinOpenAt || null,
+      checkinCloseAt: formData.checkinCloseAt || null,
+      botDeadlineAt: formData.botDeadlineAt || null,
+      maxMatchesPerPlayer: formData.maxMatchesPerPlayer,
+      maxPairMeetings: formData.maxPairMeetings,
+      rematchCooldownMinutes: formData.rematchCooldownMinutes,
+      maxConcurrentMatches: formData.maxConcurrentMatches,
+      byeScorePoints: formData.byeScorePoints,
+      spectatorPolicy: formData.spectatorPolicy,
+      chatPolicy: formData.chatPolicy,
+      leaderboardVisibility: formData.leaderboardVisibility,
+      initialScore: formData.initialScore,
+      initialElo: formData.initialElo,
+      kFactor: formData.kFactor,
+      scoreFloor: formData.scoreFloor,
     });
 
     try {
@@ -247,15 +271,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       setServerRevision(dto.revision);
       setFormData((prev) => ({
         ...prev,
-        name: dto.coreConfig.tournamentName,
-        slug: dto.coreConfig.tournamentCode,
-        description: dto.coreConfig.shortDescription || "",
-        timezone: dto.coreConfig.timezone,
-        startAt: dto.coreConfig.scheduledStartAt || "",
-        endAt: dto.coreConfig.scheduledEndAt || "",
-        competitionMode: dto.coreConfig.competitionMode,
-        maxParticipants: dto.coreConfig.maxParticipants,
-        expectedRevision: dto.revision,
+        ...tournamentDtoToDraftFormData(dto),
       }));
       setConflictWarning(null);
       setErrorMessage(null);
@@ -630,22 +646,68 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-              <label htmlFor={visibilityInputId} style={{ fontSize: "0.85rem", fontWeight: 600 }}>
-                Chế độ hiển thị giải đấu
-              </label>
-              <select
-                id={visibilityInputId}
-                className="select"
-                value={formData.visibility}
-                onChange={(e) => updateField("visibility", e.target.value as any)}
-                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
-              >
-                <option value="PRIVATE">PRIVATE — Chỉ thành viên được mời và ban tổ chức</option>
-                <option value="PUBLIC">PUBLIC — Công khai cho toàn hệ thống theo dõi</option>
-                <option value="UNLISTED">UNLISTED — Không liệt kê công khai, truy cập qua liên kết trực tiếp</option>
-              </select>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                <label htmlFor={visibilityInputId} style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                  Chế độ hiển thị giải đấu
+                </label>
+                <select
+                  id={visibilityInputId}
+                  className="select"
+                  value={formData.visibility}
+                  onChange={(e) => updateField("visibility", e.target.value as any)}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                >
+                  <option value="PRIVATE">PRIVATE / INTERNAL — Nội bộ đơn vị</option>
+                  <option value="PUBLIC">PUBLIC — Công khai cho toàn hệ thống theo dõi</option>
+                  <option value="UNLISTED">UNLISTED — Không liệt kê công khai</option>
+                </select>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                <label htmlFor="wizard-organizers" style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                  Tên ban tổ chức hiển thị
+                </label>
+                <input
+                  id="wizard-organizers"
+                  type="text"
+                  data-testid="wizard-organizers-input"
+                  className="input"
+                  value={formData.organizersText || ""}
+                  onChange={(e) => updateField("organizersText", e.target.value)}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                />
+              </div>
             </div>
+
+            {formData.visibility === "PRIVATE" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                <label htmlFor="wizard-allowed-units" style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                  Mã đơn vị được phép tham gia (INTERNAL_UNIT) <span style={{ color: "var(--system-red)" }}>*</span>
+                </label>
+                <input
+                  id="wizard-allowed-units"
+                  type="text"
+                  data-testid="wizard-allowed-units-input"
+                  className="input"
+                  placeholder="unit-fit-vnu, unit-khtn"
+                  value={(formData.allowedUnitCodes || []).join(", ")}
+                  onChange={(e) =>
+                    updateField(
+                      "allowedUnitCodes",
+                      e.target.value
+                        .split(",")
+                        .map((u) => u.trim())
+                        .filter(Boolean)
+                    )
+                  }
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                />
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  Nhập danh sách mã khoa/viện cách nhau bằng dấu phẩy. Bắt buộc có ít nhất 1 đơn vị khi chọn giải nội bộ.
+                </span>
+              </div>
+            )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               <label htmlFor={descInputId} style={{ fontSize: "0.85rem", fontWeight: 600 }}>
@@ -764,6 +826,94 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 />
               </div>
             </div>
+
+            {/* S04: Conditional Check-in Window */}
+            {formData.checkinRequired && (
+              <div
+                style={{
+                  padding: "1rem",
+                  borderRadius: "6px",
+                  background: "color-mix(in srgb, var(--system-cyan) 6%, var(--surface))",
+                  border: "1px solid color-mix(in srgb, var(--system-cyan) 25%, var(--border))",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.75rem",
+                }}
+              >
+                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--system-cyan)" }}>
+                  ✓ Điểm danh bắt buộc — Cửa sổ check-in
+                </span>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    <label htmlFor="wizard-checkin-open" style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                      Mở check-in
+                    </label>
+                    <input
+                      id="wizard-checkin-open"
+                      type="datetime-local"
+                      data-testid="wizard-checkin-open-input"
+                      className="input"
+                      value={formData.checkinOpenAt ? String(formData.checkinOpenAt).slice(0, 16) : ""}
+                      onChange={(e) => updateField("checkinOpenAt", e.target.value ? new Date(e.target.value).toISOString() : null)}
+                      style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                    />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    <label htmlFor="wizard-checkin-close" style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                      Đóng check-in (trước giờ thi đấu)
+                    </label>
+                    <input
+                      id="wizard-checkin-close"
+                      type="datetime-local"
+                      data-testid="wizard-checkin-close-input"
+                      className="input"
+                      value={formData.checkinCloseAt ? String(formData.checkinCloseAt).slice(0, 16) : ""}
+                      onChange={(e) => updateField("checkinCloseAt", e.target.value ? new Date(e.target.value).toISOString() : null)}
+                      style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                    />
+                  </div>
+                </div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)" }}>
+                  Thời gian đóng check-in phải trước thời gian bắt đầu thi đấu.
+                </span>
+              </div>
+            )}
+
+            {/* S04: Conditional Bot Deadline */}
+            {formData.competitionMode === "BOT_VS_BOT" && (
+              <div
+                style={{
+                  padding: "1rem",
+                  borderRadius: "6px",
+                  background: "color-mix(in srgb, var(--accent) 6%, var(--surface))",
+                  border: "1px solid color-mix(in srgb, var(--accent) 25%, var(--border))",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
+                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent)" }}>
+                  🤖 Chế độ BOT_VS_BOT — Hạn nộp bot
+                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                  <label htmlFor="wizard-bot-deadline" style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                    Hạn nộp bot (trước giờ thi đấu)
+                  </label>
+                  <input
+                    id="wizard-bot-deadline"
+                    type="datetime-local"
+                    data-testid="wizard-bot-deadline-input"
+                    className="input"
+                    value={formData.botDeadlineAt ? String(formData.botDeadlineAt).slice(0, 16) : ""}
+                    onChange={(e) => updateField("botDeadlineAt", e.target.value ? new Date(e.target.value).toISOString() : null)}
+                    style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  />
+                  <span style={{ fontSize: "0.73rem", color: "var(--text-muted)" }}>
+                    Bot phải được nộp trước thời điểm này. Hạn nộp phải trước giờ thi đấu bắt đầu.
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -855,6 +1005,283 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 Yêu cầu thí sinh điểm danh trực tuyến trước giờ khai mạc
               </label>
             </div>
+
+            {/* S04: Operational Controls */}
+            <div
+              style={{
+                padding: "1rem",
+                borderRadius: "6px",
+                background: "var(--surface-subtle)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+                marginTop: "0.5rem",
+              }}
+            >
+              <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                ⚙️ Kiểm soát vận hành trận đấu
+              </span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-max-matches" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                    Số trận tối đa / thí sinh
+                  </label>
+                  <input
+                    id="wizard-max-matches"
+                    type="number"
+                    data-testid="wizard-max-matches-input"
+                    className="input"
+                    min={1}
+                    placeholder="Không giới hạn"
+                    value={formData.maxMatchesPerPlayer ?? ""}
+                    onChange={(e) => updateField("maxMatchesPerPlayer", e.target.value ? Number(e.target.value) : null)}
+                    style={{ padding: "0.5rem 0.65rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-max-pair" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                    Gặp tối đa / cặp thí sinh
+                  </label>
+                  <input
+                    id="wizard-max-pair"
+                    type="number"
+                    data-testid="wizard-max-pair-input"
+                    className="input"
+                    min={1}
+                    max={10}
+                    value={formData.maxPairMeetings ?? 2}
+                    onChange={(e) => updateField("maxPairMeetings", Number(e.target.value))}
+                    style={{ padding: "0.5rem 0.65rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-rematch-cooldown" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                    Rematch cooldown (phút)
+                  </label>
+                  <input
+                    id="wizard-rematch-cooldown"
+                    type="number"
+                    data-testid="wizard-rematch-cooldown-input"
+                    className="input"
+                    min={0}
+                    value={formData.rematchCooldownMinutes ?? 5}
+                    onChange={(e) => updateField("rematchCooldownMinutes", Number(e.target.value))}
+                    style={{ padding: "0.5rem 0.65rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-max-concurrent" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                    Trận đồng thời tối đa
+                  </label>
+                  <input
+                    id="wizard-max-concurrent"
+                    type="number"
+                    data-testid="wizard-max-concurrent-input"
+                    className="input"
+                    min={1}
+                    max={64}
+                    value={formData.maxConcurrentMatches ?? 8}
+                    onChange={(e) => updateField("maxConcurrentMatches", Number(e.target.value))}
+                    style={{ padding: "0.5rem 0.65rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0.3rem" }}>
+                <label htmlFor="wizard-bye-score" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                  Điểm trận bye (bye score points)
+                </label>
+                <input
+                  id="wizard-bye-score"
+                  type="number"
+                  data-testid="wizard-bye-score-input"
+                  className="input"
+                  min={0}
+                  value={formData.byeScorePoints ?? 0}
+                  onChange={(e) => updateField("byeScorePoints", Number(e.target.value))}
+                  style={{ padding: "0.5rem 0.65rem", fontSize: "0.85rem", maxWidth: "200px" }}
+                />
+              </div>
+            </div>
+
+            {/* S04: Scoring Preset Group */}
+            <div
+              style={{
+                padding: "1rem",
+                borderRadius: "6px",
+                background: "color-mix(in srgb, var(--system-cyan) 5%, var(--surface))",
+                border: "1px solid color-mix(in srgb, var(--system-cyan) 20%, var(--border))",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+              }}
+            >
+              <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                📊 Cấu hình tính điểm (ELO_WEIGHTED_V1)
+              </span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0.75rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-initial-score" style={{ fontSize: "0.78rem", fontWeight: 600 }}>
+                    Điểm khởi đầu
+                  </label>
+                  <input
+                    id="wizard-initial-score"
+                    type="number"
+                    data-testid="wizard-initial-score-input"
+                    className="input"
+                    value={formData.initialScore ?? 1000}
+                    onChange={(e) => updateField("initialScore", Number(e.target.value))}
+                    style={{ padding: "0.45rem 0.5rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-initial-elo" style={{ fontSize: "0.78rem", fontWeight: 600 }}>
+                    Elo khởi đầu
+                  </label>
+                  <input
+                    id="wizard-initial-elo"
+                    type="number"
+                    data-testid="wizard-initial-elo-input"
+                    className="input"
+                    value={formData.initialElo ?? 1000}
+                    onChange={(e) => updateField("initialElo", Number(e.target.value))}
+                    style={{ padding: "0.45rem 0.5rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-k-factor" style={{ fontSize: "0.78rem", fontWeight: 600 }}>
+                    K-Factor
+                  </label>
+                  <input
+                    id="wizard-k-factor"
+                    type="number"
+                    data-testid="wizard-k-factor-input"
+                    className="input"
+                    min={1}
+                    max={128}
+                    value={formData.kFactor ?? 32}
+                    onChange={(e) => updateField("kFactor", Number(e.target.value))}
+                    style={{ padding: "0.45rem 0.5rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-score-floor" style={{ fontSize: "0.78rem", fontWeight: 600 }}>
+                    Sàn điểm
+                  </label>
+                  <input
+                    id="wizard-score-floor"
+                    type="number"
+                    data-testid="wizard-score-floor-input"
+                    className="input"
+                    value={formData.scoreFloor ?? 0}
+                    onChange={(e) => updateField("scoreFloor", Number(e.target.value))}
+                    style={{ padding: "0.45rem 0.5rem", fontSize: "0.85rem" }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* S04: Privacy & Spectator Policies */}
+            <div
+              style={{
+                padding: "1rem",
+                borderRadius: "6px",
+                background: "var(--surface-subtle)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.75rem",
+              }}
+            >
+              <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                👁️ Quyền riêng tư & Chế độ khán giả
+              </span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-spectator" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                    Spectator Policy
+                  </label>
+                  <select
+                    id="wizard-spectator"
+                    data-testid="wizard-spectator-select"
+                    className="select"
+                    value={formData.spectatorPolicy || "ROSTER_ONLY"}
+                    onChange={(e) => updateField("spectatorPolicy", e.target.value as any)}
+                    style={{ padding: "0.5rem 0.65rem", fontSize: "0.82rem" }}
+                  >
+                    <option value="ROSTER_ONLY">ROSTER_ONLY — Chỉ thí sinh</option>
+                    <option value="PUBLIC_WATCH">PUBLIC_WATCH — Công khai xem</option>
+                  </select>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-chat" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                    Chat Policy
+                  </label>
+                  <select
+                    id="wizard-chat"
+                    data-testid="wizard-chat-select"
+                    className="select"
+                    value={formData.chatPolicy || "SPECTATOR_MUTED"}
+                    onChange={(e) => updateField("chatPolicy", e.target.value as any)}
+                    style={{ padding: "0.5rem 0.65rem", fontSize: "0.82rem" }}
+                  >
+                    <option value="SPECTATOR_MUTED">SPECTATOR_MUTED — Tắt chat khán giả</option>
+                    <option value="ENABLED">ENABLED — Bật chat cho tất cả</option>
+                  </select>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <label htmlFor="wizard-leaderboard" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                    Leaderboard
+                  </label>
+                  <select
+                    id="wizard-leaderboard"
+                    data-testid="wizard-leaderboard-select"
+                    className="select"
+                    value={formData.leaderboardVisibility || "LIVE_PUBLIC"}
+                    onChange={(e) => updateField("leaderboardVisibility", e.target.value as any)}
+                    style={{ padding: "0.5rem 0.65rem", fontSize: "0.82rem" }}
+                  >
+                    <option value="LIVE_PUBLIC">LIVE_PUBLIC — BXH công khai</option>
+                    <option value="HIDDEN_UNTIL_END">HIDDEN_UNTIL_END — Ẩn đến khi kết thúc</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* S04: Regulations & Contact */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                <label htmlFor="wizard-regulations" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                  Điều lệ giải đấu
+                </label>
+                <input
+                  id="wizard-regulations"
+                  type="text"
+                  data-testid="wizard-regulations-input"
+                  className="input"
+                  value={formData.regulationsText || ""}
+                  onChange={(e) => updateField("regulationsText", e.target.value)}
+                  style={{ padding: "0.5rem 0.65rem", fontSize: "0.85rem" }}
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                <label htmlFor="wizard-contact" style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                  Kênh liên hệ
+                </label>
+                <input
+                  id="wizard-contact"
+                  type="text"
+                  data-testid="wizard-contact-input"
+                  className="input"
+                  placeholder="email hoặc link chat group"
+                  value={formData.contactChannel || ""}
+                  onChange={(e) => updateField("contactChannel", e.target.value)}
+                  style={{ padding: "0.5rem 0.65rem", fontSize: "0.85rem" }}
+                />
+              </div>
+            </div>
           </div>
         )}
 
@@ -865,6 +1292,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
               Bước 4: Tổng quan cấu hình bản nháp
             </h2>
 
+            {/* Core identity */}
             <div
               style={{
                 display: "grid",
@@ -899,6 +1327,132 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>QUY MÔ THÍ SINH:</span>
                 <span>{formData.minParticipants} – {formData.maxParticipants} thí sinh</span>
               </div>
+              <div>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>BAN TỔ CHỨC:</span>
+                <span>{formData.organizersText || "(Chưa nhập)"}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>HIỂN THỊ:</span>
+                <span>{formData.visibility}</span>
+              </div>
+            </div>
+
+            {/* S04: Schedule summary */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "0.75rem",
+                background: "var(--surface-subtle)",
+                padding: "1rem",
+                borderRadius: "6px",
+              }}
+            >
+              <div style={{ gridColumn: "1 / -1" }}>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)" }}>LỊCH TRÌNH & ĐIỂM DANH</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>BẮT ĐẦU:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.startAt ? new Date(formData.startAt).toLocaleString("vi-VN") : "—"}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>KẾT THÚC:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.endAt ? new Date(formData.endAt).toLocaleString("vi-VN") : "—"}</span>
+              </div>
+              {formData.checkinRequired && (
+                <>
+                  <div>
+                    <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>MỞ CHECK-IN:</span>
+                    <span style={{ fontSize: "0.85rem" }}>{formData.checkinOpenAt ? new Date(formData.checkinOpenAt).toLocaleString("vi-VN") : "—"}</span>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>ĐÓNG CHECK-IN:</span>
+                    <span style={{ fontSize: "0.85rem" }}>{formData.checkinCloseAt ? new Date(formData.checkinCloseAt).toLocaleString("vi-VN") : "—"}</span>
+                  </div>
+                </>
+              )}
+              {formData.competitionMode === "BOT_VS_BOT" && (
+                <div>
+                  <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>HẠN NỘP BOT:</span>
+                  <span style={{ fontSize: "0.85rem" }}>{formData.botDeadlineAt ? new Date(formData.botDeadlineAt).toLocaleString("vi-VN") : "—"}</span>
+                </div>
+              )}
+            </div>
+
+            {/* S04: Operational & Scoring summary */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "0.75rem",
+                background: "var(--surface-subtle)",
+                padding: "1rem",
+                borderRadius: "6px",
+              }}
+            >
+              <div style={{ gridColumn: "1 / -1" }}>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)" }}>KIỂM SOÁT VẬN HÀNH & TÍNH ĐIỂM</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>TRẬN/THÍ SINH:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.maxMatchesPerPlayer ?? "∞"}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>GẶP/CẶP:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.maxPairMeetings ?? 2}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>COOLDOWN:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.rematchCooldownMinutes ?? 5} phút</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>ĐỒNG THỜI:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.maxConcurrentMatches ?? 8}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>SCORE KHỞI:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.initialScore ?? 1000}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>ELO KHỞI:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.initialElo ?? 1000}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>K-FACTOR:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.kFactor ?? 32}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>SÀN ĐIỂM:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.scoreFloor ?? 0}</span>
+              </div>
+            </div>
+
+            {/* S04: Privacy summary */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "0.75rem",
+                background: "var(--surface-subtle)",
+                padding: "1rem",
+                borderRadius: "6px",
+              }}
+            >
+              <div style={{ gridColumn: "1 / -1" }}>
+                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)" }}>QUYỀN RIÊNG TƯ & KHÁN GIẢ</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>SPECTATOR:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.spectatorPolicy || "ROSTER_ONLY"}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>CHAT:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.chatPolicy || "SPECTATOR_MUTED"}</span>
+              </div>
+              <div>
+                <span style={{ fontSize: "0.73rem", color: "var(--text-muted)", display: "block" }}>LEADERBOARD:</span>
+                <span style={{ fontSize: "0.85rem" }}>{formData.leaderboardVisibility || "LIVE_PUBLIC"}</span>
+              </div>
             </div>
 
             <div
@@ -910,7 +1464,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 fontSize: "0.85rem",
               }}
             >
-              <strong>Trạng thái sẵn sàng nộp duyệt:</strong> Bản nháp cơ bản đã hợp lệ và được lưu an toàn. Các bước bổ sung luật thi đấu tùy biến (P04) và cấu hình điều hành (S04 / S07) sẽ được nối tiếp theo kế hoạch.
+              <strong>Trạng thái sẵn sàng nộp duyệt:</strong> Bản nháp cơ bản đã hợp lệ và được lưu an toàn. Cấu hình mở rộng (S04) đã hoàn tất. Bước tiếp theo: nối Rule Editor (S07) và nộp duyệt.
             </div>
           </div>
         )}

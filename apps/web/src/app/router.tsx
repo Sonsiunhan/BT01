@@ -26,6 +26,7 @@ const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
+const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 
 export function AppRouter() {
@@ -81,14 +82,7 @@ export function AppRouter() {
         />
         <Route
           path={routes.adminTournamentDetail}
-          element={
-            <AdminRoutePending
-              pageCode="P03"
-              title="Chi tiết & Match-Center giải đấu"
-              targetTask="S05"
-              description="Tổng quan tiến độ giải đấu, bảng lịch trận CTF/Custom và panel giám sát theo thời gian thực."
-            />
-          }
+          element={<TournamentDetailPage />}
         />
         <Route
           path={routes.adminTournamentOperations}
