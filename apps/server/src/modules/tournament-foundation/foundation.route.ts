@@ -29,10 +29,22 @@ export async function resolveTournamentRequestActor(
       ? request.headers["x-command-id"]
       : undefined;
 
+  const authUser = context.user as any;
+  const userRoles: string[] = [];
+  if (authUser?.role && typeof authUser.role === "string") {
+    userRoles.push(authUser.role);
+  }
+  if (Array.isArray(authUser?.roles)) {
+    for (const r of authUser.roles) {
+      if (typeof r === "string") userRoles.push(r);
+    }
+  }
+
   return store.resolveAuthoritativeActor({
     userId: context.user.id,
     username: context.user.username,
     principalType: context.principal === "GUEST" ? "GUEST" : "USER",
+    roles: userRoles,
     correlationId,
   });
 }

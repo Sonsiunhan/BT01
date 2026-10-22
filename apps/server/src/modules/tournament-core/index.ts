@@ -88,7 +88,7 @@ export async function registerTournamentInitializationRoutes(
     adjudicationLedgerService: bundle.adjudicationLedgerService,
   });
 
-  // C32 & T005 Hook on Online Matchmaking Queue and Room Player Creation/Join
+  // C32 & T005 Hook on Online Matchmaking Queue, Room Creation/Join, Spectate and Seat Upgrade
   app.addHook("preHandler", async (request) => {
     if (request.method !== "POST") return;
     const urlPath = request.url.split("?", 1)[0] ?? "";
@@ -97,24 +97,44 @@ export async function registerTournamentInitializationRoutes(
       | "ONLINE_QUEUE_JOIN"
       | "ONLINE_ROOM_CREATE"
       | "ONLINE_ROOM_JOIN_PLAYER"
+      | "ONLINE_SEAT_UPGRADE_TO_PLAYER"
+      | "SPECTATE_ROOM"
+      | "REFEREE_ENTER_ROOM"
       | null = null;
+    let roomId: string | undefined;
+
     if (urlPath === "/matchmaking/queue") {
       action = "ONLINE_QUEUE_JOIN";
     } else if (urlPath === "/rooms") {
-      action = "ONLINE_ROOM_CREATE";
-    } else if (/^\/rooms\/[^/]+\/join$/.test(urlPath)) {
-      action = "ONLINE_ROOM_JOIN_PLAYER";
+      const body = request.body as any;
+      if (body && typeof body === "object" && body.hostRole === "REFEREE") {
+        action = "REFEREE_ENTER_ROOM";
+      } else {
+        action = "ONLINE_ROOM_CREATE";
+      }
+    } else {
+      const joinMatch = /^\/rooms\/([^/]+)\/join$/.exec(urlPath);
+      if (joinMatch) {
+        action = "ONLINE_ROOM_JOIN_PLAYER";
+        roomId = joinMatch[1];
+      } else {
+        const spectateMatch = /^\/rooms\/([^/]+)\/spectate$/.exec(urlPath);
+        if (spectateMatch) {
+          action = "SPECTATE_ROOM";
+          roomId = spectateMatch[1];
+        } else {
+          const seatMatch = /^\/rooms\/([^/]+)\/(?:seat|seat-upgrade|player-upgrade)$/.exec(urlPath);
+          if (seatMatch) {
+            action = "ONLINE_SEAT_UPGRADE_TO_PLAYER";
+            roomId = seatMatch[1];
+          } else if (/^\/rooms\/referee\/invites\/[^/]+\/accept$/.test(urlPath)) {
+            action = "REFEREE_ENTER_ROOM";
+          }
+        }
+      }
     }
 
     if (!action) return;
-
-    const hasActiveWindow = Array.from(bundle.store.tournaments.values()).some(
-      (t) => t.status === "RUNNING" || t.status === "PAUSED"
-    );
-    const hasConfiguredSystemAdmins = bundle.store.systemRoles.size > 0;
-    if (!hasActiveWindow && !hasConfiguredSystemAdmins) {
-      return;
-    }
 
     try {
       const actor = await resolveTournamentRequestActor(
@@ -127,6 +147,7 @@ export async function registerTournamentInitializationRoutes(
         principalId: actor.userId,
         roles: actor.roles,
         action,
+        roomId,
       });
     } catch (err) {
       // Only rethrow if it is our admission gate error (403/409); let route handler handle unauthenticated 401
