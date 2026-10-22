@@ -191,6 +191,8 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
   );
 };
 
+// Exported as a deterministic presentation seam for the S02 contract test.
+// eslint-disable-next-line react-refresh/only-export-components
 export function getStatusBadgeConfig(status: TournamentLifecycleStatus): {
   label: string;
   bg: string;

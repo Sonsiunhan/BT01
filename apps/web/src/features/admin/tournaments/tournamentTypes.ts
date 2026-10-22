@@ -11,7 +11,7 @@ import {
 
 export interface TournamentDetailData {
   tournament: TournamentDto;
-  configVersions: any[];
+  configVersions: unknown[];
   readiness?: TournamentReadinessSnapshot;
 }
 
