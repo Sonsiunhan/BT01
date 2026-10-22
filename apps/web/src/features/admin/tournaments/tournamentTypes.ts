@@ -2,11 +2,18 @@ import {
   type TournamentStatus,
   type TournamentDto,
   type TournamentCoreConfig,
+  type TournamentReadinessSnapshot,
   type SpectatorPolicy,
   type ChatPolicy,
   type LeaderboardVisibility,
   normalizeTournamentCoreConfig,
 } from "@ottv2/contracts";
+
+export interface TournamentDetailData {
+  tournament: TournamentDto;
+  configVersions: any[];
+  readiness?: TournamentReadinessSnapshot;
+}
 
 // Canonical status from @ottv2/contracts + extended lifecycle UI states
 export type TournamentLifecycleStatus =
