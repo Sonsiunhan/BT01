@@ -9,3 +9,4 @@ export * from "./profiles.js";
 export * from "./coordinates.js";
 export * from "./setup.js";
 export * from "./engine.js";
+export * from "./goals.js";

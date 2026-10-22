@@ -73,7 +73,7 @@ describe("N02 TournamentRulesPreviewService", () => {
     expect(first.checks.runtime).toBe("NOT_CHECKED");
   });
 
-  it("reports unsupported CYCLE and stale revision before preview side effects", async () => {
+  it("previews CYCLE and rejects stale revision before any mutation", async () => {
     let reads = 0;
     const reader: TournamentPreviewScopeReader = { read: async () => { reads += 1; return scope(); } };
     const service = new TournamentRulesPreviewService(reader);
@@ -86,9 +86,10 @@ describe("N02 TournamentRulesPreviewService", () => {
         },
       },
     });
-    const unsupported = await service.preview(context(), "t-1", cycle);
-    expect(unsupported.valid).toBe(false);
-    expect(unsupported.errors.map((error) => error.code)).toContain("UNSUPPORTED_CAPABILITY");
+    const dynamic = await service.preview(context(), "t-1", cycle);
+    expect(dynamic.valid).toBe(true);
+    expect(dynamic.progress.activeGoalBySide.BLUE).toBe("o5");
+    expect(dynamic.goalReachabilityBySide.BLUE).toContainEqual({ cell: "o5", status: "PASS" });
     await expect(service.preview(context(), "t-1", request({ expectedConfigRevision: 99 }))).rejects.toMatchObject({ code: "CONFLICT" });
     expect(reads).toBe(2);
   });
@@ -97,5 +98,28 @@ describe("N02 TournamentRulesPreviewService", () => {
     const service = new TournamentRulesPreviewService({ read: async () => scope({ ownerTaUserId: "other" }) });
     await expect(service.preview(context("USER"), "t-1", request())).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(service.preview(context(), "t-1", request())).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("returns public SEEDED progress metadata and filters own initial candidates", async () => {
+    const service = new TournamentRulesPreviewService({ read: async () => scope() });
+    const seeded = request({
+      profile: {
+        ...request().profile,
+        profile: {
+          ...request().profile.profile,
+          goalProfiles: {
+            BLUE: { mode: "SEEDED", candidateCells: ["n5", "o5"], roundInterval: 1, policyVersion: "goal-prng-v1" },
+            RED: { mode: "STATIC", cell: "a1" },
+          },
+          seedContext: { seed: 17, matchKey: "preview-t-1", policyVersion: "goal-prng-v1" },
+        },
+      },
+    });
+    const response = await service.preview(context(), "t-1", seeded);
+    expect(response.valid).toBe(true);
+    expect(response.progress.seedContext).toEqual({ seed: 17, matchKey: "preview-t-1", policyVersion: "goal-prng-v1" });
+    expect(response.progress.activeGoalBySide.BLUE).toBe("o5");
+    expect(response.goalReachabilityBySide.BLUE).toContainEqual({ cell: "o5", status: "PASS" });
+    expect(JSON.stringify(response)).not.toContain("runtimeSecret");
   });
 });

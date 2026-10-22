@@ -1,4 +1,5 @@
 import { coordinateToPosition, getBoardCoordinates, isCoordinateInBoard, positionToCoordinate } from "./coordinates.js";
+import { advanceRuleProgress, createRuleProgress, getActiveGoal, goalProfilesHaveProgress } from "./goals.js";
 import { LEGACY_RULE_PROFILE } from "./profiles.js";
 import type {
   Board,
@@ -177,11 +178,6 @@ function hasWinCondition(profile: RuleProfile, condition: "EXTINCTION" | "GOAL_R
   return profile.winConditions?.includes(condition) ?? false;
 }
 
-function staticGoal(profile: RuleProfile, side: Side): MoveCommand["to"] | null {
-  const goal = profile.goalProfiles?.[side];
-  return goal?.mode === "STATIC" ? goal.cell : null;
-}
-
 export function getLegalDestinations(state: RuleState, side: Side, from: unknown): readonly MoveCommand["to"][] {
   const profile = profileForState(state);
   if (state.status === "FINISHED" || state.currentTurn !== side || !isCoordinateInBoard(profile.board, from)) return [];
@@ -205,12 +201,9 @@ export function hasLegalMove(state: RuleState, side: Side): boolean {
   return getLegalMoves(state, side).length > 0;
 }
 
-/**
- * Basic BR-11 reachability check for a static goal. It ignores blockers and
- * captures by using a one-piece probe state, while retaining engine geometry.
- */
-export function hasBasicGoalReachability(profile: RuleProfile, side: Side): boolean {
-  const goal = staticGoal(profile, side);
+/** Basic reachability check retaining engine geometry while ignoring blockers/captures. */
+export function hasBasicGoalReachability(profile: RuleProfile, side: Side, goalOverride?: Coordinate): boolean {
+  const goal = goalOverride ?? getActiveGoal(profile, side, createRuleProgress(profile));
   if (goal === null) return false;
   const emptyBoard = Object.fromEntries(getBoardCoordinates(profile.board).map((coordinate) => [coordinate, null])) as Board;
   for (const entry of profile.layout) {
@@ -267,8 +260,13 @@ export function applyMove(state: RuleState, command: MoveCommand): MoveResult {
   const pieceCounts = cloneCounts(state.pieceCounts);
   if (captured !== null) pieceCounts[captured.side][captured.type] -= 1;
 
+  const currentProgress = state.progress ?? (goalProfilesHaveProgress(profile) ? createRuleProgress(profile) : undefined);
+  const nextProgress = currentProgress === undefined ? undefined : advanceRuleProgress(profile, currentProgress);
   const extinction = hasWinCondition(profile, "EXTINCTION") && createsExtinction(pieceCounts, command.side);
-  const reachedGoal = hasWinCondition(profile, "GOAL_REACHED") && staticGoal(profile, command.side) === command.to;
+  const activeGoal = currentProgress === undefined
+    ? getActiveGoal(profile, command.side)
+    : currentProgress.activeGoalBySide[command.side];
+  const reachedGoal = hasWinCondition(profile, "GOAL_REACHED") && activeGoal === command.to;
   const winner = extinction || reachedGoal ? command.side : null;
   const resultReason = extinction ? "EXTINCTION" : reachedGoal ? "GOAL_REACHED" : null;
   const nextTurn = winner === null ? otherSide(command.side) : null;
@@ -284,6 +282,7 @@ export function applyMove(state: RuleState, command: MoveCommand): MoveResult {
       winner,
       resultReason,
       ruleProfile: profile,
+      ...(nextProgress === undefined ? {} : { progress: nextProgress }),
     };
     if (!hasLegalMove(tempState, nextTurn)) {
       nextState = {
@@ -294,6 +293,7 @@ export function applyMove(state: RuleState, command: MoveCommand): MoveResult {
         winner: command.side,
         resultReason: "NO_LEGAL_MOVES",
         ruleProfile: profile,
+        ...(nextProgress === undefined ? {} : { progress: nextProgress }),
       };
     } else {
       nextState = tempState;
@@ -307,6 +307,7 @@ export function applyMove(state: RuleState, command: MoveCommand): MoveResult {
       winner,
       resultReason,
       ruleProfile: profile,
+      ...(nextProgress === undefined ? {} : { progress: nextProgress }),
     };
   }
 

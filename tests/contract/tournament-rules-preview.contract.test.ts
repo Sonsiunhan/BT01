@@ -85,6 +85,13 @@ describe("N02 typed rule-preview contracts", () => {
       errors: [{ path: "profile.profile.version", code: "UNSUPPORTED_VERSION", messageKey: "rules.UNSUPPORTED_VERSION", message: "Không hỗ trợ." }],
       warnings: [],
       checks: { structural: "FAIL", initialNonTerminal: "NOT_CHECKED", initialLegalMoves: "NOT_CHECKED", goalReachability: "NOT_CHECKED", runtime: "NOT_CHECKED" },
+      progress: {
+        acceptedPlies: 0,
+        roundIndex: 0,
+        activeGoalBySide: { BLUE: null, RED: null },
+        seedContext: null,
+      },
+      goalReachabilityBySide: { BLUE: [], RED: [] },
       legalMovesBySide: { BLUE: [], RED: [] },
       runtimeStatus: "NOT_CHECKED",
     });

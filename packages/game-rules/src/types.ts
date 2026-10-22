@@ -50,7 +50,26 @@ export type StaticGoalProfile = Readonly<{
   cell: Coordinate;
 }>;
 
-export type GoalProfile = StaticGoalProfile;
+export type CycleGoalProfile = Readonly<{
+  mode: "CYCLE";
+  cells: readonly Coordinate[];
+  roundInterval: number;
+}>;
+
+export type SeededGoalProfile = Readonly<{
+  mode: "SEEDED";
+  candidateCells: readonly Coordinate[];
+  roundInterval: number;
+  policyVersion: string;
+}>;
+
+export type GoalProfile = StaticGoalProfile | CycleGoalProfile | SeededGoalProfile;
+
+export type GoalSeedContext = Readonly<{
+  seed: number;
+  matchKey: string;
+  policyVersion: string;
+}>;
 
 export type LayoutEntry = Readonly<{
   id: string;
@@ -70,6 +89,7 @@ export type RuleProfile = Readonly<{
   movementProfiles: MovementProfiles;
   winConditions?: readonly WinCondition[];
   goalProfiles?: Readonly<Partial<Record<Side, GoalProfile>>>;
+  seedContext?: GoalSeedContext;
 }>;
 
 export type RuleProfileValidationCode =
@@ -91,7 +111,13 @@ export type RuleProfileValidationCode =
   | "INITIAL_OWN_GOAL"
   | "WIN_CONDITION_REQUIRED"
   | "EXTINCTION_REQUIRES_ALL_TYPES"
-  | "MISSING_GOAL_PROFILE";
+  | "MISSING_GOAL_PROFILE"
+  | "GOAL_CELLS_EMPTY"
+  | "DUPLICATE_GOAL_CELL"
+  | "GOAL_INTERVAL_INVALID"
+  | "UNSUPPORTED_GOAL_POLICY"
+  | "MISSING_SEED_CONTEXT"
+  | "SEEDED_GOAL_EMPTY_AFTER_FILTER";
 
 export type RuleProfileValidationIssue = Readonly<{
   code: RuleProfileValidationCode;
@@ -122,7 +148,44 @@ export type RuleState = Readonly<{
   winner: Side | null;
   resultReason: ResultReason;
   ruleProfile?: RuleProfile;
+  progress?: RuleProgress;
 }>;
+
+export type RuleProgress = Readonly<{
+  acceptedPlies: number;
+  roundIndex: number;
+  activeGoalBySide: Readonly<Record<Side, Coordinate | null>>;
+  seedContext: GoalSeedContext | null;
+}>;
+
+export type GoalProgressEvent =
+  | Readonly<{ type: "ACCEPTED_MOVE"; side: Side }>
+  | Readonly<{ type: "REJECTED_MOVE"; side?: Side }>
+  | Readonly<{ type: "PAUSED" }>
+  | Readonly<{ type: "RESUMED" }>
+  | Readonly<{ type: "WALL_TIME"; durationMs: number }>
+  | Readonly<{ type: "QUEUE_TIME"; durationMs: number }>;
+
+/**
+ * Pure precedence input for the match lifecycle owner. N03 exposes the
+ * deterministic ordering without taking ownership of clocks or persistence.
+ */
+export type RuleEventOrderInput = Readonly<{
+  terminal: boolean;
+  terminalWinner: Side | null;
+  deadlineExpired: boolean;
+  naturalWinner: Side | null;
+  plyLimitReached: boolean;
+  goalTickWinner: Side | null;
+}>;
+
+export type RuleEventOrderResult =
+  | Readonly<{ kind: "TERMINAL_LOCKED"; committed: false; winner: Side | null }>
+  | Readonly<{ kind: "REJECTED_DEADLINE"; committed: false; winner: null }>
+  | Readonly<{ kind: "NATURAL_WIN"; committed: true; winner: Side }>
+  | Readonly<{ kind: "PLY_LIMIT"; committed: true; winner: null }>
+  | Readonly<{ kind: "GOAL_TICK"; committed: true; winner: Side }>
+  | Readonly<{ kind: "CONTINUE"; committed: true; winner: null }>;
 
 export type MoveCommand = Readonly<{
   side: Side;

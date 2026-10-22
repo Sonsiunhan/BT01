@@ -81,6 +81,13 @@ const TournamentSeededGoalSchema = z.object({
   policyVersion: z.string().trim().min(1).max(64),
 });
 
+export const TournamentRuleSeedContextSchema = z.object({
+  seed: z.number().int().nonnegative().max(0xffffffff),
+  matchKey: z.string().trim().min(1).max(128),
+  policyVersion: z.literal("goal-prng-v1"),
+});
+export type TournamentRuleSeedContext = z.infer<typeof TournamentRuleSeedContextSchema>;
+
 export const TournamentRuleGoalProfileSchema = z.discriminatedUnion("mode", [
   TournamentStaticGoalSchema,
   TournamentCycleGoalSchema,
@@ -107,6 +114,7 @@ export const TournamentEngineRuleProfileSchema = z.object({
     BLUE: TournamentRuleGoalProfileSchema.optional(),
     RED: TournamentRuleGoalProfileSchema.optional(),
   }).optional(),
+  seedContext: TournamentRuleSeedContextSchema.optional(),
 });
 export type TournamentEngineRuleProfile = z.infer<typeof TournamentEngineRuleProfileSchema>;
 
@@ -150,6 +158,13 @@ export const RulePreviewIssueCodeSchema = z.enum([
   "UNSUPPORTED_CAPABILITY",
   "INITIAL_NO_LEGAL_MOVES",
   "GOAL_UNREACHABLE",
+  "GOAL_CELLS_EMPTY",
+  "DUPLICATE_GOAL_CELL",
+  "GOAL_INTERVAL_INVALID",
+  "UNSUPPORTED_GOAL_POLICY",
+  "MISSING_SEED_CONTEXT",
+  "SEEDED_GOAL_EMPTY_AFTER_FILTER",
+  "SEED_POLICY_MISMATCH",
 ]);
 export type RulePreviewIssueCode = z.infer<typeof RulePreviewIssueCodeSchema>;
 
@@ -177,6 +192,21 @@ export const RulePreviewMoveSchema = z.object({
   to: TournamentRuleCoordinateSchema,
 });
 
+export const RulePreviewProgressSchema = z.object({
+  acceptedPlies: z.number().int().nonnegative(),
+  roundIndex: z.number().int().nonnegative(),
+  activeGoalBySide: z.object({
+    BLUE: TournamentRuleCoordinateSchema.nullable(),
+    RED: TournamentRuleCoordinateSchema.nullable(),
+  }),
+  seedContext: TournamentRuleSeedContextSchema.nullable(),
+});
+
+export const RulePreviewGoalReachabilitySchema = z.object({
+  BLUE: z.array(z.object({ cell: TournamentRuleCoordinateSchema, status: RulePreviewCheckStatusSchema })),
+  RED: z.array(z.object({ cell: TournamentRuleCoordinateSchema, status: RulePreviewCheckStatusSchema })),
+});
+
 export const TournamentRulePreviewResponseSchema = z.object({
   tournamentId: z.string().min(1),
   contractId: z.string().min(1),
@@ -191,6 +221,8 @@ export const TournamentRulePreviewResponseSchema = z.object({
   errors: z.array(RulePreviewIssueSchema),
   warnings: z.array(RulePreviewIssueSchema),
   checks: RulePreviewChecksSchema,
+  progress: RulePreviewProgressSchema,
+  goalReachabilityBySide: RulePreviewGoalReachabilitySchema,
   legalMovesBySide: z.object({
     BLUE: z.array(RulePreviewMoveSchema),
     RED: z.array(RulePreviewMoveSchema),

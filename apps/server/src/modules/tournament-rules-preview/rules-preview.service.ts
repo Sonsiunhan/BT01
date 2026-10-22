@@ -10,6 +10,8 @@ import {
 } from "@ottv2/contracts";
 import {
   createInitialState,
+  createRuleProgress,
+  getGoalCandidates,
   getLegalMoves,
   hasBasicGoalReachability,
   validateRuleProfileForPreview,
@@ -128,10 +130,16 @@ function normalizeMovementProfiles(
 
 function normalizeProfile(input: TournamentRulePreviewRequest["profile"]): RuleProfile {
   const profile = input.profile;
-  const normalizedGoals: Partial<Record<Side, { mode: "STATIC"; cell: string }>> = {};
+  type NormalizedGoalProfile =
+    | { mode: "STATIC"; cell: string }
+    | { mode: "CYCLE"; cells: string[]; roundInterval: number }
+    | { mode: "SEEDED"; candidateCells: string[]; roundInterval: number; policyVersion: string };
+  const normalizedGoals: Partial<Record<Side, NormalizedGoalProfile>> = {};
   for (const side of SIDES) {
     const goal = profile.goalProfiles?.[side];
     if (goal?.mode === "STATIC") normalizedGoals[side] = { mode: "STATIC", cell: goal.cell };
+    if (goal?.mode === "CYCLE") normalizedGoals[side] = { mode: "CYCLE", cells: [...goal.cells], roundInterval: goal.roundInterval };
+    if (goal?.mode === "SEEDED") normalizedGoals[side] = { mode: "SEEDED", candidateCells: [...goal.candidateCells], roundInterval: goal.roundInterval, policyVersion: goal.policyVersion };
   }
   return {
     version: profile.version,
@@ -143,6 +151,7 @@ function normalizeProfile(input: TournamentRulePreviewRequest["profile"]): RuleP
     movementProfiles: normalizeMovementProfiles(profile, input.sameMovementForBothSides),
     winConditions: profile.winConditions,
     ...(profile.goalProfiles === undefined ? {} : { goalProfiles: normalizedGoals }),
+    ...(profile.seedContext === undefined ? {} : { seedContext: { ...profile.seedContext } }),
   } as RuleProfile;
 }
 
@@ -176,6 +185,7 @@ function normalizedContractProfile(profile: RuleProfile): TournamentEngineRulePr
         ...(profile.goalProfiles.RED ? { RED: { ...profile.goalProfiles.RED } } : {}),
       },
     }),
+    ...(profile.seedContext === undefined ? {} : { seedContext: { ...profile.seedContext } }),
   } as TournamentEngineRuleProfile;
 }
 
@@ -217,13 +227,6 @@ export class TournamentRulesPreviewService {
     if (!SUPPORTED_RULE_VERSIONS.has(input.profile.profile.version)) {
       errors.push(issue("profile.profile.version", "UNSUPPORTED_VERSION", "Phiên bản luật chưa được đăng ký."));
     }
-    for (const side of SIDES) {
-      const goal = input.profile.profile.goalProfiles?.[side];
-      if (goal && goal.mode !== "STATIC") {
-        errors.push(issue("profile.profile.goalProfiles." + side + ".mode", "UNSUPPORTED_CAPABILITY", "CYCLE/SEEDED chưa có runtime preview trong N02."));
-      }
-    }
-
     const engineProfile = normalizeProfile(input.profile);
     const structuralIssues = validateRuleProfileForPreview(engineProfile);
     errors.push(...structuralIssues.map((entry) => issue(entry.path, entry.code as RulePreviewIssue["code"], entry.message)));
@@ -234,9 +237,26 @@ export class TournamentRulesPreviewService {
     let initialNonTerminal: "PASS" | "FAIL" | "NOT_CHECKED" = "NOT_CHECKED";
     let initialLegalMoves: "PASS" | "FAIL" | "NOT_CHECKED" = "NOT_CHECKED";
     let goalReachability: "PASS" | "FAIL" | "NOT_CHECKED" = "NOT_CHECKED";
+    const publicSeedContext = engineProfile.seedContext?.policyVersion === "goal-prng-v1"
+      ? { seed: engineProfile.seedContext.seed, matchKey: engineProfile.seedContext.matchKey, policyVersion: "goal-prng-v1" as const }
+      : null;
+    let progress: TournamentRulePreviewResponse["progress"] = {
+      acceptedPlies: 0,
+      roundIndex: 0,
+      activeGoalBySide: { BLUE: null, RED: null },
+      seedContext: publicSeedContext,
+    };
+    let goalReachabilityBySide: TournamentRulePreviewResponse["goalReachabilityBySide"] = { BLUE: [], RED: [] };
 
     if (structuralPass) {
       const state = createInitialState({ profile: engineProfile });
+      const initialProgress = createRuleProgress(engineProfile);
+      progress = {
+        acceptedPlies: initialProgress.acceptedPlies,
+        roundIndex: initialProgress.roundIndex,
+        activeGoalBySide: { ...initialProgress.activeGoalBySide },
+        seedContext: publicSeedContext,
+      };
       legalMovesBySide = {
         BLUE: getLegalMoves(state, "BLUE").map(({ from, to }) => ({ from, to })),
         RED: getLegalMoves(state, "RED").map(({ from, to }) => ({ from, to })),
@@ -250,10 +270,17 @@ export class TournamentRulesPreviewService {
         }
       }
       if (engineProfile.winConditions?.includes("GOAL_REACHED")) {
-        const bothReach = SIDES.every((side) => hasBasicGoalReachability(engineProfile, side));
+        for (const side of SIDES) {
+          const cells = getGoalCandidates(engineProfile, side);
+          goalReachabilityBySide[side] = cells.map((cell) => ({
+            cell,
+            status: hasBasicGoalReachability(engineProfile, side, cell) ? "PASS" : "FAIL",
+          }));
+        }
+        const bothReach = SIDES.every((side) => goalReachabilityBySide[side].every((entry) => entry.status === "PASS"));
         goalReachability = bothReach ? "PASS" : "FAIL";
         for (const side of SIDES) {
-          if (!hasBasicGoalReachability(engineProfile, side)) errors.push(issue("goalProfiles." + side, "GOAL_UNREACHABLE", "Đích tĩnh không có đường đi cơ bản từ bố cục ban đầu."));
+          if (goalReachabilityBySide[side].some((entry) => entry.status === "FAIL")) errors.push(issue("goalProfiles." + side, "GOAL_UNREACHABLE", "Có ô đích không có đường đi cơ bản từ bố cục ban đầu."));
         }
       } else {
         goalReachability = "PASS";
@@ -280,6 +307,8 @@ export class TournamentRulesPreviewService {
         goalReachability,
         runtime: "NOT_CHECKED",
       },
+      progress,
+      goalReachabilityBySide,
       legalMovesBySide,
       runtimeStatus: "NOT_CHECKED",
     };

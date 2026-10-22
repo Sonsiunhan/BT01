@@ -1,4 +1,5 @@
 import { getBoardCoordinates, isCoordinateInBoard } from "./coordinates.js";
+import { createRuleProgress, goalProfilesHaveProgress, validateGoalProfile } from "./goals.js";
 import {
   MAX_BOARD_DIMENSION,
   MAX_LEAP_OFFSETS_PER_PROFILE,
@@ -207,11 +208,11 @@ export function validateRuleProfile(profile: RuleProfile): readonly RuleProfileV
 
   for (const side of SIDES) {
     const goal: GoalProfile | undefined = profile.goalProfiles?.[side];
-    if (goal?.mode === "STATIC") {
-      if (!isCoordinateInBoard(board, goal.cell)) issues.push(validationIssue("GOAL_OUT_OF_BOUNDS", `goalProfiles.${side}.cell`, "Ô đích phải nằm trong board profile."));
-      if (profile.winConditions?.includes("GOAL_REACHED") && profile.layout.some((entry) => entry.side === side && entry.coordinate === goal.cell)) {
-        issues.push(validationIssue("INITIAL_OWN_GOAL", `goalProfiles.${side}.cell`, "Không đặt quân own trên đích tĩnh ban đầu."));
-      }
+    for (const goalIssue of validateGoalProfile(profile, side)) {
+      issues.push(validationIssue(goalIssue.code as RuleProfileValidationCode, goalIssue.path, goalIssue.message));
+    }
+    if (goal?.mode === "STATIC" && profile.winConditions?.includes("GOAL_REACHED") && profile.layout.some((entry) => entry.side === side && entry.coordinate === goal.cell)) {
+      issues.push(validationIssue("INITIAL_OWN_GOAL", `goalProfiles.${side}.cell`, "Không đặt quân own trên đích tĩnh ban đầu."));
     }
   }
   return Object.freeze(issues);
@@ -282,7 +283,9 @@ function cloneAndFreezeProfile(profile: RuleProfile): RuleProfile {
   const frozenGoalProfiles: Partial<Record<Side, GoalProfile>> = {};
   for (const side of SIDES) {
     const goal = profile.goalProfiles?.[side];
-    if (goal !== undefined) frozenGoalProfiles[side] = Object.freeze({ ...goal });
+    if (goal?.mode === "STATIC") frozenGoalProfiles[side] = Object.freeze({ ...goal });
+    if (goal?.mode === "CYCLE") frozenGoalProfiles[side] = Object.freeze({ ...goal, cells: Object.freeze([...goal.cells]) });
+    if (goal?.mode === "SEEDED") frozenGoalProfiles[side] = Object.freeze({ ...goal, candidateCells: Object.freeze([...goal.candidateCells]) });
   }
   return Object.freeze({
     ...profile,
@@ -292,6 +295,7 @@ function cloneAndFreezeProfile(profile: RuleProfile): RuleProfile {
     movementProfiles: Object.freeze({ BLUE: freezeMovement("BLUE"), RED: freezeMovement("RED") }),
     winConditions: Object.freeze([...(profile.winConditions ?? [])]),
     ...(profile.goalProfiles === undefined ? {} : { goalProfiles: Object.freeze(frozenGoalProfiles) }),
+    ...(profile.seedContext === undefined ? {} : { seedContext: Object.freeze({ ...profile.seedContext }) }),
   });
 }
 
@@ -321,6 +325,7 @@ function stateFromProfile(profile: RuleProfile, immutable = true): RuleState {
   }
   const frozenProfile = cloneAndFreezeProfile(profile);
   const frozenBoard = (immutable ? Object.freeze(board) : board) as Board;
+  const progress = goalProfilesHaveProgress(frozenProfile) ? createRuleProgress(frozenProfile) : undefined;
   const state: RuleState = {
     board: frozenBoard,
     pieceCounts: frozenProfile.pieceCounts,
@@ -329,6 +334,7 @@ function stateFromProfile(profile: RuleProfile, immutable = true): RuleState {
     winner: null,
     resultReason: null,
     ruleProfile: frozenProfile,
+    ...(progress === undefined ? {} : { progress }),
   };
   return immutable ? Object.freeze(state) : state;
 }
