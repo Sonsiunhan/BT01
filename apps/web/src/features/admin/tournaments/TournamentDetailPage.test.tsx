@@ -65,7 +65,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
     rejectedAt: null,
     changesRequestedAt: null,
     lastReviewNote: null,
-    lastReviewFieldNotes: {},
+
     startedAt: null,
     pausedAt: null,
     pauseReason: null,
