@@ -521,6 +521,7 @@ export class ApprovalService {
 
       const nowIso = this.store.nowIso();
       const note = rawInput.note?.trim() || null;
+      const contract = this.store.contracts.get(tournament.contractId);
 
       if (rawInput.decision === "APPROVE") {
         const mergedCore = normalizeTournamentCoreConfig(
@@ -533,6 +534,37 @@ export class ApprovalService {
           ...tournament.ruleProfile,
           ...(cr.proposedRuleProfilePatch ?? {}),
         });
+
+        const semanticIssues = validateTournamentCoreConfigSemantics(mergedCore, {
+          serverNowIso: nowIso,
+        });
+        if (semanticIssues.length > 0) {
+          throw createTournamentError({
+            code: "VALIDATION_ERROR",
+            statusCode: 400,
+            message: `Cấu hình sau thay đổi không hợp lệ: ${semanticIssues.map((i) => i.message).join("; ")}`,
+            details: { reason: "SEMANTIC_VALIDATION_FAILED", issues: semanticIssues },
+          });
+        }
+
+        if (contract) {
+          if (!contract.allowedModes.includes(mergedCore.competitionMode)) {
+            throw createTournamentError({
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+              message: `Chế độ "${mergedCore.competitionMode}" không được hợp đồng cho phép.`,
+              details: { reason: "COMPETITION_MODE_NOT_ALLOWED" },
+            });
+          }
+          if (mergedCore.maxParticipants > contract.maxParticipantsPerTournament) {
+            throw createTournamentError({
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+              message: `Số lượng tối đa (${mergedCore.maxParticipants}) vượt trần hợp đồng (${contract.maxParticipantsPerTournament}).`,
+              details: { reason: "MAX_PARTICIPANTS_EXCEEDED" },
+            });
+          }
+        }
 
         const existingVersions = this.store.configVersions.get(tournament.id) ?? [];
         const nextVersionNumber = existingVersions.length + 1;

@@ -54,8 +54,16 @@ export class AdmissionGateService {
     }
 
     // 3. Reconnecting to an already-started in-progress match is preserved (T075)
-    if (input.action === "ONLINE_RECONNECT_EXISTING_MATCH" && input.matchId) {
-      const match = this.store.matches.get(input.matchId);
+    if (input.action === "ONLINE_RECONNECT_EXISTING_MATCH") {
+      const match = input.matchId
+        ? this.store.matches.get(input.matchId)
+        : input.roomId
+        ? Array.from(this.store.matches.values()).find(
+            (m) =>
+              m.roomId === input.roomId &&
+              (m.status === "RUNNING" || m.status === "PAUSED_ADJUDICATION")
+          )
+        : undefined;
       if (
         match &&
         (match.status === "RUNNING" || match.status === "PAUSED_ADJUDICATION") &&
@@ -69,11 +77,26 @@ export class AdmissionGateService {
           activeTournamentIds: [match.tournamentId],
         });
       }
+      return AdmissionDecisionSchema.parse({
+        allowed: false,
+        reasonCode: "PARTICIPANT_NOT_ELIGIBLE",
+        message:
+          "Không tìm thấy trận đấu đang diễn ra phù hợp để kết nối lại hoặc tài khoản không phải đấu thủ của trận đấu này.",
+        activeTournamentIds: match?.tournamentId ? [match.tournamentId] : [],
+      });
     }
 
     // 4. Referee scope check (T007)
     if (input.action === "REFEREE_ENTER_ROOM") {
-      if (!input.tournamentId) {
+      const targetTournamentId =
+        input.tournamentId ??
+        (input.roomId
+          ? Array.from(this.store.matches.values()).find(
+              (m) => m.roomId === input.roomId
+            )?.tournamentId
+          : undefined);
+
+      if (!targetTournamentId) {
         return AdmissionDecisionSchema.parse({
           allowed: false,
           reasonCode: "REFEREE_OUT_OF_SCOPE",
@@ -83,10 +106,10 @@ export class AdmissionGateService {
       }
       const assignment = Array.from(this.store.staffAssignments.values()).find(
         (s) =>
-          s.tournamentId === input.tournamentId &&
+          s.tournamentId === targetTournamentId &&
           s.userId === input.principalId &&
           s.role === "REFEREE" &&
-          s.status === "ACTIVE"
+          (s.status === "ACTIVE" || (s as any).status === "ACCEPTED")
       );
       if (
         !assignment ||
@@ -98,62 +121,72 @@ export class AdmissionGateService {
           allowed: false,
           reasonCode: "REFEREE_OUT_OF_SCOPE",
           message: "Trọng tài không thuộc phạm vi phân công của giải đấu hoặc phòng này.",
-          activeTournamentIds: [input.tournamentId],
+          activeTournamentIds: [targetTournamentId],
         });
       }
       return AdmissionDecisionSchema.parse({
         allowed: true,
         reasonCode: "ALLOWED",
         message: "Trọng tài hợp lệ trong phạm vi giải đấu.",
-        activeTournamentIds: [input.tournamentId],
+        activeTournamentIds: [targetTournamentId],
       });
     }
 
     // 5. Spectator policy check
-    if (input.action === "SPECTATE_ROOM" && input.tournamentId) {
-      const tournament = this.store.tournaments.get(input.tournamentId);
-      if (tournament) {
-        const policy = tournament.coreConfig.spectatorPolicy;
-        const isStaffOrTaOrAdmin =
-          input.roles.includes("ADMIN") ||
-          tournament.ownerTaUserId === input.principalId ||
-          Array.from(this.store.staffAssignments.values()).some(
-            (s) =>
-              s.tournamentId === tournament.id &&
-              s.userId === input.principalId &&
-              s.status === "ACTIVE"
-          );
+    if (input.action === "SPECTATE_ROOM") {
+      const targetTournamentId =
+        input.tournamentId ??
+        (input.roomId
+          ? Array.from(this.store.matches.values()).find(
+              (m) => m.roomId === input.roomId
+            )?.tournamentId
+          : undefined);
 
-        if (policy === "DISABLED" && !isStaffOrTaOrAdmin) {
-          return AdmissionDecisionSchema.parse({
-            allowed: false,
-            reasonCode: "SPECTATOR_RESTRICTED_BY_POLICY",
-            message: "Giải đấu này đã tắt chế độ khán giả.",
-            activeTournamentIds: [tournament.id],
-          });
-        }
-        if (policy === "STAFF_ONLY" && !isStaffOrTaOrAdmin) {
-          return AdmissionDecisionSchema.parse({
-            allowed: false,
-            reasonCode: "SPECTATOR_RESTRICTED_BY_POLICY",
-            message: "Chỉ Ban tổ chức và Trọng tài mới được phép xem phòng giải đấu này.",
-            activeTournamentIds: [tournament.id],
-          });
-        }
-        if (policy === "ROSTER_ONLY" && !isStaffOrTaOrAdmin) {
-          const inRoster = Array.from(this.store.enrollments.values()).some(
-            (e) =>
-              e.tournamentId === tournament.id &&
-              e.userId === input.principalId &&
-              e.eligibilityStatus === "ELIGIBLE"
-          );
-          if (!inRoster) {
+      if (targetTournamentId) {
+        const tournament = this.store.tournaments.get(targetTournamentId);
+        if (tournament) {
+          const policy = tournament.coreConfig.spectatorPolicy;
+          const isStaffOrTaOrAdmin =
+            input.roles.includes("ADMIN") ||
+            tournament.ownerTaUserId === input.principalId ||
+            Array.from(this.store.staffAssignments.values()).some(
+              (s) =>
+                s.tournamentId === tournament.id &&
+                s.userId === input.principalId &&
+                (s.status === "ACTIVE" || (s as any).status === "ACCEPTED")
+            );
+
+          if (policy === "DISABLED" && !isStaffOrTaOrAdmin) {
             return AdmissionDecisionSchema.parse({
               allowed: false,
               reasonCode: "SPECTATOR_RESTRICTED_BY_POLICY",
-              message: "Chỉ thí sinh thuộc danh sách giải đấu mới được xem trực tiếp.",
+              message: "Giải đấu này đã tắt chế độ khán giả.",
               activeTournamentIds: [tournament.id],
             });
+          }
+          if (policy === "STAFF_ONLY" && !isStaffOrTaOrAdmin) {
+            return AdmissionDecisionSchema.parse({
+              allowed: false,
+              reasonCode: "SPECTATOR_RESTRICTED_BY_POLICY",
+              message: "Chỉ Ban tổ chức và Trọng tài mới được phép xem phòng giải đấu này.",
+              activeTournamentIds: [tournament.id],
+            });
+          }
+          if (policy === "ROSTER_ONLY" && !isStaffOrTaOrAdmin) {
+            const inRoster = Array.from(this.store.enrollments.values()).some(
+              (e) =>
+                e.tournamentId === tournament.id &&
+                e.userId === input.principalId &&
+                e.eligibilityStatus === "ELIGIBLE"
+            );
+            if (!inRoster) {
+              return AdmissionDecisionSchema.parse({
+                allowed: false,
+                reasonCode: "SPECTATOR_RESTRICTED_BY_POLICY",
+                message: "Chỉ thí sinh thuộc danh sách giải đấu mới được xem trực tiếp.",
+                activeTournamentIds: [tournament.id],
+              });
+            }
           }
         }
       }
@@ -161,7 +194,7 @@ export class AdmissionGateService {
         allowed: true,
         reasonCode: "ALLOWED",
         message: "Cho phép vào xem phòng thi đấu.",
-        activeTournamentIds: input.tournamentId ? [input.tournamentId] : [],
+        activeTournamentIds: targetTournamentId ? [targetTournamentId] : [],
       });
     }
 

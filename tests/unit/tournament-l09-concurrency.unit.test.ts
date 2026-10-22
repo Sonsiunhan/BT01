@@ -530,4 +530,249 @@ describe("L09 — Dedicated Concurrency, CAS & Replay Determinism Suite", () => 
     const userBRow = snapshot2.standings.find((r) => r.participantId === "user-b");
     expect(userBRow?.tournamentScore).toBe(0);
   });
+
+  it("Race 6 (T062): concurrent match creations across effectiveAt boundary pin immutable rule versions deterministically", async () => {
+    let currentTime = new Date("2026-10-21T08:00:00.000Z");
+    const bundle = createTournamentRuntimeBundle({
+      clockFn: () => currentTime,
+    });
+    bundle.store.grantSystemRole("admin-1", "ADMIN");
+    const adminActor = bundle.store.resolveAuthoritativeActor({ userId: "admin-1" });
+
+    const unit = await bundle.unitContractService.createUnit(adminActor, {
+      unitCode: "KHOA_PINNING",
+      unitName: "Khoa Phiên Bản Luật",
+      unitType: "KHOA",
+      contactName: "Nguyễn Pin",
+      contactEmail: "pin@example.edu.vn",
+      status: "ACTIVE",
+    });
+
+    const contract = await bundle.unitContractService.createContract(adminActor, {
+      contractCode: "HD_PIN_TEST",
+      unitId: unit.id,
+      validFrom: "2026-10-01T00:00:00.000Z",
+      validTo: "2026-12-31T23:59:59.000Z",
+      maxTournamentsTotal: 5,
+      maxParticipantsPerTournament: 16,
+      maxParticipantsTotal: 64,
+      allowedModes: ["HUMAN_ONLINE"],
+      policyEnvelope: SAMPLE_ENVELOPE,
+      technicalCaps: {
+        botSourceMaxBytes: 65536,
+        botRuntimeTimeoutMs: 1000,
+        botMemoryLimitMb: 64,
+        maxConcurrentMatchesPerTournament: 8,
+        rosterImportMaxRows: 2000,
+      },
+      status: "ACTIVE",
+      initialTaUserIds: ["ta-pin"],
+    });
+
+    const taActor = bundle.store.resolveAuthoritativeActor({ userId: "ta-pin" });
+    const draft = await bundle.coreDraftService.createDraft(taActor, {
+      contractId: contract.id,
+      coreConfig: buildBaseCoreConfig("PIN_RACE_01"),
+      ruleProfile: {
+        ...DEFAULT_TOURNAMENT_RULE_PROFILE,
+        turnSeconds: 30,
+      },
+    });
+
+    const sub = await bundle.coreDraftService.submitDraft(taActor, draft.id, {
+      expectedRevision: draft.revision,
+    });
+    const approved = await bundle.approvalService.decideInitialApproval(
+      adminActor,
+      draft.id,
+      { decision: "APPROVE", expectedRevision: sub.revision }
+    );
+
+    await bundle.coreDraftService.enrollParticipant(taActor, approved.id, {
+      personKey: "P_BLUE",
+      userId: "u-blue",
+      displayName: "Đấu thủ Xanh",
+      unitCode: "KHOA_PINNING",
+    });
+    await bundle.coreDraftService.enrollParticipant(taActor, approved.id, {
+      personKey: "P_RED",
+      userId: "u-red",
+      displayName: "Đấu thủ Đỏ",
+      unitCode: "KHOA_PINNING",
+    });
+
+    // Start running
+    currentTime = new Date("2026-11-10T08:00:00.000Z");
+    await bundle.lifecycleService.startRunning(taActor, approved.id);
+
+    // TA publishes v2 with turnSeconds=40, effective at 09:00:00Z
+    const currentT = bundle.coreDraftService.getTournament(approved.id);
+    await bundle.lifecycleService.publishWithinEnvelopeRuleUpdate(
+      taActor,
+      approved.id,
+      {
+        expectedRevision: currentT.revision,
+        effectiveAt: "2026-11-10T09:00:00.000Z",
+        changeSummary: "Tăng thời gian mỗi lượt lên 40s từ 09h00",
+        ruleProfilePatch: { turnSeconds: 40 },
+      }
+    );
+
+    // Concurrently create matches: 2 before effectiveAt and 2 after effectiveAt
+    const matchCreations = await Promise.all([
+      bundle.admissionGateService.createMatchWithPinnedVersion({
+        tournamentId: approved.id,
+        roomId: "room-pre-1",
+        blueParticipantId: "u-blue",
+        redParticipantId: "u-red",
+        matchId: "m-pre-1",
+        createdAtIso: "2026-11-10T08:55:00.000Z",
+      }),
+      bundle.admissionGateService.createMatchWithPinnedVersion({
+        tournamentId: approved.id,
+        roomId: "room-pre-2",
+        blueParticipantId: "u-blue",
+        redParticipantId: "u-red",
+        matchId: "m-pre-2",
+        createdAtIso: "2026-11-10T08:59:00.000Z",
+      }),
+      bundle.admissionGateService.createMatchWithPinnedVersion({
+        tournamentId: approved.id,
+        roomId: "room-post-1",
+        blueParticipantId: "u-blue",
+        redParticipantId: "u-red",
+        matchId: "m-post-1",
+        createdAtIso: "2026-11-10T09:01:00.000Z",
+      }),
+      bundle.admissionGateService.createMatchWithPinnedVersion({
+        tournamentId: approved.id,
+        roomId: "room-post-2",
+        blueParticipantId: "u-blue",
+        redParticipantId: "u-red",
+        matchId: "m-post-2",
+        createdAtIso: "2026-11-10T09:05:00.000Z",
+      }),
+    ]);
+
+    // Matches created before 09:00:00Z must pin version 1
+    expect(matchCreations[0].match.pinnedConfigVersionNumber).toBe(1);
+    expect(matchCreations[0].pinnedVersion.versionNumber).toBe(1);
+    expect(matchCreations[1].match.pinnedConfigVersionNumber).toBe(1);
+    expect(matchCreations[1].pinnedVersion.versionNumber).toBe(1);
+
+    // Matches created after 09:00:00Z must pin version 2
+    expect(matchCreations[2].match.pinnedConfigVersionNumber).toBe(2);
+    expect(matchCreations[2].pinnedVersion.versionNumber).toBe(2);
+    expect(matchCreations[3].match.pinnedConfigVersionNumber).toBe(2);
+    expect(matchCreations[3].pinnedVersion.versionNumber).toBe(2);
+  });
+
+  it("Race 7 (BR-32 & T060): concurrent timeout sweep and manual adjudication verdict execution commit exactly one resolution", async () => {
+    let currentTime = new Date("2026-10-21T08:00:00.000Z");
+    const bundle = createTournamentRuntimeBundle({
+      clockFn: () => currentTime,
+    });
+    bundle.store.grantSystemRole("admin-1", "ADMIN");
+    const adminActor = bundle.store.resolveAuthoritativeActor({ userId: "admin-1" });
+
+    const unit = await bundle.unitContractService.createUnit(adminActor, {
+      unitCode: "KHOA_TIMEOUT",
+      unitName: "Khoa Timeout Phán Quyết",
+      unitType: "KHOA",
+      contactName: "Nguyễn Timeout",
+      contactEmail: "timeout@example.edu.vn",
+      status: "ACTIVE",
+    });
+
+    const contract = await bundle.unitContractService.createContract(adminActor, {
+      contractCode: "HD_TIMEOUT_TEST",
+      unitId: unit.id,
+      validFrom: "2026-10-01T00:00:00.000Z",
+      validTo: "2026-12-31T23:59:59.000Z",
+      maxTournamentsTotal: 5,
+      maxParticipantsPerTournament: 16,
+      maxParticipantsTotal: 64,
+      allowedModes: ["HUMAN_ONLINE"],
+      policyEnvelope: SAMPLE_ENVELOPE,
+      technicalCaps: {
+        botSourceMaxBytes: 65536,
+        botRuntimeTimeoutMs: 1000,
+        botMemoryLimitMb: 64,
+        maxConcurrentMatchesPerTournament: 8,
+        rosterImportMaxRows: 2000,
+      },
+      status: "ACTIVE",
+      initialTaUserIds: ["ta-timeout"],
+    });
+
+    const taActor = bundle.store.resolveAuthoritativeActor({ userId: "ta-timeout" });
+    const draft = await bundle.coreDraftService.createDraft(taActor, {
+      contractId: contract.id,
+      coreConfig: buildBaseCoreConfig("TIMEOUT_RACE_01"),
+      ruleProfile: {
+        ...DEFAULT_TOURNAMENT_RULE_PROFILE,
+        tieBreakPolicy: "MANUAL_REFEREE",
+        manualAdjudicationDeadlineSeconds: 300,
+        manualAdjudicationFallbackPolicy: "RED_ADVANTAGE",
+      },
+    });
+
+    const sub = await bundle.coreDraftService.submitDraft(taActor, draft.id, {
+      expectedRevision: draft.revision,
+    });
+    const approved = await bundle.approvalService.decideInitialApproval(
+      adminActor,
+      draft.id,
+      { decision: "APPROVE", expectedRevision: sub.revision }
+    );
+
+    await bundle.coreDraftService.enrollParticipant(taActor, approved.id, {
+      personKey: "P1",
+      userId: "u-1",
+      displayName: "Đấu thủ 1",
+      unitCode: "KHOA_TIMEOUT",
+    });
+    await bundle.coreDraftService.enrollParticipant(taActor, approved.id, {
+      personKey: "P2",
+      userId: "u-2",
+      displayName: "Đấu thủ 2",
+      unitCode: "KHOA_TIMEOUT",
+    });
+
+    currentTime = new Date("2026-11-10T08:00:00.000Z");
+    await bundle.lifecycleService.startRunning(taActor, approved.id);
+
+    // Open WAITING adjudication request at 08:00:00Z -> deadline is 08:05:00Z
+    const adjReq = await bundle.adjudicationLedgerService.openManualAdjudicationRequest({
+      tournamentId: approved.id,
+      matchId: "match-race-timeout-1",
+      roomId: "room-race-timeout-1",
+      blueParticipantId: "u-1",
+      redParticipantId: "u-2",
+      frozenSnapshot: { ply: 50 },
+    });
+
+    // Advance clock past deadline to 08:05:01Z
+    currentTime = new Date("2026-11-10T08:05:01.000Z");
+
+    // Concurrently trigger timeout sweep and manual adjudication verdict submit
+    const results = await Promise.allSettled([
+      bundle.adjudicationLedgerService.sweepExpiredAdjudications(approved.id),
+      bundle.adjudicationLedgerService.submitManualVerdict(taActor, adjReq.id, {
+        winnerSide: "BLUE",
+        reason: "Cố nộp phán quyết đúng lúc hết hạn",
+      }),
+    ]);
+
+    // Inspect results: exactly one resolution path committed
+    // Either sweep resolved it (status=FALLBACK_APPLIED) or submitManualVerdict was rejected
+    const ledger = bundle.adjudicationLedgerService.getLedgerEntries(approved.id);
+    const matchLedgerEntries = ledger.filter((e) => e.matchId === "match-race-timeout-1");
+    expect(matchLedgerEntries).toHaveLength(1);
+    expect(matchLedgerEntries[0]?.finishSequence).toBe(1);
+
+    const storedReq = bundle.adjudicationLedgerService.getAdjudicationRequest(adjReq.id);
+    expect(storedReq?.status).toBe("FALLBACK_APPLIED");
+    expect(storedReq?.winnerSide).toBe("RED"); // Based on manualAdjudicationFallbackPolicy: "RED_ADVANTAGE"
+  });
 });

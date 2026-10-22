@@ -482,6 +482,7 @@ model Tournament {
   changeRequests            TournamentChangeRequestRecord[]
   enrollments               TournamentEnrollmentRecord[]
   staffAssignments          TournamentStaffAssignmentRecord[]
+  staffInvitations          TournamentStaffInvitation[]
   adjudications             ManualAdjudicationRequestRecord[]
   scoreLedgerEntries        TournamentScoreLedgerRecord[]
 
@@ -561,12 +562,41 @@ model TournamentStaffAssignmentRecord {
   role          String
   status        String     @default("ACTIVE")
   assignedRooms Json?
+  invitationId  String?    @unique
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  invitation    TournamentStaffInvitation? @relation(fields: [invitationId], references: [id], onDelete: SetNull)
 
   @@unique([tournamentId, userId, role])
   @@index([userId, status])
+}
+
+/// Durable, one-time staff/referee invitation handoff for D06-A.
+/// Raw tokens are never persisted; tokenHash is SHA-256 of the handoff token.
+model TournamentStaffInvitation {
+  id               String   @id @default(uuid())
+  tournamentId     String
+  contractId       String
+  recipientUserId  String
+  role             String
+  purpose          String   @default("TOURNAMENT_STAFF_INVITE")
+  status           String   @default("INVITED")
+  tokenHash        String   @unique
+  idempotencyKey   String
+  inviterUserId    String
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  acceptedAt       DateTime?
+  declinedAt       DateTime?
+  revokedAt        DateTime?
+  tournament       Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  assignment       TournamentStaffAssignmentRecord?
+
+  @@unique([tournamentId, idempotencyKey])
+  @@index([tournamentId, status])
+  @@index([recipientUserId, status])
+  @@index([expiresAt, status])
 }
 
 model ManualAdjudicationRequestRecord {

@@ -47,7 +47,7 @@ export interface PinnedMatchRecord {
   pinnedConfigVersionNumber: number;
   blueParticipantId: string;
   redParticipantId: string;
-  status: "RUNNING" | "PAUSED_ADJUDICATION" | "FINISHED" | "CANCELLED";
+  status: "RUNNING" | "PAUSED" | "PAUSED_ADJUDICATION" | "FINISHED" | "CANCELLED";
   winnerSide: "BLUE" | "RED" | null;
   finishSequence: number | null;
   createdAt: string;
@@ -138,6 +138,7 @@ export class TournamentStateStore {
     userId: string;
     username?: string | undefined;
     principalType?: "USER" | "GUEST" | undefined;
+    roles?: string[] | undefined;
     correlationId?: string | undefined;
   }): TournamentActorContext {
     if (params.principalType === "GUEST") {
@@ -153,6 +154,13 @@ export class TournamentStateStore {
     const sys = this.systemRoles.get(params.userId);
     if (sys) {
       for (const r of sys) roles.add(r);
+    }
+    if (params.roles) {
+      for (const r of params.roles) {
+        if (r === "ADMIN" || r === "SYSTEM_ADMIN") {
+          roles.add("ADMIN");
+        }
+      }
     }
 
     for (const c of this.contracts.values()) {
