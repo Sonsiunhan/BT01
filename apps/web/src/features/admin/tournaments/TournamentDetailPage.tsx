@@ -389,6 +389,15 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           >
             Nhân sự / Referee
           </Link>
+          <Link
+            to={routes.adminTournamentAudit.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-audit-btn"
+            id="tournament-detail-audit-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Nhật ký kiểm toán
+          </Link>
         </div>
       </div>
 

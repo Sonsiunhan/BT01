@@ -31,6 +31,7 @@ const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/Tou
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
+const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
 
 export function AppRouter() {
   return (
@@ -109,25 +110,11 @@ export function AppRouter() {
         />
         <Route
           path={routes.adminAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán hệ thống"
-              targetTask="S06"
-              description="Lịch sử các thao tác quản trị toàn hệ thống đã được lọc và che dấu dữ liệu nhạy cảm."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminTournamentAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán giải đấu"
-              targetTask="S06"
-              description="Truy vết các thao tác thay đổi cấu hình, phân công nhân sự và duyệt trận trong giải đấu."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminOffline}
