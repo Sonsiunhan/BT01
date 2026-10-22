@@ -34,6 +34,11 @@ import { createWasmtimeCpythonAdapter, DEFAULT_CPYTHON_WASM_SHA256, DEFAULT_WASM
 import { registerBotOnlineRoutes } from "./modules/bot-online/bot-online.route.js";
 import { registerTournamentRulesPreviewRoutes } from "./modules/tournament-rules-preview/rules-preview.route.js";
 import { PrismaTournamentPreviewScopeReader, TournamentRulesPreviewService } from "./modules/tournament-rules-preview/rules-preview.service.js";
+import {
+  createTournamentRuntimeBundle,
+  registerTournamentInitializationRoutes,
+  type TournamentRuntimeBundle,
+} from "./modules/tournament-core/index.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -63,6 +68,7 @@ export type BuildAppOptions = {
   botLibrary?: BotLibraryService;
   botOnline?: BotOnlineService;
   tournamentRulesPreview?: TournamentRulesPreviewService;
+  tournamentBundle?: TournamentRuntimeBundle;
 };
 
 function createRealtime(env: AppEnv, app: FastifyInstance): RealtimePort {
@@ -133,6 +139,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerBotLibraryRoutes(app, auth, botLibrary);
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
   if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
+  const tournamentBundle = options.tournamentBundle ?? createTournamentRuntimeBundle();
+  await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   const botProbe = () => ({
     status: botRuntimeAdapter ? ("ok" as const) : ("degraded" as const),
     reason: botRuntimeAdapter ? undefined : "wasmtime-unconfigured",

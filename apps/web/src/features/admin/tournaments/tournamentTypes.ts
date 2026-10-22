@@ -98,3 +98,80 @@ export function tournamentDtoToListItem(dto: TournamentDto): TournamentListItem 
     revision: String(dto.revision),
   };
 }
+
+export interface DraftFormData {
+  tournamentId?: string;
+  name: string;
+  slug: string;
+  description: string;
+  contractId: string;
+  organizerUnitId: string;
+  visibility: TournamentVisibility;
+  timeModel: "FIXED_WINDOW" | "MULTIDAY";
+  timezone: string;
+  rosterOpenAt: string;
+  rosterCloseAt: string;
+  startAt: string;
+  endAt: string;
+  competitionMode: "HUMAN_ONLINE" | "BOT_VS_BOT";
+  pairingStrategy: "ARENA";
+  minParticipants: number;
+  maxParticipants: number;
+  checkinRequired: boolean;
+  expectedRevision?: number;
+}
+
+export function createDefaultCoreConfig(params: {
+  tournamentCode: string;
+  tournamentName: string;
+  description?: string;
+  organizersText?: string;
+  competitionMode?: "HUMAN_ONLINE" | "BOT_VS_BOT";
+  audienceScope?: "PUBLIC_REGISTERED" | "INTERNAL_UNIT" | "INVITED_LIST";
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  maxParticipants?: number;
+  minParticipantsToStart?: number;
+  timezone?: string;
+  checkinRequired?: boolean;
+}) {
+  return {
+    tournamentCode: params.tournamentCode,
+    tournamentName: params.tournamentName,
+    shortDescription: params.description || "",
+    organizersText: params.organizersText || "Ban Tổ chức Giải đấu",
+    competitionMode: params.competitionMode || ("HUMAN_ONLINE" as const),
+    audienceScope: params.audienceScope || ("PUBLIC_REGISTERED" as const),
+    allowedUnitCodes: [] as string[],
+    registrationIntakeMode: "IMPORT_ONLY" as const,
+    maxParticipants: params.maxParticipants || 16,
+    minParticipantsToStart: params.minParticipantsToStart || 2,
+    timezone: params.timezone || "Asia/Ho_Chi_Minh",
+    registrationOpenAt: null as string | null,
+    registrationCloseAt: null as string | null,
+    checkinRequired: Boolean(params.checkinRequired),
+    checkinOpenAt: null as string | null,
+    checkinCloseAt: null as string | null,
+    scheduledStartAt: params.scheduledStartAt,
+    scheduledEndAt: params.scheduledEndAt,
+    format: "ARENA_CONTINUOUS" as const,
+    pairingMethod: "SWISS_SCORE_ADJACENT" as const,
+    maxMatchesPerPlayer: null as number | null,
+    maxPairMeetings: 2,
+    rematchCooldownMinutes: 5,
+    maxConcurrentMatches: 8,
+    byeScorePoints: 0,
+    spectatorPolicy: "ROSTER_ONLY" as const,
+    chatPolicy: "SPECTATOR_MUTED" as const,
+    leaderboardVisibility: "LIVE_PUBLIC" as const,
+    topNExportCount: 10,
+    finalizationMode: "AUTO_FINAL" as const,
+    scoringFormulaPreset: "ELO_WEIGHTED_V1" as const,
+    initialScore: 1000,
+    initialElo: 1000,
+    kFactor: 32,
+    scoreFloor: 0,
+    botDeadlineAt: null as string | null,
+  };
+}
+
