@@ -5,6 +5,7 @@ import { routes } from "../app/routes";
 import { ApiError } from "../services/http/apiError";
 import {
   bindTaContract,
+  bootstrapTaAccount,
   createTaAccount,
   fetchTaList,
   revokeTaAccount,
@@ -39,6 +40,22 @@ export default function AdminTaPage() {
   // Revoke TA Modal
   const [revokingTa, setRevokingTa] = useState<TaUserItem | null>(null);
   const [revokePending, setRevokePending] = useState(false);
+
+  // Bootstrap state
+  const [bootstrapPending, setBootstrapPending] = useState(false);
+
+  const handleBootstrap = async () => {
+    setBootstrapPending(true);
+    try {
+      const res = await bootstrapTaAccount();
+      notify(`Khởi tạo tài khoản TA "${res.user.displayName}" thành công!`, "success");
+      await loadList();
+    } catch (err) {
+      notify(err instanceof ApiError ? err.message : "Khởi tạo nhanh TA thất bại.", "error");
+    } finally {
+      setBootstrapPending(false);
+    }
+  };
 
   const loadList = async () => {
     setLoading(true);
@@ -188,9 +205,17 @@ export default function AdminTaPage() {
             Danh sách, tạo tài khoản quản trị giải đấu, gán hợp đồng và thu hồi quyền hạn.
           </p>
         </div>
-        <div style={{ display: "flex", gap: "0.75rem" }}>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           <Button variant="secondary" onClick={loadList} disabled={loading} data-testid="refresh-btn">
             Làm mới
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleBootstrap}
+            disabled={loading || bootstrapPending}
+            data-testid="bootstrap-ta-btn"
+          >
+            {bootstrapPending ? "Đang khởi tạo..." : "⚡ Khởi tạo nhanh TA"}
           </Button>
           <Button variant="primary" onClick={() => setShowCreateModal(true)} data-testid="open-create-ta-btn">
             + Tạo tài khoản TA
@@ -229,10 +254,20 @@ export default function AdminTaPage() {
           }}
           data-testid="ta-empty-state"
         >
-          <p>Chưa có tài khoản Tournament Admin nào được tạo trong hệ thống.</p>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-            Tạo tài khoản TA đầu tiên
-          </Button>
+          <p style={{ marginBottom: "1.5rem" }}>Chưa có tài khoản Tournament Admin nào được tạo trong hệ thống.</p>
+          <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+            <Button
+              variant="secondary"
+              onClick={handleBootstrap}
+              disabled={bootstrapPending}
+              data-testid="empty-bootstrap-btn"
+            >
+              {bootstrapPending ? "Đang khởi tạo..." : "Khởi tạo nhanh TA (Bootstrap)"}
+            </Button>
+            <Button variant="primary" onClick={() => setShowCreateModal(true)} data-testid="empty-create-btn">
+              Tạo tài khoản TA đầu tiên
+            </Button>
+          </div>
         </div>
       ) : (
         <div
