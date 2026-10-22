@@ -32,6 +32,11 @@ import { CapacityController, registerCapacityAdmissionHook, registerCapacityRout
 import { BotOnlineService, FileBotOnlineStatePersistence } from "./modules/bot-online/bot-online.service.js";
 import { createWasmtimeCpythonAdapter, DEFAULT_CPYTHON_WASM_SHA256, DEFAULT_WASMTIME_LINUX_SHA256 } from "./modules/bot-online/wasmtime.adapter.js";
 import { registerBotOnlineRoutes } from "./modules/bot-online/bot-online.route.js";
+import {
+  createTournamentRuntimeBundle,
+  registerTournamentInitializationRoutes,
+  type TournamentRuntimeBundle,
+} from "./modules/tournament-core/index.js";
 import { registerTournamentRulesPreviewRoutes } from "./modules/tournament-rules-preview/rules-preview.route.js";
 import { PrismaTournamentPreviewScopeReader, TournamentRulesPreviewService } from "./modules/tournament-rules-preview/rules-preview.service.js";
 import { RosterService, registerRosterRoutes } from "./modules/roster/index.js";
@@ -65,6 +70,7 @@ export type BuildAppOptions = {
   capacityController?: CapacityController;
   botLibrary?: BotLibraryService;
   botOnline?: BotOnlineService;
+  tournamentBundle?: TournamentRuntimeBundle;
   tournamentRulesPreview?: TournamentRulesPreviewService;
   rosterService?: RosterService;
   /** L05-owned canonical version store; N04 only registers its typed adapter. */
@@ -123,6 +129,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   await registerCors(app, env.corsOrigins);
   registerErrorHandler(app);
+  const tournamentBundle = options.tournamentBundle ?? createTournamentRuntimeBundle();
+  await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   // Register API diagnostics before the SPA catch-all so provider evidence
   // remains reachable even on Fastify/router versions that prefer insertion
   // order when resolving wildcard GET routes.
