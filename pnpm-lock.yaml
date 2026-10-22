@@ -218,9 +218,6 @@ importers:
       '@types/node':
         specifier: ^22.15.3
         version: 22.20.4
-      csv-parse:
-        specifier: ^7.0.3
-        version: 7.0.3
       prisma:
         specifier: ^6.7.0
         version: 6.19.3(typescript@5.9.3)
@@ -233,9 +230,6 @@ importers:
       vitest:
         specifier: ^3.1.2
         version: 3.2.7(@types/node@22.20.4)(jiti@2.7.0)(jsdom@27.4.0(supports-color@7.2.0))(lightningcss@1.32.0)(supports-color@7.2.0)(tsx@4.23.15)
-      xlsx:
-        specifier: ^0.18.5
-        version: 0.18.5
 
   apps/web:
     dependencies:
