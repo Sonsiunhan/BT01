@@ -599,6 +599,38 @@ model TournamentStaffInvitation {
   @@index([expiresAt, status])
 }
 
+/// Durable support/recovery queue record for D07-A.
+/// Only the one-way recovery token hash is persisted; raw tokens are handoff-only.
+model SupportRecoveryTicket {
+  id                      String    @id @default(uuid())
+  tenantId                String?
+  requestType             String    @default("ACCOUNT_RECOVERY")
+  targetUserId            String
+  requesterUserId         String?
+  description             String
+  status                  String    @default("OPEN")
+  assignedOperatorUserId  String?
+  verificationReference   String?
+  idempotencyKey          String
+  recoveryTokenHash       String?   @unique
+  recoveryTokenPurpose    String?
+  recoveryTokenExpiresAt  DateTime?
+  recoveryTokenIssuedAt   DateTime?
+  recoveryTokenConsumedAt DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  verifiedAt              DateTime?
+  rejectedAt              DateTime?
+  resolvedAt              DateTime?
+  closedAt                DateTime?
+
+  @@unique([targetUserId, idempotencyKey])
+  @@index([tenantId, status, createdAt])
+  @@index([targetUserId, status])
+  @@index([assignedOperatorUserId, status])
+  @@index([recoveryTokenExpiresAt])
+}
+
 model ManualAdjudicationRequestRecord {
   id                String     @id @default(uuid())
   tournamentId      String
