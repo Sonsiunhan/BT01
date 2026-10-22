@@ -24,6 +24,8 @@ const BotOfflinePage = lazy(() => import("../pages/BotOfflinePage"));
 
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
+const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
+const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 
 export function AppRouter() {
   return (
@@ -65,17 +67,9 @@ export function AppRouter() {
       {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}
       <Route element={<AdminLayout />}>
         <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
-        <Route
-          path={routes.adminTournaments}
-          element={
-            <AdminRoutePending
-              pageCode="P01"
-              title="Danh sách giải đấu & Khung Admin"
-              targetTask="S02"
-              description="Quản lí danh sách giải đấu theo quyền hạn đơn vị, tìm kiếm, lọc trạng thái giải và khởi tạo giải mới."
-            />
-          }
-        />
+        <Route path={routes.adminTa} element={<AdminTaPage />} />
+        <Route path={routes.adminAccounts} element={<AdminTaPage />} />
+        <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route
           path={routes.adminTournamentNew}
           element={

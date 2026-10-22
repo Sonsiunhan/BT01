@@ -7,7 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  SYSTEM_ADMIN
+  TOURNAMENT_ADMIN
+  REFEREE
+  BROADCAST_OBSERVER
+}
+
 model User {
+  role              Role          @default(USER)
   id                String        @id @default(uuid())
   fullName          String
   displayName       String

@@ -127,6 +127,15 @@ export function AdminLayout() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
               <NavLink
+                to={routes.adminTa}
+                className={({ isActive }) =>
+                  `nav-link ${isActive || location.pathname.startsWith("/admin/ta") ? "active font-bold text-primary" : ""}`
+                }
+                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+              >
+                Tài khoản TA
+              </NavLink>
+              <NavLink
                 to={routes.adminTournaments}
                 className={({ isActive }) =>
                   `nav-link ${isActive || location.pathname.startsWith("/admin/tournaments") ? "active font-bold text-primary" : ""}`
