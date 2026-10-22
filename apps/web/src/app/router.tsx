@@ -32,6 +32,8 @@ const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
 const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
+const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
+const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
 
 export function AppRouter() {
   return (
@@ -69,6 +71,8 @@ export function AppRouter() {
         <Route path={routes.botOffline} element={<BotOfflinePage />} />
         <Route path={routes.botWorkbench} element={<BotWorkbenchPage />} />
         <Route path={routes.staffInvitation} element={<InvitationAcceptancePage />} />
+        <Route path={routes.accountAccess} element={<AccountAccessPage />} />
+        <Route path={routes.accountAccessReset} element={<AccountAccessPage />} />
       </Route>
 
       {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}
@@ -76,6 +80,7 @@ export function AppRouter() {
         <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
         <Route path={routes.adminTa} element={<AdminTaPage />} />
         <Route path={routes.adminAccounts} element={<AdminTaPage />} />
+        <Route path={routes.adminSupport} element={<SupportRecoveryPage />} />
         <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route
           path={routes.adminTournamentNew}
