@@ -6,6 +6,7 @@ import { ApiError } from "../services/http/apiError";
 
 const mocks = vi.hoisted(() => ({
   fetchTaList: vi.fn(),
+  bootstrapTaAccount: vi.fn(),
   createTaAccount: vi.fn(),
   bindTaContract: vi.fn(),
   revokeTaAccount: vi.fn(),
@@ -215,5 +216,33 @@ describe("D02-C — AdminTaPage UI Component Tests", () => {
     expect(screen.queryByText(/RAW_PASSWORD/)).not.toBeInTheDocument();
     expect(screen.queryByText(/PASSWORD_HASH/)).not.toBeInTheDocument();
     expect(screen.queryByText(/RECOVERY_HASH/)).not.toBeInTheDocument();
+  });
+
+  it("11. triggers bootstrap TA from empty state and reloads list", async () => {
+    mocks.fetchTaList.mockResolvedValueOnce({ items: [] });
+    mocks.bootstrapTaAccount.mockResolvedValue({
+      user: {
+        id: "ta-bootstrapped",
+        fullName: "Tournament Admin",
+        displayName: "Tournament Admin",
+        username: "ta_bootstrapped",
+      },
+    });
+    mocks.fetchTaList.mockResolvedValueOnce({ items: [mockTa1] });
+
+    renderWithProviders(<AdminTaPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ta-empty-state")).toBeInTheDocument();
+    });
+
+    const bootstrapBtn = screen.getByTestId("empty-bootstrap-btn");
+    expect(bootstrapBtn).toBeInTheDocument();
+    fireEvent.click(bootstrapBtn);
+
+    await waitFor(() => {
+      expect(mocks.bootstrapTaAccount).toHaveBeenCalledTimes(1);
+      expect(mocks.fetchTaList).toHaveBeenCalledTimes(2);
+    });
   });
 });
