@@ -76,6 +76,7 @@ export async function registerTournamentCoreRoutes(
     Querystring: { contractId?: string; status?: string; ownerTaUserId?: string };
   }>("/api/tournaments", async (request, reply) => {
     const actor = await resolveTournamentRequestActor(request, auth, store);
+    await lifecycleService.evaluateScheduledStart();
     await lifecycleService.evaluateAutoEndAtWindow();
     const all = coreDraftService.listTournaments(request.query);
     const tournaments = all.filter((t) => {
@@ -89,6 +90,7 @@ export async function registerTournamentCoreRoutes(
     "/api/tournaments/:tournamentId",
     async (request, reply) => {
       const actor = await resolveTournamentRequestActor(request, auth, store);
+      await lifecycleService.evaluateScheduledStart();
       await lifecycleService.evaluateAutoEndAtWindow();
       const tournament = coreDraftService.getTournament(request.params.tournamentId);
       if (
@@ -218,6 +220,23 @@ export async function registerTournamentCoreRoutes(
   });
 
   app.post<{
+    Params: { tournamentId: string; changeRequestId: string };
+    Body?: { reason?: string };
+  }>(
+    "/api/tournaments/:tournamentId/change-requests/:changeRequestId/cancel",
+    async (request, reply) => {
+      const actor = await resolveTournamentRequestActor(request, auth, store);
+      const changeRequest = await lifecycleService.cancelChangeRequest(
+        actor,
+        request.params.tournamentId,
+        request.params.changeRequestId,
+        request.body?.reason
+      );
+      return reply.status(200).send({ changeRequest });
+    }
+  );
+
+  app.post<{
     Params: { changeRequestId: string };
     Body: { decision: "APPROVE" | "REJECT" | "REQUEST_CHANGES"; note?: string };
   }>(
@@ -267,7 +286,7 @@ export async function registerTournamentCoreRoutes(
           details: { reason: "FORBIDDEN_ROLE", tournamentId: tournament.id },
         });
       }
-      const readiness = lifecycleService.evaluateReadiness(
+      const readiness = await lifecycleService.evaluateReadiness(
         request.params.tournamentId
       );
       return reply.status(200).send({ readiness });
@@ -302,7 +321,11 @@ export async function registerTournamentCoreRoutes(
 
   app.post<{
     Params: { tournamentId: string };
-    Body: { reason: string; expectedRevision?: number };
+    Body: {
+      reason: string;
+      pauseMode?: "ADMISSION_PAUSE_ONLY" | "FULL_MATCH_STOP";
+      expectedRevision?: number;
+    };
   }>(
     "/api/tournaments/:tournamentId/pause",
     async (request, reply) => {
@@ -311,7 +334,8 @@ export async function registerTournamentCoreRoutes(
         actor,
         request.params.tournamentId,
         request.body?.reason ?? "",
-        request.body?.expectedRevision
+        request.body?.expectedRevision,
+        request.body?.pauseMode
       );
       return reply.status(200).send({ tournament });
     }

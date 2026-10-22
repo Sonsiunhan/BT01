@@ -136,6 +136,7 @@ export const RuleVersionDiffChangeSchema = z.object({
   after: z.unknown(),
   impact: z.enum(["MATCHES_PINNED", "NEW_MATCHES_ONLY", "DISPLAY_ONLY"]),
 });
+export type RuleVersionDiffChange = z.infer<typeof RuleVersionDiffChangeSchema>;
 export const RuleVersionDiffResponseSchema = z.object({
   baseVersionId: z.string().min(1),
   targetVersionId: z.string().min(1),

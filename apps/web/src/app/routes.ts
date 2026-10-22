@@ -38,6 +38,8 @@ export const routes = {
   adminTournamentNew: "/admin/tournaments/new",
   adminTournamentEdit: "/admin/tournaments/:tournamentId/edit",
   adminTournamentDetail: "/admin/tournaments/:tournamentId",
+  adminTournamentStaff: "/admin/tournaments/:tournamentId/staff",
+  staffInvitation: "/staff/invitations/:tournamentId/:token",
   adminTournamentOperations: "/admin/tournaments/:tournamentId/operations",
   adminAudit: "/admin/audit",
   adminTournamentAudit: "/admin/tournaments/:tournamentId/audit",
