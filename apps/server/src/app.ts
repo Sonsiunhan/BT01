@@ -35,6 +35,8 @@ import { registerBotOnlineRoutes } from "./modules/bot-online/bot-online.route.j
 import { registerTournamentRulesPreviewRoutes } from "./modules/tournament-rules-preview/rules-preview.route.js";
 import { PrismaTournamentPreviewScopeReader, TournamentRulesPreviewService } from "./modules/tournament-rules-preview/rules-preview.service.js";
 import { RosterService, registerRosterRoutes } from "./modules/roster/index.js";
+import { registerTournamentRuleVersionRoutes } from "./modules/tournament-versioning/versioning.route.js";
+import type { TournamentVersioningPort } from "./modules/tournament-versioning/versioning.port.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -65,6 +67,8 @@ export type BuildAppOptions = {
   botOnline?: BotOnlineService;
   tournamentRulesPreview?: TournamentRulesPreviewService;
   rosterService?: RosterService;
+  /** L05-owned canonical version store; N04 only registers its typed adapter. */
+  tournamentVersioning?: TournamentVersioningPort;
 };
 
 function createRealtime(env: AppEnv, app: FastifyInstance): RealtimePort {
@@ -137,6 +141,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
   if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
   await registerRosterRoutes(app, auth, rosterService);
+  if (options.tournamentVersioning) await registerTournamentRuleVersionRoutes(app, auth, options.tournamentVersioning);
   const botProbe = () => ({
     status: botRuntimeAdapter ? ("ok" as const) : ("degraded" as const),
     reason: botRuntimeAdapter ? undefined : "wasmtime-unconfigured",
