@@ -390,6 +390,8 @@ export const TournamentCoreConfigSchema = z.object({
   kFactor: z.number().int().min(8).max(64).default(32), // F64
   scoreFloor: z.number().int().min(0).max(1000).default(0), // F65
   botDeadlineAt: z.string().datetime().nullable().default(null), // F66 (Conditional on BOT_VS_BOT)
+  refereeRequired: z.boolean().optional(),
+  minReadyOnlineReferees: z.number().int().min(1).max(20).optional(),
 });
 export type TournamentCoreConfig = z.infer<typeof TournamentCoreConfigSchema>;
 
@@ -832,6 +834,7 @@ export const TournamentReadinessSnapshotSchema = z.object({
   checklist: z.array(ReadinessChecklistItemSchema),
   blockers: z.array(z.string()),
   evaluatedAt: z.string().datetime(),
+  readinessState: z.enum(["NOT_READY", "READY"]).optional(),
 });
 export type TournamentReadinessSnapshot = z.infer<typeof TournamentReadinessSnapshotSchema>;
 

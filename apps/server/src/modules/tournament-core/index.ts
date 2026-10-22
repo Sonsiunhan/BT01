@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import type { PrismaClient } from "@prisma/client";
 import type { AuthService } from "../auth/auth.service.js";
 import {
   registerTournamentFoundationRoutes,
@@ -12,6 +13,12 @@ import { ApprovalService } from "./approval.service.js";
 import { CoreDraftService } from "./core-draft.service.js";
 import { TournamentLifecycleService } from "./lifecycle.service.js";
 import { registerTournamentCoreRoutes } from "./tournament-core.route.js";
+import {
+  InMemoryReadinessSourcesAdapter,
+  PrismaReadinessSourcesAdapter,
+  type ReadinessSourcesPort,
+} from "./readiness-sources.port.js";
+import { TournamentVersioningAdapter } from "./tournament-versioning.adapter.js";
 
 export interface TournamentRuntimeBundle {
   store: TournamentStateStore;
@@ -21,19 +28,33 @@ export interface TournamentRuntimeBundle {
   lifecycleService: TournamentLifecycleService;
   admissionGateService: AdmissionGateService;
   adjudicationLedgerService: AdjudicationLedgerService;
+  readinessSourcesPort: ReadinessSourcesPort;
+  versioningAdapter: TournamentVersioningAdapter;
 }
 
 export function createTournamentRuntimeBundle(options?: {
-  clockFn?: () => Date;
-  store?: TournamentStateStore;
+  clockFn?: (() => Date) | undefined;
+  store?: TournamentStateStore | undefined;
+  database?: PrismaClient | undefined;
+  readinessSourcesPort?: ReadinessSourcesPort | undefined;
 }): TournamentRuntimeBundle {
   const store = options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn });
   const unitContractService = new UnitContractService(store);
   const coreDraftService = new CoreDraftService(store);
   const approvalService = new ApprovalService(store);
   const adjudicationLedgerService = new AdjudicationLedgerService(store);
-  const lifecycleService = new TournamentLifecycleService(store, adjudicationLedgerService);
+  const readinessSourcesPort =
+    options?.readinessSourcesPort ??
+    (options?.database
+      ? new PrismaReadinessSourcesAdapter(options.database)
+      : new InMemoryReadinessSourcesAdapter(store));
+  const lifecycleService = new TournamentLifecycleService(
+    store,
+    adjudicationLedgerService,
+    readinessSourcesPort
+  );
   const admissionGateService = new AdmissionGateService(store);
+  const versioningAdapter = new TournamentVersioningAdapter(store);
 
   return {
     store,
@@ -43,6 +64,8 @@ export function createTournamentRuntimeBundle(options?: {
     lifecycleService,
     admissionGateService,
     adjudicationLedgerService,
+    readinessSourcesPort,
+    versioningAdapter,
   };
 }
 
@@ -127,4 +150,8 @@ export {
   TournamentLifecycleService,
   AdmissionGateService,
   AdjudicationLedgerService,
+  ReadinessSourcesPort,
+  InMemoryReadinessSourcesAdapter,
+  PrismaReadinessSourcesAdapter,
+  TournamentVersioningAdapter,
 };

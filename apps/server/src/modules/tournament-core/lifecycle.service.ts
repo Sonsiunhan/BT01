@@ -17,6 +17,7 @@ import {
   type TournamentDto,
   type TournamentReadinessSnapshot,
 } from "@ottv2/contracts";
+import { validateRuleProfileForPreview } from "@ottv2/game-rules";
 import {
   assertTaContractOrTournamentAccess,
   createTournamentError,
@@ -24,12 +25,22 @@ import {
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
 import type { AdjudicationLedgerService } from "./adjudication-ledger.service.js";
+import {
+  InMemoryReadinessSourcesAdapter,
+  type ReadinessSourcesPort,
+} from "./readiness-sources.port.js";
 
 export class TournamentLifecycleService {
+  private readonly readinessSourcesPort: ReadinessSourcesPort;
+
   constructor(
     private readonly store: TournamentStateStore,
-    private readonly adjudicationLedgerService?: AdjudicationLedgerService
-  ) {}
+    private readonly adjudicationLedgerService?: AdjudicationLedgerService,
+    readinessSourcesPort?: ReadinessSourcesPort
+  ) {
+    this.readinessSourcesPort =
+      readinessSourcesPort ?? new InMemoryReadinessSourcesAdapter(store);
+  }
 
   private assertExpectedRevision(
     tournament: TournamentDto,
@@ -355,45 +366,17 @@ export class TournamentLifecycleService {
   }
 
   /**
-   * T025 & T026: Computes authoritative readiness from actual enrollments, bot readiness,
-   * published rule versions, staff assignments, and pending manual adjudications.
+   * Builds an authoritative readiness snapshot from calculated participant and staff counts.
    */
-  evaluateReadiness(tournamentId: string): TournamentReadinessSnapshot {
-    const tournament = this.store.tournaments.get(tournamentId);
-    if (!tournament) {
-      throw createTournamentError({
-        code: "NOT_FOUND",
-        statusCode: 404,
-        message: "Không tìm thấy giải đấu.",
-        details: { reason: "RESOURCE_NOT_FOUND", tournamentId },
-      });
-    }
-
+  private buildReadinessSnapshot(
+    tournament: TournamentDto,
+    counts: { eligibleParticipantsCount: number; botNotReadyCount: number },
+    staff: { activeStaffCount: number; activeRefereeCount: number }
+  ): TournamentReadinessSnapshot {
+    const tournamentId = tournament.id;
     const nowIso = this.store.nowIso();
-    let eligibleParticipantsCount = 0;
-    let botNotReadyCount = 0;
-
-    for (const e of this.store.enrollments.values()) {
-      if (e.tournamentId !== tournamentId) continue;
-      if (e.eligibilityStatus !== "ELIGIBLE") continue;
-      if (tournament.coreConfig.checkinRequired && !e.checkedInAt) continue;
-      if (
-        tournament.coreConfig.competitionMode === "BOT_VS_BOT" &&
-        e.botReadinessStatus !== "READY"
-      ) {
-        botNotReadyCount += 1;
-        continue;
-      }
-      eligibleParticipantsCount += 1;
-    }
-
-    let activeStaffCount = 0;
-    let activeRefereeCount = 0;
-    for (const s of this.store.staffAssignments.values()) {
-      if (s.tournamentId !== tournamentId || s.status !== "ACTIVE") continue;
-      if (s.role === "REFEREE") activeRefereeCount += 1;
-      else activeStaffCount += 1;
-    }
+    const { eligibleParticipantsCount, botNotReadyCount } = counts;
+    const { activeStaffCount, activeRefereeCount } = staff;
 
     let pendingManualAdjudicationsCount = 0;
     this.adjudicationLedgerService?.sweepExpiredAdjudicationsSync(tournamentId);
@@ -450,7 +433,65 @@ export class TournamentLifecycleService {
       blockers.push("NO_ACTIVE_RULE_VERSION");
     }
 
-    // 3. Minimum eligible participants
+    // 3. Rule Profile validity (Engine N02)
+    let ruleValid = true;
+    let ruleErrorMessage = "";
+    const rawProfile = tournament.ruleProfile as any;
+    if (rawProfile && typeof rawProfile.board === "object" && rawProfile.board !== null) {
+      const issues = validateRuleProfileForPreview(rawProfile);
+      if (issues.length > 0) {
+        ruleValid = false;
+        ruleErrorMessage = issues.map((i) => i.message).join("; ");
+      }
+    } else {
+      const validVersions = new Set(["rps-v1", "rps-v2", "rps-custom-v1"]);
+      if (!validVersions.has(tournament.ruleProfile.rulesVersion)) {
+        ruleValid = false;
+        ruleErrorMessage = `Phiên bản luật "${tournament.ruleProfile.rulesVersion}" không được hỗ trợ.`;
+      }
+    }
+
+    if (ruleValid) {
+      checklist.push({
+        code: "RULE_PROFILE_VALID",
+        title: "Tính hợp lệ của cấu hình luật thi đấu",
+        status: "PASS",
+        detail: "Cấu hình luật thi đấu hợp lệ theo engine.",
+      });
+    } else {
+      checklist.push({
+        code: "RULE_PROFILE_VALID",
+        title: "Tính hợp lệ của cấu hình luật thi đấu",
+        status: "BLOCKED",
+        detail: `Cấu hình luật chưa hợp lệ: ${ruleErrorMessage}`,
+        blockerCode: "RULE_PROFILE_INVALID",
+      });
+      blockers.push("RULE_PROFILE_INVALID");
+    }
+
+    // 4. Referee gate (if refereeRequired is toggled on)
+    if (tournament.coreConfig.refereeRequired) {
+      const minRef = tournament.coreConfig.minReadyOnlineReferees ?? 1;
+      if (activeRefereeCount >= minRef) {
+        checklist.push({
+          code: "REFEREE_GATE",
+          title: "Đội ngũ trọng tài được chấp thuận",
+          status: "PASS",
+          detail: `Có ${activeRefereeCount}/${minRef} trọng tài sẵn sàng điều hành.`,
+        });
+      } else {
+        checklist.push({
+          code: "REFEREE_GATE",
+          title: "Đội ngũ trọng tài được chấp thuận",
+          status: "BLOCKED",
+          detail: `Cần ít nhất ${minRef} trọng tài accepted/active (hiện có: ${activeRefereeCount}).`,
+          blockerCode: "INSUFFICIENT_ACCEPTED_REFEREES",
+        });
+        blockers.push("INSUFFICIENT_ACCEPTED_REFEREES");
+      }
+    }
+
+    // 5. Minimum eligible participants
     const minRequired = tournament.coreConfig.minParticipantsToStart;
     if (eligibleParticipantsCount >= minRequired) {
       checklist.push({
@@ -470,7 +511,45 @@ export class TournamentLifecycleService {
       blockers.push("INSUFFICIENT_ELIGIBLE_PARTICIPANTS");
     }
 
-    // 4. Pending manual adjudications (blocks finalization)
+    // 6. Bot readiness check (if BOT_VS_BOT)
+    if (tournament.coreConfig.competitionMode === "BOT_VS_BOT") {
+      if (botNotReadyCount === 0 && eligibleParticipantsCount > 0) {
+        checklist.push({
+          code: "BOT_READINESS",
+          title: "Kiểm tra mã nguồn & runtime Bot",
+          status: "PASS",
+          detail: "Tất cả Bot của thí sinh đã sẵn sàng thi đấu.",
+        });
+      } else if (botNotReadyCount > 0) {
+        checklist.push({
+          code: "BOT_READINESS",
+          title: "Kiểm tra mã nguồn & runtime Bot",
+          status: "BLOCKED",
+          detail: `Còn ${botNotReadyCount} thí sinh chưa hoàn thành kiểm tra Bot hợp lệ.`,
+          blockerCode: "BOT_NOT_READY",
+        });
+        blockers.push("BOT_NOT_READY");
+      }
+    }
+
+    // 7. Pending change requests
+    let hasPendingCr = false;
+    for (const cr of this.store.changeRequests.values()) {
+      if (cr.tournamentId === tournamentId && cr.status === "PENDING") {
+        hasPendingCr = true;
+        break;
+      }
+    }
+    if (hasPendingCr) {
+      checklist.push({
+        code: "PENDING_CHANGE_REQUESTS",
+        title: "Yêu cầu thay đổi cấu hình đang chờ duyệt",
+        status: "WARN",
+        detail: "Có ChangeRequest đang chờ Admin phê duyệt.",
+      });
+    }
+
+    // 8. Pending manual adjudications (blocks finalization)
     if (pendingManualAdjudicationsCount === 0) {
       checklist.push({
         code: "NO_PENDING_ADJUDICATION",
@@ -492,7 +571,10 @@ export class TournamentLifecycleService {
       (b) =>
         b === "TOURNAMENT_NOT_APPROVED" ||
         b === "NO_ACTIVE_RULE_VERSION" ||
-        b === "INSUFFICIENT_ELIGIBLE_PARTICIPANTS"
+        b === "RULE_PROFILE_INVALID" ||
+        b === "INSUFFICIENT_ACCEPTED_REFEREES" ||
+        b === "INSUFFICIENT_ELIGIBLE_PARTICIPANTS" ||
+        b === "BOT_NOT_READY"
     );
 
     const canOpenScheduled =
@@ -506,6 +588,11 @@ export class TournamentLifecycleService {
 
     const canFinalize =
       tournament.status === "ENDED" && pendingManualAdjudicationsCount === 0;
+
+    const readinessState =
+      canOpenScheduled && canStartRunning && blockers.length === 0
+        ? "READY"
+        : "NOT_READY";
 
     return TournamentReadinessSnapshotSchema.parse({
       tournamentId,
@@ -522,7 +609,42 @@ export class TournamentLifecycleService {
       checklist,
       blockers,
       evaluatedAt: nowIso,
+      readinessState,
     });
+  }
+
+  /**
+   * T025 & T026: Computes authoritative readiness from actual enrollments, bot readiness,
+   * published rule versions, staff assignments, and pending manual adjudications.
+   */
+  evaluateReadiness(tournamentId: string): TournamentReadinessSnapshot {
+    const tournament = this.store.tournaments.get(tournamentId);
+    if (!tournament) {
+      throw createTournamentError({
+        code: "NOT_FOUND",
+        statusCode: 404,
+        message: "Không tìm thấy giải đấu.",
+        details: { reason: "RESOURCE_NOT_FOUND", tournamentId },
+      });
+    }
+
+    const countsOrPromise = this.readinessSourcesPort.countParticipants(tournament);
+    const staffOrPromise = this.readinessSourcesPort.countStaff(tournamentId);
+
+    if (countsOrPromise instanceof Promise || staffOrPromise instanceof Promise) {
+      const asyncPromise = (async () => {
+        const counts = await countsOrPromise;
+        const staff = await staffOrPromise;
+        return this.buildReadinessSnapshot(tournament, counts, staff);
+      })();
+      return asyncPromise as any;
+    }
+
+    return this.buildReadinessSnapshot(
+      tournament,
+      countsOrPromise,
+      staffOrPromise
+    );
   }
 
   async openScheduled(
@@ -1009,6 +1131,156 @@ export class TournamentLifecycleService {
         nowIso,
       });
       return updated;
+    });
+  }
+
+  /**
+   * BR-07, T024: Allows the requesting TA or an Admin to cancel a PENDING ChangeRequest.
+   */
+  async cancelChangeRequest(
+    actor: TournamentActorContext,
+    tournamentId: string,
+    changeRequestId: string,
+    reason?: string
+  ): Promise<TournamentChangeRequestDto> {
+    return this.store.withLock(() => {
+      const cr = this.store.changeRequests.get(changeRequestId);
+      if (!cr || cr.tournamentId !== tournamentId) {
+        throw createTournamentError({
+          code: "NOT_FOUND",
+          statusCode: 404,
+          message: "Không tìm thấy yêu cầu thay đổi cấu hình (ChangeRequest).",
+          details: { reason: "RESOURCE_NOT_FOUND", changeRequestId },
+        });
+      }
+
+      if (cr.status !== "PENDING") {
+        throw createTournamentError({
+          code: "CONFLICT",
+          statusCode: 409,
+          message: `ChangeRequest đang ở trạng thái "${cr.status}", chỉ có thể hủy khi đang PENDING.`,
+          details: { reason: "INVALID_STATE_TRANSITION", status: cr.status },
+        });
+      }
+
+      const tournament = this.store.tournaments.get(tournamentId);
+      if (!tournament) {
+        throw createTournamentError({
+          code: "NOT_FOUND",
+          statusCode: 404,
+          message: "Không tìm thấy giải đấu.",
+          details: { reason: "RESOURCE_NOT_FOUND", tournamentId },
+        });
+      }
+
+      const contract = this.store.contracts.get(tournament.contractId);
+      const nowIso = this.store.nowIso();
+      if (!actor.roles.includes("ADMIN")) {
+        if (contract) {
+          assertTaContractOrTournamentAccess(actor, contract, {
+            mode: "OPERATE_EXISTING",
+            tournament,
+            serverNowIso: nowIso,
+          });
+        }
+        if (cr.requestedByTaUserId !== actor.userId) {
+          throw createTournamentError({
+            code: "UNAUTHORIZED",
+            statusCode: 403,
+            message: "Bạn không có quyền hủy ChangeRequest do người khác tạo.",
+            details: { reason: "FORBIDDEN_ROLE" },
+          });
+        }
+      }
+
+      const updatedCr = TournamentChangeRequestSchema.parse({
+        ...cr,
+        status: "CANCELLED",
+        reviewNote: reason?.trim() || "TA chủ động hủy yêu cầu thay đổi.",
+        reviewedAt: nowIso,
+        updatedAt: nowIso,
+      });
+      this.store.changeRequests.set(changeRequestId, updatedCr);
+
+      this.store.audit.append({
+        actorUserId: actor.userId,
+        actorRole: actor.roles.includes("ADMIN") ? "ADMIN" : "TOURNAMENT_ADMIN",
+        action: "CHANGE_REQUEST_CANCELLED",
+        targetType: "CHANGE_REQUEST",
+        targetId: changeRequestId,
+        beforeSnapshot: cr,
+        afterSnapshot: updatedCr,
+        reason: reason?.trim() || "TA chủ động hủy yêu cầu thay đổi.",
+        correlationId: actor.correlationId ?? null,
+        nowIso,
+      });
+
+      return updatedCr;
+    });
+  }
+
+  /**
+   * T026: Scheduler tick that transitions SCHEDULED tournaments to RUNNING when
+   * serverNow >= scheduledStartAt ONLY IF all readiness prerequisites pass.
+   * If any blocker remains, preserves SCHEDULED and records the blockage.
+   */
+  async evaluateScheduledStart(serverNowIso?: string): Promise<{
+    startedTournaments: TournamentDto[];
+    blockedTournaments: TournamentDto[];
+  }> {
+    return this.store.withLock(async () => {
+      const nowIso = serverNowIso ?? this.store.nowIso();
+      const nowMs = Date.parse(nowIso);
+      const startedTournaments: TournamentDto[] = [];
+      const blockedTournaments: TournamentDto[] = [];
+
+      for (const [id, tournament] of this.store.tournaments.entries()) {
+        if (tournament.status !== "SCHEDULED") continue;
+        const startMs = Date.parse(tournament.coreConfig.scheduledStartAt);
+        if (nowMs >= startMs) {
+          const readiness = this.evaluateReadiness(id);
+          if (readiness.canStartRunning) {
+            const updated = TournamentDtoSchema.parse({
+              ...tournament,
+              status: "RUNNING",
+              revision: tournament.revision + 1,
+              startedAt: tournament.startedAt ?? nowIso,
+              updatedAt: nowIso,
+            });
+            this.store.tournaments.set(id, updated);
+            this.store.audit.append({
+              actorUserId: "SYSTEM_SCHEDULER",
+              actorRole: "ADMIN",
+              action: "TOURNAMENT_AUTO_STARTED",
+              targetType: "TOURNAMENT",
+              targetId: id,
+              beforeSnapshot: tournament,
+              afterSnapshot: updated,
+              reason: "Lịch bắt đầu giải đã đến và điều kiện sẵn sàng đạt PASS (T026).",
+              correlationId: null,
+              nowIso,
+            });
+            startedTournaments.push(updated);
+          } else {
+            // T026: Do NOT start if blockers remain
+            this.store.audit.append({
+              actorUserId: "SYSTEM_SCHEDULER",
+              actorRole: "ADMIN",
+              action: "TOURNAMENT_START_BLOCKED",
+              targetType: "TOURNAMENT",
+              targetId: id,
+              beforeSnapshot: tournament,
+              afterSnapshot: tournament,
+              reason: `Đã đến giờ bắt đầu nhưng giải đấu còn blocker chưa giải quyết: ${readiness.blockers.join(", ")}`,
+              correlationId: null,
+              nowIso,
+            });
+            blockedTournaments.push(tournament);
+          }
+        }
+      }
+
+      return { startedTournaments, blockedTournaments };
     });
   }
 }
