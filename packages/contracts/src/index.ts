@@ -28,6 +28,7 @@ export * from "./account/d00.dto.js";
 export * from "./account/d02.dto.js";
 export * from "./roster/d03.dto.js";
 export * from "./roster/d04.dto.js";
+export * from "./roster/d05.dto.js";
 export * from "./tournament-initialization.js";
 export * from "./tournament-rules-preview.js";
 export * from "./tournament-rule-versioning.js";
