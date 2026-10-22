@@ -19,6 +19,8 @@ import {
   type ReadinessSourcesPort,
 } from "./readiness-sources.port.js";
 import { TournamentVersioningAdapter } from "./tournament-versioning.adapter.js";
+import { registerTournamentStaffRoutes } from "../tournament-staff/staff.route.js";
+import { TournamentStaffService } from "../tournament-staff/staff.service.js";
 
 export interface TournamentRuntimeBundle {
   store: TournamentStateStore;
@@ -30,6 +32,7 @@ export interface TournamentRuntimeBundle {
   adjudicationLedgerService: AdjudicationLedgerService;
   readinessSourcesPort: ReadinessSourcesPort;
   versioningAdapter: TournamentVersioningAdapter;
+  staffService?: TournamentStaffService;
 }
 
 export function createTournamentRuntimeBundle(options?: {
@@ -55,6 +58,7 @@ export function createTournamentRuntimeBundle(options?: {
   );
   const admissionGateService = new AdmissionGateService(store);
   const versioningAdapter = new TournamentVersioningAdapter(store);
+  const staffService = options?.database ? new TournamentStaffService(options.database) : undefined;
 
   return {
     store,
@@ -66,6 +70,7 @@ export function createTournamentRuntimeBundle(options?: {
     adjudicationLedgerService,
     readinessSourcesPort,
     versioningAdapter,
+    staffService,
   };
 }
 
@@ -87,6 +92,7 @@ export async function registerTournamentInitializationRoutes(
     admissionGateService: bundle.admissionGateService,
     adjudicationLedgerService: bundle.adjudicationLedgerService,
   });
+  if (bundle.staffService) registerTournamentStaffRoutes(app, auth, bundle.staffService);
 
   // C32 & T005 Hook on Online Matchmaking Queue, Room Creation/Join, Spectate and Seat Upgrade
   app.addHook("preHandler", async (request) => {
