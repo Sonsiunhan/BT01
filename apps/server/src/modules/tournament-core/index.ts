@@ -32,7 +32,7 @@ export interface TournamentRuntimeBundle {
   adjudicationLedgerService: AdjudicationLedgerService;
   readinessSourcesPort: ReadinessSourcesPort;
   versioningAdapter: TournamentVersioningAdapter;
-  staffService?: TournamentStaffService;
+  staffService?: TournamentStaffService | undefined;
 }
 
 export function createTournamentRuntimeBundle(options?: {
