@@ -70,7 +70,7 @@ export function createTournamentRuntimeBundle(options?: {
     adjudicationLedgerService,
     readinessSourcesPort,
     versioningAdapter,
-    staffService,
+    ...(staffService ? { staffService } : {}),
   };
 }
 

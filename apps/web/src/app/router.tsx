@@ -27,6 +27,7 @@ const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRouteP
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
+const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
@@ -86,6 +87,10 @@ export function AppRouter() {
         <Route
           path={routes.adminTournamentDetail}
           element={<TournamentDetailPage />}
+        />
+        <Route
+          path={routes.adminTournamentRules}
+          element={<TournamentRulesPage />}
         />
         <Route
           path={routes.adminTournamentStaff}
