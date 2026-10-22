@@ -30,6 +30,7 @@ const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/To
 const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
+const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
 
 export function AppRouter() {
@@ -107,6 +108,7 @@ export function AppRouter() {
             />
           }
         />
+        <Route path={routes.adminTournamentBotReadiness} element={<BotReadinessPage />} />
         <Route
           path={routes.adminAudit}
           element={

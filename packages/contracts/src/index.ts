@@ -19,6 +19,7 @@ export * from "./command.js";
 export * from "./snapshot.js";
 export * from "./events.js";
 export * from "./bot-abi.js";
+export * from "./bot-readiness.js";
 export * from "./projection.js";
 export * from "./compatibility.js";
 export * from "./bounds.js";
