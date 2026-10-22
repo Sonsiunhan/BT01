@@ -14,6 +14,18 @@ export default defineConfig({
       this.emitFile({ type: "asset", fileName: "offline-assets.json", source: JSON.stringify({ assets }) });
     },
   }],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const normalized = id.replaceAll("\\\\", "/");
+          if (normalized.includes("/apps/web/src/features/admin/tournaments/")) return "admin-tournaments";
+          if (normalized.includes("/apps/web/src/features/admin/")) return "admin-pages";
+          if (normalized.includes("/apps/web/src/pages/")) return "app-pages";
+        },
+      },
+    },
+  },
   server: { port: 3000 },
   test: {
     environment: "jsdom",

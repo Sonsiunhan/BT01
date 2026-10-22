@@ -375,9 +375,27 @@ describe("L02..L08 — Tournament Initialization Domain & Security Invariants", 
         decision: "REQUEST_CHANGES",
         expectedRevision: sub2.revision,
         note: "Bổ sung mô tả ngắn.",
+        fieldNotes: {
+          shortDescription: "Cần ghi rõ đơn vị đồng tổ chức",
+        },
       }
     );
     expect(changesReq.status).toBe("CHANGES_REQUESTED");
+    expect(changesReq.lastReviewFieldNotes).toEqual({
+      shortDescription: "Cần ghi rõ đơn vị đồng tổ chức",
+    });
+
+    // L04: SA can inspect approval detail with contract envelope & diff summary, while TA is rejected (403)
+    expect(() =>
+      bundle.approvalService.getApprovalDetail(taActor, copiedDraft.id)
+    ).toThrowError(/Chỉ Quản trị hệ thống/);
+    const detailBeforeApprove = bundle.approvalService.getApprovalDetail(
+      adminActor,
+      copiedDraft.id
+    );
+    expect(detailBeforeApprove.tournament.id).toBe(copiedDraft.id);
+    expect(detailBeforeApprove.envelopeCheck.withinEnvelope).toBe(true);
+    expect(detailBeforeApprove.scheduleCheck).toEqual([]);
 
     const patched = await bundle.coreDraftService.patchDraft(
       taActor,
@@ -399,12 +417,20 @@ describe("L02..L08 — Tournament Initialization Domain & Security Invariants", 
         decision: "APPROVE",
         expectedRevision: resubmitted.revision,
         note: "Hồ sơ hợp lệ, phê duyệt.",
+        fieldNotes: {
+          scheduledStartAt: "Đã xác nhận lịch thi đấu",
+        },
       }
     );
     expect(approved.status).toBe("APPROVED");
     expect(approved.everApproved).toBe(true);
     expect(approved.activeConfigVersionNumber).toBe(1);
     expect(approved.approvedSnapshot?.configVersionNumber).toBe(1);
+    expect(approved.approvedSnapshot?.fieldNotes).toEqual({
+      scheduledStartAt: "Đã xác nhận lịch thi đấu",
+    });
+    expect(Object.isFrozen(approved.approvedSnapshot)).toBe(true);
+    expect(Object.isFrozen(approved.approvedSnapshot?.coreConfig)).toBe(true);
 
     // T024: Create a post-approval ChangeRequest -> Tournament status MUST remain APPROVED
     const cr = await bundle.lifecycleService.createChangeRequest(
