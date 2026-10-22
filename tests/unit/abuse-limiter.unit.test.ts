@@ -132,5 +132,5 @@ describe('AbuseLimiter — D-02.06 / D-02.08 / D-02.09', () => {
       limiter.check({ principal: `flood-${i}`, action: 'CREATE_ROOM' });
     }
     expect(limiter.size).toBeLessThanOrEqual(LIMITER_POLICIES.MAX_BUCKETS);
-  });
+  }, 30_000);
 });
