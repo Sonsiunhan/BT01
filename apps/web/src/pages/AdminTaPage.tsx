@@ -247,7 +247,7 @@ export default function AdminTaPage() {
             disabled={loading || bootstrapPending}
             data-testid="bootstrap-ta-btn"
           >
-            {bootstrapPending ? "Đang khởi tạo..." : "⚡ Khởi tạo nhanh TA"}
+            {bootstrapPending ? "Đang khởi tạo..." : "Khởi tạo nhanh TA"}
           </Button>
           <Button
             variant="primary"
