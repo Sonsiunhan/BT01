@@ -91,6 +91,13 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
       pauseTournament: vi.fn(),
       resumeTournament: vi.fn(),
       listAuditLogs: vi.fn(),
+      submitDraft: vi.fn().mockResolvedValue({
+        tournament: {
+          id: "tour-draft-123",
+          status: "UNDER_REVIEW",
+          revision: 2,
+        },
+      }),
     };
   });
 
@@ -170,6 +177,76 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
       expect(
         screen.getByText(/Xung đột phiên bản bản nháp \(Optimistic Concurrency Control\)/i)
       ).toBeInTheDocument();
+    });
+  });
+
+  it("6. opens submit confirmation modal and calls submitDraft on confirm", async () => {
+    renderWithProviders(
+      <TournamentWizardPage
+        apiClient={mockApiClient}
+        initialData={{
+          tournamentId: "tour-draft-123",
+          expectedRevision: 1,
+        }}
+        initialStep={4}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("wizard-submit-draft-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("wizard-submit-draft-btn"));
+
+    expect(screen.getByTestId("wizard-submit-modal")).toBeInTheDocument();
+    expect(screen.getByTestId("wizard-submission-note-input")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId("wizard-submission-note-input"), {
+      target: { value: "Đã rà soát đủ 5 round và nộp duyệt." },
+    });
+
+    fireEvent.click(screen.getByTestId("wizard-confirm-submit-btn"));
+
+    await waitFor(() => {
+      expect(mockApiClient.submitDraft).toHaveBeenCalledWith(
+        "tour-draft-123",
+        expect.objectContaining({
+          expectedRevision: 1,
+          submissionNote: "Đã rà soát đủ 5 round và nộp duyệt.",
+        })
+      );
+      expect(screen.getByTestId("wizard-submit-success-banner")).toBeInTheDocument();
+      expect(screen.getByTestId("wizard-locked-banner")).toBeInTheDocument();
+    });
+  });
+
+  it("7. renders conflict banner when submitting draft with mismatched revision", async () => {
+    const conflictError = Object.assign(new Error("Bản nháp đã bị thay đổi"), {
+      code: "CONFLICT",
+      statusCode: 409,
+    });
+    vi.mocked(mockApiClient.submitDraft).mockRejectedValueOnce(conflictError);
+
+    renderWithProviders(
+      <TournamentWizardPage
+        apiClient={mockApiClient}
+        initialData={{
+          tournamentId: "tour-draft-123",
+          expectedRevision: 1,
+        }}
+        initialStep={4}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("wizard-submit-draft-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("wizard-submit-draft-btn"));
+    fireEvent.click(screen.getByTestId("wizard-confirm-submit-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("wizard-conflict-banner")).toBeInTheDocument();
     });
   });
 });

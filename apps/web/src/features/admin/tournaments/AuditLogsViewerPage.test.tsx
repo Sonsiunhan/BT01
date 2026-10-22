@@ -68,6 +68,7 @@ describe("S06 — AuditLogsViewerPage Component Tests", () => {
       pauseTournament: vi.fn(),
       resumeTournament: vi.fn(),
       listAuditLogs: vi.fn().mockResolvedValue({ logs: mockLogs }),
+      submitDraft: vi.fn(),
     };
   });
 

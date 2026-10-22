@@ -8,6 +8,8 @@ import {
 import {
   type CreateTournamentDraftInput,
   type PatchTournamentDraftInput,
+  type SubmitTournamentDraftInput,
+  SubmitTournamentDraftInputSchema,
   type TournamentDto,
   type TournamentReadinessSnapshot,
   type TournamentConfigVersionDto,
@@ -195,6 +197,7 @@ export interface TournamentApiPort {
   patchDraft(tournamentId: string, input: PatchTournamentDraftInput): Promise<TournamentDto>;
   getDraft(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }>;
   deleteDraft(tournamentId: string): Promise<{ deleted: boolean; quotaRefunded: boolean }>;
+  submitDraft(tournamentId: string, input: SubmitTournamentDraftInput): Promise<{ tournament: TournamentDto }>;
 
   // S05 Lifecycle and Readiness APIs
   getTournamentDetail(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }>;
@@ -448,6 +451,79 @@ export class TournamentApiClient implements TournamentApiPort {
     }
     const err = await res.json().catch(() => ({}));
     throw createHttpError(err, res.status, "Không thể xóa bản nháp giải đấu", "DELETE_DRAFT_FAILED");
+  }
+
+  async submitDraft(tournamentId: string, input: SubmitTournamentDraftInput): Promise<{ tournament: TournamentDto }> {
+    SubmitTournamentDraftInputSchema.parse(input);
+    if (this.useRealApi) {
+      const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(input),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+      const err = await res.json().catch(() => ({}));
+      throw createHttpError(
+        err,
+        res.status,
+        "Không thể nộp duyệt bản nháp giải đấu",
+        res.status === 409 ? "CONFLICT" : "SUBMIT_DRAFT_FAILED"
+      );
+    }
+
+    const item = FIXTURE_TOURNAMENTS.find((t) => t.tournamentId === tournamentId);
+    if (item) {
+      item.status = "UNDER_REVIEW";
+      item.revision = `rev-${(parseInt(item.revision.replace("rev-", ""), 10) || 1) + 1}`;
+    }
+    const mockTournament: TournamentDto = {
+      id: tournamentId,
+      contractId: "HD-2026-CHUNG",
+      contractCode: "CONTRACT-DEFAULT",
+      unitId: "unit-dhqg",
+      ownerTaUserId: "user-ta-01",
+      status: "UNDER_REVIEW",
+      revision: (input.expectedRevision ?? 1) + 1,
+      activeConfigVersionId: null,
+      activeConfigVersionNumber: 0,
+      approvedSnapshot: null,
+      everApproved: false,
+      quotaRefunded: false,
+      coreConfig: createDefaultCoreConfig({
+        tournamentName: item?.name || "Giải đấu thử nghiệm",
+        tournamentCode: item?.slug || "giai-dau-thu-nghiem",
+        description: "Mô tả giải đấu",
+        timezone: item?.timezone || "Asia/Ho_Chi_Minh",
+        scheduledStartAt: item?.startAt || new Date().toISOString(),
+        scheduledEndAt: item?.endAt || new Date(Date.now() + 86400000 * 7).toISOString(),
+        competitionMode: "HUMAN_ONLINE",
+        maxParticipants: item?.maxParticipants || 32,
+        minParticipantsToStart: 4,
+        organizersText: item?.ownerDisplay || "Ban Tổ chức Giải đấu",
+        audienceScope: item?.visibility === "PUBLIC" ? "PUBLIC_REGISTERED" : "INTERNAL_UNIT",
+      }),
+      ruleProfile: DEFAULT_TOURNAMENT_RULE_PROFILE,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      submittedAt: new Date().toISOString(),
+      approvedAt: null,
+      rejectedAt: null,
+      changesRequestedAt: null,
+      lastReviewNote: null,
+      lastReviewFieldNotes: {},
+      startedAt: null,
+      pausedAt: null,
+      pauseReason: null,
+      endedAt: null,
+      cancelledAt: null,
+      cancelReason: null,
+      finalizedAt: null,
+      copiedFromTournamentId: null,
+    };
+    return { tournament: mockTournament };
   }
 
   async getTournamentDetail(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }> {

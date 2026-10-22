@@ -139,6 +139,31 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
     }
   };
 
+  const handleSubmitDraft = async () => {
+    if (!tournamentId || !tournament) return;
+    setActionLoading(true);
+    setActionMessage(null);
+    try {
+      const res = await apiClient.submitDraft(tournamentId, {
+        expectedRevision: tournament.revision,
+      });
+      setTournament(res.tournament);
+      setActionMessage({
+        type: "success",
+        text: "Đã nộp duyệt giải đấu thành công! Trạng thái hiện tại: ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW).",
+      });
+      const r = await apiClient.getTournamentReadiness(tournamentId);
+      setReadiness(r.readiness);
+    } catch (error: unknown) {
+      setActionMessage({
+        type: "error",
+        text: errorMessage(error, "Không thể nộp duyệt giải đấu."),
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -305,15 +330,33 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
         {/* Action Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           {isDraftLike && (
-            <button
-              type="button"
-              data-testid="action-edit-draft-btn"
-              onClick={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
-              className="button primary"
-              style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
-            >
-              Sửa bản nháp
-            </button>
+            <>
+              <button
+                type="button"
+                data-testid="action-edit-draft-btn"
+                onClick={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
+                className="button secondary"
+                style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+              >
+                Sửa bản nháp
+              </button>
+              <button
+                type="button"
+                data-testid="action-submit-draft-btn"
+                onClick={handleSubmitDraft}
+                disabled={actionLoading}
+                className="button primary"
+                style={{
+                  fontSize: "0.85rem",
+                  padding: "0.45rem 0.9rem",
+                  background: "var(--system-cyan)",
+                  color: "#0B1421",
+                  fontWeight: 700,
+                }}
+              >
+                {actionLoading ? "Đang gửi..." : "Nộp duyệt giải đấu"}
+              </button>
+            </>
           )}
 
           {tournament.status === "APPROVED" && (
