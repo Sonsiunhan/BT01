@@ -840,8 +840,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   gap: "0.75rem",
                 }}
               >
-                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--system-cyan)" }}>
-                  ✓ Điểm danh bắt buộc — Cửa sổ check-in
+                <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", fontWeight: 700, color: "var(--system-cyan)" }}>
+                  <UiGlyph name="players" size={15} />
+                  Điểm danh bắt buộc — Cửa sổ check-in
                 </span>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -892,8 +893,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   gap: "0.5rem",
                 }}
               >
-                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--accent)" }}>
-                  🤖 Chế độ BOT_VS_BOT — Hạn nộp bot
+                <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.8rem", fontWeight: 700, color: "var(--accent)" }}>
+                  <UiGlyph name="brand" size={15} />
+                  Chế độ BOT_VS_BOT — Hạn nộp bot
                 </span>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                   <label htmlFor="wizard-bot-deadline" style={{ fontSize: "0.85rem", fontWeight: 600 }}>
@@ -1019,8 +1021,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 marginTop: "0.5rem",
               }}
             >
-              <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>
-                ⚙️ Kiểm soát vận hành trận đấu
+              <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
+                <UiGlyph name="settings" size={16} />
+                Kiểm soát vận hành trận đấu
               </span>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
@@ -1118,8 +1121,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 gap: "0.75rem",
               }}
             >
-              <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>
-                📊 Cấu hình tính điểm (ELO_WEIGHTED_V1)
+              <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
+                <UiGlyph name="trophy" size={16} />
+                Cấu hình tính điểm (ELO_WEIGHTED_V1)
               </span>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0.75rem" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
@@ -1195,8 +1199,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 gap: "0.75rem",
               }}
             >
-              <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>
-                👁️ Quyền riêng tư & Chế độ khán giả
+              <span style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.85rem", fontWeight: 700 }}>
+                <UiGlyph name="spectator" size={16} />
+                Quyền riêng tư & Chế độ khán giả
               </span>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
