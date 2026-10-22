@@ -2,7 +2,19 @@ import { DEFAULT_BOT_LIMITS, type BotInvocationRequest } from "@ottv2/bot-sdk";
 
 /** Trusted wrapper, interpreted only inside pinned CPython-WASI. */
 export function buildPythonRunner(request: BotInvocationRequest): string {
-  const payload = JSON.stringify(JSON.stringify({ ...request, state: { ...request.state, legal_moves: request.state.legalMoves, turn_number: request.state.turnNumber, clocks_ms: request.state.clocksMs } }));
+  const payload = JSON.stringify(JSON.stringify({
+    ...request,
+    state: {
+      ...request.state,
+      legal_moves: request.state.legalMoves,
+      turn_number: request.state.turnNumber,
+      clocks_ms: request.state.clocksMs,
+      board_dimensions: request.state.dimensions ?? null,
+      goal_cells: request.state.goals ?? { BLUE: null, RED: null },
+      rule_version: request.state.rules?.version ?? "rps-v1",
+      win_conditions: request.state.rules?.winConditions ?? ["EXTINCTION", "GOAL_REACHED"],
+    },
+  }));
   const budget = request.phase === "PREFLIGHT" ? DEFAULT_BOT_LIMITS.preflightMs : DEFAULT_BOT_LIMITS.perTurnMs;
   return `
 import ast as _ast, builtins as _builtins, json as _json, types as _types, sys as _sys, time as _time
@@ -58,6 +70,10 @@ finally:
     _sys.settrace(None)
 if isinstance(_result, tuple) and len(_result) == 2:
     _result = {'move': _result[0], 'memory': _result[1]}
+elif isinstance(_result, dict) and 'move' in _result and 'memory' in _result:
+    _result = {'move': _result['move'], 'memory': _result['memory']}
+else:
+    raise ValueError('ABI_OUTPUT')
 _text = _json.dumps(_result, ensure_ascii=False, separators=(',', ':'), allow_nan=False)
 if len(_text.encode('utf-8')) > ${DEFAULT_BOT_LIMITS.outputBytes}:
     raise ValueError('OUTPUT_BUDGET')

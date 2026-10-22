@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../../test/renderWithProviders";
 import { TournamentDetailPage } from "./TournamentDetailPage";
 import type { TournamentApiPort } from "./tournamentApi";
-import type { TournamentDto, TournamentReadinessSnapshot } from "@ottv2/contracts";
+import { DEFAULT_TOURNAMENT_RULE_PROFILE, type TournamentDto, type TournamentReadinessSnapshot } from "@ottv2/contracts";
 
 describe("S05 — TournamentDetailPage Component Tests", () => {
   let mockApiClient: TournamentApiPort;
@@ -59,7 +59,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       scoreFloor: 0,
       botDeadlineAt: null,
     },
-    ruleProfile: {} as any,
+    ruleProfile: DEFAULT_TOURNAMENT_RULE_PROFILE,
     submittedAt: "2026-10-21T08:00:00.000Z",
     approvedAt: "2026-10-21T09:00:00.000Z",
     rejectedAt: null,

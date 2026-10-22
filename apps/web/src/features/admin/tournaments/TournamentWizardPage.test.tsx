@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../../test/renderWithProviders";
 import { TournamentWizardPage } from "./TournamentWizardPage";
 import type { TournamentApiPort } from "./tournamentApi";
+import { DEFAULT_TOURNAMENT_RULE_PROFILE } from "@ottv2/contracts";
 
 describe("S03 — TournamentWizardPage Component Tests", () => {
   let mockApiClient: TournamentApiPort;
@@ -67,7 +68,7 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
           manualAdjudicationDeadlineSeconds: 300,
           manualAdjudicationFallbackPolicy: "RANDOM_SEEDED",
         },
-        ruleProfile: {} as any,
+        ruleProfile: DEFAULT_TOURNAMENT_RULE_PROFILE,
         createdAt: "2026-10-22T08:00:00.000Z",
         updatedAt: "2026-10-22T08:00:00.000Z",
         submittedAt: null,
@@ -152,10 +153,8 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
   });
 
   it("5. renders conflict alert banner when server returns 409 CONFLICT", async () => {
-    const conflictError = new Error("Bản nháp đã cũ");
-    (conflictError as any).code = "CONFLICT";
-    (conflictError as any).statusCode = 409;
-    (mockApiClient.createDraft as any).mockRejectedValueOnce(conflictError);
+    const conflictError = Object.assign(new Error("Bản nháp đã cũ"), { code: "CONFLICT", statusCode: 409 });
+    vi.mocked(mockApiClient.createDraft).mockRejectedValueOnce(conflictError);
 
     renderWithProviders(<TournamentWizardPage apiClient={mockApiClient} />);
 

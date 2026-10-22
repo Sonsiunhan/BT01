@@ -5,3 +5,4 @@ export * from "./state.js";
 export * from "./source-validation.js";
 export * from "./scorer.js";
 export * from "./runtime.js";
+export * from "./receipt.js";

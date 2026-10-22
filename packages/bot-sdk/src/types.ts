@@ -1,4 +1,5 @@
 import type { Board, Coordinate, PieceType, Side } from "@ottv2/game-rules";
+import type { BotExecutionReceipt } from "@ottv2/contracts";
 
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
@@ -19,6 +20,9 @@ export type BotTurnState = Readonly<{
   side: Side;
   board: Board;
   legalMoves: readonly BotMove[];
+  dimensions: Readonly<{ rows: number; cols: number }>;
+  goals: Readonly<{ BLUE: Coordinate | null; RED: Coordinate | null }>;
+  rules: Readonly<{ version: string; winConditions: readonly ("EXTINCTION" | "GOAL_REACHED")[] }>;
   turnNumber: number;
   clocksMs: Readonly<{ BLUE: number; RED: number }>;
   history: readonly BotMoveRecord[];
@@ -31,6 +35,8 @@ export type BotInvocationRequest = Readonly<{
   seed: number;
   /** Trusted host phase; never taken from a player's payload. */
   phase?: "PREFLIGHT" | "TURN";
+  /** Host-only receipt identity; ignored if supplied by player source. */
+  receiptContext?: Omit<BotExecutionReceipt, "outcome" | "computeMs" | "errorCode">;
 }>;
 
 export type BotInvocationResult = Readonly<{
@@ -38,4 +44,6 @@ export type BotInvocationResult = Readonly<{
   memory: JsonValue;
   /** Supervisor measurement, overwritten by the trusted adapter, never Bot output. */
   computeMs?: number;
+  /** Host-generated immutable evidence; never accepted from Bot output. */
+  receipt?: BotExecutionReceipt;
 }>;

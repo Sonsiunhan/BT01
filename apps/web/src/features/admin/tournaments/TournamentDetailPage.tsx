@@ -9,6 +9,10 @@ import type {
   ReadinessChecklistItem,
 } from "@ottv2/contracts";
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 interface TournamentDetailPageProps {
   apiClient?: TournamentApiPort;
   tournamentId?: string;
@@ -47,14 +51,14 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       if (detailRes.status === "fulfilled") {
         setTournament(detailRes.value.tournament);
       } else {
-        throw new Error((detailRes.reason as any)?.message || "Không thể tải thông tin giải đấu");
+        throw new Error(errorMessage(detailRes.reason, "Không thể tải thông tin giải đấu"));
       }
 
       if (readinessRes.status === "fulfilled") {
         setReadiness(readinessRes.value.readiness);
       }
-    } catch (err: any) {
-      setError(err?.message || "Đã xảy ra lỗi khi tải dữ liệu giải đấu.");
+    } catch (error: unknown) {
+      setError(errorMessage(error, "Đã xảy ra lỗi khi tải dữ liệu giải đấu."));
     } finally {
       setLoading(false);
     }
@@ -75,8 +79,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Đã mở lịch trình giải đấu thành công (SCHEDULED)." });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể mở lịch trình giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể mở lịch trình giải đấu.") });
     } finally {
       setActionLoading(false);
     }
@@ -92,8 +96,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Giải đấu đã chính thức bắt đầu (RUNNING)!" });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể bắt đầu giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể bắt đầu giải đấu.") });
     } finally {
       setActionLoading(false);
     }
@@ -111,8 +115,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Đã tạm dừng giải đấu thành công (PAUSED)." });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể tạm dừng giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể tạm dừng giải đấu.") });
     } finally {
       setActionLoading(false);
     }
@@ -128,8 +132,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Đã tiếp tục giải đấu thành công (RUNNING)." });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể tiếp tục giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể tiếp tục giải đấu.") });
     } finally {
       setActionLoading(false);
     }
@@ -369,6 +373,14 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
               Tiếp tục giải đấu
             </button>
           )}
+          <Link
+            to={routes.adminTournamentRules.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-rules-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Luật thi đấu
+          </Link>
           <Link
             to={routes.adminTournamentStaff.replace(":tournamentId", tournament.id)}
             className="button secondary"

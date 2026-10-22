@@ -16,13 +16,18 @@ import {
 } from "./tournamentTypes";
 import {
   DEFAULT_TOURNAMENT_RULE_PROFILE,
-  validateTournamentCoreConfigSemantics,
-  type TournamentDto,
 } from "@ottv2/contracts";
+import { defaultRulePreviewApi, defaultRuleVersionApi } from "./rules";
+import { TournamentRuleManagementPanel } from "./rules/TournamentRuleManagementPanel";
+import type { RulePreviewApiPort } from "./rules/rulePreviewApi";
+import type { RuleVersionApiPort } from "./rules/ruleVersionApi";
 
 interface TournamentWizardPageProps {
   apiClient?: TournamentApiPort;
   initialData?: Partial<DraftFormData>;
+  rulePreviewApi?: RulePreviewApiPort;
+  ruleVersionApi?: RuleVersionApiPort;
+  initialStep?: number;
 }
 
 const DEFAULT_FORM_DATA: DraftFormData = {
@@ -75,11 +80,18 @@ function slugify(text: string): string {
     .slice(0, 36);
 }
 
+function errorRecord(error: unknown): Record<string, unknown> {
+  return typeof error === "object" && error !== null ? error as Record<string, unknown> : {};
+}
+
 export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   apiClient = defaultTournamentApi,
   initialData,
+  rulePreviewApi = defaultRulePreviewApi,
+  ruleVersionApi = defaultRuleVersionApi,
+  initialStep = 1,
 }) => {
-  const { id: tournamentIdParam } = useParams<{ id: string }>();
+  const { tournamentId: tournamentIdParam } = useParams<{ tournamentId: string }>();
   const navigate = useNavigate();
   const nameInputId = useId();
   const slugInputId = useId();
@@ -102,14 +114,14 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   const isEditMode = Boolean(tournamentIdParam);
   const draftStorageKey = tournamentIdParam ? `draft_${tournamentIdParam}` : "new_tournament_draft";
 
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState<number>(initialStep);
   const [formData, setFormData] = useState<DraftFormData>(() => {
     const buffered = getLocalDraftBuffer<DraftFormData>(draftStorageKey);
     return {
       ...DEFAULT_FORM_DATA,
       ...buffered,
       ...initialData,
-      tournamentId: tournamentIdParam,
+      tournamentId: tournamentIdParam ?? initialData?.tournamentId,
     };
   });
 
@@ -138,7 +150,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
 
     apiClient
       .getDraft(tournamentIdParam)
-      .then((res: { tournament: TournamentDto; configVersions: any[] }) => {
+      .then((res) => {
         if (!isMounted) return;
         const dto = res.tournament;
         setServerRevision(dto.revision);
@@ -176,13 +188,17 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     setErrorMessage(null);
   };
 
+  const handleRuleConfigRevisionChange = useCallback((revision: number) => {
+    setServerRevision(revision);
+    setFormData((current) => ({ ...current, expectedRevision: revision }));
+  }, []);
+
   // Save draft to server
   const handleSaveDraft = useCallback(async () => {
     setSaving(true);
     setErrorMessage(null);
     setConflictWarning(null);
 
-    const nowIso = new Date().toISOString();
     const effectiveStart = formData.startAt || new Date(Date.now() + 86400000).toISOString();
     const effectiveEnd = formData.endAt || new Date(Date.now() + 86400000 * 2).toISOString();
 
@@ -244,8 +260,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         // Update URL to edit mode without full reload
         navigate(`/admin/tournaments/${created.id}`, { replace: true });
       }
-    } catch (err: any) {
-      if (err?.code === "CONFLICT" || err?.statusCode === 409) {
+    } catch (err: unknown) {
+      const details = errorRecord(err);
+      if (details.code === "CONFLICT" || details.statusCode === 409) {
         setConflictWarning(
           "Bản nháp đã được cập nhật từ phiên khác (Mã lỗi: 409 CONFLICT). Hãy tải lại bản mới nhất từ máy chủ để tránh ghi đè dữ liệu hoặc kiểm tra lại lịch sử thay đổi."
         );
@@ -275,8 +292,8 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       }));
       setConflictWarning(null);
       setErrorMessage(null);
-    } catch (e: any) {
-      setErrorMessage("Không thể tải lại bản mới từ máy chủ: " + (e?.message || ""));
+    } catch (error: unknown) {
+      setErrorMessage("Không thể tải lại bản mới từ máy chủ: " + (error instanceof Error ? error.message : ""));
     } finally {
       setSaving(false);
     }
@@ -655,7 +672,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   id={visibilityInputId}
                   className="select"
                   value={formData.visibility}
-                  onChange={(e) => updateField("visibility", e.target.value as any)}
+                  onChange={(e) => updateField("visibility", e.target.value as DraftFormData["visibility"])}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
                 >
                   <option value="PRIVATE">PRIVATE / INTERNAL — Nội bộ đơn vị</option>
@@ -756,7 +773,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   id={timeModelInputId}
                   className="select"
                   value={formData.timeModel}
-                  onChange={(e) => updateField("timeModel", e.target.value as any)}
+                  onChange={(e) => updateField("timeModel", e.target.value as DraftFormData["timeModel"])}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
                 >
                   <option value="FIXED_WINDOW">FIXED_WINDOW — Khung giờ tập trung cố định</option>
@@ -935,7 +952,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   id={compModeInputId}
                   className="select"
                   value={formData.competitionMode}
-                  onChange={(e) => updateField("competitionMode", e.target.value as any)}
+                  onChange={(e) => updateField("competitionMode", e.target.value as DraftFormData["competitionMode"])}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
                 >
                   <option value="HUMAN_ONLINE">HUMAN_ONLINE — Đấu thủ người trực tuyến</option>
@@ -1213,7 +1230,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                     data-testid="wizard-spectator-select"
                     className="select"
                     value={formData.spectatorPolicy || "ROSTER_ONLY"}
-                    onChange={(e) => updateField("spectatorPolicy", e.target.value as any)}
+                    onChange={(e) => updateField("spectatorPolicy", e.target.value as DraftFormData["spectatorPolicy"])}
                     style={{ padding: "0.5rem 0.65rem", fontSize: "0.82rem" }}
                   >
                     <option value="ROSTER_ONLY">ROSTER_ONLY — Chỉ thí sinh</option>
@@ -1229,7 +1246,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                     data-testid="wizard-chat-select"
                     className="select"
                     value={formData.chatPolicy || "SPECTATOR_MUTED"}
-                    onChange={(e) => updateField("chatPolicy", e.target.value as any)}
+                    onChange={(e) => updateField("chatPolicy", e.target.value as DraftFormData["chatPolicy"])}
                     style={{ padding: "0.5rem 0.65rem", fontSize: "0.82rem" }}
                   >
                     <option value="SPECTATOR_MUTED">SPECTATOR_MUTED — Tắt chat khán giả</option>
@@ -1245,7 +1262,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                     data-testid="wizard-leaderboard-select"
                     className="select"
                     value={formData.leaderboardVisibility || "LIVE_PUBLIC"}
-                    onChange={(e) => updateField("leaderboardVisibility", e.target.value as any)}
+                    onChange={(e) => updateField("leaderboardVisibility", e.target.value as DraftFormData["leaderboardVisibility"])}
                     style={{ padding: "0.5rem 0.65rem", fontSize: "0.82rem" }}
                   >
                     <option value="LIVE_PUBLIC">LIVE_PUBLIC — BXH công khai</option>
@@ -1296,6 +1313,16 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
             <h2 style={{ margin: "0 0 0.5rem 0", fontSize: "1.1rem", fontWeight: 700 }}>
               Bước 4: Tổng quan cấu hình bản nháp
             </h2>
+
+            <TournamentRuleManagementPanel
+              tournamentId={formData.tournamentId}
+              configRevision={serverRevision}
+              onConfigRevisionChange={handleRuleConfigRevisionChange}
+              previewApi={rulePreviewApi}
+              versionApi={ruleVersionApi}
+              headingId="wizard-rules-heading"
+              testIdPrefix="wizard-rule"
+            />
 
             {/* Core identity */}
             <div
