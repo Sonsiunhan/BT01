@@ -1,4 +1,12 @@
-import type { TournamentStatus, TournamentDto } from "@ottv2/contracts";
+import {
+  type TournamentStatus,
+  type TournamentDto,
+  type TournamentCoreConfig,
+  type SpectatorPolicy,
+  type ChatPolicy,
+  type LeaderboardVisibility,
+  normalizeTournamentCoreConfig,
+} from "@ottv2/contracts";
 
 // Canonical status from @ottv2/contracts + extended lifecycle UI states
 export type TournamentLifecycleStatus =
@@ -119,6 +127,27 @@ export interface DraftFormData {
   maxParticipants: number;
   checkinRequired: boolean;
   expectedRevision?: number;
+
+  // S04 Extended Form Groups
+  allowedUnitCodes?: string[];
+  checkinOpenAt?: string | null;
+  checkinCloseAt?: string | null;
+  botDeadlineAt?: string | null;
+  organizersText?: string;
+  regulationsText?: string;
+  contactChannel?: string;
+  maxMatchesPerPlayer?: number | null;
+  maxPairMeetings?: number;
+  rematchCooldownMinutes?: number;
+  maxConcurrentMatches?: number;
+  byeScorePoints?: number;
+  spectatorPolicy?: SpectatorPolicy;
+  chatPolicy?: ChatPolicy;
+  leaderboardVisibility?: LeaderboardVisibility;
+  initialScore?: number;
+  initialElo?: number;
+  kFactor?: number;
+  scoreFloor?: number;
 }
 
 export function createDefaultCoreConfig(params: {
@@ -128,21 +157,37 @@ export function createDefaultCoreConfig(params: {
   organizersText?: string;
   competitionMode?: "HUMAN_ONLINE" | "BOT_VS_BOT";
   audienceScope?: "PUBLIC_REGISTERED" | "INTERNAL_UNIT" | "INVITED_LIST";
+  allowedUnitCodes?: string[];
   scheduledStartAt: string;
   scheduledEndAt: string;
   maxParticipants?: number;
   minParticipantsToStart?: number;
   timezone?: string;
   checkinRequired?: boolean;
-}) {
-  return {
+  checkinOpenAt?: string | null;
+  checkinCloseAt?: string | null;
+  botDeadlineAt?: string | null;
+  maxMatchesPerPlayer?: number | null;
+  maxPairMeetings?: number;
+  rematchCooldownMinutes?: number;
+  maxConcurrentMatches?: number;
+  byeScorePoints?: number;
+  spectatorPolicy?: SpectatorPolicy;
+  chatPolicy?: ChatPolicy;
+  leaderboardVisibility?: LeaderboardVisibility;
+  initialScore?: number;
+  initialElo?: number;
+  kFactor?: number;
+  scoreFloor?: number;
+}): TournamentCoreConfig {
+  const raw: TournamentCoreConfig = {
     tournamentCode: params.tournamentCode,
     tournamentName: params.tournamentName,
     shortDescription: params.description || "",
     organizersText: params.organizersText || "Ban Tổ chức Giải đấu",
     competitionMode: params.competitionMode || ("HUMAN_ONLINE" as const),
     audienceScope: params.audienceScope || ("PUBLIC_REGISTERED" as const),
-    allowedUnitCodes: [] as string[],
+    allowedUnitCodes: params.allowedUnitCodes || [],
     registrationIntakeMode: "IMPORT_ONLY" as const,
     maxParticipants: params.maxParticipants || 16,
     minParticipantsToStart: params.minParticipantsToStart || 2,
@@ -150,28 +195,30 @@ export function createDefaultCoreConfig(params: {
     registrationOpenAt: null as string | null,
     registrationCloseAt: null as string | null,
     checkinRequired: Boolean(params.checkinRequired),
-    checkinOpenAt: null as string | null,
-    checkinCloseAt: null as string | null,
+    checkinOpenAt: params.checkinOpenAt || null,
+    checkinCloseAt: params.checkinCloseAt || null,
     scheduledStartAt: params.scheduledStartAt,
     scheduledEndAt: params.scheduledEndAt,
     format: "ARENA_CONTINUOUS" as const,
     pairingMethod: "SWISS_SCORE_ADJACENT" as const,
-    maxMatchesPerPlayer: null as number | null,
-    maxPairMeetings: 2,
-    rematchCooldownMinutes: 5,
-    maxConcurrentMatches: 8,
-    byeScorePoints: 0,
-    spectatorPolicy: "ROSTER_ONLY" as const,
-    chatPolicy: "SPECTATOR_MUTED" as const,
-    leaderboardVisibility: "LIVE_PUBLIC" as const,
+    maxMatchesPerPlayer: params.maxMatchesPerPlayer ?? null,
+    maxPairMeetings: params.maxPairMeetings ?? 2,
+    rematchCooldownMinutes: params.rematchCooldownMinutes ?? 5,
+    maxConcurrentMatches: params.maxConcurrentMatches ?? 8,
+    byeScorePoints: params.byeScorePoints ?? 0,
+    spectatorPolicy: params.spectatorPolicy || ("ROSTER_ONLY" as const),
+    chatPolicy: params.chatPolicy || ("SPECTATOR_MUTED" as const),
+    leaderboardVisibility: params.leaderboardVisibility || ("LIVE_PUBLIC" as const),
     topNExportCount: 10,
     finalizationMode: "AUTO_FINAL" as const,
     scoringFormulaPreset: "ELO_WEIGHTED_V1" as const,
-    initialScore: 1000,
-    initialElo: 1000,
-    kFactor: 32,
-    scoreFloor: 0,
-    botDeadlineAt: null as string | null,
+    initialScore: params.initialScore ?? 1000,
+    initialElo: params.initialElo ?? 1000,
+    kFactor: params.kFactor ?? 32,
+    scoreFloor: params.scoreFloor ?? 0,
+    botDeadlineAt: params.botDeadlineAt || null,
   };
+
+  return normalizeTournamentCoreConfig(raw);
 }
 
