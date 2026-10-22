@@ -398,6 +398,23 @@ export class AdjudicationLedgerService {
         });
       }
 
+      if (
+        tournament.status === "CANCELLED" ||
+        tournament.status === "ENDED" ||
+        tournament.status === "ARCHIVED"
+      ) {
+        throw createTournamentError({
+          code: "CONFLICT",
+          statusCode: 409,
+          message: `Không thể mở yêu cầu phân xử cho giải đấu ở trạng thái "${tournament.status}".`,
+          details: {
+            reason: "TOURNAMENT_NOT_ACCEPTING_ADJUDICATIONS",
+            status: tournament.status,
+            tournamentId: input.tournamentId,
+          },
+        });
+      }
+
       for (const existing of this.store.adjudicationRequests.values()) {
         if (existing.matchId === input.matchId) {
           return existing;
@@ -513,6 +530,22 @@ export class AdjudicationLedgerService {
             reason: "ADJUDICATION_ALREADY_RESOLVED",
             status: req.status,
             adjudicationRequestId,
+          },
+        });
+      }
+
+      if (
+        tournament.status === "CANCELLED" ||
+        tournament.status === "ARCHIVED"
+      ) {
+        throw createTournamentError({
+          code: "CONFLICT",
+          statusCode: 409,
+          message: `Giải đấu đã ở trạng thái "${tournament.status}", không thể tiếp nhận phán quyết phân xử.`,
+          details: {
+            reason: "TOURNAMENT_NOT_ACCEPTING_ADJUDICATIONS",
+            status: tournament.status,
+            tournamentId: tournament.id,
           },
         });
       }
@@ -715,5 +748,13 @@ export class AdjudicationLedgerService {
       topNExport,
       computedAt: this.store.nowIso(),
     });
+  }
+
+  getLedgerEntries(tournamentId: string): TournamentScoreLedgerEntryDto[] {
+    return [...(this.store.scoreLedger.get(tournamentId) ?? [])];
+  }
+
+  getAdjudicationRequest(adjudicationRequestId: string): ManualAdjudicationRequestDto | undefined {
+    return this.store.adjudicationRequests.get(adjudicationRequestId);
   }
 }
