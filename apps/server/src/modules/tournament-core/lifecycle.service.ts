@@ -378,8 +378,7 @@ export class TournamentLifecycleService {
       if (e.eligibilityStatus !== "ELIGIBLE") continue;
       if (tournament.coreConfig.checkinRequired && !e.checkedInAt) continue;
       if (
-        (tournament.coreConfig.competitionMode === "BOT_VS_BOT" ||
-          tournament.coreConfig.competitionMode === "HYBRID") &&
+        tournament.coreConfig.competitionMode === "BOT_VS_BOT" &&
         e.botReadinessStatus !== "READY"
       ) {
         botNotReadyCount += 1;

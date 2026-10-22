@@ -625,6 +625,7 @@ export const ApprovedTournamentSnapshotSchema = z.object({
   approvedAt: z.string().datetime(),
   approvedByUserId: z.string().min(1),
   approvalNote: z.string().nullable().default(null),
+  fieldNotes: z.record(z.string(), z.string()).default({}),
   contractId: z.string().min(1),
   contractCode: z.string().min(1),
   unitId: z.string().min(1),
@@ -655,6 +656,7 @@ export const TournamentDtoSchema = z.object({
   rejectedAt: z.string().datetime().nullable().default(null),
   changesRequestedAt: z.string().datetime().nullable().default(null),
   lastReviewNote: z.string().nullable().default(null),
+  lastReviewFieldNotes: z.record(z.string(), z.string()).default({}),
   startedAt: z.string().datetime().nullable().default(null),
   pausedAt: z.string().datetime().nullable().default(null),
   pauseReason: z.string().nullable().default(null),
@@ -723,6 +725,7 @@ export const ApprovalDecisionInputSchema = z
     decision: ApprovalDecisionTypeSchema,
     expectedRevision: z.number().int().positive(),
     note: z.string().trim().max(1000).optional(),
+    fieldNotes: z.record(z.string(), z.string().trim().min(1).max(500)).optional(),
   })
   .superRefine((val, ctx) => {
     if (

@@ -11,7 +11,10 @@ import {
   TournamentRuleProfileSchema,
   validateTournamentCoreConfigSemantics,
   type ApprovalDecisionInput,
+  type ChangeRequestFieldDiff,
   type TournamentChangeRequestDto,
+  type TournamentConfigVersionDto,
+  type TournamentContractDto,
   type TournamentDto,
 } from "@ottv2/contracts";
 import {
@@ -21,8 +24,147 @@ import {
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
 
+function deepFreeze<T>(obj: T): T {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+  Object.freeze(obj);
+  for (const value of Object.values(obj as Record<string, unknown>)) {
+    if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  }
+  return obj;
+}
+
+function sanitizeFieldNotes(
+  raw?: Record<string, string>
+): Record<string, string> {
+  if (!raw) return {};
+  const cleaned: Record<string, string> = {};
+  for (const [key, val] of Object.entries(raw)) {
+    const trimmedKey = key.trim();
+    const trimmedVal = val.trim();
+    if (trimmedKey.length > 0 && trimmedVal.length > 0) {
+      cleaned[trimmedKey] = trimmedVal;
+    }
+  }
+  return cleaned;
+}
+
+export interface ApprovalDetailView {
+  tournament: TournamentDto;
+  contract: TournamentContractDto;
+  envelopeCheck: ReturnType<typeof evaluateRuleProfileEnvelope>;
+  scheduleCheck: ReturnType<typeof validateTournamentCoreConfigSemantics>;
+  contractBoundsCheck: {
+    modeAllowed: boolean;
+    maxParticipantsWithinCap: boolean;
+    maxConcurrentMatchesWithinCap: boolean;
+  };
+  diffsFromPreviousApproval: ChangeRequestFieldDiff[];
+  configVersions: TournamentConfigVersionDto[];
+  changeRequests: TournamentChangeRequestDto[];
+}
+
 export class ApprovalService {
   constructor(private readonly store: TournamentStateStore) {}
+
+  getApprovalDetail(
+    actor: TournamentActorContext,
+    tournamentId: string
+  ): ApprovalDetailView {
+    assertAdminActor(actor);
+    const tournament = this.store.tournaments.get(tournamentId);
+    if (!tournament) {
+      throw createTournamentError({
+        code: "NOT_FOUND",
+        statusCode: 404,
+        message: "Không tìm thấy giải đấu.",
+        details: { reason: "RESOURCE_NOT_FOUND", tournamentId },
+      });
+    }
+
+    const contract = this.store.contracts.get(tournament.contractId);
+    if (!contract) {
+      throw createTournamentError({
+        code: "NOT_FOUND",
+        statusCode: 404,
+        message: "Không tìm thấy hợp đồng của giải đấu.",
+        details: { reason: "RESOURCE_NOT_FOUND", contractId: tournament.contractId },
+      });
+    }
+
+    const nowIso = this.store.nowIso();
+    const envelopeCheck = evaluateRuleProfileEnvelope(
+      tournament.ruleProfile,
+      contract.policyEnvelope
+    );
+    const scheduleCheck = validateTournamentCoreConfigSemantics(
+      tournament.coreConfig,
+      {
+        requireFutureStartAt: true,
+        serverNowIso: nowIso,
+      }
+    );
+    const contractBoundsCheck = {
+      modeAllowed: contract.allowedModes.includes(
+        tournament.coreConfig.competitionMode
+      ),
+      maxParticipantsWithinCap:
+        tournament.coreConfig.maxParticipants <=
+        contract.maxParticipantsPerTournament,
+      maxConcurrentMatchesWithinCap:
+        tournament.coreConfig.maxConcurrentMatches <=
+        contract.technicalCaps.maxConcurrentMatchesPerTournament,
+    };
+
+    const diffsFromPreviousApproval: ChangeRequestFieldDiff[] = [];
+    if (tournament.approvedSnapshot) {
+      const prevCore = tournament.approvedSnapshot.coreConfig as Record<string, unknown>;
+      const currCore = tournament.coreConfig as Record<string, unknown>;
+      for (const key of Object.keys(currCore)) {
+        if (JSON.stringify(prevCore[key]) !== JSON.stringify(currCore[key])) {
+          diffsFromPreviousApproval.push({
+            fieldPath: `coreConfig.${key}`,
+            label: key,
+            beforeValue: prevCore[key],
+            afterValue: currCore[key],
+            requiresAdminApproval: true,
+          });
+        }
+      }
+      const prevRules = tournament.approvedSnapshot.ruleProfile as Record<string, unknown>;
+      const currRules = tournament.ruleProfile as Record<string, unknown>;
+      for (const key of Object.keys(currRules)) {
+        if (JSON.stringify(prevRules[key]) !== JSON.stringify(currRules[key])) {
+          diffsFromPreviousApproval.push({
+            fieldPath: `ruleProfile.${key}`,
+            label: key,
+            beforeValue: prevRules[key],
+            afterValue: currRules[key],
+            requiresAdminApproval: true,
+          });
+        }
+      }
+    }
+
+    const configVersions = this.store.configVersions.get(tournament.id) ?? [];
+    const changeRequests = Array.from(this.store.changeRequests.values()).filter(
+      (cr) => cr.tournamentId === tournament.id
+    );
+
+    return {
+      tournament,
+      contract,
+      envelopeCheck,
+      scheduleCheck,
+      contractBoundsCheck,
+      diffsFromPreviousApproval,
+      configVersions,
+      changeRequests,
+    };
+  }
 
   listApprovalQueue(filter?: { status?: string }): {
     initialSubmissions: TournamentDto[];
@@ -121,6 +263,7 @@ export class ApprovalService {
       const nowIso = this.store.nowIso();
       const decision = parsed.data.decision;
       const note = parsed.data.note?.trim() || null;
+      const fieldNotes = sanitizeFieldNotes(parsed.data.fieldNotes);
 
       if (decision === "APPROVE") {
         if (
@@ -176,56 +319,69 @@ export class ApprovalService {
           });
         }
 
-        const versionId = randomUUID();
-        const configVersion = TournamentConfigVersionSchema.parse({
-          id: versionId,
-          tournamentId: tournament.id,
-          versionNumber: 1,
-          coreConfigSnapshot: tournament.coreConfig,
-          ruleProfileSnapshot: tournament.ruleProfile,
-          effectiveAt: nowIso,
-          publishedByUserId: actor.userId,
-          changeSummary: "Phê duyệt cấu hình giải đấu ban đầu (v1)",
-          createdAt: nowIso,
-        });
-
         const existingVersions = this.store.configVersions.get(tournament.id) ?? [];
+        const versionNumber = existingVersions.length + 1;
+        const versionId = randomUUID();
+        const configVersion = deepFreeze(
+          TournamentConfigVersionSchema.parse({
+            id: versionId,
+            tournamentId: tournament.id,
+            versionNumber,
+            coreConfigSnapshot: structuredClone(tournament.coreConfig),
+            ruleProfileSnapshot: structuredClone(tournament.ruleProfile),
+            effectiveAt: nowIso,
+            publishedByUserId: actor.userId,
+            changeSummary: `Phê duyệt cấu hình giải đấu ban đầu (v${versionNumber})`,
+            createdAt: nowIso,
+          })
+        );
+
         this.store.configVersions.set(tournament.id, [...existingVersions, configVersion]);
 
-        const approvedSnapshot = ApprovedTournamentSnapshotSchema.parse({
-          approvedAt: nowIso,
-          approvedByUserId: actor.userId,
-          approvalNote: note,
-          contractId: contract.id,
-          contractCode: contract.contractCode,
-          unitId: contract.unitId,
-          coreConfig: tournament.coreConfig,
-          ruleProfile: tournament.ruleProfile,
-          configVersionId: versionId,
-          configVersionNumber: 1,
-        });
+        const approvedSnapshot = deepFreeze(
+          ApprovedTournamentSnapshotSchema.parse({
+            approvedAt: nowIso,
+            approvedByUserId: actor.userId,
+            approvalNote: note,
+            fieldNotes,
+            contractId: contract.id,
+            contractCode: contract.contractCode,
+            unitId: contract.unitId,
+            coreConfig: structuredClone(tournament.coreConfig),
+            ruleProfile: structuredClone(tournament.ruleProfile),
+            configVersionId: versionId,
+            configVersionNumber: versionNumber,
+          })
+        );
 
-        // Mark quota consumed (cannot be refunded even if later CANCELLED — BR-05, T013)
-        this.store.contracts.set(contract.id, {
-          ...contract,
-          quotaConsumedCount: contract.quotaConsumedCount + 1,
-          updatedAt: nowIso,
-        });
+        // Mark quota consumed once on initial approval (cannot be refunded even if later CANCELLED — BR-05, T013)
+        if (!tournament.everApproved) {
+          this.store.contracts.set(contract.id, {
+            ...contract,
+            quotaConsumedCount: contract.quotaConsumedCount + 1,
+            updatedAt: nowIso,
+          });
+        }
 
         const updated = TournamentDtoSchema.parse({
           ...tournament,
           status: "APPROVED",
           revision: tournament.revision + 1,
           activeConfigVersionId: versionId,
-          activeConfigVersionNumber: 1,
+          activeConfigVersionNumber: versionNumber,
           approvedSnapshot,
           everApproved: true,
           approvedAt: nowIso,
           lastReviewNote: note,
+          lastReviewFieldNotes: fieldNotes,
           updatedAt: nowIso,
         });
+        const updatedWithFrozenSnapshot: TournamentDto = {
+          ...updated,
+          approvedSnapshot,
+        };
 
-        this.store.tournaments.set(tournamentId, updated);
+        this.store.tournaments.set(tournamentId, updatedWithFrozenSnapshot);
         this.store.audit.append({
           actorUserId: actor.userId,
           actorRole: "ADMIN",
@@ -233,13 +389,13 @@ export class ApprovalService {
           targetType: "TOURNAMENT",
           targetId: tournamentId,
           beforeSnapshot: tournament,
-          afterSnapshot: updated,
+          afterSnapshot: updatedWithFrozenSnapshot,
           reason: note,
           correlationId: actor.correlationId ?? null,
           nowIso,
         });
 
-        return updated;
+        return updatedWithFrozenSnapshot;
       }
 
       if (decision === "REJECT") {
@@ -262,6 +418,7 @@ export class ApprovalService {
           quotaRefunded,
           rejectedAt: nowIso,
           lastReviewNote: note,
+          lastReviewFieldNotes: fieldNotes,
           updatedAt: nowIso,
         });
 
@@ -289,6 +446,7 @@ export class ApprovalService {
         revision: tournament.revision + 1,
         changesRequestedAt: nowIso,
         lastReviewNote: note,
+        lastReviewFieldNotes: fieldNotes,
         updatedAt: nowIso,
       });
 

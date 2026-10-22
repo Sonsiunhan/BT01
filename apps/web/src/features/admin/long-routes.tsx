@@ -20,6 +20,10 @@ export function LongAdminRoutes() {
         path={LONG_ADMIN_ROUTE_PATHS.approvals}
         element={<ApprovalsAdminPage />}
       />
+      <Route
+        path={LONG_ADMIN_ROUTE_PATHS.approvalsDetail}
+        element={<ApprovalsAdminPage />}
+      />
     </>
   );
 }

@@ -13,7 +13,7 @@ import {
 } from "../services/tournamentAdminApi";
 
 const DEFAULT_ENVELOPE: ContractPolicyEnvelope = {
-  allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT", "HYBRID"],
+  allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
   turnSecondsMin: 10,
   turnSecondsMax: 60,
   totalMatchSecondsMin: 120,
@@ -130,7 +130,7 @@ export function ContractsAdminPage({
         allowedModes,
         policyEnvelope: {
           ...DEFAULT_ENVELOPE,
-          allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT", "HYBRID"],
+          allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
         },
         technicalCaps: {
           botSourceMaxBytes: 65536,
@@ -407,7 +407,7 @@ export function ContractsAdminPage({
           <fieldset className="space-y-1">
             <legend className="text-sm font-medium">Chế độ cho phép (F14) *</legend>
             <div className="flex flex-wrap gap-3 pt-1 text-xs">
-              {(["HUMAN_ONLINE", "BOT_VS_BOT", "HYBRID"] as AllowedMode[]).map(
+              {(["HUMAN_ONLINE", "BOT_VS_BOT"] as AllowedMode[]).map(
                 (mode) => (
                   <label key={mode} className="inline-flex items-center gap-1.5">
                     <input

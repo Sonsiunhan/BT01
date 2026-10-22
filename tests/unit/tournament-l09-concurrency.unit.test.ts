@@ -6,7 +6,7 @@ import {
 import { createTournamentRuntimeBundle } from "../../apps/server/src/modules/tournament-core/index.js";
 
 const SAMPLE_ENVELOPE = ContractPolicyEnvelopeSchema.parse({
-  allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT", "HYBRID"],
+  allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
   turnSecondsMin: 10,
   turnSecondsMax: 60,
   totalMatchSecondsMin: 120,

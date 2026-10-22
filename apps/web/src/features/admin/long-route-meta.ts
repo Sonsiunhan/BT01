@@ -2,6 +2,7 @@ export const LONG_ADMIN_ROUTE_PATHS = {
   units: "/admin/units",
   contracts: "/admin/contracts",
   approvals: "/admin/approvals",
+  approvalsDetail: "/admin/approvals/:tournamentId",
 } as const;
 
 export interface LongAdminRouteMeta {

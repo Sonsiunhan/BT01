@@ -107,7 +107,7 @@ class InMemoryTestAuthService extends AuthService {
 const ORIGIN = "https://frontend.example.com";
 
 const SAMPLE_ENVELOPE = ContractPolicyEnvelopeSchema.parse({
-  allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT", "HYBRID"],
+  allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
   turnSecondsMin: 10,
   turnSecondsMax: 60,
   totalMatchSecondsMin: 120,
@@ -383,7 +383,29 @@ describe("L10 — End-to-End Tournament Initialization & C32 HTTP Integration Fl
     };
     expect(sub1.status).toBe("UNDER_REVIEW");
 
-    // 6. Admin requests changes on P08 -> CHANGES_REQUESTED
+    // 6. Admin inspects approval detail (GET /api/admin/approvals/:tournamentId) & requests changes on P08 -> CHANGES_REQUESTED
+    const detailForbiddenRes = await app.inject({
+      method: "GET",
+      url: `/api/admin/approvals/${draft.id}`,
+      headers: {
+        cookie: taAuth.cookie,
+      },
+    });
+    expect(detailForbiddenRes.statusCode).toBe(403);
+
+    const detailRes = await app.inject({
+      method: "GET",
+      url: `/api/admin/approvals/${draft.id}`,
+      headers: {
+        cookie: adminAuth.cookie,
+      },
+    });
+    expect(detailRes.statusCode).toBe(200);
+    const detailBody = JSON.parse(detailRes.payload) as {
+      envelopeCheck: { withinEnvelope: boolean };
+    };
+    expect(detailBody.envelopeCheck.withinEnvelope).toBe(true);
+
     const reqChangesRes = await app.inject({
       method: "POST",
       url: `/api/admin/approvals/${draft.id}/decision`,
@@ -396,13 +418,25 @@ describe("L10 — End-to-End Tournament Initialization & C32 HTTP Integration Fl
         decision: "REQUEST_CHANGES",
         expectedRevision: sub1.revision,
         note: "Vui lòng cập nhật mô tả chi tiết hơn.",
+        fieldNotes: {
+          shortDescription: "Ghi rõ đối tượng sinh viên CNTT",
+        },
       },
     });
     expect(reqChangesRes.statusCode).toBe(200);
     const { tournament: afterReqChanges } = JSON.parse(
       reqChangesRes.payload
-    ) as { tournament: { revision: number; status: string } };
+    ) as {
+      tournament: {
+        revision: number;
+        status: string;
+        lastReviewFieldNotes: Record<string, string>;
+      };
+    };
     expect(afterReqChanges.status).toBe("CHANGES_REQUESTED");
+    expect(afterReqChanges.lastReviewFieldNotes).toEqual({
+      shortDescription: "Ghi rõ đối tượng sinh viên CNTT",
+    });
 
     // 7. TA patches draft, resubmits, and Admin approves on P08 -> APPROVED (v1)
     const patchRes = await app.inject({

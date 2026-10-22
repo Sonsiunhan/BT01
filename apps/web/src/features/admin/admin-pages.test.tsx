@@ -85,7 +85,7 @@ function createMockAdminApi(
           currentParticipantsTotal: 24,
           allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
           policyEnvelope: {
-            allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT", "HYBRID"],
+            allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
             turnSecondsMin: 10,
             turnSecondsMax: 60,
             totalMatchSecondsMin: 120,
@@ -140,7 +140,7 @@ function createMockAdminApi(
         currentParticipantsTotal: 24,
         allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
         policyEnvelope: {
-          allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT", "HYBRID"],
+          allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
           turnSecondsMin: 10,
           turnSecondsMax: 60,
           totalMatchSecondsMin: 120,
@@ -390,6 +390,7 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
       units: "/admin/units",
       contracts: "/admin/contracts",
       approvals: "/admin/approvals",
+      approvalsDetail: "/admin/approvals/:tournamentId",
     });
     expect(LONG_ADMIN_ROUTE_META.map((r) => r.pageCode)).toEqual(["P06", "P07", "P08"]);
     expect(typeof LongAdminRoutes).toBe("function");
@@ -486,7 +487,7 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
     });
   });
 
-  it("P08 ApprovalsAdminPage: enforces mandatory note on REJECT/REQUEST_CHANGES (T022), approves initial submission with expectedRevision, and switches to ChangeRequest tab (T024)", async () => {
+  it("P08 ApprovalsAdminPage: enforces mandatory note on REJECT/REQUEST_CHANGES (T022), supports status filter, envelope comparison & fieldNotes, approves initial submission with expectedRevision, and switches to ChangeRequest tab (T024)", async () => {
     const api = createMockAdminApi();
     render(<ApprovalsAdminPage api={api} />);
 
@@ -494,6 +495,19 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
       expect(
         screen.getByTestId("submission-card-OTT_CNTT_2026")
       ).toBeInTheDocument();
+    });
+
+    // Renders envelope comparison checklist
+    expect(
+      screen.getByTestId("approval-envelope-checklist")
+    ).toBeInTheDocument();
+
+    // Filter queue by status
+    fireEvent.change(screen.getByTestId("approval-status-filter"), {
+      target: { value: "UNDER_REVIEW" },
+    });
+    await waitFor(() => {
+      expect(api.listApprovals).toHaveBeenCalledWith({ status: "UNDER_REVIEW" });
     });
 
     // Clicking REJECT without note is blocked with T022 validation alert
@@ -507,7 +521,19 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
     );
     expect(api.decideInitialApproval).not.toHaveBeenCalled();
 
-    // Approve initial submission -> sends expectedRevision: 2
+    // Add a per-field review note (fieldNotes)
+    fireEvent.change(screen.getByTestId("field-note-field-input"), {
+      target: { value: "scheduledStartAt" },
+    });
+    fireEvent.change(screen.getByTestId("field-note-text-input"), {
+      target: { value: "Lịch hợp lệ với hợp đồng" },
+    });
+    fireEvent.click(screen.getByTestId("add-field-note-button"));
+    expect(
+      screen.getByTestId("field-note-item-scheduledStartAt")
+    ).toHaveTextContent(/Lịch hợp lệ với hợp đồng/);
+
+    // Approve initial submission -> sends expectedRevision: 2 and fieldNotes
     fireEvent.click(
       screen.getByRole("button", { name: /Phê duyệt \(APPROVED\)/ })
     );
@@ -516,6 +542,9 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
         decision: "APPROVE",
         expectedRevision: 2,
         note: undefined,
+        fieldNotes: {
+          scheduledStartAt: "Lịch hợp lệ với hợp đồng",
+        },
       });
       expect(screen.getByTestId("approval-success-banner")).toHaveTextContent(
         /trạng thái APPROVED/

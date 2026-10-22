@@ -35,41 +35,69 @@ export function ApprovalsAdminPage({
     string | null
   >(null);
   const [selectedCrId, setSelectedCrId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [reviewNote, setReviewNote] = useState<string>("");
+  const [fieldNotes, setFieldNotes] = useState<Record<string, string>>({});
+  const [draftFieldKey, setDraftFieldKey] = useState<string>("");
+  const [draftFieldText, setDraftFieldText] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const loadQueue = useCallback(async () => {
-    setLoading(true);
-    setErrorBanner(null);
-    try {
-      const res = await api.listApprovals();
-      setInitialSubmissions(res.initialSubmissions);
-      setChangeRequests(res.changeRequests);
-      if (!selectedTournamentId && res.initialSubmissions[0]) {
-        setSelectedTournamentId(res.initialSubmissions[0].id);
-      }
-      if (!selectedCrId && res.changeRequests[0]) {
-        setSelectedCrId(res.changeRequests[0].id);
-      }
-      setForbiddenError(null);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 403) {
-        setForbiddenError(err.message);
-      } else {
-        setErrorBanner(
-          err instanceof Error
-            ? err.message
-            : "Không thể tải hàng đợi phê duyệt."
+  const loadQueue = useCallback(
+    async (overrideStatus?: string) => {
+      setLoading(true);
+      setErrorBanner(null);
+      const effectiveStatus =
+        overrideStatus !== undefined ? overrideStatus : statusFilter;
+      try {
+        const res = await api.listApprovals(
+          effectiveStatus ? { status: effectiveStatus } : undefined
         );
+        setInitialSubmissions(res.initialSubmissions);
+        setChangeRequests(res.changeRequests);
+        if (!selectedTournamentId && res.initialSubmissions[0]) {
+          setSelectedTournamentId(res.initialSubmissions[0].id);
+        }
+        if (!selectedCrId && res.changeRequests[0]) {
+          setSelectedCrId(res.changeRequests[0].id);
+        }
+        setForbiddenError(null);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 403) {
+          setForbiddenError(err.message);
+        } else {
+          setErrorBanner(
+            err instanceof Error
+              ? err.message
+              : "Không thể tải hàng đợi phê duyệt."
+          );
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [api, selectedCrId, selectedTournamentId]);
+    },
+    [api, selectedCrId, selectedTournamentId, statusFilter]
+  );
 
   useEffect(() => {
     void loadQueue();
   }, [loadQueue]);
+
+  const handleAddFieldNote = () => {
+    const key = draftFieldKey.trim();
+    const text = draftFieldText.trim();
+    if (!key || !text) return;
+    setFieldNotes((prev) => ({ ...prev, [key]: text }));
+    setDraftFieldKey("");
+    setDraftFieldText("");
+  };
+
+  const handleRemoveFieldNote = (key: string) => {
+    setFieldNotes((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
 
   const handleDecideInitial = async (
     tournament: TournamentDto,
@@ -90,15 +118,18 @@ export function ApprovalsAdminPage({
 
     setSubmitting(true);
     try {
+      const hasFieldNotes = Object.keys(fieldNotes).length > 0;
       const res = await api.decideInitialApproval(tournament.id, {
         decision,
         expectedRevision: tournament.revision,
         note: reviewNote.trim() || undefined,
+        ...(hasFieldNotes ? { fieldNotes } : {}),
       });
       setInitialSubmissions((prev) =>
         prev.map((t) => (t.id === tournament.id ? res.tournament : t))
       );
       setReviewNote("");
+      setFieldNotes({});
       setSuccessBanner(
         `Đã xử lý hồ sơ giải "${res.tournament.coreConfig.tournamentCode}" -> trạng thái ${res.tournament.status}.`
       );
@@ -186,13 +217,36 @@ export function ApprovalsAdminPage({
             Rà soát hồ sơ khởi tạo giải (UNDER_REVIEW) và phê duyệt ChangeRequest hậu duyệt tách biệt (BR-07).
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void loadQueue()}
-          className="rounded border border-slate-600 px-3 py-1.5 text-sm"
-        >
-          Đồng bộ hàng đợi
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-slate-300">
+            <span>Bộ lọc trạng thái:</span>
+            <select
+              data-testid="approval-status-filter"
+              value={statusFilter}
+              onChange={(e) => {
+                const next = e.target.value;
+                setStatusFilter(next);
+                void loadQueue(next);
+              }}
+              className="rounded border border-slate-600 bg-slate-950 px-2.5 py-1.5 text-xs"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="UNDER_REVIEW">Chờ duyệt (UNDER_REVIEW)</option>
+              <option value="CHANGES_REQUESTED">
+                Yêu cầu sửa (CHANGES_REQUESTED)
+              </option>
+              <option value="APPROVED">Đã phê duyệt (APPROVED)</option>
+              <option value="REJECTED">Đã từ chối (REJECTED)</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => void loadQueue()}
+            className="rounded border border-slate-600 px-3 py-1.5 text-sm"
+          >
+            Đồng bộ hàng đợi
+          </button>
+        </div>
       </header>
 
       {errorBanner && (
@@ -333,6 +387,128 @@ export function ApprovalsAdminPage({
                   <dd>{selectedTournament.quotaRefunded ? "Đã hoàn 1 slot" : "Đang giữ 1 slot"}</dd>
                 </div>
               </dl>
+
+              <div
+                data-testid="approval-envelope-checklist"
+                className="space-y-2 rounded border border-slate-800 bg-slate-950/60 p-3 text-xs"
+              >
+                <h3 className="font-semibold text-slate-200">
+                  Bảng đối chiếu Hợp đồng &amp; Khung Luật (Envelope / N02)
+                </h3>
+                <ul className="grid grid-cols-1 gap-1.5 text-slate-300 sm:grid-cols-2">
+                  <li>
+                    • Chế độ thi đấu:{" "}
+                    <span className="font-mono font-semibold text-cyan-300">
+                      {selectedTournament.coreConfig.competitionMode}
+                    </span>
+                  </li>
+                  <li>
+                    • Trần thí sinh:{" "}
+                    <span className="font-mono font-semibold">
+                      {selectedTournament.coreConfig.maxParticipants}
+                    </span>{" "}
+                    (tối thiểu {selectedTournament.coreConfig.minParticipantsToStart})
+                  </li>
+                  <li>
+                    • Trần trận đồng thời:{" "}
+                    <span className="font-mono font-semibold">
+                      {selectedTournament.coreConfig.maxConcurrentMatches}
+                    </span>
+                  </li>
+                  <li>
+                    • Giới hạn lượt &amp; Hòa không tiến triển:{" "}
+                    <span className="font-mono font-semibold">
+                      {selectedTournament.ruleProfile.turnLimit} lượt /{" "}
+                      {selectedTournament.ruleProfile.noProgressPlies} plies
+                    </span>
+                  </li>
+                  <li>
+                    • Ngưỡng lặp lại:{" "}
+                    <span className="font-mono font-semibold">
+                      {selectedTournament.ruleProfile.repetitionThreshold} lần
+                    </span>
+                  </li>
+                  <li>
+                    • Phiên bản luật:{" "}
+                    <span className="font-mono font-semibold">
+                      {selectedTournament.ruleProfile.rulesVersion}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {selectedTournament.approvedSnapshot && (
+                <div
+                  data-testid="approved-snapshot-summary"
+                  className="rounded border border-emerald-500/30 bg-emerald-950/20 p-3 text-xs text-emerald-200"
+                >
+                  <div className="font-semibold">
+                    Snapshot Phê duyệt Bất biến (v
+                    {selectedTournament.approvedSnapshot.configVersionNumber})
+                  </div>
+                  <div className="mt-1 text-emerald-300/90">
+                    Duyệt bởi: {selectedTournament.approvedSnapshot.approvedByUserId}{" "}
+                    lúc {selectedTournament.approvedSnapshot.approvedAt}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2 rounded border border-slate-800 bg-slate-950/50 p-3">
+                <span className="block text-xs font-semibold text-slate-300">
+                  Ghi chú theo trường (Field Notes — T022)
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    type="text"
+                    data-testid="field-note-field-input"
+                    value={draftFieldKey}
+                    onChange={(e) => setDraftFieldKey(e.target.value)}
+                    placeholder="Tên trường (vd: scheduledStartAt)"
+                    className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs"
+                  />
+                  <input
+                    type="text"
+                    data-testid="field-note-text-input"
+                    value={draftFieldText}
+                    onChange={(e) => setDraftFieldText(e.target.value)}
+                    placeholder="Nội dung nhận xét trường..."
+                    className="flex-1 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs"
+                  />
+                  <button
+                    type="button"
+                    data-testid="add-field-note-button"
+                    onClick={handleAddFieldNote}
+                    className="rounded border border-cyan-600 px-2.5 py-1 text-xs font-semibold text-cyan-300 hover:bg-cyan-950/50"
+                  >
+                    + Thêm ghi chú trường
+                  </button>
+                </div>
+                {Object.keys(fieldNotes).length > 0 && (
+                  <ul className="space-y-1 pt-1 text-xs">
+                    {Object.entries(fieldNotes).map(([fieldKey, noteVal]) => (
+                      <li
+                        key={fieldKey}
+                        data-testid={`field-note-item-${fieldKey}`}
+                        className="flex items-center justify-between rounded bg-slate-900 px-2 py-1"
+                      >
+                        <span>
+                          <strong className="font-mono text-cyan-300">
+                            {fieldKey}:
+                          </strong>{" "}
+                          {noteVal}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFieldNote(fieldKey)}
+                          className="text-slate-400 hover:text-red-300"
+                        >
+                          Xóa
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               <div className="space-y-2">
                 <label htmlFor="approval-note-input" className="block text-sm font-medium">
