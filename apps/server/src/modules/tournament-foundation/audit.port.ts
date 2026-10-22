@@ -6,7 +6,7 @@ import {
 } from "@ottv2/contracts";
 
 const SENSITIVE_KEY_PATTERN =
-  /(password|passwordhash|recoverycode|token|tokenhash|secret|apikey|credential|sourcetext|sourcecode|pythonsource|pythoncode|botsource|rawsource|memorypayload|botmemory|memorystate|privatediagnostics|diagnostics|stderr|traceback|cookie|authorization)/i;
+  /(password|passwordhash|recoverycode|token|tokenhash|secret|apikey|credential|privatekey|sourcetext|sourcecode|pythonsource|pythoncode|botsource|rawsource|memorypayload|botmemory|memorystate|privatediagnostics|diagnostics|stderr|traceback|cookie|authorization)/i;
 
 const SECRET_VALUE_PATTERN =
   /(Bearer\s+[A-Za-z0-9._~+/-]+=*|\bdef\s+[A-Za-z_][A-Za-z0-9_]*\s*\(|\bclass\s+[A-Za-z_][A-Za-z0-9_]*\s*[:(]|Traceback \(most recent call last\)|scrypt\$|argon2id\$)/i;
