@@ -133,6 +133,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   const [loadingInitial, setLoadingInitial] = useState<boolean>(isEditMode);
   const [recoveredFromLocal, setRecoveredFromLocal] = useState<boolean>(false);
 
+  // S07: Submit Draft states
+  const [submittingDraft, setSubmittingDraft] = useState<boolean>(false);
+  const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
+  const [submissionNote, setSubmissionNote] = useState<string>("");
+  const [submitSuccessMessage, setSubmitSuccessMessage] = useState<string | null>(null);
+  const [tournamentStatus, setTournamentStatus] = useState<string | null>(null);
+
+  const isUnderReview = tournamentStatus === "UNDER_REVIEW" || tournamentStatus === "SUBMITTED";
+
   // Check if buffer existed on mount
   useEffect(() => {
     const buffered = getLocalDraftBuffer<DraftFormData>(draftStorageKey);
@@ -154,6 +163,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         if (!isMounted) return;
         const dto = res.tournament;
         setServerRevision(dto.revision);
+        setTournamentStatus(dto.status);
         setFormData((prev) => ({
           ...prev,
           ...tournamentDtoToDraftFormData(dto),
@@ -299,6 +309,46 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     }
   };
 
+  // S07: Submit draft for review
+  const handleSubmitDraft = useCallback(async () => {
+    if (!formData.tournamentId) {
+      setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
+      return;
+    }
+    setSubmittingDraft(true);
+    setErrorMessage(null);
+    setConflictWarning(null);
+
+    try {
+      const res = await apiClient.submitDraft(formData.tournamentId, {
+        expectedRevision: serverRevision,
+        submissionNote: submissionNote.trim() || undefined,
+      });
+      setServerRevision(res.tournament.revision);
+      setTournamentStatus(res.tournament.status);
+      setShowSubmitModal(false);
+      setSubmitSuccessMessage(
+        "Giải đấu đã được nộp duyệt thành công và chuyển sang trạng thái ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW). Quản trị viên hệ thống sẽ kiểm tra và phản hồi."
+      );
+      clearLocalDraftBuffer(formData.tournamentId);
+    } catch (err: unknown) {
+      const details = errorRecord(err);
+      if (details.code === "CONFLICT" || details.statusCode === 409) {
+        setConflictWarning(
+          "Xung đột phiên bản khi nộp duyệt (Mã lỗi: 409 CONFLICT). Bản nháp đã được chỉnh sửa ở một phiên khác, vui lòng tải lại bản mới nhất."
+        );
+      } else {
+        setErrorMessage(
+          err instanceof Error
+            ? err.message
+            : "Không thể nộp duyệt bản nháp giải đấu. Vui lòng kiểm tra lại cấu hình hoặc thử lại sau."
+        );
+      }
+    } finally {
+      setSubmittingDraft(false);
+    }
+  }, [apiClient, formData.tournamentId, serverRevision, submissionNote]);
+
   const handleDiscardLocalBuffer = () => {
     clearLocalDraftBuffer(draftStorageKey);
     setFormData(DEFAULT_FORM_DATA);
@@ -381,36 +431,67 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           <span
             className="badge"
             style={{
-              backgroundColor: "color-mix(in srgb, var(--accent) 15%, transparent)",
-              color: "var(--accent)",
-              border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)",
+              backgroundColor: isUnderReview
+                ? "color-mix(in srgb, var(--system-cyan) 20%, transparent)"
+                : "color-mix(in srgb, var(--accent) 15%, transparent)",
+              color: isUnderReview ? "var(--system-cyan)" : "var(--accent)",
+              border: isUnderReview
+                ? "1px solid var(--system-cyan)"
+                : "1px solid color-mix(in srgb, var(--accent) 40%, transparent)",
               fontSize: "0.75rem",
               padding: "0.25rem 0.6rem",
               borderRadius: "4px",
               fontWeight: 700,
             }}
           >
-            BẢN NHÁP (DRAFT r{serverRevision})
+            {isUnderReview
+              ? `ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW r${serverRevision})`
+              : `BẢN NHÁP (DRAFT r${serverRevision})`}
           </span>
 
           {/* Save Draft Button */}
-          <button
-            type="button"
-            data-testid="wizard-save-draft-btn"
-            onClick={handleSaveDraft}
-            disabled={saving}
-            className="button secondary"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.4rem",
-              fontSize: "0.85rem",
-              padding: "0.45rem 0.9rem",
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            {saving ? "Đang lưu..." : "Lưu bản nháp"}
-          </button>
+          {!isUnderReview && (
+            <button
+              type="button"
+              data-testid="wizard-save-draft-btn"
+              onClick={handleSaveDraft}
+              disabled={saving || submittingDraft}
+              className="button secondary"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                fontSize: "0.85rem",
+                padding: "0.45rem 0.9rem",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              {saving ? "Đang lưu..." : "Lưu bản nháp"}
+            </button>
+          )}
+
+          {/* Submit Draft Button */}
+          {formData.tournamentId && !isUnderReview && (
+            <button
+              type="button"
+              data-testid="wizard-top-submit-draft-btn"
+              onClick={() => setShowSubmitModal(true)}
+              disabled={saving || submittingDraft}
+              className="button primary"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                fontSize: "0.85rem",
+                padding: "0.45rem 0.9rem",
+                background: "var(--system-cyan)",
+                color: "#0B1421",
+                fontWeight: 700,
+              }}
+            >
+              Nộp duyệt
+            </button>
+          )}
         </div>
       </div>
 
@@ -457,6 +538,69 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* S07: Locked Banner when UNDER_REVIEW */}
+      {isUnderReview && (
+        <div
+          data-testid="wizard-locked-banner"
+          role="status"
+          style={{
+            padding: "0.85rem 1rem",
+            background: "color-mix(in srgb, var(--system-cyan) 12%, var(--surface))",
+            border: "1px solid var(--system-cyan)",
+            borderRadius: "8px",
+            color: "var(--text)",
+            fontSize: "0.85rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+          }}
+        >
+          <UiGlyph name="lock" size={20} style={{ color: "var(--system-cyan)", flexShrink: 0 }} />
+          <div>
+            <strong style={{ color: "var(--system-cyan)", display: "block" }}>
+              Bản nháp đang trong quá trình phê duyệt (UNDER_REVIEW)
+            </strong>
+            <p style={{ margin: "0.15rem 0 0 0", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+              Giải đấu đã được nộp duyệt và tạm thời bị khóa chỉnh sửa tự do để Hội đồng Ban Quản trị thẩm định.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* S07: Submit Success Banner */}
+      {submitSuccessMessage && (
+        <div
+          data-testid="wizard-submit-success-banner"
+          role="status"
+          style={{
+            padding: "0.85rem 1rem",
+            background: "color-mix(in srgb, var(--success) 12%, var(--surface))",
+            border: "1px solid var(--success)",
+            borderRadius: "8px",
+            color: "var(--text)",
+            fontSize: "0.85rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.75rem",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--system-green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{submitSuccessMessage}</span>
+          </div>
+          {formData.tournamentId && (
+            <Link
+              to={`/admin/tournaments/${formData.tournamentId}`}
+              className="button primary"
+              style={{ fontSize: "0.78rem", padding: "0.3rem 0.65rem", textDecoration: "none" }}
+            >
+              Xem trang chi tiết →
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Conflict Alert Banner (409 CONFLICT) */}
       {conflictWarning && (
@@ -1542,19 +1686,160 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 Tiếp theo →
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                disabled={saving}
-                className="button primary"
-                style={{ fontSize: "0.85rem" }}
-              >
-                {saving ? "Đang lưu..." : "Hoàn tất lưu nháp"}
-              </button>
+              <>
+                {!isUnderReview && (
+                  <button
+                    type="button"
+                    onClick={handleSaveDraft}
+                    disabled={saving || submittingDraft}
+                    className="button secondary"
+                    style={{ fontSize: "0.85rem" }}
+                  >
+                    {saving ? "Đang lưu..." : "Hoàn tất lưu nháp"}
+                  </button>
+                )}
+                {formData.tournamentId && !isUnderReview && (
+                  <button
+                    type="button"
+                    data-testid="wizard-submit-draft-btn"
+                    onClick={() => setShowSubmitModal(true)}
+                    disabled={saving || submittingDraft}
+                    className="button primary"
+                    style={{
+                      fontSize: "0.85rem",
+                      background: "var(--system-cyan)",
+                      color: "#0B1421",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {submittingDraft ? "Đang gửi duyệt..." : "Nộp duyệt giải đấu"}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
       </div>
+
+      {/* S07: Submit Confirmation Modal */}
+      {showSubmitModal && (
+        <div
+          data-testid="wizard-submit-modal"
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(0, 0, 0, 0.75)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+          }}
+        >
+          <div
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "12px",
+              maxWidth: "540px",
+              width: "100%",
+              padding: "1.5rem",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "8px",
+                  background: "color-mix(in srgb, var(--system-cyan) 15%, transparent)",
+                  color: "var(--system-cyan)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <UiGlyph name="lock" size={24} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--text)" }}>
+                  Xác nhận nộp duyệt giải đấu
+                </h3>
+                <p style={{ margin: "0.2rem 0 0 0", fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  Mã giải: <code style={{ color: "var(--system-cyan)" }}>{formData.slug || formData.tournamentId}</code>
+                </p>
+              </div>
+            </div>
+
+            <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              Sau khi nộp duyệt, bản nháp sẽ chuyển sang trạng thái <strong>ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW)</strong>. Cấu hình giải và các phiên bản luật sẽ được cố định để Hội đồng Ban Quản trị thẩm định.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label
+                htmlFor="wizard-submission-note"
+                style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)" }}
+              >
+                Ghi chú nộp duyệt (Tùy chọn, tối đa 500 ký tự):
+              </label>
+              <textarea
+                id="wizard-submission-note"
+                data-testid="wizard-submission-note-input"
+                rows={3}
+                maxLength={500}
+                placeholder="VD: Đã hoàn tất cấu hình bàn cờ tiêu chuẩn 6x6 và lịch thi đấu theo phê duyệt của Khoa."
+                value={submissionNote}
+                onChange={(e) => setSubmissionNote(e.target.value)}
+                style={{
+                  padding: "0.6rem",
+                  borderRadius: "6px",
+                  border: "1px solid var(--border)",
+                  background: "var(--bg-root)",
+                  color: "var(--text)",
+                  fontSize: "0.85rem",
+                  resize: "vertical",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.6rem", marginTop: "0.5rem" }}>
+              <button
+                type="button"
+                data-testid="wizard-cancel-submit-btn"
+                onClick={() => setShowSubmitModal(false)}
+                disabled={submittingDraft}
+                className="button secondary"
+                style={{ fontSize: "0.85rem" }}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                data-testid="wizard-confirm-submit-btn"
+                onClick={handleSubmitDraft}
+                disabled={submittingDraft}
+                className="button primary"
+                style={{
+                  fontSize: "0.85rem",
+                  background: "var(--system-cyan)",
+                  color: "#0B1421",
+                  fontWeight: 700,
+                }}
+              >
+                {submittingDraft ? "Đang gửi duyệt..." : "Xác nhận nộp duyệt"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

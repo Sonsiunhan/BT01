@@ -135,6 +135,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       pauseTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "PAUSED" } }),
       resumeTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "RUNNING" } }),
       listAuditLogs: vi.fn().mockResolvedValue({ logs: [] }),
+      submitDraft: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "UNDER_REVIEW" } }),
     };
   });
 
@@ -228,5 +229,30 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
     expect(screen.getByTestId("readiness-overall-status")).toHaveTextContent("CHƯA ĐỦ ĐIỀU KIỆN KHỞI CHẠY (BLOCKED)");
     expect(screen.getByTestId("readiness-blockers-list")).toBeInTheDocument();
     expect(screen.getByText("INSUFFICIENT_ELIGIBLE_PARTICIPANTS")).toBeInTheDocument();
+  });
+
+  it("6. renders 'Nộp duyệt giải đấu' button when tournament is in DRAFT status and calls submitDraft", async () => {
+    mockApiClient.getTournamentDetail = vi.fn().mockResolvedValue({
+      tournament: { ...mockTournament, status: "DRAFT" },
+      configVersions: [],
+    });
+
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("action-submit-draft-btn")).toBeInTheDocument();
+      expect(screen.getByTestId("action-edit-draft-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("action-submit-draft-btn"));
+
+    await waitFor(() => {
+      expect(mockApiClient.submitDraft).toHaveBeenCalledWith(
+        mockTournament.id,
+        expect.objectContaining({
+          expectedRevision: mockTournament.revision,
+        })
+      );
+    });
   });
 });
