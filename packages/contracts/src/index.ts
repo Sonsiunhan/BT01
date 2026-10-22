@@ -27,4 +27,5 @@ export * from "./inventory.js";
 export * from "./account/d00.dto.js";
 export * from "./account/d02.dto.js";
 export * from "./tournament-initialization.js";
+export * from "./tournament-rules-preview.js";
 export { z } from "zod";

@@ -10,6 +10,8 @@ export const MIN_BOARD_DIMENSION = 5;
 export const MAX_BOARD_DIMENSION = 15;
 export const MAX_MOVEMENT_PATTERNS_PER_TYPE = 16;
 export const MAX_LEAP_OFFSETS_PER_PROFILE = 225;
+/** Tournament preview policy cap; legacy engine profiles keep their old range. */
+export const MAX_RAY_DISTANCE_FOR_PREVIEW = 2;
 
 /** The order is part of the deterministic legal-move contract. */
 export const ALL_DIRECTIONS: readonly DirectionVector[] = Object.freeze([

@@ -61,6 +61,8 @@ export type LayoutEntry = Readonly<{
 
 export type RuleProfile = Readonly<{
   version: string;
+  /** Builder metadata; preview normalizes RELATIVE profiles to explicit vectors. */
+  directionSystem?: "ABSOLUTE" | "RELATIVE";
   board: BoardSpec;
   initialTurn?: Side;
   pieceCounts: PieceCounts;
@@ -82,9 +84,14 @@ export type RuleProfileValidationCode =
   | "LEAP_OFFSET_LIMIT_EXCEEDED"
   | "INVALID_DIRECTION"
   | "INVALID_DISTANCE"
+  | "RAY_DISTANCE_CAP_EXCEEDED"
   | "INVALID_LEAP_OFFSET"
+  | "DUPLICATE_LEAP_OFFSET"
   | "GOAL_OUT_OF_BOUNDS"
-  | "INITIAL_OWN_GOAL";
+  | "INITIAL_OWN_GOAL"
+  | "WIN_CONDITION_REQUIRED"
+  | "EXTINCTION_REQUIRES_ALL_TYPES"
+  | "MISSING_GOAL_PROFILE";
 
 export type RuleProfileValidationIssue = Readonly<{
   code: RuleProfileValidationCode;

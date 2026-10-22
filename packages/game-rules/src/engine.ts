@@ -190,12 +190,42 @@ export function getLegalDestinations(state: RuleState, side: Side, from: unknown
   return enumerateLegalDestinations(state, side, from);
 }
 
+/** Returns deterministic move tuples for a side, independent of pinned turn. */
+export function getLegalMoves(state: RuleState, side: Side): readonly MoveCommand[] {
+  if (state.status === "FINISHED") return [];
+  const sideState: RuleState = state.currentTurn === side ? state : { ...state, currentTurn: side };
+  const moves: MoveCommand[] = [];
+  for (const from of getBoardCoordinates(profileForState(state).board)) {
+    for (const to of getLegalDestinations(sideState, side, from)) moves.push({ side, from, to });
+  }
+  return moves;
+}
+
 export function hasLegalMove(state: RuleState, side: Side): boolean {
-  const profile = profileForState(state);
-  if (state.status === "FINISHED" || state.currentTurn !== side) return false;
-  for (const from of getBoardCoordinates(profile.board)) {
-    const source = pieceAt(state, from);
-    if (source !== null && source.side === side && enumerateLegalDestinations(state, side, from).length > 0) return true;
+  return getLegalMoves(state, side).length > 0;
+}
+
+/**
+ * Basic BR-11 reachability check for a static goal. It ignores blockers and
+ * captures by using a one-piece probe state, while retaining engine geometry.
+ */
+export function hasBasicGoalReachability(profile: RuleProfile, side: Side): boolean {
+  const goal = staticGoal(profile, side);
+  if (goal === null) return false;
+  const emptyBoard = Object.fromEntries(getBoardCoordinates(profile.board).map((coordinate) => [coordinate, null])) as Board;
+  for (const entry of profile.layout) {
+    if (entry.side !== side) continue;
+    const probeBoard = { ...emptyBoard, [entry.coordinate]: { id: entry.id, side: entry.side, type: entry.type } } as Board;
+    const probe: RuleState = {
+      board: probeBoard,
+      pieceCounts: profile.pieceCounts,
+      currentTurn: side,
+      status: "PLAYING",
+      winner: null,
+      resultReason: null,
+      ruleProfile: profile,
+    };
+    if (getLegalDestinations(probe, side, entry.coordinate).includes(goal)) return true;
   }
   return false;
 }
