@@ -1,5 +1,6 @@
 import type { BotInvocationRequest, BotInvocationResult } from "./types.js";
 import { DEFAULT_BOT_LIMITS, type BotLimitManifest } from "./manifest.js";
+import { createBotExecutionReceipt, type BotExecutionReceipt } from "./receipt.js";
 import { utf8ByteLength, validateBotSource, type SourceValidation } from "./source-validation.js";
 
 export type RuntimeSecurityProfile = Readonly<{
@@ -33,9 +34,12 @@ export class RuntimeNotProvenError extends Error {
 }
 
 export class BotOutputValidationError extends Error {
-  constructor(message: string) {
+  readonly receipt: BotExecutionReceipt | undefined;
+
+  constructor(message: string, receipt?: BotExecutionReceipt) {
     super(message);
     this.name = "BotOutputValidationError";
+    this.receipt = receipt;
   }
 }
 
@@ -62,7 +66,21 @@ function isJsonValue(value: unknown, depth: number, maxDepth: number, seen = new
   return false;
 }
 
-function validateOutput(request: BotInvocationRequest, result: unknown, limits: BotLimitManifest): asserts result is BotInvocationResult {
+function normalizeResult(result: unknown): BotInvocationResult {
+  if (Array.isArray(result) && result.length === 2) return { move: result[0] as BotInvocationResult["move"], memory: result[1] as BotInvocationResult["memory"] };
+  if (result && typeof result === "object") {
+    const candidate = result as Record<string, unknown>;
+    return {
+      ...candidate,
+      move: candidate.move as BotInvocationResult["move"],
+      memory: candidate.memory as BotInvocationResult["memory"],
+      ...(typeof candidate.computeMs === "number" ? { computeMs: candidate.computeMs } : {}),
+    };
+  }
+  throw new BotOutputValidationError("Bot trả về payload không hợp lệ.");
+}
+
+function validateOutput(request: BotInvocationRequest, result: BotInvocationResult, limits: BotLimitManifest): void {
   if (!result || typeof result !== "object" || !("move" in result) || !("memory" in result)) throw new BotOutputValidationError("Bot trả về payload không hợp lệ.");
   const candidate = result as BotInvocationResult;
   if (!candidate.move || typeof candidate.move.from !== "string" || typeof candidate.move.to !== "string") throw new BotOutputValidationError("Bot trả về move không hợp lệ.");
@@ -80,6 +98,14 @@ function validateOutput(request: BotInvocationRequest, result: unknown, limits: 
   const outputBytes = utf8ByteLength(outputJson);
   if (memoryBytes > limits.memoryBytes) throw new BotOutputValidationError("Bot vượt giới hạn memory.");
   if (outputBytes > limits.outputBytes) throw new BotOutputValidationError("Bot vượt giới hạn output.");
+}
+
+function assertReceiptContext(request: BotInvocationRequest): void {
+  const context = request.receiptContext;
+  if (!context) return;
+  if (context.sdkVersion !== request.state.sdkVersion || context.schemaVersion !== request.state.schemaVersion || context.ruleVersion !== request.state.rules.version) {
+    throw new BotOutputValidationError("Receipt context không khớp ABI hiện tại.");
+  }
 }
 
 function assertProfile(profile: RuntimeSecurityProfile): void {
@@ -106,10 +132,28 @@ export function createIsolatedRuntimeHarness(adapter?: IsolatedRuntimeAdapter, l
       if (!validation.ok) throw new Error(validation.message);
       if (!adapter) throw new RuntimeNotProvenError();
       if (signal.aborted) throw new RuntimeCancelledError();
-      const result = await adapter.execute(request, signal);
-      if (signal.aborted) throw new RuntimeCancelledError();
-      validateOutput(request, result, limits);
-      return result;
+      let result: BotInvocationResult;
+      try {
+        result = normalizeResult(await adapter.execute(request, signal));
+        if (signal.aborted) throw new RuntimeCancelledError();
+        validateOutput(request, result, limits);
+        assertReceiptContext(request);
+      } catch (error) {
+        if (error instanceof BotOutputValidationError && request.receiptContext && !error.receipt) {
+          const receipt = createBotExecutionReceipt(request.receiptContext, { outcome: "REJECTED", computeMs: 0, errorCode: "BOT_OUTPUT_REJECTED" });
+          throw new BotOutputValidationError(error.message, receipt);
+        }
+        throw error;
+      }
+      const computeMs = Number.isFinite(result.computeMs) && result.computeMs !== undefined ? Math.max(0, Math.round(result.computeMs)) : 0;
+      const safeResult: BotInvocationResult = {
+        move: result.move,
+        memory: result.memory,
+        ...(result.computeMs === undefined ? {} : { computeMs: result.computeMs }),
+      };
+      return request.receiptContext
+        ? { ...safeResult, computeMs, receipt: createBotExecutionReceipt(request.receiptContext, { outcome: "ACCEPTED", computeMs }) }
+        : { ...safeResult, computeMs };
     },
   };
 }

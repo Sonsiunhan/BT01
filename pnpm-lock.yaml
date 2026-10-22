@@ -318,6 +318,9 @@ importers:
 
   packages/bot-sdk:
     dependencies:
+      '@ottv2/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@ottv2/game-rules':
         specifier: workspace:*
         version: link:../game-rules

@@ -9,6 +9,8 @@ import {
   BOT_RUNTIME_POLICY_VERSION,
   createBotExecutionReceipt,
   createBotTurnState,
+  createIsolatedRuntimeHarness,
+  BotOutputValidationError,
 } from "@ottv2/bot-sdk";
 import { buildPythonRunner } from "../../apps/server/src/modules/bot-online/python.runner.js";
 
@@ -77,6 +79,42 @@ describe("N06 Bot ABI and trusted receipt", () => {
     expect(source).toContain("rule_version");
     expect(source).toContain("win_conditions");
     expect(source).toContain("if isinstance(_result, tuple) and len(_result) == 2");
+  });
+
+  it("normalizes tuple output and rejects a receipt ABI mismatch", async () => {
+    const state = createBotTurnState(createInitialState(), "BLUE", [], { BLUE: 30_000, RED: 30_000 }, 1);
+    const context = {
+      receiptId: "44444444-4444-4444-8444-444444444444",
+      ownerId: "guest:profile-1",
+      botId: "bot-1",
+      revisionId: "rev-1",
+      sourceDigest: "b".repeat(64),
+      ruleVersion: state.rules.version,
+      sdkVersion: state.sdkVersion,
+      schemaVersion: state.schemaVersion,
+      runtimeVersion: BOT_OFFLINE_RUNTIME_VERSION,
+      policyVersion: BOT_RUNTIME_POLICY_VERSION,
+      phase: "TURN" as const,
+      matchId: "55555555-5555-4555-8555-555555555555",
+      stateVersion: 0,
+      invocationId: "66666666-6666-4666-8666-666666666666",
+      timestamp: "2026-10-22T12:00:00.000Z",
+    };
+    const harness = createIsolatedRuntimeHarness({
+      profile: { isolation: "WASMTIME_SUPERVISOR", sourceParser: "ISOLATED_PARSER", network: false, filesystem: false, secrets: false, applicationMounts: false },
+      execute: async () => [state.legalMoves[0]!, null] as never,
+    });
+    const result = await harness.runTurn({ source: "def choose_move(state, memory):\n    return state['legal_moves'][0], memory\n", state, memory: null, seed: 1, receiptContext: context }, { aborted: false });
+    expect(result.receipt?.outcome).toBe("ACCEPTED");
+    expect(result.receipt?.ruleVersion).toBe(state.rules.version);
+    try {
+      await harness.runTurn({ source: "def choose_move(state, memory):\n    return state['legal_moves'][0], memory\n", state, memory: null, seed: 1, receiptContext: { ...context, ruleVersion: "wrong" } }, { aborted: false });
+      throw new Error("expected receipt mismatch");
+    } catch (error) {
+      expect(error).toBeInstanceOf(BotOutputValidationError);
+      expect((error as BotOutputValidationError).receipt?.outcome).toBe("REJECTED");
+      expect((error as BotOutputValidationError).receipt?.errorCode).toBe("BOT_OUTPUT_REJECTED");
+    }
   });
 });
 

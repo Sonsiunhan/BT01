@@ -3,17 +3,20 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { join } from "node:path";
 import {
   DEFAULT_BOT_LIMITS,
+  BOT_ONLINE_RUNTIME_VERSION,
+  BOT_RUNTIME_POLICY_VERSION,
   BotOutputValidationError,
   RuntimeCancelledError,
   RuntimeNotProvenError,
   createIsolatedRuntimeHarness,
+  createBotTurnState,
   decideLimitWinner,
   scoreLimitCriteria,
   type IsolatedRuntimeAdapter,
   type JsonValue,
 } from "@ottv2/bot-sdk";
 import type { BotOnlinePlayer, BotOnlineSnapshot, BotRevision, RoomDetail } from "@ottv2/contracts";
-import { getLegalDestinations, type Coordinate, type PieceType, type RuleState, type Side } from "@ottv2/game-rules";
+import { LEGACY_RULE_PROFILE, type Coordinate, type PieceType, type RuleState, type Side } from "@ottv2/game-rules";
 
 import { AppError } from "../../shared/errors/app-error.js";
 import { BotLibraryService } from "../bot-library/bot-library.service.js";
@@ -117,7 +120,7 @@ function deriveMove(previous: ReturnType<MatchManager["ensure"]> | null, next: R
 }
 
 function ruleStateForMatch(match: ReturnType<MatchManager["ensure"]>): RuleState {
-  return { board: match.board as RuleState["board"], pieceCounts: match.pieceCounts, currentTurn: match.currentTurn, status: "PLAYING", winner: null, resultReason: null };
+  return { board: match.board as RuleState["board"], pieceCounts: match.pieceCounts, currentTurn: match.currentTurn, status: "PLAYING", winner: null, resultReason: null, ruleProfile: LEGACY_RULE_PROFILE };
 }
 
 export class BotOnlineService {
@@ -395,10 +398,33 @@ export class BotOnlineService {
       const beforeCompute = this.matches.ensure(room);
       if (abortSignal.aborted || beforeCompute.matchId !== match.matchId || beforeCompute.status !== "PLAYING" || beforeCompute.stateVersion !== stateVersion) return;
       const source = await this.library.source(slot.userId, slot.botId, slot.activeRevisionId);
-      const ruleState: RuleState = { board: match.board as RuleState["board"], pieceCounts: match.pieceCounts, currentTurn: match.currentTurn, status: "PLAYING", winner: match.winner, resultReason: match.resultReason === "EXTINCTION" || match.resultReason === "GOAL_REACHED" ? match.resultReason : null };
-      const legalMoves = Object.keys(match.board).flatMap((from) => getLegalDestinations(ruleState, slot.side, from).map((to) => ({ from: from as Coordinate, to })));
+      const ruleState = ruleStateForMatch(match);
+      const botState = createBotTurnState(ruleState, slot.side, session.moves.map((move) => ({ side: move.side, from: move.from as Coordinate, to: move.to as Coordinate, captured: move.captured as PieceType | null })), match.clocksMs, Math.max(1, match.sequence));
       const invocationStartedAt = this.now();
-      const result = await this.runtime.runTurn({ source, state: { sdkVersion: DEFAULT_BOT_LIMITS.sdkVersion, schemaVersion: DEFAULT_BOT_LIMITS.schemaVersion, side: slot.side, board: ruleState.board, legalMoves, turnNumber: match.sequence, clocksMs: match.clocksMs, history: session.moves.map((move) => ({ side: move.side, from: move.from as Coordinate, to: move.to as Coordinate, captured: move.captured as PieceType | null })) }, memory: slot.memory, seed: hashSeed(session.sessionId, match.sequence) }, abortSignal);
+      const result = await this.runtime.runTurn({
+        source,
+        state: botState,
+        memory: slot.memory,
+        seed: hashSeed(session.sessionId, match.sequence),
+        phase: "TURN",
+        receiptContext: {
+          receiptId: randomUUID(),
+          ownerId: slot.userId,
+          botId: slot.botId,
+          revisionId: slot.activeRevisionId,
+          sourceDigest: createHash("sha256").update(source, "utf8").digest("hex"),
+          ruleVersion: botState.rules.version,
+          sdkVersion: botState.sdkVersion,
+          schemaVersion: botState.schemaVersion,
+          runtimeVersion: BOT_ONLINE_RUNTIME_VERSION,
+          policyVersion: BOT_RUNTIME_POLICY_VERSION,
+          phase: "TURN",
+          matchId: match.matchId,
+          stateVersion,
+          invocationId: randomUUID(),
+          timestamp: new Date(this.now()).toISOString(),
+        },
+      }, abortSignal);
       const current = this.matches.ensure(room);
       if (abortSignal.aborted || current.matchId !== match.matchId || current.status !== "PLAYING" || current.stateVersion !== stateVersion || current.currentTurn !== slot.side) return;
       const moved = this.matches.move(room, actorFor(slot), result.move.from, result.move.to, stateVersion);

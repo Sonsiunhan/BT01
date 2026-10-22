@@ -87,12 +87,22 @@ def _run_bot(payload):
                 raise ValueError('IMPORT_NOT_ALLOWED')
     namespace = {'__builtins__': _safe_builtins, '__name__': '__bot__'}
     exec(compile(tree, '<bot>', 'exec'), namespace, namespace)
-    state = request['state']
+    state = dict(request['state'])
     state['legal_moves'] = state['legalMoves']
     state['turn_number'] = state['turnNumber']
     state['clocks_ms'] = state['clocksMs']
-    move, memory = namespace['choose_move'](state, request['memory'])
-    text = _json.dumps({'move': move, 'memory': memory}, separators=(',', ':'), allow_nan=False)
+    state['board_dimensions'] = state['dimensions']
+    state['goal_cells'] = state['goals']
+    state['rule_version'] = state['rules']['version']
+    state['win_conditions'] = state['rules']['winConditions']
+    result = namespace['choose_move'](state, request['memory'])
+    if isinstance(result, tuple) and len(result) == 2:
+        result = {'move': result[0], 'memory': result[1]}
+    elif isinstance(result, dict) and 'move' in result and 'memory' in result:
+        result = {'move': result['move'], 'memory': result['memory']}
+    else:
+        raise ValueError('ABI_OUTPUT')
+    text = _json.dumps(result, separators=(',', ':'), allow_nan=False)
     if len(text.encode('utf-8')) > ${limits.outputBytes}:
         raise ValueError('OUTPUT_BUDGET')
     return text
@@ -113,7 +123,7 @@ self.onmessage = async (event) => {
   } catch (error) {
     // Only bounded error categories, never private traceback/source to the UI.
     const text = String(error);
-    const code = ["OUTPUT_BUDGET", "IMPORT_NOT_ALLOWED", "FORBIDDEN_API", "RUNTIME_VERSION_MISMATCH"].find((key) => text.includes(key));
+    const code = ["OUTPUT_BUDGET", "IMPORT_NOT_ALLOWED", "FORBIDDEN_API", "RUNTIME_VERSION_MISMATCH", "ABI_OUTPUT"].find((key) => text.includes(key));
     send({ kind: "result", ok: false, code: code ?? (engine ? "BOT_RUNTIME_FAILED" : "BOT_WORKER_FAILED") });
   }
 };
