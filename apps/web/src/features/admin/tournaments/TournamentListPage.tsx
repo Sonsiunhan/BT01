@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { UiGlyph } from "../../../components/ui/UiGlyph";
 import type {
   TournamentListItem,
   TournamentListQuery,
@@ -162,7 +163,7 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
                 cursor: "not-allowed",
               }}
             >
-              🔒 Tạo giải đấu (Chưa cấp quyền)
+              <UiGlyph name="lock" size={15} /> Tạo giải đấu (Chưa cấp quyền)
             </button>
           )}
         </div>
@@ -215,7 +216,7 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
             textAlign: "center",
           }}
         >
-          <span style={{ fontSize: "1.75rem" }}>⚠</span>
+          <span aria-hidden="true"><UiGlyph name="warning" size={28} /></span>
           <div>
             <h4 style={{ margin: "0 0 0.3rem 0" }}>Lỗi tải dữ liệu</h4>
             <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text)" }}>{error}</p>
@@ -226,7 +227,7 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
             onClick={() => fetchTournaments(query)}
             style={{ padding: "0.4rem 1rem", fontSize: "0.85rem" }}
           >
-            ↺ Thử lại
+            <UiGlyph name="refresh" size={15} /> Thử lại
           </button>
         </div>
       ) : items.length === 0 ? (

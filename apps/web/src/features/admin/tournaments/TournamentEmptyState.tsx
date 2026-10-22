@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { UiGlyph } from "../../../components/ui/UiGlyph";
 
 interface TournamentEmptyStateProps {
   type: "empty" | "no-results";
@@ -29,7 +30,7 @@ export const TournamentEmptyState: React.FC<TournamentEmptyStateProps> = ({
           gap: "1rem",
         }}
       >
-        <span style={{ fontSize: "2rem" }}>🔍</span>
+        <span aria-hidden="true"><UiGlyph name="search" size={32} /></span>
         <div>
           <h4 style={{ margin: "0 0 0.35rem 0", fontSize: "1.05rem", color: "var(--text)" }}>
             Không tìm thấy giải đấu phù hợp
@@ -51,7 +52,7 @@ export const TournamentEmptyState: React.FC<TournamentEmptyStateProps> = ({
               cursor: "pointer",
             }}
           >
-            ↺ Xóa bộ lọc tìm kiếm
+            <UiGlyph name="refresh" size={15} /> Xóa bộ lọc tìm kiếm
           </button>
         )}
       </div>
@@ -83,12 +84,11 @@ export const TournamentEmptyState: React.FC<TournamentEmptyStateProps> = ({
           borderRadius: "50%",
           display: "grid",
           placeItems: "center",
-          fontSize: "1.5rem",
           background: "color-mix(in srgb, var(--system-cyan) 15%, transparent)",
           border: "1px solid color-mix(in srgb, var(--system-cyan) 35%, transparent)",
         }}
       >
-        🏆
+        <UiGlyph name="trophy" size={28} />
       </div>
 
       <div style={{ maxWidth: "26rem" }}>

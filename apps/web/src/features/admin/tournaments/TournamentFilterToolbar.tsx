@@ -1,4 +1,5 @@
 import React from "react";
+import { UiGlyph } from "../../../components/ui/UiGlyph";
 import type { TournamentListQuery } from "./tournamentTypes";
 
 interface TournamentFilterToolbarProps {
@@ -71,10 +72,9 @@ export const TournamentFilterToolbar: React.FC<TournamentFilterToolbarProps> = (
               transform: "translateY(-50%)",
               color: "var(--text-muted)",
               pointerEvents: "none",
-              fontSize: "0.85rem",
             }}
           >
-            🔍
+            <UiGlyph name="search" size={16} />
           </span>
           {query.q && (
             <button
@@ -91,11 +91,10 @@ export const TournamentFilterToolbar: React.FC<TournamentFilterToolbarProps> = (
                 color: "var(--text-muted)",
                 cursor: "pointer",
                 padding: "0.2rem",
-                fontSize: "0.85rem",
               }}
               title="Xóa tìm kiếm"
             >
-              ✕
+              <UiGlyph name="close" size={15} />
             </button>
           )}
         </div>

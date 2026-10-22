@@ -13,7 +13,11 @@ export type UiGlyphName =
   | "spectator"
   | "settings"
   | "warning"
-  | "empty";
+  | "empty"
+  | "search"
+  | "refresh"
+  | "close"
+  | "trophy";
 
 type Props = SVGProps<SVGSVGElement> & { name: UiGlyphName; size?: number };
 
@@ -47,5 +51,13 @@ export function UiGlyph({ name, size = 18, ...props }: Props) {
       return <svg {...common}><path d="m12 3 9 16H3L12 3Z" /><path d="M12 9v4m0 3h.01" /></svg>;
     case "empty":
       return <svg {...common}><circle cx="12" cy="12" r="8.5" /><path d="M8.5 12h7" /></svg>;
+    case "search":
+      return <svg {...common}><circle cx="10.8" cy="10.8" r="6.2" /><path d="m16 16 4.2 4.2" /></svg>;
+    case "refresh":
+      return <svg {...common}><path d="M20 11a8 8 0 0 0-14.8-4L3 10" /><path d="M3 5v5h5" /><path d="M4 13a8 8 0 0 0 14.8 4L21 14" /><path d="M21 19v-5h-5" /></svg>;
+    case "close":
+      return <svg {...common}><path d="m6 6 12 12M18 6 6 18" /></svg>;
+    case "trophy":
+      return <svg {...common}><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z" /><path d="M8 6H5a3 3 0 0 0 3 4m8-4h3a3 3 0 0 1-3 4M12 12v5m-4 3h8M9 17h6" /></svg>;
   }
 }

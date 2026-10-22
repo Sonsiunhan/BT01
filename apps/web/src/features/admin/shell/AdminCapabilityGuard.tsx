@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { getMe, type UserProfile } from "../../../services/auth/authApi";
 import { routes } from "../../../app/routes";
 import { loginReturnPath } from "../../../services/auth/returnUrl";
+import { UiGlyph } from "../../../components/ui/UiGlyph";
 
 export interface AdminCapabilityGuardProps {
   requiredCapability?: string;
@@ -100,11 +101,13 @@ export const AdminCapabilityGuard: React.FC<AdminCapabilityGuardProps> = ({
         >
           <div
             style={{
-              fontSize: "2.5rem",
+              display: "grid",
+              placeItems: "center",
+              minHeight: "2.5rem",
               marginBottom: "1rem",
             }}
           >
-            🔒
+            <UiGlyph name="lock" size={40} />
           </div>
           <h2
             style={{

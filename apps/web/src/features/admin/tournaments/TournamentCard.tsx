@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { UiGlyph } from "../../../components/ui/UiGlyph";
 import type { TournamentListItem, TournamentLifecycleStatus } from "./tournamentTypes";
 
 interface TournamentCardProps {
@@ -161,7 +162,7 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
             <span style={{ color: "var(--system-green)", fontWeight: 600 }}>● Sẵn sàng mở giải</span>
           ) : readiness.state === "BLOCKED" ? (
             <span style={{ color: "var(--danger)", fontWeight: 600 }}>
-              ⚠ Có {readiness.blockerCount} điểm nghẽn
+              <UiGlyph name="warning" size={14} /> Có {readiness.blockerCount} điểm nghẽn
             </span>
           ) : (
             <span style={{ color: "var(--text-muted)" }}>◌ Đang đối soát</span>
