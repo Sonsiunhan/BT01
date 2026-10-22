@@ -1,8 +1,10 @@
 import { getBoardCoordinates, isCoordinateInBoard } from "./coordinates.js";
+import { createRuleProgress, goalProfilesHaveProgress, validateGoalProfile } from "./goals.js";
 import {
   MAX_BOARD_DIMENSION,
   MAX_LEAP_OFFSETS_PER_PROFILE,
   MAX_MOVEMENT_PATTERNS_PER_TYPE,
+  MAX_RAY_DISTANCE_FOR_PREVIEW,
   MIN_BOARD_DIMENSION,
   createDefaultMovementProfiles,
 } from "./profiles.js";
@@ -131,7 +133,11 @@ function countLayout(layout: readonly LayoutEntry[]): Record<Side, Record<PieceT
   return result;
 }
 
-function validatePattern(pattern: MovementPattern, path: string, issues: RuleProfileValidationIssue[]): number {
+function validatePattern(
+  pattern: MovementPattern,
+  path: string,
+  issues: RuleProfileValidationIssue[],
+): number {
   if (pattern.kind === "RAY") {
     if (!Number.isInteger(pattern.minDistance) || !Number.isInteger(pattern.maxDistance) || pattern.minDistance < 1 || pattern.maxDistance < pattern.minDistance) {
       issues.push(validationIssue("INVALID_DISTANCE", path, "RAY distance phải là số nguyên hữu hạn với 1 ≤ minDistance ≤ maxDistance."));
@@ -202,10 +208,51 @@ export function validateRuleProfile(profile: RuleProfile): readonly RuleProfileV
 
   for (const side of SIDES) {
     const goal: GoalProfile | undefined = profile.goalProfiles?.[side];
-    if (goal?.mode === "STATIC") {
-      if (!isCoordinateInBoard(board, goal.cell)) issues.push(validationIssue("GOAL_OUT_OF_BOUNDS", `goalProfiles.${side}.cell`, "Ô đích phải nằm trong board profile."));
-      if (profile.winConditions?.includes("GOAL_REACHED") && profile.layout.some((entry) => entry.side === side && entry.coordinate === goal.cell)) {
-        issues.push(validationIssue("INITIAL_OWN_GOAL", `goalProfiles.${side}.cell`, "Không đặt quân own trên đích tĩnh ban đầu."));
+    for (const goalIssue of validateGoalProfile(profile, side)) {
+      issues.push(validationIssue(goalIssue.code as RuleProfileValidationCode, goalIssue.path, goalIssue.message));
+    }
+    if (goal?.mode === "STATIC" && profile.winConditions?.includes("GOAL_REACHED") && profile.layout.some((entry) => entry.side === side && entry.coordinate === goal.cell)) {
+      issues.push(validationIssue("INITIAL_OWN_GOAL", `goalProfiles.${side}.cell`, "Không đặt quân own trên đích tĩnh ban đầu."));
+    }
+  }
+  return Object.freeze(issues);
+}
+
+export function validateRuleProfileForPreview(profile: RuleProfile): readonly RuleProfileValidationIssue[] {
+  const issues = [...validateRuleProfile(profile)];
+  if (!profile.winConditions || profile.winConditions.length === 0) {
+    issues.push(validationIssue("WIN_CONDITION_REQUIRED", "winConditions", "Phải bật ít nhất một điều kiện thắng."));
+  }
+  if (profile.winConditions?.includes("EXTINCTION")) {
+    for (const side of SIDES) {
+      for (const type of PIECE_TYPES) {
+        if (profile.pieceCounts[side][type] <= 0) {
+          issues.push(validationIssue("EXTINCTION_REQUIRES_ALL_TYPES", "pieceCounts." + side + "." + type, "EXTINCTION yêu cầu mỗi bên có đủ R/P/S ban đầu."));
+        }
+      }
+    }
+  }
+  if (profile.winConditions?.includes("GOAL_REACHED")) {
+    for (const side of SIDES) {
+      if (profile.goalProfiles?.[side] === undefined) {
+        issues.push(validationIssue("MISSING_GOAL_PROFILE", "goalProfiles." + side, "GOAL_REACHED cần goal profile cho cả hai bên."));
+      }
+    }
+  }
+  for (const side of SIDES) {
+    for (const type of PIECE_TYPES) {
+      for (const [patternIndex, pattern] of (profile.movementProfiles?.[side]?.[type] ?? []).entries()) {
+        if (pattern.kind === "RAY" && Number.isInteger(pattern.maxDistance) && pattern.maxDistance > MAX_RAY_DISTANCE_FOR_PREVIEW) {
+          issues.push(validationIssue("RAY_DISTANCE_CAP_EXCEEDED", "movementProfiles." + side + "." + type + "[" + patternIndex + "].maxDistance", "RAY maxDistance không vượt quá " + MAX_RAY_DISTANCE_FOR_PREVIEW + " trong preview giải đấu."));
+        }
+        if (pattern.kind === "LEAP") {
+          const seen = new Set<string>();
+          for (const [offsetIndex, offset] of pattern.offsets.entries()) {
+            const key = String(offset.fileDelta) + ":" + String(offset.rankDelta);
+            if (seen.has(key)) issues.push(validationIssue("DUPLICATE_LEAP_OFFSET", "movementProfiles." + side + "." + type + "[" + patternIndex + "].offsets[" + offsetIndex + "]", "LEAP offset trùng không làm tăng mobility."));
+            seen.add(key);
+          }
+        }
       }
     }
   }
@@ -236,7 +283,9 @@ function cloneAndFreezeProfile(profile: RuleProfile): RuleProfile {
   const frozenGoalProfiles: Partial<Record<Side, GoalProfile>> = {};
   for (const side of SIDES) {
     const goal = profile.goalProfiles?.[side];
-    if (goal !== undefined) frozenGoalProfiles[side] = Object.freeze({ ...goal });
+    if (goal?.mode === "STATIC") frozenGoalProfiles[side] = Object.freeze({ ...goal });
+    if (goal?.mode === "CYCLE") frozenGoalProfiles[side] = Object.freeze({ ...goal, cells: Object.freeze([...goal.cells]) });
+    if (goal?.mode === "SEEDED") frozenGoalProfiles[side] = Object.freeze({ ...goal, candidateCells: Object.freeze([...goal.candidateCells]) });
   }
   return Object.freeze({
     ...profile,
@@ -246,6 +295,7 @@ function cloneAndFreezeProfile(profile: RuleProfile): RuleProfile {
     movementProfiles: Object.freeze({ BLUE: freezeMovement("BLUE"), RED: freezeMovement("RED") }),
     winConditions: Object.freeze([...(profile.winConditions ?? [])]),
     ...(profile.goalProfiles === undefined ? {} : { goalProfiles: Object.freeze(frozenGoalProfiles) }),
+    ...(profile.seedContext === undefined ? {} : { seedContext: Object.freeze({ ...profile.seedContext }) }),
   });
 }
 
@@ -275,6 +325,7 @@ function stateFromProfile(profile: RuleProfile, immutable = true): RuleState {
   }
   const frozenProfile = cloneAndFreezeProfile(profile);
   const frozenBoard = (immutable ? Object.freeze(board) : board) as Board;
+  const progress = goalProfilesHaveProgress(frozenProfile) ? createRuleProgress(frozenProfile) : undefined;
   const state: RuleState = {
     board: frozenBoard,
     pieceCounts: frozenProfile.pieceCounts,
@@ -283,6 +334,7 @@ function stateFromProfile(profile: RuleProfile, immutable = true): RuleState {
     winner: null,
     resultReason: null,
     ruleProfile: frozenProfile,
+    ...(progress === undefined ? {} : { progress }),
   };
   return immutable ? Object.freeze(state) : state;
 }

@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { RosterPreviewRequestSchema } from "@ottv2/contracts";
+import { CANDIDATE_POLICY_DEFAULTS_V1, RosterPreviewRequestSchema } from "@ottv2/contracts";
 
 import { readCookie, requireBody } from "../auth/auth.http.js";
 import type { AuthService } from "../auth/auth.service.js";
@@ -38,7 +38,7 @@ export async function registerRosterRoutes(
   auth: AuthService,
   service: RosterService,
 ): Promise<void> {
-  app.post("/admin/roster/preview", async (request: FastifyRequest, reply) => {
+  app.post("/admin/roster/preview", { bodyLimit: Math.ceil(CANDIDATE_POLICY_DEFAULTS_V1.rosterImportMaxBytes * 4 / 3) + 64 * 1024 }, async (request: FastifyRequest, reply) => {
     // 1. Authenticate and enforce administrative authorization
     const cookie = readCookie(request);
     const context = await auth.authenticate(cookie);
@@ -46,27 +46,21 @@ export async function registerRosterRoutes(
     if (context.principal !== "ACCOUNT") {
       throw new AppError(
         "UNAUTHORIZED",
-        "Principal not authenticated as ACCOUNT",
+        "Vui lòng đăng nhập bằng tài khoản quản trị.",
         401,
         false,
         "FATAL_SESSION",
       );
     }
 
-    const userRole = (context.user as any).role;
-    const userRoles: string[] = ((context.user as any).roles as string[]) ?? [];
-    const isSystemAdmin =
-      userRole === "SYSTEM_ADMIN" ||
-      userRoles.includes("SYSTEM_ADMIN") ||
-      userRoles.includes("ADMIN");
-    const isTournamentAdmin =
-      userRole === "TOURNAMENT_ADMIN" ||
-      userRoles.includes("TOURNAMENT_ADMIN");
+    const userRole = context.user.role;
+    const isSystemAdmin = userRole === "SYSTEM_ADMIN";
+    const isTournamentAdmin = userRole === "TOURNAMENT_ADMIN";
 
     if (!isSystemAdmin && !isTournamentAdmin) {
       throw new AppError(
         "UNAUTHORIZED",
-        "Only System Admin or Tournament Admin can perform this operation",
+        "Chỉ quản trị hệ thống hoặc quản trị giải đấu được xem trước danh sách.",
         403,
         false,
         "INVALID",
@@ -76,7 +70,7 @@ export async function registerRosterRoutes(
     // 2. Parse request input
     let buffer: Buffer;
     let fileName: string;
-    let allowedUnits: string[] | undefined;
+    let allowedUnits = await service.readAllowedUnits(context.user.id, userRole);
     let maxRows: number | undefined;
 
     if (Buffer.isBuffer(request.body)) {
@@ -89,13 +83,17 @@ export async function registerRosterRoutes(
       const input = requireBody(request.body, RosterPreviewRequestSchema);
       fileName = input.fileName;
       buffer = decodeFileBuffer(input.fileContent, fileName);
-      allowedUnits = input.allowedUnits;
+      // Client filters may narrow the persisted scope, but cannot grant access.
+      if (input.allowedUnits) {
+        const requested = new Set(input.allowedUnits.map((unit) => unit.trim().toUpperCase()));
+        allowedUnits = allowedUnits.filter((unit) => requested.has(unit.trim().toUpperCase()));
+      }
       maxRows = input.maxRows;
     }
 
     // 3. Execute preview
     const result = await service.previewRoster(buffer, fileName, {
-      ...(allowedUnits !== undefined ? { allowedUnits } : {}),
+      allowedUnits,
       ...(maxRows !== undefined ? { maxRows } : {}),
     });
 

@@ -32,7 +32,11 @@ import { CapacityController, registerCapacityAdmissionHook, registerCapacityRout
 import { BotOnlineService, FileBotOnlineStatePersistence } from "./modules/bot-online/bot-online.service.js";
 import { createWasmtimeCpythonAdapter, DEFAULT_CPYTHON_WASM_SHA256, DEFAULT_WASMTIME_LINUX_SHA256 } from "./modules/bot-online/wasmtime.adapter.js";
 import { registerBotOnlineRoutes } from "./modules/bot-online/bot-online.route.js";
+import { registerTournamentRulesPreviewRoutes } from "./modules/tournament-rules-preview/rules-preview.route.js";
+import { PrismaTournamentPreviewScopeReader, TournamentRulesPreviewService } from "./modules/tournament-rules-preview/rules-preview.service.js";
 import { RosterService, registerRosterRoutes } from "./modules/roster/index.js";
+import { registerTournamentRuleVersionRoutes } from "./modules/tournament-versioning/versioning.route.js";
+import type { TournamentVersioningPort } from "./modules/tournament-versioning/versioning.port.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -61,7 +65,10 @@ export type BuildAppOptions = {
   capacityController?: CapacityController;
   botLibrary?: BotLibraryService;
   botOnline?: BotOnlineService;
+  tournamentRulesPreview?: TournamentRulesPreviewService;
   rosterService?: RosterService;
+  /** L05-owned canonical version store; N04 only registers its typed adapter. */
+  tournamentVersioning?: TournamentVersioningPort;
 };
 
 function createRealtime(env: AppEnv, app: FastifyInstance): RealtimePort {
@@ -111,6 +118,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   const botOnline = options.botOnline ?? (env.MATCH_PERSISTENCE_DIR
     ? new BotOnlineService(botLibrary, matches, { resolveRoom: (roomId, userId) => rooms.search(roomId, userId), persistence: new FileBotOnlineStatePersistence(`${env.MATCH_PERSISTENCE_DIR}/bot-online`), ...(botRuntimeAdapter ? { adapter: botRuntimeAdapter } : {}) })
     : new BotOnlineService(botLibrary, matches, { resolveRoom: (roomId, userId) => rooms.search(roomId, userId), ...(botRuntimeAdapter ? { adapter: botRuntimeAdapter } : {}) }));
+  const tournamentRulesPreview = options.tournamentRulesPreview
+    ?? (database instanceof PrismaDatabase ? new TournamentRulesPreviewService(new PrismaTournamentPreviewScopeReader(database.client)) : undefined);
 
   await registerCors(app, env.corsOrigins);
   registerErrorHandler(app);
@@ -130,7 +139,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerGuestImportRoutes(app, auth, guestImport, env.NODE_ENV === "production");
   await registerBotLibraryRoutes(app, auth, botLibrary);
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
+  if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
   await registerRosterRoutes(app, auth, rosterService);
+  if (options.tournamentVersioning) await registerTournamentRuleVersionRoutes(app, auth, options.tournamentVersioning);
   const botProbe = () => ({
     status: botRuntimeAdapter ? ("ok" as const) : ("degraded" as const),
     reason: botRuntimeAdapter ? undefined : "wasmtime-unconfigured",

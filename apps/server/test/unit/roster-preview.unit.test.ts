@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as XLSX from "xlsx";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
@@ -273,10 +273,13 @@ describe("D03 — Roster Preview Service and Route Tests", () => {
   });
 
   describe("Route POST /admin/roster/preview", () => {
+    beforeEach(() => {
+      vi.spyOn(service, "readAllowedUnits").mockResolvedValue(["KHOA_CNTT", "KHOA_LY"]);
+    });
     let routeHandler: (request: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
 
     const fakeApp = {
-      post: vi.fn((path: string, handler: any) => {
+      post: vi.fn((path: string, _options: unknown, handler: any) => {
         if (path === "/admin/roster/preview") {
           routeHandler = handler;
         }
@@ -302,7 +305,7 @@ describe("D03 — Roster Preview Service and Route Tests", () => {
       } as FastifyRequest;
 
       await expect(routeHandler(req, fakeReply())).rejects.toThrowError(
-        /Principal not authenticated as ACCOUNT/,
+        /Vui lòng đăng nhập/,
       );
     });
 
@@ -318,7 +321,7 @@ describe("D03 — Roster Preview Service and Route Tests", () => {
       } as FastifyRequest;
 
       await expect(routeHandler(req, fakeReply())).rejects.toThrowError(
-        /Only System Admin or Tournament Admin/,
+        /Chỉ quản trị hệ thống/,
       );
     });
 

@@ -36,6 +36,29 @@ const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,32}$/;
 export class RosterService {
   constructor(private readonly db?: PrismaClient) {}
 
+  /** Resolve authority from persisted bindings, never from upload content. */
+  async readAllowedUnits(userId: string, role: string): Promise<string[]> {
+    if (!this.db) throw new AppError("SERVICE_UNAVAILABLE", "Chưa thể xác minh phạm vi đơn vị.", 503, true, "RECOVERABLE");
+    const now = new Date();
+    try {
+      const units = await this.db.unit.findMany({
+        where: {
+          status: "ACTIVE",
+          ...(role === "SYSTEM_ADMIN" ? {} : {
+            contracts: { some: {
+              status: "ACTIVE", validFrom: { lte: now }, validTo: { gte: now },
+              taBindings: { some: { userId, status: "ACTIVE" } },
+            } },
+          }),
+        },
+        select: { unitCode: true },
+      });
+      return units.map((unit) => unit.unitCode);
+    } catch {
+      throw new AppError("SERVICE_UNAVAILABLE", "Chưa thể xác minh phạm vi đơn vị.", 503, true, "RECOVERABLE");
+    }
+  }
+
   /**
    * Parse and validate CSV or XLSX roster file for preview.
    * Enforces security, schema, person_key identity, unit scope, and batch limits.
@@ -209,9 +232,11 @@ export class RosterService {
     }
 
     // 3. Batch capacity validation
-    const maxRows =
-      options?.maxRows ??
-      CANDIDATE_POLICY_DEFAULTS_V1.rosterImportMaxRows;
+    const requestedMaxRows = options?.maxRows ?? CANDIDATE_POLICY_DEFAULTS_V1.rosterImportMaxRows;
+    if (!Number.isSafeInteger(requestedMaxRows) || requestedMaxRows < 1) {
+      throw new AppError("VALIDATION_ERROR", "Giới hạn số dòng không hợp lệ.", 400, false, "INVALID");
+    }
+    const maxRows = Math.min(requestedMaxRows, CANDIDATE_POLICY_DEFAULTS_V1.rosterImportMaxRows);
 
     if (dataRows.length > maxRows) {
       throw new AppError(
@@ -225,7 +250,7 @@ export class RosterService {
 
     // 4. Resolve allowed units scope if DB or options provided
     let allowedUnitsSet: Set<string> | null = null;
-    if (options?.allowedUnits && options.allowedUnits.length > 0) {
+    if (options?.allowedUnits !== undefined) {
       allowedUnitsSet = new Set(options.allowedUnits.map((u) => u.trim().toUpperCase()));
     } else if (this.db) {
       try {
@@ -233,16 +258,14 @@ export class RosterService {
           where: { status: "ACTIVE" },
           select: { unitCode: true },
         });
-        if (units && units.length > 0) {
-          allowedUnitsSet = new Set(units.map((u) => u.unitCode.trim().toUpperCase()));
-        }
+        allowedUnitsSet = new Set(units.map((u) => u.unitCode.trim().toUpperCase()));
       } catch {
-        // DB not available or offline, leave null
+        throw new AppError("SERVICE_UNAVAILABLE", "Chưa thể xác minh phạm vi đơn vị.", 503, true, "RECOVERABLE");
       }
     }
 
     // 5. Column mapping
-    const colMap: Record<string, number> = {};
+    const colMap: Record<string, number> = Object.create(null) as Record<string, number>;
     normalizedHeaders.forEach((h, idx) => {
       if (h) colMap[h] = idx;
     });
