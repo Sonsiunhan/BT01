@@ -23,12 +23,21 @@ export async function registerBotReadinessRoutes(app: FastifyInstance, auth: Aut
     const actor = await resolveTournamentRequestActor(request, auth, store);
     assertOperator(actor);
     service.assertDashboardAccess(actor, request.params.tournamentId);
-    const status = request.query.status ? BotReadinessStatusSchema.parse(request.query.status) : undefined;
-    const options: { status?: typeof status; cursor?: string; limit?: number } = {};
+    const parsedStatus = request.query.status ? BotReadinessStatusSchema.safeParse(request.query.status) : undefined;
+    if (parsedStatus && !parsedStatus.success) {
+      throw new AppError("VALIDATION_ERROR", "status không hợp lệ.", 400, false, "INVALID");
+    }
+    const status = parsedStatus?.data;
+    const options: { status?: Exclude<typeof status, undefined>; cursor?: string; limit?: number } = {};
     if (status) options.status = status;
     if (request.query.cursor) options.cursor = request.query.cursor;
-    if (request.query.limit) options.limit = Number(request.query.limit);
-    const snapshot = service.getSnapshot(request.params.tournamentId, options);
+    if (request.query.limit) {
+      if (!/^(?:[1-9]\d?|100)$/.test(request.query.limit)) {
+        throw new AppError("VALIDATION_ERROR", "limit phải là số nguyên từ 1 đến 100.", 400, false, "INVALID");
+      }
+      options.limit = Number(request.query.limit);
+    }
+    const snapshot = service.getSnapshot(request.params.tournamentId, options, actor);
     return reply.status(200).send({ snapshot });
   });
 
@@ -36,29 +45,27 @@ export async function registerBotReadinessRoutes(app: FastifyInstance, auth: Aut
     const actor = await resolveTournamentRequestActor(request, auth, store);
     const body = requireBody(request.body, BotReadinessSelectionRequestSchema);
     const result = await service.selectBot(actor, request.params.tournamentId, request.params.enrollmentId, body);
-    return reply.status(200).send({ item: result, job: result.job });
+    queueMicrotask(() => { void service.executeJob(result.job.jobId).catch(() => undefined); });
+    return reply.status(202).send({ item: result.item, job: result.job, idempotent: result.idempotent ?? false });
   });
 
   app.post<{ Params: { tournamentId: string } }>("/api/tournaments/:tournamentId/bot-readiness/rechecks", async (request, reply) => {
     const actor = await resolveTournamentRequestActor(request, auth, store);
     const body = requireBody(request.body, BotReadinessRecheckRequestSchema);
     const result = await service.requestRecheck(actor, request.params.tournamentId, body);
-    return reply.status(202).send({ item: result, job: result.job });
+    queueMicrotask(() => { void service.executeJob(result.job.jobId).catch(() => undefined); });
+    return reply.status(202).send({ item: result.item, job: result.job, idempotent: result.idempotent ?? false });
   });
 
   app.get<{ Params: { tournamentId: string; jobId: string } }>("/api/tournaments/:tournamentId/bot-readiness/jobs/:jobId", async (request, reply) => {
     const actor = await resolveTournamentRequestActor(request, auth, store);
-    assertOperator(actor);
-    service.assertDashboardAccess(actor, request.params.tournamentId);
-    const job = service.getJob(request.params.jobId);
+    const job = service.getJob(actor, request.params.jobId);
     if (job.tournamentId !== request.params.tournamentId) throw new AppError("NOT_FOUND", "Không tìm thấy lượt kiểm tra bot.", 404, false, "INVALID");
     return reply.status(200).send({ job });
   });
 
   app.post<{ Params: { tournamentId: string }; Body: { mode: string; enrollmentIds: string[] } }>("/api/tournaments/:tournamentId/bot-readiness/proofs", async (request, reply) => {
     const actor = await resolveTournamentRequestActor(request, auth, store);
-    assertOperator(actor);
-    service.assertDashboardAccess(actor, request.params.tournamentId);
     const mode = BotProofModeSchema.parse(request.body?.mode);
     const enrollmentIds = Array.isArray(request.body?.enrollmentIds) ? request.body.enrollmentIds : [];
     const proof = await service.runProof(actor, request.params.tournamentId, mode, enrollmentIds);
