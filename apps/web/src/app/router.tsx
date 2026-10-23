@@ -26,6 +26,17 @@ const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
+<<<<<<< Updated upstream
+=======
+const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
+const TournamentRosterPage = lazy(() => import("../features/tournament-roster/TournamentRosterPage"));
+const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
+const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
+const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
+const AccountActivationPage = lazy(() => import("../pages/AccountActivationPage"));
+const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
+const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
+>>>>>>> Stashed changes
 
 export function AppRouter() {
   return (
@@ -62,6 +73,14 @@ export function AppRouter() {
         <Route path={routes.botOnline} element={<BotOnlinePage />} />
         <Route path={routes.botOffline} element={<BotOfflinePage />} />
         <Route path={routes.botWorkbench} element={<BotWorkbenchPage />} />
+<<<<<<< Updated upstream
+=======
+        <Route path={routes.staffInvitation} element={<InvitationAcceptancePage />} />
+        <Route path={routes.accountActivation} element={<AccountActivationPage />} />
+        <Route path={routes.canonicalAccountActivation} element={<AccountActivationPage />} />
+        <Route path={routes.accountAccess} element={<AccountAccessPage />} />
+        <Route path={routes.accountAccessReset} element={<AccountAccessPage />} />
+>>>>>>> Stashed changes
       </Route>
 
       {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}
@@ -102,6 +121,10 @@ export function AppRouter() {
               description="Tổng quan tiến độ giải đấu, bảng lịch trận CTF/Custom và panel giám sát theo thời gian thực."
             />
           }
+        />
+        <Route
+          path={routes.adminTournamentRoster}
+          element={<TournamentRosterPage />}
         />
         <Route
           path={routes.adminTournamentOperations}
