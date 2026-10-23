@@ -267,7 +267,7 @@ export function AccountActivationPage({
           <div data-testid="activation-success-panel" style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             <div style={{ padding: "1rem", borderRadius: "0.5rem", background: "rgba(16, 185, 129, 0.15)", border: "1px solid #10b981" }}>
               <p style={{ margin: 0, fontWeight: 600, color: "#10b981", fontSize: "1rem" }}>
-                ✓ Tài khoản đã được kích hoạt thành công!
+                Tài khoản đã được kích hoạt thành công!
               </p>
               <p style={{ margin: "0.5rem 0 0", fontSize: "0.9rem" }}>
                 Tên đăng nhập của bạn: <strong>{setupOutcome?.username}</strong>
