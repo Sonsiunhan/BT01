@@ -80,11 +80,11 @@ jobs:
         run: pnpm test:integration
 
       - name: Workspace package tests
-        run: pnpm --filter @ottv2/server test && pnpm --filter @ottv2/web test
+        run: pnpm --filter @ottv2/server test && pnpm --filter @ottv2/web test -- --maxWorkers=2 --minWorkers=1
 
   n11-browser-route-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4

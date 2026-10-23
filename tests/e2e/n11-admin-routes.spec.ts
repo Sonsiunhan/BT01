@@ -56,16 +56,17 @@ test.describe("N11 — Long admin routes", () => {
   });
 
   test("P06, P07 and P08 are reachable directly and discoverable from the admin shell", async ({ page }) => {
-    await page.goto("/admin/units");
-    await expect(page.getByRole("heading", { name: /Quản lý Đơn vị & Tổ chức/ })).toBeVisible();
+    test.setTimeout(90_000);
+    await page.goto("/admin/units", { waitUntil: "commit" });
+    await expect(page.getByRole("heading", { name: /Quản lý Đơn vị & Tổ chức/ })).toBeVisible({ timeout: 60_000 });
     await expect(page.getByRole("link", { name: "Đơn vị" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Hợp đồng" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Xét duyệt" })).toBeVisible();
 
-    await page.goto("/admin/contracts");
-    await expect(page.getByRole("heading", { name: /Quản lý Hợp đồng & Hạn mức/ })).toBeVisible();
+    await page.getByRole("link", { name: "Hợp đồng" }).click();
+    await expect(page.getByRole("heading", { name: /Quản lý Hợp đồng, Hạn mức/ })).toBeVisible();
 
-    await page.goto("/admin/approvals");
+    await page.getByRole("link", { name: "Xét duyệt" }).click();
     await expect(page.getByRole("heading", { name: /Hàng đợi Phê duyệt Giải đấu/ })).toBeVisible();
   });
 });

@@ -37,10 +37,10 @@ describe("P17 InvitationAcceptancePage", () => {
     expect(screen.queryByRole("button", { name: "Chấp nhận" })).not.toBeInTheDocument();
   });
 
-  it("shows invalid/network errors and retries", async () => {
+  it("hides unexpected diagnostics behind safe copy and retries", async () => {
     const api = makeApi({ viewInvitation: vi.fn().mockRejectedValueOnce(new Error("Token không hợp lệ")).mockResolvedValueOnce(baseInvitation) });
     renderWithProviders(<InvitationAcceptancePage apiClient={api} tournamentId="t-1" token="bad-token" />);
-    expect(await screen.findByTestId("invitation-error")).toHaveTextContent("Token không hợp lệ");
+    expect(await screen.findByTestId("invitation-error")).toHaveTextContent("Không thể tải lời mời.");
     await userEvent.click(screen.getByRole("button", { name: "Thử lại" }));
     expect(await screen.findByTestId("invitation-page")).toBeInTheDocument();
   });
