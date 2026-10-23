@@ -1,10 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
   ManualAdjudicationRequestSchema,
+  ManualAdjudicationViewSchema,
   SubmitManualAdjudicationVerdictInputSchema,
   TournamentLeaderboardSnapshotSchema,
   TournamentScoreLedgerEntrySchema,
   type ManualAdjudicationRequestDto,
+  type ManualAdjudicationViewDto,
   type SubmitManualAdjudicationVerdictInput,
   type TournamentLeaderboardSnapshotDto,
   type TournamentScoreLedgerEntryDto,
@@ -70,6 +72,82 @@ function resolveDeterministicFallbackSide(
   if (fallbackPolicy === "RED_ADVANTAGE") return "RED";
   const digest = createHash("sha256").update(matchId).digest();
   return (digest[0]! & 1) === 0 ? "BLUE" : "RED";
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function nonNegativeInt(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : fallback;
+}
+
+function safeSide(value: unknown): "BLUE" | "RED" | null {
+  return value === "BLUE" || value === "RED" ? value : null;
+}
+
+function safePiece(value: unknown): "N" | "P" | "M" | null {
+  return value === "N" || value === "P" || value === "M" ? value : null;
+}
+
+function projectSafeSnapshot(request: ManualAdjudicationRequestDto): Pick<
+  ManualAdjudicationViewDto,
+  "board" | "sideToMove" | "tieIndicators" | "ruleVersion"
+> {
+  const snapshot = asRecord(request.frozenSnapshot);
+  const boardSource = Array.isArray(snapshot.board)
+    ? { cells: snapshot.board }
+    : asRecord(snapshot.board);
+  const rawCells = Array.isArray(boardSource.cells) ? boardSource.cells : [];
+  const cells = rawCells.flatMap((value) => {
+    const cell = asRecord(value);
+    const row = nonNegativeInt(cell.row, -1);
+    const column = nonNegativeInt(cell.column ?? cell.col, -1);
+    if (row < 0 || column < 0) return [];
+    return [{
+      row,
+      column,
+      side: safeSide(cell.side ?? cell.owner),
+      pieceType: safePiece(cell.pieceType ?? cell.type),
+    }];
+  });
+  const rows = nonNegativeInt(boardSource.rows ?? boardSource.height, 0);
+  const columns = nonNegativeInt(boardSource.columns ?? boardSource.width, 0);
+  const board = rows > 0 && columns > 0
+    ? { rows, columns, cells }
+    : null;
+
+  const rawIndicators = asRecord(snapshot.tieIndicators);
+  const indicator = (value: unknown) => {
+    const item = asRecord(value);
+    const counts = asRecord(item.pieceCounts);
+    return {
+      pieceCounts: {
+        N: nonNegativeInt(counts.N),
+        P: nonNegativeInt(counts.P),
+        M: nonNegativeInt(counts.M),
+      },
+      legalMoveCount: nonNegativeInt(item.legalMoveCount),
+      captureCount: nonNegativeInt(item.captureCount),
+    };
+  };
+  const tieIndicators = rawIndicators.blue && rawIndicators.red
+    ? { blue: indicator(rawIndicators.blue), red: indicator(rawIndicators.red) }
+    : null;
+  const ruleVersion = typeof snapshot.ruleVersion === "string"
+    ? snapshot.ruleVersion
+    : typeof snapshot.ruleVersionNumber === "number"
+      ? String(snapshot.ruleVersionNumber)
+      : null;
+
+  return {
+    board,
+    sideToMove: safeSide(snapshot.sideToMove),
+    tieIndicators,
+    ruleVersion,
+  };
 }
 
 interface ParticipantRunningStats {
@@ -752,6 +830,40 @@ export class AdjudicationLedgerService {
 
   getLedgerEntries(tournamentId: string): TournamentScoreLedgerEntryDto[] {
     return [...(this.store.scoreLedger.get(tournamentId) ?? [])];
+  }
+
+  toManualAdjudicationView(request: ManualAdjudicationRequestDto): ManualAdjudicationViewDto {
+    const safeSnapshot = projectSafeSnapshot(request);
+    const participantLabel = (participantId: string): string => {
+      const enrollment = this.store.enrollments.get(participantId);
+      return enrollment?.tournamentId === request.tournamentId
+        ? enrollment.displayName
+        : participantId;
+    };
+    return ManualAdjudicationViewSchema.parse({
+      id: request.id,
+      tournamentId: request.tournamentId,
+      matchId: request.matchId,
+      roomId: request.roomId,
+      blueParticipant: { id: request.blueParticipantId, label: participantLabel(request.blueParticipantId) },
+      redParticipant: { id: request.redParticipantId, label: participantLabel(request.redParticipantId) },
+      status: request.status,
+      ...safeSnapshot,
+      deadlineAt: request.deadlineAt,
+      fallbackPolicy: request.fallbackPolicy,
+      winnerSide: request.winnerSide,
+      reason: request.decisionReason,
+      resolutionSource: request.status === "DECIDED"
+        ? "MANUAL"
+        : request.status === "FALLBACK_APPLIED"
+          ? "FALLBACK_POLICY"
+          : null,
+      decidedByUserId: request.decidedByUserId,
+      finishedAtIso: request.decidedAt,
+      finishSequence: request.finishSequence,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+    });
   }
 
   getAdjudicationRequest(adjudicationRequestId: string): ManualAdjudicationRequestDto | undefined {
