@@ -82,7 +82,7 @@ export function createTournamentRuntimeBundle(options?: {
     versioningAdapter,
     ...(staffService ? { staffService } : {}),
     botReadinessService,
-    supportRecoveryService,
+    ...(supportRecoveryService ? { supportRecoveryService } : {}),
   };
 }
 
