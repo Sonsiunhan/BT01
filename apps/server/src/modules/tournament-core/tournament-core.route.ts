@@ -1,13 +1,14 @@
 import type { FastifyInstance } from "fastify";
-import type {
-  AdmissionCheckInput,
-  ApprovalDecisionInput,
-  CreateTournamentChangeRequestInput,
-  CreateTournamentDraftInput,
-  PatchTournamentDraftInput,
-  PublishWithinEnvelopeRuleUpdateInput,
-  SubmitManualAdjudicationVerdictInput,
-  SubmitTournamentDraftInput,
+import {
+  AdmissionCheckInputSchema,
+  type AdmissionCheckInput,
+  type ApprovalDecisionInput,
+  type CreateTournamentChangeRequestInput,
+  type CreateTournamentDraftInput,
+  type PatchTournamentDraftInput,
+  type PublishWithinEnvelopeRuleUpdateInput,
+  type SubmitManualAdjudicationVerdictInput,
+  type SubmitTournamentDraftInput,
 } from "@ottv2/contracts";
 import type { AuthService } from "../auth/auth.service.js";
 import { resolveTournamentRequestActor } from "../tournament-foundation/foundation.route.js";
@@ -390,7 +391,16 @@ export async function registerTournamentCoreRoutes(
   app.post<{ Body: AdmissionCheckInput }>(
     "/api/tournaments/admission/check",
     async (request, reply) => {
-      const decision = admissionGateService.evaluateAdmission(request.body);
+      const actor = await resolveTournamentRequestActor(request, auth, store);
+      const body = AdmissionCheckInputSchema.parse(request.body);
+      // Identity and roles are derived from the authenticated server context;
+      // request payload values are limited to the requested operation/scope.
+      const decision = admissionGateService.evaluateAdmission({
+        ...body,
+        principalType: actor.principalType === "GUEST" ? "GUEST" : "USER",
+        principalId: actor.userId,
+        roles: actor.roles,
+      });
       return reply.status(200).send({ decision });
     }
   );

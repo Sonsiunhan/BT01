@@ -55,6 +55,14 @@ export class TournamentStaffService {
     }
   }
 
+  private async lockTournament(
+    tx: { $executeRaw?: (query: TemplateStringsArray, ...values: unknown[]) => Promise<unknown> },
+    tournamentId: string,
+  ): Promise<void> {
+    if (typeof tx.$executeRaw !== "function") return;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`ottv2:tournament:${tournamentId}`}))`;
+  }
+
   private async assertOwnerScope(actor: TournamentStaffActor, tournamentId: string) {
     const tournament = await this.db.tournament.findUnique({
       where: { id: tournamentId },
@@ -154,6 +162,7 @@ export class TournamentStaffService {
 
   private async decide(actor: TournamentStaffActor, input: StaffInvitationTokenInput, action: "ACCEPT" | "REJECT"): Promise<StaffInvitationDecision> {
     const result = await this.db.$transaction(async (tx) => {
+      await this.lockTournament(tx, input.tournamentId);
       const { invitation, tournament } = await this.findRecipientInvitation(actor, input, tx);
       this.assertActionable(invitation, action);
       if ((action === "ACCEPT" && invitation.status === "ACTIVE") || (action === "REJECT" && invitation.status === "DECLINED")) {
@@ -216,6 +225,7 @@ export class TournamentStaffService {
   async revokeAssignment(actor: TournamentStaffActor, tournamentId: string, assignmentId: string): Promise<StaffRevokeResult> {
     await this.assertOwnerScope(actor, tournamentId);
     const result = await this.db.$transaction(async (tx) => {
+      await this.lockTournament(tx, tournamentId);
       const assignment = await tx.tournamentStaffAssignmentRecord.findUnique({ where: { id: assignmentId } });
       if (!assignment || assignment.tournamentId !== tournamentId) {
         fail("NOT_FOUND", "Không tìm thấy staff assignment trong tournament này.", 404, { reason: "ASSIGNMENT_NOT_FOUND", tournamentId, assignmentId });
@@ -279,6 +289,7 @@ export class TournamentStaffService {
     await this.assertOwnerScope(actor, tournamentId);
     const now = this.now();
     const expiredIds = await this.db.$transaction(async (tx) => {
+      await this.lockTournament(tx, tournamentId);
       const candidates = await tx.tournamentStaffInvitation.findMany({
         where: { tournamentId, status: "INVITED", expiresAt: { lte: now } },
         select: { id: true },

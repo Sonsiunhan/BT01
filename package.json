@@ -19,6 +19,7 @@
     "test:contract": "vitest run --passWithNoTests tests/contract",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
+    "test:e2e:d10c": "node scripts/d10c-browser-e2e.mjs",
     "test:load": "k6 run tests/load/smoke.js",
     "visual:v0": "node scripts/robot-lab-v0-harness.mjs",
     "visual:v0:verify": "node scripts/robot-lab-v0-verify.mjs",

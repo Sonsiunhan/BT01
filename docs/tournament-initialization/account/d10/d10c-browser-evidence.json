@@ -1,0 +1,17 @@
+{
+  "scope": "D10-C",
+  "browser": "Playwright",
+  "postgres": "18",
+  "host": "127.0.0.1",
+  "pgPort": 56932,
+  "serverPort": 56933,
+  "webPort": 56934,
+  "database": "ottv2_d10c_1792770599706",
+  "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-d10c-browser-Ffk1K5",
+  "productionMutation": false,
+  "sharedDatabaseTouched": false,
+  "schemaPush": "PASS",
+  "e2e": "PASS",
+  "dbAssertions": "PASS",
+  "stopped": true
+}
