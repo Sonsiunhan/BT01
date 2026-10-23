@@ -41,6 +41,7 @@ export const routes = {
   adminTournamentRules: "/admin/tournaments/:tournamentId/rules",
   adminTournamentStaff: "/admin/tournaments/:tournamentId/staff",
   adminTournamentRoster: "/admin/tournaments/:tournamentId/roster",
+  adminTournamentBotReadiness: "/admin/tournaments/:tournamentId/bot-readiness",
   staffInvitation: "/staff/invitations/:tournamentId/:token",
   accountActivation: "/kich-hoat/:token?",
   canonicalAccountActivation: "/activate/:token?",
