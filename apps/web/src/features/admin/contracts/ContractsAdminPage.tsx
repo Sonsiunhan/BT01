@@ -7,6 +7,7 @@ import type {
   UnitDto,
 } from "@ottv2/contracts";
 import { ApiError } from "../../../services/http/apiError";
+import { safeErrorMessage } from "../../../services/http/safeErrorMessage";
 import {
   defaultTournamentAdminApi,
   type TournamentAdminApiPort,
@@ -84,13 +85,9 @@ export function ContractsAdminPage({
       setForbiddenError(null);
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
-        setForbiddenError(err.message);
+        setForbiddenError(safeErrorMessage(err, "Bạn không có quyền xem dữ liệu hợp đồng."));
       } else {
-        setErrorBanner(
-          err instanceof Error
-            ? err.message
-            : "Không thể tải dữ liệu hợp đồng."
-        );
+        setErrorBanner(safeErrorMessage(err, "Không thể tải dữ liệu hợp đồng."));
       }
     } finally {
       setLoading(false);
@@ -153,9 +150,7 @@ export function ContractsAdminPage({
         `Đã phát hành hợp đồng "${res.contract.contractCode}" thành công.`
       );
     } catch (err) {
-      setErrorBanner(
-        err instanceof Error ? err.message : "Không thể tạo hợp đồng."
-      );
+      setErrorBanner(safeErrorMessage(err, "Không thể tạo hợp đồng."));
     } finally {
       setSubmitting(false);
     }
@@ -178,9 +173,7 @@ export function ContractsAdminPage({
       setGrantUserId("");
       setSuccessBanner(`Đã gán quyền TA cho "${grantUserId.trim()}".`);
     } catch (err) {
-      setErrorBanner(
-        err instanceof Error ? err.message : "Gán quyền TA thất bại."
-      );
+      setErrorBanner(safeErrorMessage(err, "Gán quyền TA thất bại."));
     }
   };
 
@@ -201,9 +194,7 @@ export function ContractsAdminPage({
       );
       setSuccessBanner(`Đã thu hồi quyền TA của "${targetUserId}".`);
     } catch (err) {
-      setErrorBanner(
-        err instanceof Error ? err.message : "Thu hồi quyền TA thất bại."
-      );
+      setErrorBanner(safeErrorMessage(err, "Thu hồi quyền TA thất bại."));
     }
   };
 

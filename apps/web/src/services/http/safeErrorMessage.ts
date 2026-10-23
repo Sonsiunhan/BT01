@@ -3,11 +3,9 @@ import { ApiError } from "./apiError";
 /** Converts API failures into UI-safe copy without exposing server diagnostics. */
 export function safeErrorMessage(cause: unknown, fallback: string): string {
   if (!(cause instanceof ApiError)) {
-    if (!(cause instanceof Error) || !cause.message) return fallback;
-    // Some injected adapters still throw plain Error. Permit short, user-facing
-    // copy while suppressing common database/secret diagnostics defensively.
-    if (/prisma|sql|stack|password\s*[=:]|token\s*[=:]|hash|database|constraint/i.test(cause.message)) return fallback;
-    return cause.message;
+    // Unexpected client/network errors must never be rendered verbatim. Their
+    // messages can contain internal paths, query details, or credentials.
+    return fallback;
   }
   if (cause.status === 401) return "Phiên làm việc không còn hợp lệ. Vui lòng đăng nhập lại.";
   if (cause.status === 403) return "Bạn không có quyền thực hiện thao tác này.";

@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
+import { longAdminRouteDefinitions } from "../features/admin/long-routes";
 import { routes } from "./routes";
 
 const HomePage = lazy(() => import("../pages/HomePage"));
@@ -91,6 +92,9 @@ export function AppRouter() {
         <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
         <Route path={routes.adminTa} element={<AdminTaPage />} />
         <Route path={routes.adminAccounts} element={<AdminTaPage />} />
+        {longAdminRouteDefinitions.map(({ path, Component }) => (
+          <Route key={path} path={path} element={<Component />} />
+        ))}
         <Route path={routes.adminSupport} element={<SupportRecoveryPage />} />
         <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route

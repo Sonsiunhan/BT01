@@ -6,6 +6,7 @@ import type {
   UnitType,
 } from "@ottv2/contracts";
 import { ApiError } from "../../../services/http/apiError";
+import { safeErrorMessage } from "../../../services/http/safeErrorMessage";
 import {
   defaultTournamentAdminApi,
   type TournamentAdminApiPort,
@@ -59,13 +60,9 @@ export function UnitsAdminPage({
       setForbiddenError(null);
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
-        setForbiddenError(err.message);
+        setForbiddenError(safeErrorMessage(err, "Bạn không có quyền xem danh sách đơn vị."));
       } else {
-        setErrorBanner(
-          err instanceof Error
-            ? err.message
-            : "Không thể tải danh sách đơn vị."
-        );
+        setErrorBanner(safeErrorMessage(err, "Không thể tải danh sách đơn vị."));
       }
     } finally {
       setLoading(false);
@@ -108,11 +105,9 @@ export function UnitsAdminPage({
       setSuccessBanner(`Đã tạo đơn vị "${res.unit.unitCode}" thành công.`);
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
-        setForbiddenError(err.message);
+        setForbiddenError(safeErrorMessage(err, "Bạn không có quyền tạo đơn vị."));
       } else {
-        setErrorBanner(
-          err instanceof Error ? err.message : "Tạo đơn vị thất bại."
-        );
+        setErrorBanner(safeErrorMessage(err, "Tạo đơn vị thất bại."));
       }
     } finally {
       setSubmitting(false);
@@ -129,9 +124,7 @@ export function UnitsAdminPage({
         `Đã cập nhật trạng thái đơn vị "${unit.unitCode}" sang ${UNIT_STATUS_LABELS[nextStatus]}.`
       );
     } catch (err) {
-      setErrorBanner(
-        err instanceof Error ? err.message : "Cập nhật trạng thái thất bại."
-      );
+      setErrorBanner(safeErrorMessage(err, "Cập nhật trạng thái thất bại."));
     }
   };
 
@@ -143,11 +136,7 @@ export function UnitsAdminPage({
       setUnits((prev) => prev.filter((u) => u.id !== unit.id));
       setSuccessBanner(`Đã xóa đơn vị "${unit.unitCode}".`);
     } catch (err) {
-      setErrorBanner(
-        err instanceof Error
-          ? err.message
-          : "Không thể xóa đơn vị đang được tham chiếu."
-      );
+      setErrorBanner(safeErrorMessage(err, "Không thể xóa đơn vị đang được tham chiếu."));
     }
   };
 

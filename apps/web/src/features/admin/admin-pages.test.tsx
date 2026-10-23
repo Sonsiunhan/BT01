@@ -8,7 +8,7 @@ import {
   LONG_ADMIN_ROUTE_META,
   LONG_ADMIN_ROUTE_PATHS,
 } from "./long-route-meta";
-import { LongAdminRoutes } from "./long-routes";
+import { longAdminRouteDefinitions } from "./long-routes";
 import type { TournamentAdminApiPort } from "./services/tournamentAdminApi";
 import { UnitsAdminPage } from "./units/UnitsAdminPage";
 
@@ -393,7 +393,7 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
       approvalsDetail: "/admin/approvals/:tournamentId",
     });
     expect(LONG_ADMIN_ROUTE_META.map((r) => r.pageCode)).toEqual(["P06", "P07", "P08"]);
-    expect(typeof LongAdminRoutes).toBe("function");
+    expect(longAdminRouteDefinitions).toHaveLength(4);
   });
 
   it("P06 UnitsAdminPage: renders units, creates a new unit, and displays 409 conflict when deleting a referenced unit (T002)", async () => {
