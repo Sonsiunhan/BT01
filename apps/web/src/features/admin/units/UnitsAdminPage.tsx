@@ -136,7 +136,11 @@ export function UnitsAdminPage({
       setUnits((prev) => prev.filter((u) => u.id !== unit.id));
       setSuccessBanner(`Đã xóa đơn vị "${unit.unitCode}".`);
     } catch (err) {
-      setErrorBanner(safeErrorMessage(err, "Không thể xóa đơn vị đang được tham chiếu."));
+      setErrorBanner(
+        err instanceof ApiError && err.status === 409
+          ? "Không thể xóa đơn vị đang được tham chiếu."
+          : safeErrorMessage(err, "Không thể xóa đơn vị đang được tham chiếu.")
+      );
     }
   };
 
