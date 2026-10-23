@@ -28,6 +28,14 @@ export async function fetchTaList(signal?: AbortSignal): Promise<{ items: TaUser
   return (await getJson("/admin/ta", signal, { handleUnauthorized: true })) as { items: TaUserItem[] };
 }
 
+export async function bootstrapTaAccount(signal?: AbortSignal): Promise<{ user: TaUserItem }> {
+  return await requestJson<{ user: TaUserItem }>("/admin/bootstrap-ta", {
+    method: "POST",
+    body: {},
+    signal,
+  });
+}
+
 export async function createTaAccount(input: CreateTaAccountRequest, signal?: AbortSignal): Promise<{ user: TaUserItem }> {
   return await requestJson<{ user: TaUserItem }>("/admin/ta", {
     method: "POST",

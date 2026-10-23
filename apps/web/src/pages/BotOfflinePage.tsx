@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { applyMove, createInitialState, type RuleState, type Side } from "@ottv2/game-rules";
-import { DEFAULT_BOT_LIMITS, createBotTurnState, parseBotMemoryCompatibility, validateBotSource, type BotMoveRecord, type LimitDecision } from "@ottv2/bot-sdk";
+import { BOT_OFFLINE_RUNTIME_VERSION, BOT_RUNTIME_POLICY_VERSION, DEFAULT_BOT_LIMITS, createBotTurnState, parseBotMemoryCompatibility, validateBotSource, type BotMoveRecord, type LimitDecision } from "@ottv2/bot-sdk";
 import { routes } from "../app/routes";
 import { Button, LoadingState } from "../components/ui";
 import { GameBoard } from "../components/board";
@@ -10,6 +10,7 @@ import { getOfflineKitStatus, installOfflineKit, type OfflineKitStatus } from ".
 import * as offlineRunner from "../services/bot-offline/botOfflineRunner";
 import { getBotSource } from "../services/bot-library/botLibraryApi";
 import { offlineLimitResult, offlineAuthorFaultResult, isOfflineAuthorFault } from "../services/bot-offline/offlineMatchPolicy";
+import { getClientId } from "../services/session/clientIdentity";
 
 const { BotOfflineRunnerError, OFFLINE_RUNTIME_STATUS, runOfflineBotTurn } = offlineRunner;
 const verifyOfflineRuntime: ((signal?: AbortSignal) => Promise<typeof OFFLINE_RUNTIME_STATUS>) | undefined = (() => {
@@ -81,6 +82,26 @@ export default function BotOfflinePage() {
   const activeComputeMs = useRef(0);
   const endingReason = useRef("");
   const limitCriteria = useRef<Pick<LimitDecision, "BLUE" | "RED"> | undefined>(undefined);
+  const offlineMatchId = useRef(crypto.randomUUID());
+
+  function receiptContextFor(side: Side, slot: Slot, turnState: ReturnType<typeof createBotTurnState>, phase: "PREFLIGHT" | "TURN") {
+    return {
+      receiptId: crypto.randomUUID(),
+      ownerId: `guest:${getClientId()}`,
+      botId: searchParams.get("botId") ?? `offline-bot:${side.toLowerCase()}`,
+      revisionId: slot.revision,
+      ruleVersion: turnState.rules.version,
+      sdkVersion: turnState.sdkVersion,
+      schemaVersion: turnState.schemaVersion,
+      runtimeVersion: BOT_OFFLINE_RUNTIME_VERSION,
+      policyVersion: BOT_RUNTIME_POLICY_VERSION,
+      phase,
+      matchId: offlineMatchId.current,
+      stateVersion: historyRef.current.length,
+      invocationId: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+    } as const;
+  }
 
   useEffect(() => { stateRef.current = state; }, [state]);
   useEffect(() => { slotsRef.current = slots; }, [slots]);
@@ -191,7 +212,8 @@ export default function BotOfflinePage() {
     const controller = new AbortController(); testAborts.current[side] = controller;
     try {
       const initial = { ...createInitialState(), currentTurn: side };
-      await runOfflineBotTurn({ source: slot.source, state: createBotTurnState(initial, side, [], { BLUE: 30000, RED: 30000 }, 1), memory: null, signal: controller.signal, preflight: true });
+      const preflightState = createBotTurnState(initial, side, [], { BLUE: 30000, RED: 30000 }, 1);
+      await runOfflineBotTurn({ source: slot.source, state: preflightState, memory: null, signal: controller.signal, preflight: true, receiptContext: receiptContextFor(side, slot, preflightState, "PREFLIGHT") });
       const current = pending ? pendingSlotsRef.current[side] : slotsRef.current[side];
       if (controller.signal.aborted || !beganFinished && stateRef.current.status === "FINISHED" || current?.source !== slot.source || current.revision !== checked.revision) return;
       storeCandidate(side, { ...checked, testPassed: true, validation: "Preflight thực thi cô lập đạt. Bạn có thể Sẵn sàng." }, pending);
@@ -227,7 +249,7 @@ export default function BotOfflinePage() {
     const abort = new AbortController(); activeAbort.current = abort; setThinking(side); setError("");
     try {
       const turnState = createBotTurnState(snapshot, side, historyRef.current, { BLUE: clocksRef.current.BLUE, RED: clocksRef.current.RED }, historyRef.current.length + 1);
-      const result = await runOfflineBotTurn({ source: slot.source, state: turnState, memory: memoriesRef.current[side], signal: abort.signal });
+      const result = await runOfflineBotTurn({ source: slot.source, state: turnState, memory: memoriesRef.current[side], signal: abort.signal, receiptContext: receiptContextFor(side, slot, turnState, "TURN") });
       if (abort.signal.aborted) return false;
       const applied = applyMove(snapshot, { side, ...result.move });
       if (applied.kind !== "accepted") throw new BotOfflineRunnerError("ILLEGAL_MOVE", "Bot trả về nước đi không hợp lệ.");

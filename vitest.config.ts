@@ -7,6 +7,7 @@ export default defineConfig({
     alias: {
       "@ottv2/contracts": fileURLToPath(new URL("./packages/contracts/src/index.ts", import.meta.url)),
       "@ottv2/game-rules": fileURLToPath(new URL("./packages/game-rules/src/index.ts", import.meta.url)),
+      "@ottv2/bot-sdk": fileURLToPath(new URL("./packages/bot-sdk/src/index.ts", import.meta.url)),
     },
   },
   test: {

@@ -9,6 +9,10 @@ import type {
   ReadinessChecklistItem,
 } from "@ottv2/contracts";
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 interface TournamentDetailPageProps {
   apiClient?: TournamentApiPort;
   tournamentId?: string;
@@ -47,14 +51,14 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       if (detailRes.status === "fulfilled") {
         setTournament(detailRes.value.tournament);
       } else {
-        throw new Error((detailRes.reason as any)?.message || "Không thể tải thông tin giải đấu");
+        throw new Error(errorMessage(detailRes.reason, "Không thể tải thông tin giải đấu"));
       }
 
       if (readinessRes.status === "fulfilled") {
         setReadiness(readinessRes.value.readiness);
       }
-    } catch (err: any) {
-      setError(err?.message || "Đã xảy ra lỗi khi tải dữ liệu giải đấu.");
+    } catch (error: unknown) {
+      setError(errorMessage(error, "Đã xảy ra lỗi khi tải dữ liệu giải đấu."));
     } finally {
       setLoading(false);
     }
@@ -75,8 +79,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Đã mở lịch trình giải đấu thành công (SCHEDULED)." });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể mở lịch trình giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể mở lịch trình giải đấu.") });
     } finally {
       setActionLoading(false);
     }
@@ -92,8 +96,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Giải đấu đã chính thức bắt đầu (RUNNING)!" });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể bắt đầu giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể bắt đầu giải đấu.") });
     } finally {
       setActionLoading(false);
     }
@@ -111,8 +115,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Đã tạm dừng giải đấu thành công (PAUSED)." });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể tạm dừng giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể tạm dừng giải đấu.") });
     } finally {
       setActionLoading(false);
     }
@@ -128,8 +132,33 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
       setActionMessage({ type: "success", text: "Đã tiếp tục giải đấu thành công (RUNNING)." });
       const r = await apiClient.getTournamentReadiness(tournamentId);
       setReadiness(r.readiness);
-    } catch (err: any) {
-      setActionMessage({ type: "error", text: err?.message || "Không thể tiếp tục giải đấu." });
+    } catch (error: unknown) {
+      setActionMessage({ type: "error", text: errorMessage(error, "Không thể tiếp tục giải đấu.") });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSubmitDraft = async () => {
+    if (!tournamentId || !tournament) return;
+    setActionLoading(true);
+    setActionMessage(null);
+    try {
+      const res = await apiClient.submitDraft(tournamentId, {
+        expectedRevision: tournament.revision,
+      });
+      setTournament(res.tournament);
+      setActionMessage({
+        type: "success",
+        text: "Đã nộp duyệt giải đấu thành công! Trạng thái hiện tại: ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW).",
+      });
+      const r = await apiClient.getTournamentReadiness(tournamentId);
+      setReadiness(r.readiness);
+    } catch (error: unknown) {
+      setActionMessage({
+        type: "error",
+        text: errorMessage(error, "Không thể nộp duyệt giải đấu."),
+      });
     } finally {
       setActionLoading(false);
     }
@@ -301,15 +330,33 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
         {/* Action Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           {isDraftLike && (
-            <button
-              type="button"
-              data-testid="action-edit-draft-btn"
-              onClick={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
-              className="button primary"
-              style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
-            >
-              Sửa bản nháp
-            </button>
+            <>
+              <button
+                type="button"
+                data-testid="action-edit-draft-btn"
+                onClick={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
+                className="button secondary"
+                style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+              >
+                Sửa bản nháp
+              </button>
+              <button
+                type="button"
+                data-testid="action-submit-draft-btn"
+                onClick={handleSubmitDraft}
+                disabled={actionLoading}
+                className="button primary"
+                style={{
+                  fontSize: "0.85rem",
+                  padding: "0.45rem 0.9rem",
+                  background: "var(--system-cyan)",
+                  color: "#0B1421",
+                  fontWeight: 700,
+                }}
+              >
+                {actionLoading ? "Đang gửi..." : "Nộp duyệt giải đấu"}
+              </button>
+            </>
           )}
 
           {tournament.status === "APPROVED" && (
@@ -370,12 +417,37 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             </button>
           )}
           <Link
+            to={routes.adminTournamentRules.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-rules-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Luật thi đấu
+          </Link>
+          <Link
             to={routes.adminTournamentStaff.replace(":tournamentId", tournament.id)}
             className="button secondary"
             data-testid="action-staff-btn"
             style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
           >
             Nhân sự / Referee
+          </Link>
+          <Link
+            to={routes.adminTournamentBotReadiness.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-bot-readiness-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Trạng thái Bot
+          </Link>
+          <Link
+            to={routes.adminTournamentAudit.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-audit-btn"
+            id="tournament-detail-audit-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Nhật ký kiểm toán
           </Link>
         </div>
       </div>

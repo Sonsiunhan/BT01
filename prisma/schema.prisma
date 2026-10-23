@@ -38,6 +38,7 @@ model User {
   blocksReceived    Block[] @relation("Blocked")
   guestHistoryImports GuestHistoryImport[]
   botLibraries      BotLibrary[]
+  rulesAcknowledgements TournamentRulesAcknowledgement[]
 
   @@index([usernameNormalized])
 }
@@ -503,6 +504,9 @@ model TournamentConfigVersionRecord {
   createdAt           DateTime   @default(now())
   tournament          Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
+  rulesAcknowledgements TournamentRulesAcknowledgement[]
+
+  @@unique([id, tournamentId])
   @@unique([tournamentId, versionNumber])
   @@index([tournamentId, effectiveAt])
 }
@@ -697,3 +701,27 @@ model TournamentAuditLogRecord {
 }
 
 
+
+/// D08-A: immutable explicit acknowledgement; no credentials, tokens or copied PII.
+/// Migration and identity-mapping/deletion policy require Long review.
+model TournamentRulesAcknowledgement {
+  id              String   @id @default(uuid())
+  userId          String
+  contractId      String
+  tournamentId    String
+  configVersionId String
+  acknowledgedAt  DateTime @default(now())
+  evidenceKind    String   @default("AUTHENTICATED_EXPLICIT_ACK")
+  user            User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  configVersion   TournamentConfigVersionRecord @relation(fields: [configVersionId, tournamentId], references: [id, tournamentId], onDelete: Restrict)
+
+  @@unique([userId, contractId, tournamentId, configVersionId])
+  @@index([contractId, tournamentId])
+}
+
+/// D08-A: server-provisioned, versioned policy metadata; no public writer.
+model ArtifactRetentionPolicyRecord {
+  artifact  String @id
+  policy    Json
+  updatedAt DateTime @updatedAt
+}

@@ -21,6 +21,12 @@ import {
 import { TournamentVersioningAdapter } from "./tournament-versioning.adapter.js";
 import { registerTournamentStaffRoutes } from "../tournament-staff/staff.route.js";
 import { TournamentStaffService } from "../tournament-staff/staff.service.js";
+<<<<<<< HEAD
+=======
+import { BotLibraryService } from "../bot-library/bot-library.service.js";
+import { BotReadinessService } from "../tournament-bot-readiness/bot-readiness.service.js";
+import { registerBotReadinessRoutes } from "../tournament-bot-readiness/bot-readiness.route.js";
+>>>>>>> main
 import { registerSupportRecoveryRoutes } from "../support/support.route.js";
 import { SupportRecoveryService } from "../support/support.service.js";
 
@@ -34,7 +40,12 @@ export interface TournamentRuntimeBundle {
   adjudicationLedgerService: AdjudicationLedgerService;
   readinessSourcesPort: ReadinessSourcesPort;
   versioningAdapter: TournamentVersioningAdapter;
+<<<<<<< HEAD
   staffService?: TournamentStaffService;
+=======
+  staffService?: TournamentStaffService | undefined;
+  botReadinessService: BotReadinessService;
+>>>>>>> main
   supportRecoveryService?: SupportRecoveryService;
 }
 
@@ -43,6 +54,7 @@ export function createTournamentRuntimeBundle(options?: {
   store?: TournamentStateStore | undefined;
   database?: PrismaClient | undefined;
   readinessSourcesPort?: ReadinessSourcesPort | undefined;
+  botLibrary?: BotLibraryService | undefined;
 }): TournamentRuntimeBundle {
   const store = options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn });
   const unitContractService = new UnitContractService(store);
@@ -62,6 +74,10 @@ export function createTournamentRuntimeBundle(options?: {
   const admissionGateService = new AdmissionGateService(store);
   const versioningAdapter = new TournamentVersioningAdapter(store);
   const staffService = options?.database ? new TournamentStaffService(options.database) : undefined;
+<<<<<<< HEAD
+=======
+  const botReadinessService = new BotReadinessService(store, options?.botLibrary ?? new BotLibraryService());
+>>>>>>> main
   const supportRecoveryService = options?.database ? new SupportRecoveryService(options.database) : undefined;
 
   return {
@@ -74,8 +90,14 @@ export function createTournamentRuntimeBundle(options?: {
     adjudicationLedgerService,
     readinessSourcesPort,
     versioningAdapter,
+<<<<<<< HEAD
     staffService,
     supportRecoveryService,
+=======
+    ...(staffService ? { staffService } : {}),
+    botReadinessService,
+    ...(supportRecoveryService ? { supportRecoveryService } : {}),
+>>>>>>> main
   };
 }
 
@@ -98,6 +120,10 @@ export async function registerTournamentInitializationRoutes(
     adjudicationLedgerService: bundle.adjudicationLedgerService,
   });
   if (bundle.staffService) registerTournamentStaffRoutes(app, auth, bundle.staffService);
+<<<<<<< HEAD
+=======
+  await registerBotReadinessRoutes(app, auth, bundle.store, bundle.botReadinessService);
+>>>>>>> main
   if (bundle.supportRecoveryService) registerSupportRecoveryRoutes(app, auth, bundle.supportRecoveryService);
 
   // C32 & T005 Hook on Online Matchmaking Queue, Room Creation/Join, Spectate and Seat Upgrade
@@ -187,4 +213,5 @@ export {
   InMemoryReadinessSourcesAdapter,
   PrismaReadinessSourcesAdapter,
   TournamentVersioningAdapter,
+  BotReadinessService,
 };

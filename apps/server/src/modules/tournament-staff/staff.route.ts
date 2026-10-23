@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { AuthService } from "../auth/auth.service.js";
-import { GUEST_SESSION_COOKIE, readCookie } from "../auth/auth.http.js";
+import { AuthService, GUEST_SESSION_COOKIE } from "../auth/auth.service.js";
+import { readCookie } from "../auth/auth.http.js";
 import { AppError } from "../../shared/errors/app-error.js";
 import { TournamentStaffService } from "./staff.service.js";
 

@@ -39,3 +39,7 @@ export const DEFAULT_BOT_LIMITS = Object.freeze({
 } as const);
 
 export type BotLimitManifest = typeof DEFAULT_BOT_LIMITS;
+
+export const BOT_RUNTIME_POLICY_VERSION = DEFAULT_BOT_LIMITS.manifestVersion;
+export const BOT_OFFLINE_RUNTIME_VERSION = "pyodide-0.27.3";
+export const BOT_ONLINE_RUNTIME_VERSION = "cpython-wasi-pinned";

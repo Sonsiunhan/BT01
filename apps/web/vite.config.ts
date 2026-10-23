@@ -26,7 +26,17 @@ export default defineConfig({
       },
     },
   },
-  server: { port: 3000 },
+  // Local P16/browser QA uses the server-authoritative API rather than a
+  // Vite fallback document. Production can still set VITE_API_BASE_URL.
+  server: {
+    port: 3000,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:3001",
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,

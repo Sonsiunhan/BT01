@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../../test/renderWithProviders";
 import { TournamentDetailPage } from "./TournamentDetailPage";
 import type { TournamentApiPort } from "./tournamentApi";
-import type { TournamentDto, TournamentReadinessSnapshot } from "@ottv2/contracts";
+import { DEFAULT_TOURNAMENT_RULE_PROFILE, type TournamentDto, type TournamentReadinessSnapshot } from "@ottv2/contracts";
 
 describe("S05 — TournamentDetailPage Component Tests", () => {
   let mockApiClient: TournamentApiPort;
@@ -59,7 +59,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       scoreFloor: 0,
       botDeadlineAt: null,
     },
-    ruleProfile: {} as any,
+    ruleProfile: DEFAULT_TOURNAMENT_RULE_PROFILE,
     submittedAt: "2026-10-21T08:00:00.000Z",
     approvedAt: "2026-10-21T09:00:00.000Z",
     rejectedAt: null,
@@ -134,6 +134,8 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       startTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "RUNNING" } }),
       pauseTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "PAUSED" } }),
       resumeTournament: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "RUNNING" } }),
+      listAuditLogs: vi.fn().mockResolvedValue({ logs: [] }),
+      submitDraft: vi.fn().mockResolvedValue({ tournament: { ...mockTournament, status: "UNDER_REVIEW" } }),
     };
   });
 
@@ -227,5 +229,30 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
     expect(screen.getByTestId("readiness-overall-status")).toHaveTextContent("CHƯA ĐỦ ĐIỀU KIỆN KHỞI CHẠY (BLOCKED)");
     expect(screen.getByTestId("readiness-blockers-list")).toBeInTheDocument();
     expect(screen.getByText("INSUFFICIENT_ELIGIBLE_PARTICIPANTS")).toBeInTheDocument();
+  });
+
+  it("6. renders 'Nộp duyệt giải đấu' button when tournament is in DRAFT status and calls submitDraft", async () => {
+    mockApiClient.getTournamentDetail = vi.fn().mockResolvedValue({
+      tournament: { ...mockTournament, status: "DRAFT" },
+      configVersions: [],
+    });
+
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("action-submit-draft-btn")).toBeInTheDocument();
+      expect(screen.getByTestId("action-edit-draft-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("action-submit-draft-btn"));
+
+    await waitFor(() => {
+      expect(mockApiClient.submitDraft).toHaveBeenCalledWith(
+        mockTournament.id,
+        expect.objectContaining({
+          expectedRevision: mockTournament.revision,
+        })
+      );
+    });
   });
 });

@@ -740,7 +740,7 @@ export class CoreDraftService {
           input.botReadinessStatus ??
           (tournament.coreConfig.competitionMode === "HUMAN_ONLINE"
             ? "NOT_REQUIRED"
-            : "READY"),
+            : "MISSING"),
         createdAt: nowIso,
         updatedAt: nowIso,
       });

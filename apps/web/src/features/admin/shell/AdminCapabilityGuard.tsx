@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getMe, type UserProfile } from "../../../services/auth/authApi";
-import { routes } from "../../../app/routes";
 import { loginReturnPath } from "../../../services/auth/returnUrl";
 import { UiGlyph } from "../../../components/ui/UiGlyph";
 

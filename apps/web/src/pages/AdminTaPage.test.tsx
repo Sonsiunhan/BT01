@@ -6,6 +6,7 @@ import { ApiError } from "../services/http/apiError";
 
 const mocks = vi.hoisted(() => ({
   fetchTaList: vi.fn(),
+  bootstrapTaAccount: vi.fn(),
   createTaAccount: vi.fn(),
   bindTaContract: vi.fn(),
   revokeTaAccount: vi.fn(),
@@ -215,5 +216,92 @@ describe("D02-C — AdminTaPage UI Component Tests", () => {
     expect(screen.queryByText(/RAW_PASSWORD/)).not.toBeInTheDocument();
     expect(screen.queryByText(/PASSWORD_HASH/)).not.toBeInTheDocument();
     expect(screen.queryByText(/RECOVERY_HASH/)).not.toBeInTheDocument();
+  });
+
+  it("11. triggers bootstrap TA from empty state and reloads list", async () => {
+    mocks.fetchTaList.mockResolvedValueOnce({ items: [] });
+    mocks.bootstrapTaAccount.mockResolvedValue({
+      user: {
+        id: "ta-bootstrapped",
+        fullName: "Tournament Admin",
+        displayName: "Tournament Admin",
+        username: "ta_bootstrapped",
+      },
+    });
+    mocks.fetchTaList.mockResolvedValueOnce({ items: [mockTa1] });
+
+    renderWithProviders(<AdminTaPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ta-empty-state")).toBeInTheDocument();
+    });
+
+    const bootstrapBtn = screen.getByTestId("empty-bootstrap-btn");
+    expect(bootstrapBtn).toBeInTheDocument();
+    fireEvent.click(bootstrapBtn);
+
+    await waitFor(() => {
+      expect(mocks.bootstrapTaAccount).toHaveBeenCalledTimes(1);
+      expect(mocks.fetchTaList).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("12. clears create modal error and form state on cancel and reopen", async () => {
+    mocks.fetchTaList.mockResolvedValue({ items: [mockTa1] });
+    mocks.createTaAccount.mockRejectedValue(new ApiError("Username đã tồn tại", 409, "CONFLICT"));
+
+    renderWithProviders(<AdminTaPage />);
+    await waitFor(() => expect(screen.getByText("ta_le_admin")).toBeInTheDocument());
+
+    // Open modal and attempt create that fails
+    fireEvent.click(screen.getByTestId("open-create-ta-btn"));
+    fireEvent.change(screen.getByTestId("input-fullname"), { target: { value: "Trùng Lặp" } });
+    fireEvent.change(screen.getByTestId("input-displayname"), { target: { value: "TA Trùng" } });
+    fireEvent.change(screen.getByTestId("input-username"), { target: { value: "ta_le_admin" } });
+    fireEvent.click(screen.getByTestId("submit-create-ta-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("create-error-msg")).toHaveTextContent("Username đã tồn tại");
+    });
+
+    // Click Hủy
+    fireEvent.click(screen.getByRole("button", { name: "Hủy" }));
+    await waitFor(() => {
+      expect(screen.queryByTestId("create-ta-modal")).not.toBeInTheDocument();
+    });
+
+    // Reopen modal and verify error message and form are clean
+    fireEvent.click(screen.getByTestId("open-create-ta-btn"));
+    expect(screen.queryByTestId("create-error-msg")).not.toBeInTheDocument();
+    expect(screen.getByTestId("input-fullname")).toHaveValue("");
+    expect(screen.getByTestId("input-username")).toHaveValue("");
+  });
+
+  it("13. clears bind modal error and inputs on cancel and reopen", async () => {
+    mocks.fetchTaList.mockResolvedValue({ items: [mockTa1] });
+    mocks.bindTaContract.mockRejectedValue(new ApiError("Hợp đồng không hợp lệ", 400, "BAD_REQUEST"));
+
+    renderWithProviders(<AdminTaPage />);
+    await waitFor(() => expect(screen.getByText("ta_le_admin")).toBeInTheDocument());
+
+    // Open bind modal and fail
+    fireEvent.click(screen.getByTestId("bind-btn-ta-uuid-1"));
+    fireEvent.change(screen.getByTestId("input-contract-id"), { target: { value: "invalid-contract" } });
+    fireEvent.click(screen.getByTestId("submit-bind-ta-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("bind-error-msg")).toHaveTextContent("Hợp đồng không hợp lệ");
+    });
+
+    // Cancel bind modal
+    fireEvent.click(screen.getByRole("button", { name: "Hủy" }));
+    await waitFor(() => {
+      expect(screen.queryByTestId("bind-ta-modal")).not.toBeInTheDocument();
+    });
+
+    // Reopen and ensure clean state
+    fireEvent.click(screen.getByTestId("bind-btn-ta-uuid-1"));
+    expect(screen.queryByTestId("bind-error-msg")).not.toBeInTheDocument();
+    expect(screen.getByTestId("input-contract-id")).toHaveValue("");
   });
 });

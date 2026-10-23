@@ -27,11 +27,17 @@ const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRouteP
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
+const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
+const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
 const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
 const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
+<<<<<<< HEAD
+=======
+const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
+>>>>>>> main
 
 export function AppRouter() {
   return (
@@ -93,6 +99,10 @@ export function AppRouter() {
           element={<TournamentDetailPage />}
         />
         <Route
+          path={routes.adminTournamentRules}
+          element={<TournamentRulesPage />}
+        />
+        <Route
           path={routes.adminTournamentStaff}
           element={<TournamentStaffPage />}
         />
@@ -107,27 +117,14 @@ export function AppRouter() {
             />
           }
         />
+        <Route path={routes.adminTournamentBotReadiness} element={<BotReadinessPage />} />
         <Route
           path={routes.adminAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán hệ thống"
-              targetTask="S06"
-              description="Lịch sử các thao tác quản trị toàn hệ thống đã được lọc và che dấu dữ liệu nhạy cảm."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminTournamentAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán giải đấu"
-              targetTask="S06"
-              description="Truy vết các thao tác thay đổi cấu hình, phân công nhân sự và duyệt trận trong giải đấu."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminOffline}

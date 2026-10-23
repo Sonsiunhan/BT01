@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { UiGlyph } from "../../../components/ui/UiGlyph";
-import type {
-  TournamentListItem,
-  TournamentListQuery,
-  TournamentListResponse,
-} from "./tournamentTypes";
+import type { TournamentListQuery, TournamentListResponse } from "./tournamentTypes";
 import { defaultTournamentApi, type TournamentApiPort } from "./tournamentApi";
 import { TournamentCard } from "./TournamentCard";
 import { TournamentFilterToolbar } from "./TournamentFilterToolbar";

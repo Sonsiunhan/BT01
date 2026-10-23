@@ -2,7 +2,6 @@ import {
   StaffInvitationDecisionSchema,
   StaffInvitationHandoffSchema,
   StaffInvitationRecipientViewSchema,
-  StaffInvitationViewSchema,
   StaffExpiryResultSchema,
   StaffReadinessSchema,
   StaffRevokeResultSchema,
