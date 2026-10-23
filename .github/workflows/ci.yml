@@ -107,7 +107,7 @@ jobs:
         run: pnpm build:packages
 
       - name: Install Chromium for route smoke
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
 
       - name: Run N11 admin route smoke
         run: pnpm exec playwright test tests/e2e/n11-admin-routes.spec.ts
