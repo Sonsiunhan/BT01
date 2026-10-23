@@ -1,0 +1,12 @@
+# Tiêu Chí Nghiệm Thu Task S11 — Review Chéo Phân Hệ Đức (AC-01..AC-06)
+
+## Bảng Ma Trận Nghiệm Thu Kiểm Toán Chéo
+
+| Mã tiêu chí | Hạng mục kiểm tra | Phạm vi áp dụng | Phương thức kiểm chứng | Kết quả |
+| :--- | :--- | :--- | :--- | :---: |
+| **AC-01** | **Tính hoàn thiện UI & Trải nghiệm người dùng:** Giao diện các trang P09, P10, P11, P12, P13, P17, P18 tuân thủ Design System (CSS tokens, typography, dark mode, loading, error fallback, badge trạng thái, aria/test-id đầy đủ). | P09–P13, P17–P18 | Soát mã nguồn JSX/TSX & Vitest Unit Test | **PASS** |
+| **AC-02** | **Phân quyền & Ranh giới ACL (IDOR & Role Spoofing):** Phân định rạch ròi vai trò SYSTEM_ADMIN, TOURNAMENT_ADMIN, REFEREE, PARTICIPANT. Server chặn truy cập trái phép; client không dùng trạng thái ẩn để cấp quyền; không thể mạo danh qua body/param. | Roster API, Staff API, Admin TA, Support Queue | Kiểm tra middleware guard server & Test case authority boundary | **PASS** |
+| **AC-03** | **An toàn nạp Roster & Cách ly Token:** Luồng nạp CSV kiểm tra trước (preview) phân tách lỗi/cảnh báo; xác nhận (commit) có CAS chống nhấp đúp/chạy đồng thời; token kích hoạt một lần chỉ hiển thị ở state UI tức thời, không lưu vào `localStorage` hay `sessionStorage`. | P10, P13 (`TournamentRosterPage`, `AccountActivationPage`) | Playwright E2E D10-C & Vitest Invariant Test | **PASS** |
+| **AC-04** | **Bảo mật Lời mời Nhân sự & Chống CSRF:** Gửi lời mời Trọng tài hỗ trợ hủy/thu hồi; request gửi đi qua HTTP bắt buộc có header `X-OTT-Request: 1`; chỉ gửi `Content-Type: application/json` khi có body; tiếp nhận lời mời là idempotent. | P11, P17 (`TournamentStaffPage`, `InvitationAcceptancePage`) | Kiểm toán `tournamentStaffApi.ts` & D09-C / S11 Vitest | **PASS** |
+| **AC-05** | **Khôi phục Quyền truy cập & Chống Replay:** Hàng đợi hỗ trợ phân tách rõ vai trò Admin và Thí sinh; xử lý cấp lại token một lần; Replay token đã sử dụng trả về kết quả idempotent mà không sinh tài khoản hoặc credentials trùng lặp. | P12, P13 (`SupportRecoveryPage`, `AccountActivationPage`) | Vitest Integration & Replay test suite | **PASS** |
+| **AC-06** | **Ràng buộc Điều lệ (Rules Acknowledgement Guard) & Bảo mật Bí mật:** Guard xác nhận điều lệ chốt chặt `config_version_id` hiện hành trước khi bắt đầu giải; không rò rỉ mã băm mật khẩu (`passwordHash`), private key hoặc session token ra giao diện và nhật ký kiểm toán. | P18 (`RulesAcknowledgementPage`), `acknowledgement-guard.ts` | Vitest Invariant test & D10-A/B test suite | **PASS** |
