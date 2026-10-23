@@ -28,6 +28,10 @@ const TournamentListPage = lazy(() => import("../features/admin/tournaments/Tour
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
 const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
+const OfflineHubPage = lazy(() => import("../features/admin/offline/OfflineHubPage"));
+const OfflineBotsPage = lazy(() => import("../features/admin/offline/OfflineBotsPage"));
+const OfflinePracticeHumanBotPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanBotPage"));
+const OfflinePracticeHumanHumanPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanHumanPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
 const TournamentRosterPage = lazy(() => import("../features/tournament-roster/TournamentRosterPage"));
@@ -131,50 +135,12 @@ export function AppRouter() {
           path={routes.adminTournamentAudit}
           element={<AuditLogsViewerPage />}
         />
-        <Route
-          path={routes.adminOffline}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Hub công cụ Offline"
-              targetTask="S08"
-              description="Cổng truy cập tập trung vào các công cụ thực thi offline: Kho Bot, Đấu Bot và Phòng luyện tập."
-            />
-          }
-        />
-        <Route
-          path={routes.adminOfflineBots}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Kho Bot của tôi"
-              targetTask="S08"
-              description="Quản lí danh sách mã nguồn Bot cá nhân và theo dõi trạng thái tương thích với các bộ luật."
-            />
-          }
-        />
-        <Route
-          path={routes.adminOfflinePracticeHumanBot}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Phòng tập Người – Bot Offline"
-              targetTask="S08"
-              description="Môi trường thi đấu luyện tập cục bộ giữa người chơi và Bot Python trong sandbox an toàn."
-            />
-          }
-        />
-        <Route
-          path={routes.adminOfflinePracticeHumanHuman}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Phòng tập Người – Người Offline"
-              targetTask="S08"
-              description="Chế độ chơi hai người trên cùng một thiết bị với luật thi đấu tùy biến."
-            />
-          }
-        />
+        <Route path={routes.adminOffline} element={<OfflineHubPage />} />
+        <Route path="/admin/offline-hub" element={<Navigate to={routes.adminOffline} replace />} />
+        <Route path="/admin/offline-tools" element={<Navigate to={routes.adminOffline} replace />} />
+        <Route path={routes.adminOfflineBots} element={<OfflineBotsPage />} />
+        <Route path={routes.adminOfflinePracticeHumanBot} element={<OfflinePracticeHumanBotPage />} />
+        <Route path={routes.adminOfflinePracticeHumanHuman} element={<OfflinePracticeHumanHumanPage />} />
       </Route>
 
       {/* 404 Catch-All */}
