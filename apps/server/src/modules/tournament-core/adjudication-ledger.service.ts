@@ -1,11 +1,15 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
   ManualAdjudicationRequestSchema,
+  ManualAdjudicationBoardSchema,
+  ManualAdjudicationTieIndicatorsSchema,
   ManualAdjudicationViewSchema,
   SubmitManualAdjudicationVerdictInputSchema,
   TournamentLeaderboardSnapshotSchema,
   TournamentScoreLedgerEntrySchema,
   type ManualAdjudicationRequestDto,
+  type ManualAdjudicationBoard,
+  type ManualAdjudicationTieIndicators,
   type ManualAdjudicationViewDto,
   type SubmitManualAdjudicationVerdictInput,
   type TournamentLeaderboardSnapshotDto,
@@ -80,16 +84,69 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function nonNegativeInt(value: unknown, fallback = 0): number {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : fallback;
+function nonNegativeInt(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
 }
 
 function safeSide(value: unknown): "BLUE" | "RED" | null {
   return value === "BLUE" || value === "RED" ? value : null;
 }
 
-function safePiece(value: unknown): "N" | "P" | "M" | null {
-  return value === "N" || value === "P" || value === "M" ? value : null;
+function safePiece(value: unknown): "R" | "P" | "S" | null {
+  return value === "R" || value === "P" || value === "S" ? value : null;
+}
+
+function projectSafeBoard(snapshot: Record<string, unknown>): ManualAdjudicationBoard | null {
+  const boardSource = Array.isArray(snapshot.board)
+    ? { cells: snapshot.board }
+    : asRecord(snapshot.board);
+  const rows = nonNegativeInt(boardSource.rows ?? boardSource.height);
+  const columns = nonNegativeInt(boardSource.columns ?? boardSource.width);
+  const rawCells = Array.isArray(boardSource.cells) ? boardSource.cells : null;
+  if (!rows || !columns || rows > 15 || columns > 15 || !rawCells) return null;
+  if (rawCells.length !== rows * columns) return null;
+
+  const cells: Array<{ row: number; column: number; side: "BLUE" | "RED" | null; pieceType: "R" | "P" | "S" | null }> = [];
+  const positions = new Set<string>();
+  for (const value of rawCells) {
+    const cell = asRecord(value);
+    const row = nonNegativeInt(cell.row);
+    const column = nonNegativeInt(cell.column ?? cell.col);
+    if (row === null || column === null || row >= rows || column >= columns) return null;
+    const position = `${row}:${column}`;
+    if (positions.has(position)) return null;
+    positions.add(position);
+    const side = safeSide(cell.side ?? cell.owner);
+    const pieceType = safePiece(cell.pieceType ?? cell.type);
+    if ((side === null) !== (pieceType === null)) return null;
+    cells.push({ row, column, side, pieceType });
+  }
+
+  const parsed = ManualAdjudicationBoardSchema.safeParse({ rows, columns, cells });
+  return parsed.success ? parsed.data : null;
+}
+
+function projectSafeMetrics(value: unknown): ManualAdjudicationTieIndicators["blue"] | null {
+  const item = asRecord(value);
+  const material = asRecord(item.materialByType ?? item.pieceCounts);
+  const candidate = {
+    materialByType: {
+      R: material.R,
+      P: material.P,
+      S: material.S,
+    },
+    goalDistance: item.goalDistance ?? null,
+    mobility: item.mobility,
+  };
+  const parsed = ManualAdjudicationTieIndicatorsSchema.shape.blue.safeParse(candidate);
+  return parsed.success ? parsed.data : null;
+}
+
+function projectSafeTieIndicators(snapshot: Record<string, unknown>): ManualAdjudicationTieIndicators | null {
+  const rawIndicators = asRecord(snapshot.tieIndicators);
+  const blue = projectSafeMetrics(rawIndicators.BLUE ?? rawIndicators.blue);
+  const red = projectSafeMetrics(rawIndicators.RED ?? rawIndicators.red);
+  return blue && red ? { blue, red } : null;
 }
 
 function projectSafeSnapshot(request: ManualAdjudicationRequestDto): Pick<
@@ -97,45 +154,8 @@ function projectSafeSnapshot(request: ManualAdjudicationRequestDto): Pick<
   "board" | "sideToMove" | "tieIndicators" | "ruleVersion"
 > {
   const snapshot = asRecord(request.frozenSnapshot);
-  const boardSource = Array.isArray(snapshot.board)
-    ? { cells: snapshot.board }
-    : asRecord(snapshot.board);
-  const rawCells = Array.isArray(boardSource.cells) ? boardSource.cells : [];
-  const cells = rawCells.flatMap((value) => {
-    const cell = asRecord(value);
-    const row = nonNegativeInt(cell.row, -1);
-    const column = nonNegativeInt(cell.column ?? cell.col, -1);
-    if (row < 0 || column < 0) return [];
-    return [{
-      row,
-      column,
-      side: safeSide(cell.side ?? cell.owner),
-      pieceType: safePiece(cell.pieceType ?? cell.type),
-    }];
-  });
-  const rows = nonNegativeInt(boardSource.rows ?? boardSource.height, 0);
-  const columns = nonNegativeInt(boardSource.columns ?? boardSource.width, 0);
-  const board = rows > 0 && columns > 0
-    ? { rows, columns, cells }
-    : null;
-
-  const rawIndicators = asRecord(snapshot.tieIndicators);
-  const indicator = (value: unknown) => {
-    const item = asRecord(value);
-    const counts = asRecord(item.pieceCounts);
-    return {
-      pieceCounts: {
-        N: nonNegativeInt(counts.N),
-        P: nonNegativeInt(counts.P),
-        M: nonNegativeInt(counts.M),
-      },
-      legalMoveCount: nonNegativeInt(item.legalMoveCount),
-      captureCount: nonNegativeInt(item.captureCount),
-    };
-  };
-  const tieIndicators = rawIndicators.blue && rawIndicators.red
-    ? { blue: indicator(rawIndicators.blue), red: indicator(rawIndicators.red) }
-    : null;
+  const board = projectSafeBoard(snapshot);
+  const tieIndicators = projectSafeTieIndicators(snapshot);
   const ruleVersion = typeof snapshot.ruleVersion === "string"
     ? snapshot.ruleVersion
     : typeof snapshot.ruleVersionNumber === "number"
@@ -148,6 +168,14 @@ function projectSafeSnapshot(request: ManualAdjudicationRequestDto): Pick<
     tieIndicators,
     ruleVersion,
   };
+}
+
+function hasReviewableSnapshot(request: ManualAdjudicationRequestDto): boolean {
+  const projected = projectSafeSnapshot(request);
+  return projected.board !== null
+    && projected.sideToMove !== null
+    && projected.tieIndicators !== null
+    && projected.ruleVersion !== null;
 }
 
 interface ParticipantRunningStats {
@@ -664,6 +692,18 @@ export class AdjudicationLedgerService {
             reason: "ADJUDICATION_DEADLINE_EXPIRED",
             adjudicationRequestId,
             finishSequence: ledgerEntry.finishSequence,
+          },
+        });
+      }
+
+      if (!hasReviewableSnapshot(req)) {
+        throw createTournamentError({
+          code: "CONFLICT",
+          statusCode: 409,
+          message: "Không thể ghi phán quyết khi snapshot trận đấu thiếu dữ liệu canonical.",
+          details: {
+            reason: "ADJUDICATION_SNAPSHOT_INCOMPLETE",
+            adjudicationRequestId,
           },
         });
       }

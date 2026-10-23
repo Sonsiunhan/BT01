@@ -65,6 +65,19 @@ function buildBaseCoreConfig(tournamentCode: string) {
   };
 }
 
+function canonicalSnapshot(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    board: { rows: 1, columns: 1, cells: [{ row: 0, column: 0, side: null, pieceType: null }] },
+    sideToMove: "BLUE",
+    ruleVersion: "rps-v1",
+    tieIndicators: {
+      blue: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+      red: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+    },
+    ...extra,
+  };
+}
+
 describe("L09 — Dedicated Concurrency, CAS & Replay Determinism Suite", () => {
   it("Race 1 (T011/T012): 10 concurrent createDraft requests on maxTournamentsTotal=2 allow exactly 2 and reject 8 with 409 CONTRACT_QUOTA_EXHAUSTED", async () => {
     const bundle = createTournamentRuntimeBundle({
@@ -362,7 +375,7 @@ describe("L09 — Dedicated Concurrency, CAS & Replay Determinism Suite", () => 
         roomId: "room-race-1",
         blueParticipantId: "u-1",
         redParticipantId: "u-2",
-        frozenSnapshot: { turn: 120 },
+        frozenSnapshot: canonicalSnapshot({ turn: 120 }),
       });
 
     // 8 concurrent manual verdicts on adj1 (alternating BLUE and RED)
@@ -386,7 +399,7 @@ describe("L09 — Dedicated Concurrency, CAS & Replay Determinism Suite", () => 
         roomId: "room-race-2",
         blueParticipantId: "u-1",
         redParticipantId: "u-2",
-        frozenSnapshot: { turn: 120 },
+        frozenSnapshot: canonicalSnapshot({ turn: 120 }),
       });
 
     const cancelRes = await bundle.lifecycleService.cancelTournament(
@@ -749,7 +762,7 @@ describe("L09 — Dedicated Concurrency, CAS & Replay Determinism Suite", () => 
       roomId: "room-race-timeout-1",
       blueParticipantId: "u-1",
       redParticipantId: "u-2",
-      frozenSnapshot: { ply: 50 },
+      frozenSnapshot: canonicalSnapshot({ ply: 50 }),
     });
 
     // Advance clock past deadline to 08:05:01Z

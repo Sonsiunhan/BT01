@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ComparatorSideMetricsSchema } from "./tournament-rule-versioning.js";
 
 // ============================================================================
 // 1. Canonical Actors, Roles & Candidate Policy Defaults (Section 2 & 15)
@@ -1021,7 +1022,7 @@ const SafeBoardCellSchema = z.object({
   row: z.number().int().nonnegative(),
   column: z.number().int().nonnegative(),
   side: z.enum(["BLUE", "RED"]).nullable(),
-  pieceType: z.enum(["N", "P", "M"]).nullable(),
+  pieceType: z.enum(["R", "P", "S"]).nullable(),
 });
 
 export const ManualAdjudicationBoardSchema = z.object({
@@ -1032,16 +1033,8 @@ export const ManualAdjudicationBoardSchema = z.object({
 export type ManualAdjudicationBoard = z.infer<typeof ManualAdjudicationBoardSchema>;
 
 export const ManualAdjudicationTieIndicatorsSchema = z.object({
-  blue: z.object({
-    pieceCounts: z.object({ N: z.number().int().nonnegative(), P: z.number().int().nonnegative(), M: z.number().int().nonnegative() }),
-    legalMoveCount: z.number().int().nonnegative(),
-    captureCount: z.number().int().nonnegative(),
-  }),
-  red: z.object({
-    pieceCounts: z.object({ N: z.number().int().nonnegative(), P: z.number().int().nonnegative(), M: z.number().int().nonnegative() }),
-    legalMoveCount: z.number().int().nonnegative(),
-    captureCount: z.number().int().nonnegative(),
-  }),
+  blue: ComparatorSideMetricsSchema,
+  red: ComparatorSideMetricsSchema,
 });
 export type ManualAdjudicationTieIndicators = z.infer<typeof ManualAdjudicationTieIndicatorsSchema>;
 

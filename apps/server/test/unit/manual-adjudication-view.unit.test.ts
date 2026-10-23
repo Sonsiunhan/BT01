@@ -13,11 +13,11 @@ const request: ManualAdjudicationRequestDto = {
   redParticipantId: "red-1",
   status: "WAITING",
   frozenSnapshot: {
-    board: { rows: 5, columns: 5, cells: [{ row: 0, column: 0, side: "BLUE", pieceType: "N" }] },
+    board: { rows: 1, columns: 1, cells: [{ row: 0, column: 0, side: "BLUE", pieceType: "R" }] },
     sideToMove: "BLUE",
     tieIndicators: {
-      blue: { pieceCounts: { N: 1, P: 2, M: 1 }, legalMoveCount: 3, captureCount: 0 },
-      red: { pieceCounts: { N: 1, P: 2, M: 1 }, legalMoveCount: 3, captureCount: 0 },
+      blue: { materialByType: { R: 1, P: 2, S: 1 }, goalDistance: { reachable: true, distance: 3 }, mobility: 3 },
+      red: { materialByType: { R: 1, P: 2, S: 1 }, goalDistance: { reachable: true, distance: 3 }, mobility: 3 },
     },
     ruleVersion: "v3",
     privateBotSource: "must-not-leak",
@@ -38,7 +38,7 @@ describe("N09 manual adjudication view", () => {
     const service = new AdjudicationLedgerService(new TournamentStateStore());
     const view = service.toManualAdjudicationView(request);
     expect(view.board?.cells).toHaveLength(1);
-    expect(view.tieIndicators?.blue.pieceCounts).toEqual({ N: 1, P: 2, M: 1 });
+    expect(view.tieIndicators?.blue.materialByType).toEqual({ R: 1, P: 2, S: 1 });
     expect(view).not.toHaveProperty("privateBotSource");
     expect(view).not.toHaveProperty("frozenSnapshot");
   });

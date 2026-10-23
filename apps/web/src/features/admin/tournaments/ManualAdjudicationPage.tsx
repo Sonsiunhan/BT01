@@ -26,6 +26,19 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Không thể tải danh sách phán quyết.";
 }
 
+function snapshotReady(item: ManualAdjudicationViewDto): boolean {
+  return item.board !== null
+    && item.sideToMove !== null
+    && item.ruleVersion !== null
+    && item.tieIndicators !== null;
+}
+
+function displayPiece(item: ManualAdjudicationViewDto, row: number, column: number): string {
+  const cell = item.board?.cells.find((candidate) => candidate.row === row && candidate.column === column);
+  if (!cell?.side || !cell.pieceType) return "·";
+  return `${cell.side === "BLUE" ? "B" : "R"}${cell.pieceType}`;
+}
+
 function Snapshot({ item }: { item: ManualAdjudicationViewDto }) {
   const board = item.board;
   const metrics = item.tieIndicators;
@@ -35,16 +48,25 @@ function Snapshot({ item }: { item: ManualAdjudicationViewDto }) {
       <p className="manual-adjudication-card__meta">
         Lượt đi: {item.sideToMove ?? "—"} · Luật: {item.ruleVersion ?? "—"}
       </p>
-      {board ? <p className="manual-adjudication-card__meta">Bàn {board.rows}×{board.columns} · {board.cells.length} ô có dữ liệu</p> : <p className="manual-adjudication-card__meta">Chưa có dữ liệu bàn an toàn để hiển thị.</p>}
+      {board ? <>
+        <p className="manual-adjudication-card__meta">Bàn {board.rows}×{board.columns}</p>
+        <table className="manual-adjudication-card__board" aria-label={`Bàn cờ ${board.rows}×${board.columns}`}>
+          <tbody>
+            {Array.from({ length: board.rows }, (_, row) => <tr key={row}>
+              {Array.from({ length: board.columns }, (_, column) => <td key={column} aria-label={`Hàng ${row + 1}, cột ${column + 1}`}>{displayPiece(item, row, column)}</td>)}
+            </tr>)}
+          </tbody>
+        </table>
+      </> : <p className="manual-adjudication-card__meta">Chưa có dữ liệu bàn canonical để hiển thị.</p>}
       {metrics ? <div className="manual-adjudication-card__metrics">
         {(["blue", "red"] as const).map((side) => (
           <div className="manual-adjudication-card__metric" key={side}>
             <strong>{side === "blue" ? "BLUE" : "RED"}</strong>
-            N/P/M: {metrics[side].pieceCounts.N}/{metrics[side].pieceCounts.P}/{metrics[side].pieceCounts.M}<br />
-            Nước hợp lệ: {metrics[side].legalMoveCount} · Ăn quân: {metrics[side].captureCount}
+            R/P/S: {metrics[side].materialByType.R}/{metrics[side].materialByType.P}/{metrics[side].materialByType.S}<br />
+            Goal: {metrics[side].goalDistance ? (metrics[side].goalDistance.reachable ? `${metrics[side].goalDistance.distance} bước` : "không tới được") : "—"} · Mobility: {metrics[side].mobility}
           </div>
         ))}
-      </div> : null}
+      </div> : <p className="manual-adjudication-card__meta">Thiếu metrics canonical để đối chiếu.</p>}
     </section>
   );
 }
@@ -54,6 +76,7 @@ export default function ManualAdjudicationPage() {
   const [state, setState] = useState<PageState>({ kind: "loading" });
   const [winnerById, setWinnerById] = useState<Record<string, "BLUE" | "RED">>({});
   const [reasonById, setReasonById] = useState<Record<string, string>>({});
+  const [submitErrorById, setSubmitErrorById] = useState<Record<string, string>>({});
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -78,11 +101,18 @@ export default function ManualAdjudicationPage() {
     const reason = reasonById[item.id]?.trim() ?? "";
     if (!winnerSide || reason.length < 3 || reason.length > 1000) return;
     setSubmittingId(item.id);
+    setSubmitErrorById((current) => { const next = { ...current }; delete next[item.id]; return next; });
     try {
       await submitManualAdjudicationVerdict(item.id, { winnerSide, reason });
       await load(true);
     } catch (error) {
-      setState((current) => current.kind === "ready" ? current : { kind: "error", message: errorMessage(error) });
+      const message = errorMessage(error);
+      setSubmitErrorById((current) => ({ ...current, [item.id]: message }));
+      if (error instanceof ManualAdjudicationHttpError && error.status === 409) {
+        await load(true);
+      } else {
+        setState((current) => current.kind === "ready" ? current : { kind: "error", message });
+      }
     } finally {
       setSubmittingId(null);
     }
@@ -101,12 +131,15 @@ export default function ManualAdjudicationPage() {
       {state.kind === "ready" ? <section className="manual-adjudication-page__list" aria-label="Danh sách phán quyết">
         {state.adjudications.length === 0 ? <p className="manual-adjudication-page__state">Hiện không có trận exact-tie cần xử lý.</p> : state.adjudications.map((item) => {
           const waiting = item.status === "WAITING";
+          const canSubmit = waiting && snapshotReady(item);
           const reason = reasonById[item.id] ?? "";
           return <article className="manual-adjudication-card" key={item.id}>
             <div className="manual-adjudication-card__top"><div><strong>Trận {item.matchId}</strong><p className="manual-adjudication-card__meta">Phòng {item.roomId} · Hạn {formatDeadline(item.deadlineAt)}</p></div><span>{statusLabel(item.status)}</span></div>
             <div className="manual-adjudication-card__participants"><div className="manual-adjudication-card__side manual-adjudication-card__side--blue"><strong>BLUE</strong><br />{item.blueParticipant.label}</div><span className="manual-adjudication-card__vs">VS</span><div className="manual-adjudication-card__side manual-adjudication-card__side--red"><strong>RED</strong><br />{item.redParticipant.label}</div></div>
             <Snapshot item={item} />
-            {waiting ? <form className="manual-adjudication-card__form" onSubmit={(event) => { event.preventDefault(); void submit(item); }}>
+            {submitErrorById[item.id] ? <p className="manual-adjudication-card__state" role="alert">{submitErrorById[item.id]}</p> : null}
+            {waiting && !canSubmit ? <p className="manual-adjudication-card__state" role="alert">Chưa thể phân xử: snapshot canonical chưa đầy đủ.</p> : null}
+            {canSubmit ? <form className="manual-adjudication-card__form" onSubmit={(event) => { event.preventDefault(); void submit(item); }}>
               <fieldset><legend>Chọn bên thắng</legend><label><input type="radio" name={`winner-${item.id}`} checked={winnerById[item.id] === "BLUE"} onChange={() => setWinnerById((current) => ({ ...current, [item.id]: "BLUE" }))} /> BLUE</label><label><input type="radio" name={`winner-${item.id}`} checked={winnerById[item.id] === "RED"} onChange={() => setWinnerById((current) => ({ ...current, [item.id]: "RED" }))} /> RED</label></fieldset>
               <label htmlFor={`reason-${item.id}`}>Lý do phán quyết (3–1000 ký tự)</label><textarea id={`reason-${item.id}`} value={reason} maxLength={1000} onChange={(event) => setReasonById((current) => ({ ...current, [item.id]: event.target.value }))} />
               <div className="manual-adjudication-card__actions"><button className="manual-adjudication-card__button" type="submit" disabled={submittingId === item.id || !winnerById[item.id] || reason.trim().length < 3}>Gửi phán quyết</button><span className="manual-adjudication-card__meta">{reason.length}/1000</span></div>

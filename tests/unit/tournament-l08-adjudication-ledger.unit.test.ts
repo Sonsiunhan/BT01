@@ -71,6 +71,19 @@ function buildCoreConfig(overrides?: Partial<TournamentCoreConfig>): TournamentC
   };
 }
 
+function canonicalSnapshot(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    board: { rows: 1, columns: 1, cells: [{ row: 0, column: 0, side: null, pieceType: null }] },
+    sideToMove: "BLUE",
+    ruleVersion: "rps-v1",
+    tieIndicators: {
+      blue: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+      red: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+    },
+    ...extra,
+  };
+}
+
 function setupL08Fixture(initialIso = "2026-10-22T08:00:00.000Z") {
   let currentTime = new Date(initialIso);
   const clockFn = () => currentTime;
@@ -219,7 +232,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-acl-1",
       blueParticipantId: "user-p1",
       redParticipantId: "user-p2",
-      frozenSnapshot: { board: "state-1" },
+      frozenSnapshot: canonicalSnapshot({ scenario: "state-1" }),
     });
 
     expect(adjReq.status).toBe("WAITING");
@@ -304,7 +317,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-deadline-1",
       blueParticipantId: "user-p1",
       redParticipantId: "user-p2",
-      frozenSnapshot: { turn: 50 },
+      frozenSnapshot: canonicalSnapshot({ turn: 50 }),
     });
 
     expect(adjReq.deadlineAt).toBe("2026-11-01T08:05:00.000Z");
@@ -341,7 +354,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-deadline-2",
       blueParticipantId: "user-p3",
       redParticipantId: "user-p4",
-      frozenSnapshot: { turn: 60 },
+      frozenSnapshot: canonicalSnapshot({ turn: 60 }),
     });
 
     setNow("2026-11-01T08:15:30.000Z"); // 5m30s later (past 300s deadline)
@@ -376,7 +389,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-cas-single",
       blueParticipantId: "user-p1",
       redParticipantId: "user-p2",
-      frozenSnapshot: { ply: 80 },
+      frozenSnapshot: canonicalSnapshot({ ply: 80 }),
     });
 
     // 1st verdict commit -> Success
@@ -434,7 +447,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-cancel-order",
       blueParticipantId: "user-p1",
       redParticipantId: "user-p2",
-      frozenSnapshot: { ply: 40 },
+      frozenSnapshot: canonicalSnapshot({ ply: 40 }),
     });
 
     expect(adjReq.status).toBe("WAITING");
@@ -471,7 +484,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
         roomId: "room-cancel-new",
         blueParticipantId: "user-p3",
         redParticipantId: "user-p4",
-        frozenSnapshot: { ply: 10 },
+      frozenSnapshot: canonicalSnapshot({ ply: 10 }),
       })
     ).rejects.toMatchObject({
       statusCode: 409,
@@ -508,7 +521,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-seq-2",
       blueParticipantId: "user-p3",
       redParticipantId: "user-p4",
-      frozenSnapshot: { ply: 100 },
+      frozenSnapshot: canonicalSnapshot({ ply: 100 }),
     });
     const v2 = await bundle.adjudicationLedgerService.submitManualVerdict(taActor, adj2.id, {
       winnerSide: "BLUE",
@@ -535,7 +548,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-seq-4",
       blueParticipantId: "user-p4",
       redParticipantId: "user-p2",
-      frozenSnapshot: { ply: 120 },
+      frozenSnapshot: canonicalSnapshot({ ply: 120 }),
       deadlineSeconds: 10,
     });
     // Fast-forward past deadline
@@ -584,7 +597,7 @@ describe("Task L08 — Manual Adjudication Transaction & Ledger Handoff Unit Tes
       roomId: "room-sensitive-1",
       blueParticipantId: "user-p1",
       redParticipantId: "user-p2",
-      frozenSnapshot: sensitiveSnapshot,
+      frozenSnapshot: canonicalSnapshot(sensitiveSnapshot),
     });
 
     // Verify sourceText and privateKey are redacted
