@@ -39,7 +39,7 @@ export const CANDIDATE_POLICY_DEFAULTS_V1 = {
   rosterImportMaxRows: 2000,
   rosterImportMaxBytes: 2 * 1024 * 1024,
   invitationTtlHours: 72,
-  claimTokenTtlHours: 168,
+  claimTokenTtlHours: 24,
   defaultContractTechnicalCaps: {
     botSourceMaxBytes: 65536,
     botRuntimeTimeoutMs: 1000,

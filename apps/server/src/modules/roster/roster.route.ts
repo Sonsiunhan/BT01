@@ -327,7 +327,10 @@ export async function registerRosterRoutes(
         throw new AppError("VALIDATION_ERROR", "Thiếu tournamentId.", 400, false, "INVALID");
       }
 
-      const enrollments = await service.listEnrollments(tournamentId);
+      const enrollments = await service.listEnrollments(tournamentId, {
+        userId: context.user.id,
+        role: userRole,
+      });
       return reply.status(200).send({ tournamentId, enrollments });
     };
 

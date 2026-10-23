@@ -1,0 +1,749 @@
+{
+  "scope": "D12-B",
+  "pages": [
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P17",
+    "P18"
+  ],
+  "canonical": {
+    "tournamentOwnedRetentionDays": 90,
+    "auditRetentionDays": 365,
+    "botRetentionSeparate": true,
+    "sharedIdentityPreserved": true
+  },
+  "implementation": {
+    "tournamentLifecycleAnchor": "Tournament.finalizedAt / Tournament.cancelledAt",
+    "auditEventTimestamp": "TournamentAuditLogRecord.createdAt (no eventAt column)",
+    "tournamentEnforcementTargets": [
+      "expired recovery secret material",
+      "expired pending staff invitations",
+      "expired roster import idempotency"
+    ],
+    "auditEnforcementPath": "NOT IMPLEMENTED IN RetentionEnforcementService",
+    "botEnforcementPath": "OWNER BOUNDARY — Nam / Bot runtime retention service"
+  },
+  "policy": {
+    "tournament": {
+      "artifact": "TOURNAMENT_DATA",
+      "revision": 1,
+      "status": "CANONICAL",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": 7776000000,
+      "operationalTtlMs": null,
+      "appendOnly": false,
+      "preserveSharedIdentity": true,
+      "source": "BA/SA section12/F66: 90 actual days; lifecycle anchor requires Long confirmation"
+    },
+    "audit": {
+      "artifact": "AUDIT",
+      "revision": 1,
+      "status": "CANONICAL",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": null,
+      "operationalTtlMs": null,
+      "appendOnly": true,
+      "preserveSharedIdentity": true,
+      "source": "BA/SA section12: append-only, separate identity mapping"
+    },
+    "acknowledgement": {
+      "artifact": "ACK_EVIDENCE",
+      "revision": 1,
+      "status": "MODULE_POLICY_REQUIRED",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": null,
+      "operationalTtlMs": null,
+      "appendOnly": true,
+      "preserveSharedIdentity": true,
+      "source": "BA/SA BR27; evidence retention duration not specified"
+    },
+    "activation": {
+      "artifact": "ACTIVATION",
+      "revision": 1,
+      "status": "CANDIDATE_PENDING",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": null,
+      "operationalTtlMs": 604800000,
+      "appendOnly": false,
+      "preserveSharedIdentity": true,
+      "source": "Existing CANDIDATE_POLICY_DEFAULTS_V1.claimTokenTtlHours; section15 differs, confirmation pending"
+    },
+    "invitation": {
+      "artifact": "STAFF_INVITATION",
+      "revision": 1,
+      "status": "CANDIDATE_PENDING",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": null,
+      "operationalTtlMs": 259200000,
+      "appendOnly": false,
+      "preserveSharedIdentity": true,
+      "source": "Existing CANDIDATE_POLICY_DEFAULTS_V1.invitationTtlHours"
+    },
+    "recovery": {
+      "artifact": "RECOVERY",
+      "revision": 1,
+      "status": "CANDIDATE_PENDING",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": null,
+      "operationalTtlMs": 1800000,
+      "appendOnly": false,
+      "preserveSharedIdentity": true,
+      "source": "BA/SA section15 and D07 resetTokenTtlMinutes default30"
+    },
+    "defaultsMatch": true
+  },
+  "tournamentBoundary": {
+    "status": "PASS",
+    "finalized": {
+      "before": "RETAIN",
+      "at": "ELIGIBLE_FOR_REVIEW",
+      "after": "ELIGIBLE_FOR_REVIEW"
+    },
+    "cancelled": {
+      "before": "RETAIN",
+      "at": "ELIGIBLE_FOR_REVIEW",
+      "after": "ELIGIBLE_FOR_REVIEW"
+    },
+    "comparison": ">= anchor + 90 days => ELIGIBLE_FOR_REVIEW",
+    "policy": {
+      "artifact": "TOURNAMENT_DATA",
+      "revision": 1,
+      "status": "CANONICAL",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": 7776000000,
+      "operationalTtlMs": null,
+      "appendOnly": false,
+      "preserveSharedIdentity": true,
+      "source": "BA/SA section12/F66: 90 actual days; lifecycle anchor requires Long confirmation"
+    },
+    "enforcement": {
+      "status": "GAP",
+      "expected": "FINALIZED/CANCELLED tournament-owned data eligible at 90 days is actually cleaned without deleting shared references",
+      "actual": "RetentionEnforcementService did not delete/anonymize Tournament, enrollment or acknowledgement records",
+      "terminalStates": {
+        "finalized": "FINALIZED",
+        "cancelled": "CANCELLED"
+      },
+      "beforeAtAfterOperationalPath": {
+        "before": "RETAIN",
+        "at": "ELIGIBLE_FOR_REVIEW",
+        "after": "ELIGIBLE_FOR_REVIEW"
+      }
+    }
+  },
+  "operationalCleanup": {
+    "status": "PASS",
+    "first": {
+      "dryRun": false,
+      "scope": {
+        "tournamentId": "d12b-tournament-a",
+        "contractId": "d12b-contract-a"
+      },
+      "eligible": {
+        "expiredRecoverySecrets": 0,
+        "expiredStaffInvitations": 2,
+        "expiredRosterIdempotency": 2
+      },
+      "changed": {
+        "expiredRecoverySecrets": 0,
+        "expiredStaffInvitations": 2,
+        "expiredRosterIdempotency": 2
+      },
+      "preserved": {
+        "newerRecoverySecrets": 0,
+        "activeStaffAssignments": 0,
+        "securityAndAuditEvidence": true,
+        "acknowledgements": true
+      }
+    },
+    "second": {
+      "dryRun": false,
+      "scope": {
+        "tournamentId": "d12b-tournament-a",
+        "contractId": "d12b-contract-a"
+      },
+      "eligible": {
+        "expiredRecoverySecrets": 0,
+        "expiredStaffInvitations": 0,
+        "expiredRosterIdempotency": 0
+      },
+      "changed": {
+        "expiredRecoverySecrets": 0,
+        "expiredStaffInvitations": 0,
+        "expiredRosterIdempotency": 0
+      },
+      "preserved": {
+        "newerRecoverySecrets": 0,
+        "activeStaffAssignments": 0,
+        "securityAndAuditEvidence": true,
+        "acknowledgements": true
+      }
+    },
+    "afterCutoff": {
+      "dryRun": false,
+      "scope": {
+        "tournamentId": "d12b-tournament-a",
+        "contractId": "d12b-contract-a"
+      },
+      "eligible": {
+        "expiredRecoverySecrets": 0,
+        "expiredStaffInvitations": 1,
+        "expiredRosterIdempotency": 1
+      },
+      "changed": {
+        "expiredRecoverySecrets": 0,
+        "expiredStaffInvitations": 1,
+        "expiredRosterIdempotency": 1
+      },
+      "preserved": {
+        "newerRecoverySecrets": 0,
+        "activeStaffAssignments": 0,
+        "securityAndAuditEvidence": true,
+        "acknowledgements": true
+      }
+    },
+    "atBaseA": {
+      "tournament": 1,
+      "enrollments": 4,
+      "staffAssignments": 1,
+      "staffInvitations": 4,
+      "acknowledgements": 2,
+      "importLedgers": 1,
+      "audit": 5
+    },
+    "afterA": {
+      "tournament": 1,
+      "enrollments": 4,
+      "staffAssignments": 1,
+      "staffInvitations": 4,
+      "acknowledgements": 2,
+      "importLedgers": 0,
+      "audit": 6
+    }
+  },
+  "sharedIdentity": {
+    "status": "PASS",
+    "userCredentialPreserved": true,
+    "otherTournamentEnrollmentPreserved": true,
+    "otherTournamentStaffRelationshipPreserved": true,
+    "canArchiveIdentityGuard": true
+  },
+  "auditRetention": {
+    "status": "GAP",
+    "policy": {
+      "artifact": "AUDIT",
+      "revision": 1,
+      "status": "CANONICAL",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": null,
+      "operationalTtlMs": null,
+      "appendOnly": true,
+      "preserveSharedIdentity": true,
+      "source": "BA/SA section12: append-only, separate identity mapping"
+    },
+    "canonical": "365 days from eventAt",
+    "observedEventTimestamp": "createdAt",
+    "matrix": {
+      "age364": {
+        "current": "PRESERVED",
+        "canonical": "retain before expiry"
+      },
+      "age365": {
+        "current": "PRESERVED",
+        "canonical": "cleanup boundary requires explicit enforcement"
+      },
+      "age366": {
+        "current": "PRESERVED",
+        "canonical": "eligible after expiry"
+      }
+    },
+    "rowsBeforeAfter": {
+      "before": {
+        "age364": 1,
+        "age365": 1,
+        "age366": 1
+      },
+      "after": {
+        "age364": 1,
+        "age365": 1,
+        "age366": 1
+      }
+    },
+    "actualEnforcement": "No audit cleanup path in RetentionEnforcementService; append-only audit rows remain",
+    "auditStillPresentAfterRecoveryCleanup": true
+  },
+  "auditAppendOnly": {
+    "status": "PASS",
+    "originalUnchanged": true,
+    "appendedAckCount": 2,
+    "normalDomainOperation": "D08 acknowledgement service appended a new audit event for a new rules version",
+    "noNormalUpdateOrDeletePathObserved": true,
+    "retentionDeletionNotTreatedAsAppendViolation": true
+  },
+  "auditSanitizationHandoff": {
+    "status": "PASS",
+    "retentionCreatedAuditDoesNotCopyD11F09Reason": true,
+    "d11F09": "D11-F09 — RECONFIRMED / carried to remediation",
+    "evidenceSentinelExcluded": true
+  },
+  "tokenTtl": {
+    "status": "PASS WITH FINDINGS",
+    "recovery": {
+      "beforeAccepted": true,
+      "atRejected": true,
+      "afterRejected": true,
+      "usabilityBoundary": {
+        "before": "USABLE",
+        "at": "EXPIRED",
+        "after": "EXPIRED"
+      }
+    },
+    "activationOperationalTtlMs": 604800000,
+    "canonicalActivationTtlMs": 86400000,
+    "invitationOperationalTtlMs": 259200000,
+    "recoveryOperationalTtlMs": 1800000,
+    "auditRetentionDoesNotControlSecretValidity": true,
+    "session": {
+      "beforeAccepted": true,
+      "atRejected": true,
+      "afterRejected": true
+    },
+    "activation": {
+      "status": "GAP",
+      "issuedTtlMs": 604800000,
+      "configuredTtlMs": 604800000,
+      "canonicalTtlMs": 86400000,
+      "beforeAccepted": true,
+      "atRejected": true,
+      "afterRejected": true
+    }
+  },
+  "recoveryCleanup": {
+    "status": "PASS",
+    "atCutoff": {
+      "exactCleared": true,
+      "afterCleared": true,
+      "beforePreserved": true
+    },
+    "afterCutoff": {
+      "beforeCleared": true
+    },
+    "lifecycleUnchanged": true,
+    "noAccountReactivation": true
+  },
+  "staffInvitationRetention": {
+    "status": "PASS",
+    "atBase": {
+      "before": "EXPIRED",
+      "at": "EXPIRED",
+      "after": "INVITED",
+      "active": "ACTIVE"
+    },
+    "afterCutoff": {
+      "after": "EXPIRED",
+      "active": "ACTIVE",
+      "assignment": "ACTIVE"
+    }
+  },
+  "acknowledgementRetention": {
+    "status": "GAP / POLICY AMBIGUITY",
+    "policy": {
+      "artifact": "ACK_EVIDENCE",
+      "revision": 1,
+      "status": "MODULE_POLICY_REQUIRED",
+      "anchor": "MODULE_DEFINED",
+      "retentionMs": null,
+      "operationalTtlMs": null,
+      "appendOnly": true,
+      "preserveSharedIdentity": true,
+      "source": "BA/SA BR27; evidence retention duration not specified"
+    },
+    "observed": "ACK rows preserved by enforcement; no canonical duration or cleanup/anonymization rule is configured",
+    "noInventedDuration": true
+  },
+  "botSourceLogBoundary": {
+    "status": "NOT RUN — OWNER BOUNDARY",
+    "owner": "Nam",
+    "concreteBoundary": [
+      "BotRevision.sourceText/sourceExpiresAt",
+      "BotPrivateCheckpoint.memoryPayload",
+      "BotLibraryService.pruneExpiredGuestSources"
+    ],
+    "d12ScopeEvidence": "RetentionEnforcementService has no BotLibrary/BotRevision/BotPrivateCheckpoint mutation path",
+    "retentionAuditPayloadLeak": "PASS"
+  },
+  "crossScopeMutation": {
+    "status": "PASS",
+    "beforeB": {
+      "tournament": 1,
+      "enrollments": 1,
+      "staffAssignments": 1,
+      "staffInvitations": 1,
+      "acknowledgements": 1,
+      "importLedgers": 1,
+      "audit": 1
+    },
+    "atBaseB": {
+      "tournament": 1,
+      "enrollments": 1,
+      "staffAssignments": 1,
+      "staffInvitations": 1,
+      "acknowledgements": 1,
+      "importLedgers": 1,
+      "audit": 1
+    },
+    "afterB": {
+      "tournament": 1,
+      "enrollments": 1,
+      "staffAssignments": 1,
+      "staffInvitations": 1,
+      "acknowledgements": 1,
+      "importLedgers": 1,
+      "audit": 1
+    },
+    "unchanged": true
+  },
+  "idempotency": {
+    "status": "PASS",
+    "firstRunChanged": {
+      "expiredRecoverySecrets": 0,
+      "expiredStaffInvitations": 2,
+      "expiredRosterIdempotency": 2
+    },
+    "replayChanged": {
+      "expiredRecoverySecrets": 0,
+      "expiredStaffInvitations": 0,
+      "expiredRosterIdempotency": 0
+    },
+    "afterCutoffChanged": {
+      "expiredRecoverySecrets": 0,
+      "expiredStaffInvitations": 1,
+      "expiredRosterIdempotency": 1
+    },
+    "secondRunNoAdditionalDestructiveEffect": true
+  },
+  "secretScan": {
+    "status": "PASS",
+    "rawSecretInEvidence": false
+  },
+  "checks": {
+    "tournament-policy-inclusive-cutoff": {
+      "pass": true,
+      "finalized": {
+        "before": "RETAIN",
+        "at": "ELIGIBLE_FOR_REVIEW",
+        "after": "ELIGIBLE_FOR_REVIEW"
+      },
+      "cancelled": {
+        "before": "RETAIN",
+        "at": "ELIGIBLE_FOR_REVIEW",
+        "after": "ELIGIBLE_FOR_REVIEW"
+      },
+      "comparison": ">= anchor + 90 days => ELIGIBLE_FOR_REVIEW",
+      "policy": {
+        "artifact": "TOURNAMENT_DATA",
+        "revision": 1,
+        "status": "CANONICAL",
+        "anchor": "MODULE_DEFINED",
+        "retentionMs": 7776000000,
+        "operationalTtlMs": null,
+        "appendOnly": false,
+        "preserveSharedIdentity": true,
+        "source": "BA/SA section12/F66: 90 actual days; lifecycle anchor requires Long confirmation"
+      }
+    },
+    "recovery-token-before-at-after": {
+      "pass": true,
+      "beforeAccepted": true,
+      "atRejected": true,
+      "afterRejected": true,
+      "usabilityBoundary": {
+        "before": "USABLE",
+        "at": "EXPIRED",
+        "after": "EXPIRED"
+      }
+    },
+    "session-token-before-at-after": {
+      "pass": true,
+      "beforeAccepted": true,
+      "atRejected": true,
+      "afterRejected": true
+    },
+    "activation-token-before-at-after": {
+      "pass": true,
+      "status": "GAP",
+      "issuedTtlMs": 604800000,
+      "configuredTtlMs": 604800000,
+      "canonicalTtlMs": 86400000,
+      "beforeAccepted": true,
+      "atRejected": true,
+      "afterRejected": true
+    },
+    "activation-token-canonical-ttl": {
+      "pass": false,
+      "status": "GAP",
+      "issuedTtlMs": 604800000,
+      "configuredTtlMs": 604800000,
+      "canonicalTtlMs": 86400000,
+      "beforeAccepted": true,
+      "atRejected": true,
+      "afterRejected": true
+    },
+    "operational-cleanup-boundary": {
+      "pass": true,
+      "status": "PASS",
+      "first": {
+        "dryRun": false,
+        "scope": {
+          "tournamentId": "d12b-tournament-a",
+          "contractId": "d12b-contract-a"
+        },
+        "eligible": {
+          "expiredRecoverySecrets": 0,
+          "expiredStaffInvitations": 2,
+          "expiredRosterIdempotency": 2
+        },
+        "changed": {
+          "expiredRecoverySecrets": 0,
+          "expiredStaffInvitations": 2,
+          "expiredRosterIdempotency": 2
+        },
+        "preserved": {
+          "newerRecoverySecrets": 0,
+          "activeStaffAssignments": 0,
+          "securityAndAuditEvidence": true,
+          "acknowledgements": true
+        }
+      },
+      "second": {
+        "dryRun": false,
+        "scope": {
+          "tournamentId": "d12b-tournament-a",
+          "contractId": "d12b-contract-a"
+        },
+        "eligible": {
+          "expiredRecoverySecrets": 0,
+          "expiredStaffInvitations": 0,
+          "expiredRosterIdempotency": 0
+        },
+        "changed": {
+          "expiredRecoverySecrets": 0,
+          "expiredStaffInvitations": 0,
+          "expiredRosterIdempotency": 0
+        },
+        "preserved": {
+          "newerRecoverySecrets": 0,
+          "activeStaffAssignments": 0,
+          "securityAndAuditEvidence": true,
+          "acknowledgements": true
+        }
+      },
+      "afterCutoff": {
+        "dryRun": false,
+        "scope": {
+          "tournamentId": "d12b-tournament-a",
+          "contractId": "d12b-contract-a"
+        },
+        "eligible": {
+          "expiredRecoverySecrets": 0,
+          "expiredStaffInvitations": 1,
+          "expiredRosterIdempotency": 1
+        },
+        "changed": {
+          "expiredRecoverySecrets": 0,
+          "expiredStaffInvitations": 1,
+          "expiredRosterIdempotency": 1
+        },
+        "preserved": {
+          "newerRecoverySecrets": 0,
+          "activeStaffAssignments": 0,
+          "securityAndAuditEvidence": true,
+          "acknowledgements": true
+        }
+      },
+      "atBaseA": {
+        "tournament": 1,
+        "enrollments": 4,
+        "staffAssignments": 1,
+        "staffInvitations": 4,
+        "acknowledgements": 2,
+        "importLedgers": 1,
+        "audit": 5
+      },
+      "afterA": {
+        "tournament": 1,
+        "enrollments": 4,
+        "staffAssignments": 1,
+        "staffInvitations": 4,
+        "acknowledgements": 2,
+        "importLedgers": 0,
+        "audit": 6
+      }
+    },
+    "cross-scope-cleanup": {
+      "pass": true,
+      "status": "PASS",
+      "beforeB": {
+        "tournament": 1,
+        "enrollments": 1,
+        "staffAssignments": 1,
+        "staffInvitations": 1,
+        "acknowledgements": 1,
+        "importLedgers": 1,
+        "audit": 1
+      },
+      "atBaseB": {
+        "tournament": 1,
+        "enrollments": 1,
+        "staffAssignments": 1,
+        "staffInvitations": 1,
+        "acknowledgements": 1,
+        "importLedgers": 1,
+        "audit": 1
+      },
+      "afterB": {
+        "tournament": 1,
+        "enrollments": 1,
+        "staffAssignments": 1,
+        "staffInvitations": 1,
+        "acknowledgements": 1,
+        "importLedgers": 1,
+        "audit": 1
+      },
+      "unchanged": true
+    },
+    "shared-identity-preservation": {
+      "pass": true,
+      "status": "PASS",
+      "userCredentialPreserved": true,
+      "otherTournamentEnrollmentPreserved": true,
+      "otherTournamentStaffRelationshipPreserved": true,
+      "canArchiveIdentityGuard": true
+    },
+    "audit-retention-gap-is-executable": {
+      "pass": true,
+      "status": "GAP",
+      "policy": {
+        "artifact": "AUDIT",
+        "revision": 1,
+        "status": "CANONICAL",
+        "anchor": "MODULE_DEFINED",
+        "retentionMs": null,
+        "operationalTtlMs": null,
+        "appendOnly": true,
+        "preserveSharedIdentity": true,
+        "source": "BA/SA section12: append-only, separate identity mapping"
+      },
+      "canonical": "365 days from eventAt",
+      "observedEventTimestamp": "createdAt",
+      "matrix": {
+        "age364": {
+          "current": "PRESERVED",
+          "canonical": "retain before expiry"
+        },
+        "age365": {
+          "current": "PRESERVED",
+          "canonical": "cleanup boundary requires explicit enforcement"
+        },
+        "age366": {
+          "current": "PRESERVED",
+          "canonical": "eligible after expiry"
+        }
+      },
+      "rowsBeforeAfter": {
+        "before": {
+          "age364": 1,
+          "age365": 1,
+          "age366": 1
+        },
+        "after": {
+          "age364": 1,
+          "age365": 1,
+          "age366": 1
+        }
+      },
+      "actualEnforcement": "No audit cleanup path in RetentionEnforcementService; append-only audit rows remain"
+    },
+    "audit-append-only-domain-path": {
+      "pass": true,
+      "status": "PASS",
+      "originalUnchanged": true,
+      "appendedAckCount": 2,
+      "normalDomainOperation": "D08 acknowledgement service appended a new audit event for a new rules version",
+      "noNormalUpdateOrDeletePathObserved": true,
+      "retentionDeletionNotTreatedAsAppendViolation": true
+    },
+    "retention-does-not-reserialize-unsafe-reason": {
+      "pass": true,
+      "status": "PASS",
+      "retentionCreatedAuditDoesNotCopyD11F09Reason": true,
+      "d11F09": "D11-F09 — RECONFIRMED / carried to remediation",
+      "evidenceSentinelExcluded": true
+    },
+    "recovery-secret-cleanup-boundary": {
+      "pass": true,
+      "status": "PASS",
+      "atCutoff": {
+        "exactCleared": true,
+        "afterCleared": true,
+        "beforePreserved": true
+      },
+      "afterCutoff": {
+        "beforeCleared": true
+      },
+      "lifecycleUnchanged": true,
+      "noAccountReactivation": true
+    }
+  },
+  "findings": [
+    {
+      "id": "D12-F06",
+      "severity": "P2",
+      "title": "Activation token TTL remains a 7-day candidate instead of approved 24 hours",
+      "expected": "Activation token validity is 24 hours independently of 90/365-day retention",
+      "actual": "Actual ROSTER_ACTIVATION_ISSUE expiresAt is 168 hours; N00 decision 6.2A requires 24 hours",
+      "likelyOwner": "Đức / D05 activation owner",
+      "executableEvidence": "d12b.token-ttl.activation"
+    },
+    {
+      "id": "D12-F03",
+      "severity": "P1",
+      "title": "90-day tournament-owned cleanup is not enforced",
+      "expected": "Terminal tournament-owned data is cleaned at the inclusive 90-day cutoff while shared identity/reference data survives",
+      "actual": "Policy returns ELIGIBLE_FOR_REVIEW at the cutoff, but the real enforcement service only clears invitation/import operational records; Tournament, enrollment and ACK rows remain",
+      "likelyOwner": "Đức with Long lifecycle/identity mapping boundary",
+      "executableEvidence": "d12b.tournament-boundary.enforcement"
+    },
+    {
+      "id": "D12-F04",
+      "severity": "P1",
+      "title": "365-day audit retention is not configured or enforced",
+      "expected": "Audit events have an explicit 365-day eventAt policy and cleanup/anonymization path",
+      "actual": "AUDIT retentionMs is null and 364/365/366-day audit rows remain after real retention execution",
+      "likelyOwner": "Long/shared audit boundary with Đức retention owner",
+      "executableEvidence": "d12b.audit-retention.matrix"
+    },
+    {
+      "id": "D12-F05",
+      "severity": "P2",
+      "title": "ACK evidence retention duration is unspecified",
+      "expected": "ACK evidence has a canonical retention/identity-mapping rule",
+      "actual": "ACK_EVIDENCE is MODULE_POLICY_REQUIRED with retentionMs null; rows are preserved but duration is not defined",
+      "likelyOwner": "Long with Đức retention/identity policy boundary",
+      "executableEvidence": "d12b.ack-retention.policy"
+    }
+  ],
+  "postgres": "18",
+  "host": "127.0.0.1",
+  "pgPort": 52866,
+  "database": "ottv2_d12b_1792780686036",
+  "productionMutation": false,
+  "sharedDatabaseTouched": false,
+  "schemaPush": "PASS",
+  "integrationTest": "PASS",
+  "disposableDatabaseStopped": true,
+  "disposableDatabaseRemoved": true
+}

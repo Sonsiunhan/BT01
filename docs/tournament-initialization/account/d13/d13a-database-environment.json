@@ -1,0 +1,12 @@
+{
+  "host": "127.0.0.1",
+  "port": 53631,
+  "database": "ottv2_d13a_test_1792782564162",
+  "postgres": "18",
+  "productionMutation": false,
+  "configuredDatabaseRead": false,
+  "schemaPush": "PASS_DISPOSABLE_ONLY",
+  "tests": "PASS",
+  "stopped": true,
+  "cleaned": true
+}

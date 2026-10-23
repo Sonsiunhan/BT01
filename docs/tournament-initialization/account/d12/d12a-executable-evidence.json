@@ -1,0 +1,360 @@
+{
+  "scope": "D12-A",
+  "pages": [
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P17",
+    "P18"
+  ],
+  "postgres": "18",
+  "host": "127.0.0.1",
+  "pgPort": 63211,
+  "serverPort": 63212,
+  "webPort": 63213,
+  "database": "ottv2_d12a_1792779671968",
+  "productionMutation": false,
+  "sharedDatabaseTouched": false,
+  "schemaPush": "PASS",
+  "actorMatrix": {
+    "systemAdminTaList": 200,
+    "taAdminTaList": 403,
+    "normalRoster": 403,
+    "guestStaff": 401,
+    "unauthAck": 401
+  },
+  "scopeMatrix": {
+    "p10Preview": {
+      "ownStatus": 200,
+      "ownValidRows": 1,
+      "foreignStatus": 200,
+      "foreignValidRows": 0
+    },
+    "p10ForeignList": {
+      "status": 200,
+      "containsForeignEnrollment": true
+    },
+    "p10ForeignCommit": {
+      "status": 403,
+      "before": {
+        "enrollments": 1,
+        "ledgers": 0,
+        "audits": 0
+      },
+      "after": {
+        "enrollments": 1,
+        "ledgers": 0,
+        "audits": 0
+      }
+    },
+    "p11": {
+      "ownList": 200,
+      "foreignList": 403,
+      "wrongRecipientView": 403,
+      "wrongRecipientAccept": 403,
+      "foreignRevoke": 403,
+      "replayAccepted": true,
+      "finalRevoke": 200,
+      "reject": 200,
+      "rejectReplay": true
+    },
+    "p12": {
+      "publicRequest": 202,
+      "nonOperatorQueue": 403,
+      "nonOperatorDetail": 403,
+      "authenticatedTargetWasActor": true,
+      "adminSeesExpectedGlobalQueue": true,
+      "deniedTransition": 403,
+      "deniedMutation": true,
+      "verified": 200,
+      "resetHandoff": 200,
+      "resetConsumed": 200,
+      "resetReplay": 401,
+      "postHandoffDetailHasRawToken": false
+    },
+    "p13": {
+      "issue": 200,
+      "foreignIssue": 403,
+      "foreignIssueNoLedgerMutation": true,
+      "claim": 200,
+      "clientUserIdIgnored": true,
+      "claimReplay": 200,
+      "claimReplaySafeIdempotent": true,
+      "claimReplayNoMutation": true,
+      "credential": 200,
+      "status": 200,
+      "foreignStatus": 403,
+      "laterAuditHasRawToken": false,
+      "laterLedgerHasRawToken": false,
+      "credentialResponseContainsPasswordHash": false
+    },
+    "p18": {
+      "ownStatus": 200,
+      "ack": 200,
+      "duplicate": 200,
+      "foreignActor": 403,
+      "foreignContract": 403,
+      "manipulatedActor": 400,
+      "oldVersion": 409,
+      "beforeDenied": 1,
+      "afterDenied": 1,
+      "duplicateCount": 1
+    }
+  },
+  "idorMatrix": {
+    "own": {
+      "roster": 200,
+      "staff": 200,
+      "support": 200,
+      "activation": 200,
+      "acknowledgement": 200
+    },
+    "sameOrForeignScope": {
+      "roster": 200,
+      "staff": 403,
+      "invitation": 403,
+      "support": 403,
+      "activation": 403,
+      "acknowledgement": 403
+    },
+    "nonexistent": {
+      "roster": 200,
+      "staff": 404,
+      "support": 404,
+      "activation": 404
+    },
+    "malformed": {
+      "acknowledgement": 403
+    }
+  },
+  "deniedMutationMatrix": {
+    "foreignRosterCommit": {
+      "status": 403,
+      "unchanged": true
+    },
+    "foreignStaffRevoke": {
+      "status": 403,
+      "unchanged": true
+    },
+    "foreignSupportTransition": {
+      "status": 403,
+      "unchanged": true
+    },
+    "foreignActivationIssue": {
+      "status": 403,
+      "unchanged": true
+    },
+    "foreignAcknowledgement": {
+      "status": 403,
+      "unchanged": true
+    }
+  },
+  "secretScan": {
+    "status": "PASS",
+    "rawSecretInPostHandoffResponses": false,
+    "diagnosticLeakage": false,
+    "prohibitedCredentialOrPrivateKeys": false,
+    "prohibitedKeyPaths": [],
+    "authorizedFirstHandoffsExcluded": true
+  },
+  "piiPublicPayload": {
+    "status": "PASS",
+    "checked": [
+      "P09 list/create",
+      "P10 roster list",
+      "P11 staff list",
+      "P12 support list/detail",
+      "P13 activation status",
+      "P17 invitation view",
+      "P18 acknowledgement",
+      "forbidden/error responses"
+    ],
+    "unnecessarySecretOrInternalCredentialFields": false,
+    "prohibitedKeyPaths": []
+  },
+  "auditScan": {
+    "status": 200,
+    "records": 5,
+    "rawSecretsInReturnedAudit": false,
+    "diagnosticLeak": false,
+    "f09TokenLikeReason": true,
+    "noMutationApiAvailable": true
+  },
+  "f09": {
+    "patchStatus": 200,
+    "auditReadStatus": 200,
+    "tokenLikeReasonSurvives": true,
+    "result": "D11-F09 RECONFIRMED IN D12"
+  },
+  "errorPrivacy": {
+    "status": "PASS",
+    "diagnosticLeakage": false,
+    "statusesChecked": [
+      400,
+      401,
+      403,
+      404,
+      409
+    ]
+  },
+  "browser": "PASS",
+  "focusedTests": "PASS",
+  "disposableDatabaseStopped": true,
+  "disposableDatabaseRemoved": true,
+  "findings": [
+    {
+      "id": "D12-F01",
+      "page": "P10",
+      "api": "/admin/tournaments/:tournamentId/roster",
+      "actor": "TOURNAMENT_ADMIN A",
+      "scope": "foreign tournament B / direct tournamentId",
+      "severity": "P1",
+      "preconditions": "Disposable D12-A fixture",
+      "reproduction": "Real request to /admin/tournaments/:tournamentId/roster",
+      "expected": "403/404 or no foreign enrollment data",
+      "actual": "200 with foreign enrollment data",
+      "httpOrApiResult": "200 with foreign enrollment data",
+      "databaseBeforeAfter": "Recorded by runner checks",
+      "securityPrivacyImpact": "Cross-tournament roster disclosure; direct-ID authorization bypass",
+      "likelyOwner": "Đức; shared roster authorization review",
+      "executableEvidence": "d12a.p10.foreign-list"
+    },
+    {
+      "id": "D12-F02",
+      "page": "P10",
+      "api": "browser direct route /admin/tournaments/:tournamentId/roster",
+      "actor": "authenticated normal USER",
+      "scope": "own tournament URL with non-admin principal",
+      "severity": "P2",
+      "preconditions": "Disposable D12-A fixture",
+      "reproduction": "Real request to browser direct route /admin/tournaments/:tournamentId/roster",
+      "expected": "Forbidden principal should not receive the administrative P10 shell",
+      "actual": "API returned 403 but the browser rendered the P10 shell",
+      "httpOrApiResult": "API returned 403 but the browser rendered the P10 shell",
+      "databaseBeforeAfter": "Recorded by runner checks",
+      "securityPrivacyImpact": "Unauthorized administrative UI/actions are visible although roster data was denied",
+      "likelyOwner": "Sơn for route/UI guard; Đức for API contract coordination",
+      "executableEvidence": "d12a.browser.p10-shell-after-403"
+    }
+  ],
+  "checks": {
+    "actor-matrix": {
+      "pass": true,
+      "systemAdminTaList": 200,
+      "taAdminTaList": 403,
+      "normalRoster": 403,
+      "guestStaff": 401,
+      "unauthAck": 401
+    },
+    "p09-crud-and-target-manipulation": {
+      "pass": true,
+      "list": 200,
+      "create": 201,
+      "bind": 200,
+      "deniedManipulatedTarget": 403,
+      "revoke": 200,
+      "revokeBody": {
+        "success": true,
+        "userId": "28e36323-0191-40e9-80b4-5aac0621d85d",
+        "message": "Thu hồi quyền Tournament Admin thành công."
+      }
+    },
+    "p10-preview-and-denied-write-no-mutation": {
+      "pass": true,
+      "ownPreview": 200,
+      "foreignPreview": 200,
+      "status": 403,
+      "before": {
+        "enrollments": 1,
+        "ledgers": 0,
+        "audits": 0
+      },
+      "after": {
+        "enrollments": 1,
+        "ledgers": 0,
+        "audits": 0
+      }
+    },
+    "p11-scope-and-recipient-binding": {
+      "pass": true,
+      "ownList": 200,
+      "foreignList": 403,
+      "wrongRecipientView": 403,
+      "wrongRecipientAccept": 403,
+      "foreignRevoke": 403,
+      "replayAccepted": true,
+      "finalRevoke": 200,
+      "reject": 200,
+      "rejectReplay": true
+    },
+    "p12-anti-enumeration-and-tenant-boundary": {
+      "pass": true,
+      "publicRequest": 202,
+      "nonOperatorQueue": 403,
+      "nonOperatorDetail": 403,
+      "authenticatedTargetWasActor": true,
+      "adminSeesExpectedGlobalQueue": true,
+      "deniedTransition": 403,
+      "deniedMutation": true,
+      "verified": 200,
+      "resetHandoff": 200,
+      "resetConsumed": 200,
+      "resetReplay": 401,
+      "postHandoffDetailHasRawToken": false
+    },
+    "p13-token-purpose-and-replay": {
+      "pass": true,
+      "issue": 200,
+      "foreignIssue": 403,
+      "foreignIssueNoLedgerMutation": true,
+      "claim": 200,
+      "clientUserIdIgnored": true,
+      "claimReplay": 200,
+      "claimReplaySafeIdempotent": true,
+      "claimReplayNoMutation": true,
+      "credential": 200,
+      "status": 200,
+      "foreignStatus": 403,
+      "laterAuditHasRawToken": false,
+      "laterLedgerHasRawToken": false,
+      "credentialResponseContainsPasswordHash": false
+    },
+    "p18-actor-contract-version-binding": {
+      "pass": true,
+      "ownStatus": 200,
+      "ack": 200,
+      "duplicate": 200,
+      "foreignActor": 403,
+      "foreignContract": 403,
+      "manipulatedActor": 400,
+      "oldVersion": 409,
+      "beforeDenied": 1,
+      "afterDenied": 1,
+      "duplicateCount": 1
+    },
+    "audit-boundary": {
+      "pass": true,
+      "status": 200,
+      "records": 5,
+      "rawSecretsInReturnedAudit": false,
+      "diagnosticLeak": false,
+      "f09TokenLikeReason": true,
+      "noMutationApiAvailable": true
+    },
+    "recursive-secret-and-diagnostic-scan": {
+      "pass": true,
+      "status": "PASS",
+      "rawSecretInPostHandoffResponses": false,
+      "diagnosticLeakage": false,
+      "prohibitedCredentialOrPrivateKeys": false,
+      "prohibitedKeyPaths": [],
+      "authorizedFirstHandoffsExcluded": true
+    }
+  },
+  "findingCounts": {
+    "P1": 1,
+    "P2": 1
+  }
+}

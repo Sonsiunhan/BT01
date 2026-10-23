@@ -12,6 +12,7 @@ import {
 } from "@ottv2/contracts";
 
 import { AppError } from "../../shared/errors/app-error.js";
+import { assertActorScopeForContract, type RosterActor } from "./roster-authorization.js";
 
 export type RosterPreviewOptions = {
   allowedUnits?: string[] | undefined;
@@ -91,9 +92,23 @@ interface NormalizedCommitRow {
 export class RosterService {
   constructor(private readonly db?: PrismaClient) {}
 
-  /** List existing enrollments for a tournament. */
-  async listEnrollments(tournamentId: string) {
-    if (!this.db) return [];
+  /** List existing enrollments only within the actor's authoritative scope. */
+  async listEnrollments(tournamentId: string, actor: RosterActor) {
+    if (!this.db) {
+      throw new AppError("SERVICE_UNAVAILABLE", "Chưa thể kết nối cơ sở dữ liệu.", 503, true, "RECOVERABLE");
+    }
+
+    const tournament = await this.db.tournament.findUnique({
+      where: { id: tournamentId },
+      select: { contractId: true },
+    });
+
+    if (!tournament) {
+      throw new AppError("NOT_FOUND", "Không tìm thấy giải đấu.", 404, false, "INVALID");
+    }
+
+    await assertActorScopeForContract(this.db, actor, tournament.contractId);
+
     return this.db.tournamentEnrollmentRecord.findMany({
       where: { tournamentId },
       orderBy: { createdAt: "desc" },
