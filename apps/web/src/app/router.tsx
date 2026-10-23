@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
+import { LONG_ADMIN_ROUTE_PATHS } from "../features/admin/long-route-meta";
 import { routes } from "./routes";
 
 const HomePage = lazy(() => import("../pages/HomePage"));
@@ -42,6 +43,9 @@ const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
 const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
 const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
 const RulesAcknowledgementPage = lazy(() => import("../features/account/RulesAcknowledgementPage"));
+const UnitsAdminPage = lazy(() => import("../features/admin/units/UnitsAdminPage"));
+const ContractsAdminPage = lazy(() => import("../features/admin/contracts/ContractsAdminPage"));
+const ApprovalsAdminPage = lazy(() => import("../features/admin/approvals/ApprovalsAdminPage"));
 
 export function AppRouter() {
   return (
@@ -91,6 +95,10 @@ export function AppRouter() {
         <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
         <Route path={routes.adminTa} element={<AdminTaPage />} />
         <Route path={routes.adminAccounts} element={<AdminTaPage />} />
+        <Route path={LONG_ADMIN_ROUTE_PATHS.units} element={<UnitsAdminPage />} />
+        <Route path={LONG_ADMIN_ROUTE_PATHS.contracts} element={<ContractsAdminPage />} />
+        <Route path={LONG_ADMIN_ROUTE_PATHS.approvals} element={<ApprovalsAdminPage />} />
+        <Route path={LONG_ADMIN_ROUTE_PATHS.approvalsDetail} element={<ApprovalsAdminPage />} />
         <Route path={routes.adminSupport} element={<SupportRecoveryPage />} />
         <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route
