@@ -15,7 +15,9 @@ const invitation = {
   acceptedAt: null, declinedAt: null,
 };
 
-function renderInvitation(api: Parameters<typeof InvitationAcceptancePage>[0]["apiClient"]) {
+type InvitationApi = NonNullable<Parameters<typeof InvitationAcceptancePage>[0]>["apiClient"];
+
+function renderInvitation(api: InvitationApi) {
   return render(<MemoryRouter><InvitationAcceptancePage apiClient={api} tournamentId="tournament-1" token="opaque-token" /></MemoryRouter>);
 }
 
@@ -27,7 +29,7 @@ describe("D09-C frontend security integration", () => {
       viewInvitation: vi.fn().mockResolvedValue(invitation),
       acceptInvitation,
       rejectInvitation: vi.fn(),
-    } as unknown as Parameters<typeof InvitationAcceptancePage>[0]["apiClient"];
+    } as unknown as InvitationApi;
     renderInvitation(api);
     const accept = await screen.findByRole("button", { name: "Chấp nhận" });
     fireEvent.click(accept);
@@ -41,7 +43,7 @@ describe("D09-C frontend security integration", () => {
     const api = {
       viewInvitation: vi.fn().mockRejectedValue(new ApiError("PrismaClientKnownRequestError token=opaque-token", 500)),
       acceptInvitation: vi.fn(), rejectInvitation: vi.fn(),
-    } as unknown as Parameters<typeof InvitationAcceptancePage>[0]["apiClient"];
+    } as unknown as InvitationApi;
     renderInvitation(api);
     expect(await screen.findByTestId("invitation-error")).toHaveTextContent("Không thể tải lời mời");
     expect(screen.queryByText(/PrismaClient|opaque-token/)).not.toBeInTheDocument();

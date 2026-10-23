@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ComparatorSideMetricsSchema } from "./tournament-rule-versioning.js";
 
 // ============================================================================
 // 1. Canonical Actors, Roles & Candidate Policy Defaults (Section 2 & 15)
@@ -1020,6 +1021,51 @@ export const ManualAdjudicationRequestSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 export type ManualAdjudicationRequestDto = z.infer<typeof ManualAdjudicationRequestSchema>;
+
+const SafeBoardCellSchema = z.object({
+  row: z.number().int().nonnegative(),
+  column: z.number().int().nonnegative(),
+  side: z.enum(["BLUE", "RED"]).nullable(),
+  pieceType: z.enum(["R", "P", "S"]).nullable(),
+});
+
+export const ManualAdjudicationBoardSchema = z.object({
+  rows: z.number().int().positive(),
+  columns: z.number().int().positive(),
+  cells: z.array(SafeBoardCellSchema),
+});
+export type ManualAdjudicationBoard = z.infer<typeof ManualAdjudicationBoardSchema>;
+
+export const ManualAdjudicationTieIndicatorsSchema = z.object({
+  blue: ComparatorSideMetricsSchema,
+  red: ComparatorSideMetricsSchema,
+});
+export type ManualAdjudicationTieIndicators = z.infer<typeof ManualAdjudicationTieIndicatorsSchema>;
+
+export const ManualAdjudicationViewSchema = z.object({
+  id: z.string().min(1),
+  tournamentId: z.string().min(1),
+  matchId: z.string().min(1),
+  roomId: z.string().min(1),
+  blueParticipant: z.object({ id: z.string().min(1), label: z.string().min(1) }),
+  redParticipant: z.object({ id: z.string().min(1), label: z.string().min(1) }),
+  status: ManualAdjudicationStatusSchema,
+  board: ManualAdjudicationBoardSchema.nullable(),
+  sideToMove: z.enum(["BLUE", "RED"]).nullable(),
+  tieIndicators: ManualAdjudicationTieIndicatorsSchema.nullable(),
+  ruleVersion: z.string().min(1).nullable(),
+  deadlineAt: z.string().datetime(),
+  fallbackPolicy: z.enum(["RANDOM_SEEDED", "BLUE_ADVANTAGE", "RED_ADVANTAGE", "REPLAY_ONCE_THEN_SEEDED"]),
+  winnerSide: ManualAdjudicationVerdictSideSchema.nullable(),
+  reason: z.string().nullable(),
+  resolutionSource: z.enum(["MANUAL", "FALLBACK_POLICY"]).nullable(),
+  decidedByUserId: z.string().nullable(),
+  finishedAtIso: z.string().datetime().nullable(),
+  finishSequence: z.number().int().positive().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+export type ManualAdjudicationViewDto = z.infer<typeof ManualAdjudicationViewSchema>;
 
 export const SubmitManualAdjudicationVerdictInputSchema = z.object({
   winnerSide: ManualAdjudicationVerdictSideSchema,

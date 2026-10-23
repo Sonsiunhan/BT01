@@ -91,6 +91,15 @@ interface NormalizedCommitRow {
 export class RosterService {
   constructor(private readonly db?: PrismaClient) {}
 
+  /** List existing enrollments for a tournament. */
+  async listEnrollments(tournamentId: string) {
+    if (!this.db) return [];
+    return this.db.tournamentEnrollmentRecord.findMany({
+      where: { tournamentId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   /** Resolve authority from persisted bindings, never from upload content. */
   async readAllowedUnits(userId: string, role: string): Promise<string[]> {
     if (!this.db) throw new AppError("SERVICE_UNAVAILABLE", "Chưa thể xác minh phạm vi đơn vị.", 503, true, "RECOVERABLE");

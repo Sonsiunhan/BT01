@@ -42,6 +42,19 @@ function createSeededFixture(initialIso = "2026-10-21T08:00:00.000Z") {
   return { bundle, setNow, adminActor };
 }
 
+function canonicalSnapshot(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    board: { rows: 1, columns: 1, cells: [{ row: 0, column: 0, side: null, pieceType: null }] },
+    sideToMove: "BLUE",
+    ruleVersion: "rps-v1",
+    tieIndicators: {
+      blue: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+      red: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+    },
+    ...extra,
+  };
+}
+
 describe("L02..L08 — Tournament Initialization Domain & Security Invariants", () => {
   it("L02 & L03: enforces Unit FK delete guard (T002), Contract TA scoping (T006/T008/T018), and deep-redacting AuditPort (T077)", async () => {
     const { bundle, setNow, adminActor } = createSeededFixture();
@@ -771,10 +784,7 @@ describe("L02..L08 — Tournament Initialization Domain & Security Invariants", 
         roomId: "room-1",
         blueParticipantId: "user-blue",
         redParticipantId: "user-red",
-        frozenSnapshot: {
-          board: "frozen-board-state",
-          sourceText: "def choose_move(s): pass", // Must be redacted!
-        },
+        frozenSnapshot: canonicalSnapshot({ sourceText: "def choose_move(s): pass" }), // Must be redacted!
       });
     expect(adjReq.status).toBe("WAITING");
     expect(adjReq.frozenSnapshot.sourceText).toBe("[REDACTED]");

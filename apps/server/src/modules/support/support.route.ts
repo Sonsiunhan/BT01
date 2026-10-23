@@ -1,11 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-<<<<<<< HEAD
-import { AuthService } from "../auth/auth.service.js";
-import { GUEST_SESSION_COOKIE, readCookie } from "../auth/auth.http.js";
-=======
 import { GUEST_SESSION_COOKIE, type AuthService } from "../auth/auth.service.js";
 import { readCookie } from "../auth/auth.http.js";
->>>>>>> main
 import { AppError } from "../../shared/errors/app-error.js";
 import {
   D07SupportRequestStatusSchema,

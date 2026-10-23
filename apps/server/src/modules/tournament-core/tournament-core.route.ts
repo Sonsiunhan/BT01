@@ -30,25 +30,27 @@ const UNAPPROVED_STATUSES = new Set([
   "REJECTED",
 ]);
 
+export function canViewExactTieAdjudications(
+  actor: TournamentActorContext,
+  ownerTaUserId: string
+): boolean {
+  return actor.principalType === "USER" &&
+    actor.roles.includes("TOURNAMENT_ADMIN") &&
+    ownerTaUserId === actor.userId;
+}
+
 function canViewTournamentOperationalDetails(
   actor: TournamentActorContext,
   tournamentId: string,
   ownerTaUserId: string,
   store: TournamentStateStore
 ): boolean {
-  if (actor.roles.includes("ADMIN") || ownerTaUserId === actor.userId) {
-    return true;
-  }
-  for (const s of store.staffAssignments.values()) {
-    if (
-      s.tournamentId === tournamentId &&
-      s.userId === actor.userId &&
-      s.status === "ACTIVE"
-    ) {
-      return true;
-    }
-  }
-  return false;
+  if (actor.roles.includes("ADMIN") || ownerTaUserId === actor.userId) return true;
+  return Array.from(store.staffAssignments.values()).some(
+    (assignment) => assignment.tournamentId === tournamentId &&
+      assignment.userId === actor.userId &&
+      assignment.status === "ACTIVE"
+  );
 }
 
 export async function registerTournamentCoreRoutes(
@@ -400,11 +402,9 @@ export async function registerTournamentCoreRoutes(
       const actor = await resolveTournamentRequestActor(request, auth, store);
       const tournament = coreDraftService.getTournament(request.params.tournamentId);
       if (
-        !canViewTournamentOperationalDetails(
+        !canViewExactTieAdjudications(
           actor,
-          tournament.id,
-          tournament.ownerTaUserId,
-          store
+          tournament.ownerTaUserId
         )
       ) {
         throw createTournamentError({
@@ -419,7 +419,7 @@ export async function registerTournamentCoreRoutes(
       );
       const adjudications = Array.from(store.adjudicationRequests.values()).filter(
         (a) => a.tournamentId === request.params.tournamentId
-      );
+      ).map((adjudication) => adjudicationLedgerService.toManualAdjudicationView(adjudication));
       return reply.status(200).send({ adjudications });
     }
   );
@@ -436,7 +436,10 @@ export async function registerTournamentCoreRoutes(
         request.params.adjudicationRequestId,
         request.body
       );
-      return reply.status(200).send(result);
+      return reply.status(200).send({
+        ...result,
+        adjudication: adjudicationLedgerService.toManualAdjudicationView(result.adjudication),
+      });
     }
   );
 

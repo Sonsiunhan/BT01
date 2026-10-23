@@ -42,6 +42,8 @@ import { PrismaTournamentPreviewScopeReader, TournamentRulesPreviewService } fro
 import { RosterService, ActivationService, registerRosterRoutes } from "./modules/roster/index.js";
 import { registerTournamentRuleVersionRoutes } from "./modules/tournament-versioning/versioning.route.js";
 import type { TournamentVersioningPort } from "./modules/tournament-versioning/versioning.port.js";
+import { registerTournamentAcknowledgementRoutes } from "./modules/tournament-acknowledgement/acknowledgement.route.js";
+import { TournamentAcknowledgementService } from "./modules/tournament-acknowledgement/acknowledgement.service.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -153,6 +155,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerBotLibraryRoutes(app, auth, botLibrary);
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
   if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
+  if (database instanceof PrismaDatabase) {
+    registerTournamentAcknowledgementRoutes(app, auth, new TournamentAcknowledgementService(database.client));
+  }
   await registerRosterRoutes(app, auth, rosterService, activationService);
   const tournamentVersioning = options.tournamentVersioning ?? tournamentBundle.versioningAdapter;
   await registerTournamentRuleVersionRoutes(app, auth, tournamentVersioning);
