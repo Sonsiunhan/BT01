@@ -103,6 +103,15 @@ export class RosterService {
     }
   }
 
+  /** List existing enrollments for a tournament. */
+  async listEnrollments(tournamentId: string) {
+    if (!this.db) return [];
+    return (this.db as any).tournamentEnrollmentRecord.findMany({
+      where: { tournamentId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   /**
    * Parse and validate CSV or XLSX roster file for preview.
    * Enforces security, schema, person_key identity, unit scope, and batch limits.

@@ -30,8 +30,10 @@ const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/To
 const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
+const TournamentRosterPage = lazy(() => import("../features/tournament-roster/TournamentRosterPage"));
 const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
+const AccountActivationPage = lazy(() => import("../pages/AccountActivationPage"));
 const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
 const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
 const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
@@ -72,6 +74,8 @@ export function AppRouter() {
         <Route path={routes.botOffline} element={<BotOfflinePage />} />
         <Route path={routes.botWorkbench} element={<BotWorkbenchPage />} />
         <Route path={routes.staffInvitation} element={<InvitationAcceptancePage />} />
+        <Route path={routes.accountActivation} element={<AccountActivationPage />} />
+        <Route path={routes.canonicalAccountActivation} element={<AccountActivationPage />} />
         <Route path={routes.accountAccess} element={<AccountAccessPage />} />
         <Route path={routes.accountAccessReset} element={<AccountAccessPage />} />
       </Route>
@@ -102,6 +106,10 @@ export function AppRouter() {
         <Route
           path={routes.adminTournamentStaff}
           element={<TournamentStaffPage />}
+        />
+        <Route
+          path={routes.adminTournamentRoster}
+          element={<TournamentRosterPage />}
         />
         <Route
           path={routes.adminTournamentOperations}

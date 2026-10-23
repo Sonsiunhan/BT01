@@ -296,5 +296,42 @@ export async function registerRosterRoutes(
         return reply.status(200).send(result);
       },
     );
+
+    const listHandler = async (request: FastifyRequest, reply: any) => {
+      const cookie = readCookie(request);
+      const context = await auth.authenticate(cookie);
+
+      if (context.principal !== "ACCOUNT") {
+        throw new AppError(
+          "UNAUTHORIZED",
+          "Vui lòng đăng nhập bằng tài khoản quản trị.",
+          401,
+          false,
+          "FATAL_SESSION",
+        );
+      }
+
+      const userRole = context.user.role;
+      if (userRole !== "SYSTEM_ADMIN" && userRole !== "TOURNAMENT_ADMIN") {
+        throw new AppError(
+          "UNAUTHORIZED",
+          "Chỉ quản trị hệ thống hoặc quản trị giải đấu được xem danh sách thí sinh.",
+          403,
+          false,
+          "INVALID",
+        );
+      }
+
+      const tournamentId = (request.params as { tournamentId?: unknown }).tournamentId;
+      if (typeof tournamentId !== "string" || !tournamentId) {
+        throw new AppError("VALIDATION_ERROR", "Thiếu tournamentId.", 400, false, "INVALID");
+      }
+
+      const enrollments = await service.listEnrollments(tournamentId);
+      return reply.status(200).send({ tournamentId, enrollments });
+    };
+
+    app.get("/admin/tournaments/:tournamentId/roster", listHandler);
+    app.get("/admin/roster/:tournamentId", listHandler);
   }
 }
