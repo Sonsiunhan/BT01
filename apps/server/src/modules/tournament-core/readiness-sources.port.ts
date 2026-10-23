@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type { TournamentDto } from "@ottv2/contracts";
 import type { TournamentStateStore } from "../tournament-foundation/tournament-store.js";
 
@@ -15,10 +15,12 @@ export interface ReadinessStaffCounts {
 
 export interface ReadinessSourcesPort {
   countParticipants(
-    tournament: TournamentDto
+    tournament: TournamentDto,
+    transactionClient?: Prisma.TransactionClient,
   ): Promise<ReadinessParticipantCounts> | ReadinessParticipantCounts;
   countStaff(
-    tournamentId: string
+    tournamentId: string,
+    transactionClient?: Prisma.TransactionClient,
   ): Promise<ReadinessStaffCounts> | ReadinessStaffCounts;
 }
 
@@ -71,8 +73,9 @@ export class InMemoryReadinessSourcesAdapter implements ReadinessSourcesPort {
 export class PrismaReadinessSourcesAdapter implements ReadinessSourcesPort {
   constructor(private readonly db: PrismaClient) {}
 
-  async countParticipants(tournament: TournamentDto): Promise<ReadinessParticipantCounts> {
-    const records = await this.db.tournamentEnrollmentRecord.findMany({
+  async countParticipants(tournament: TournamentDto, transactionClient?: Prisma.TransactionClient): Promise<ReadinessParticipantCounts> {
+    const client = transactionClient ?? this.db;
+    const records = await client.tournamentEnrollmentRecord.findMany({
       where: { tournamentId: tournament.id },
       select: {
         id: true,
@@ -108,8 +111,9 @@ export class PrismaReadinessSourcesAdapter implements ReadinessSourcesPort {
     };
   }
 
-  async countStaff(tournamentId: string): Promise<ReadinessStaffCounts> {
-    const records = await this.db.tournamentStaffAssignmentRecord.findMany({
+  async countStaff(tournamentId: string, transactionClient?: Prisma.TransactionClient): Promise<ReadinessStaffCounts> {
+    const client = transactionClient ?? this.db;
+    const records = await client.tournamentStaffAssignmentRecord.findMany({
       where: { tournamentId, status: "ACTIVE" },
       select: { role: true },
     });

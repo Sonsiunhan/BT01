@@ -1,0 +1,12 @@
+{
+  "scope": "D10-B",
+  "host": "127.0.0.1",
+  "port": 49562,
+  "database": "ottv2_d10b_test_1792769738552",
+  "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-d10b-test-zHWsEg",
+  "postgres": "18",
+  "productionMutation": false,
+  "schemaPush": "PASS",
+  "tests": "PASS",
+  "stopped": true
+}

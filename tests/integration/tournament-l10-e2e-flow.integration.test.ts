@@ -530,6 +530,23 @@ describe("L10 — End-to-End Tournament Initialization & C32 HTTP Integration Fl
     expect(startRes.statusCode).toBe(200);
     expect(JSON.parse(startRes.payload).tournament.status).toBe("RUNNING");
 
+    // D10-A authority boundary: a client cannot turn a TA request into an
+    // Admin request by spoofing principalId or roles in the admission body.
+    const spoofedAdmissionRes = await app.inject({
+      method: "POST",
+      url: "/api/tournaments/admission/check",
+      headers: { origin: ORIGIN, "x-ott-request": "1", cookie: taAuth.cookie },
+      payload: {
+        principalType: "USER",
+        principalId: adminAuth.user.id,
+        roles: ["ADMIN"],
+        action: "ONLINE_QUEUE_JOIN",
+        tournamentId: approved.id,
+      },
+    });
+    expect(spoofedAdmissionRes.statusCode).toBe(200);
+    expect(JSON.parse(spoofedAdmissionRes.payload).decision.reasonCode).toBe("OUTSIDE_USER_BLOCKED_DURING_TOURNAMENT_WINDOW");
+
     // 9. C32 Online Admission Gate verification on /matchmaking/queue and /rooms:
     // - Admin is blocked (403 ADMIN_CANNOT_PLAY_ONLINE)
     const adminQueueRes = await app.inject({

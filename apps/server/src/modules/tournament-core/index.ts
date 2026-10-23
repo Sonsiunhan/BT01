@@ -26,6 +26,8 @@ import { BotReadinessService } from "../tournament-bot-readiness/bot-readiness.s
 import { registerBotReadinessRoutes } from "../tournament-bot-readiness/bot-readiness.route.js";
 import { registerSupportRecoveryRoutes } from "../support/support.route.js";
 import { SupportRecoveryService } from "../support/support.service.js";
+import type { TournamentAcknowledgementGuard } from "./acknowledgement-guard.js";
+import { PrismaTournamentStartTransaction, type TournamentStartTransaction } from "./lifecycle-transaction.js";
 
 export interface TournamentRuntimeBundle {
   store: TournamentStateStore;
@@ -47,6 +49,8 @@ export function createTournamentRuntimeBundle(options?: {
   store?: TournamentStateStore | undefined;
   database?: PrismaClient | undefined;
   readinessSourcesPort?: ReadinessSourcesPort | undefined;
+  acknowledgementGuard?: TournamentAcknowledgementGuard | undefined;
+  startTransaction?: TournamentStartTransaction | undefined;
   botLibrary?: BotLibraryService | undefined;
 }): TournamentRuntimeBundle {
   const store = options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn });
@@ -59,10 +63,14 @@ export function createTournamentRuntimeBundle(options?: {
     (options?.database
       ? new PrismaReadinessSourcesAdapter(options.database)
       : new InMemoryReadinessSourcesAdapter(store));
+  const startTransaction = options?.startTransaction ??
+    (options?.database ? new PrismaTournamentStartTransaction(options.database) : undefined);
   const lifecycleService = new TournamentLifecycleService(
     store,
     adjudicationLedgerService,
-    readinessSourcesPort
+    readinessSourcesPort,
+    options?.acknowledgementGuard,
+    startTransaction,
   );
   const admissionGateService = new AdmissionGateService(store);
   const versioningAdapter = new TournamentVersioningAdapter(store);
@@ -194,6 +202,10 @@ export {
   ReadinessSourcesPort,
   InMemoryReadinessSourcesAdapter,
   PrismaReadinessSourcesAdapter,
+  PrismaTournamentStartTransaction,
   TournamentVersioningAdapter,
   BotReadinessService,
 };
+
+export { PrismaTournamentAcknowledgementGuard } from "./acknowledgement-guard.js";
+export type { TournamentAcknowledgementGuard } from "./acknowledgement-guard.js";

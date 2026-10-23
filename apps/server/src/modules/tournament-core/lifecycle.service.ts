@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { Prisma } from "@prisma/client";
 import {
   CreateTournamentChangeRequestInputSchema,
   evaluateRuleProfileEnvelope,
@@ -25,6 +26,8 @@ import {
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
 import type { AdjudicationLedgerService } from "./adjudication-ledger.service.js";
+import type { TournamentAcknowledgementGuard } from "./acknowledgement-guard.js";
+import type { TournamentStartTransaction } from "./lifecycle-transaction.js";
 import {
   InMemoryReadinessSourcesAdapter,
   type ReadinessSourcesPort,
@@ -36,7 +39,9 @@ export class TournamentLifecycleService {
   constructor(
     private readonly store: TournamentStateStore,
     private readonly adjudicationLedgerService?: AdjudicationLedgerService,
-    readinessSourcesPort?: ReadinessSourcesPort
+    readinessSourcesPort?: ReadinessSourcesPort,
+    private readonly acknowledgementGuard?: TournamentAcknowledgementGuard,
+    private readonly startTransaction?: TournamentStartTransaction,
   ) {
     this.readinessSourcesPort =
       readinessSourcesPort ?? new InMemoryReadinessSourcesAdapter(store);
@@ -617,7 +622,10 @@ export class TournamentLifecycleService {
    * T025 & T026: Computes authoritative readiness from actual enrollments, bot readiness,
    * published rule versions, staff assignments, and pending manual adjudications.
    */
-  evaluateReadiness(tournamentId: string): TournamentReadinessSnapshot {
+  evaluateReadiness(
+    tournamentId: string,
+    transactionClient?: Prisma.TransactionClient,
+  ): TournamentReadinessSnapshot {
     const tournament = this.store.tournaments.get(tournamentId);
     if (!tournament) {
       throw createTournamentError({
@@ -628,8 +636,8 @@ export class TournamentLifecycleService {
       });
     }
 
-    const countsOrPromise = this.readinessSourcesPort.countParticipants(tournament);
-    const staffOrPromise = this.readinessSourcesPort.countStaff(tournamentId);
+    const countsOrPromise = this.readinessSourcesPort.countParticipants(tournament, transactionClient);
+    const staffOrPromise = this.readinessSourcesPort.countStaff(tournamentId, transactionClient);
 
     if (countsOrPromise instanceof Promise || staffOrPromise instanceof Promise) {
       const asyncPromise = (async () => {
@@ -712,9 +720,9 @@ export class TournamentLifecycleService {
     tournamentId: string,
     expectedRevision?: number
   ): Promise<TournamentDto> {
-    return this.store.withLock(() => {
-      const tournament = this.store.tournaments.get(tournamentId);
-      if (!tournament) {
+    return this.store.withLock(async () => {
+      const before = this.store.tournaments.get(tournamentId);
+      if (!before) {
         throw createTournamentError({
           code: "NOT_FOUND",
           statusCode: 404,
@@ -722,49 +730,145 @@ export class TournamentLifecycleService {
           details: { reason: "RESOURCE_NOT_FOUND", tournamentId },
         });
       }
-      const contract = this.store.contracts.get(tournament.contractId)!;
-      const nowIso = this.store.nowIso();
-      assertTaContractOrTournamentAccess(actor, contract, {
-        mode: "OPERATE_EXISTING",
-        tournament,
-        serverNowIso: nowIso,
-      });
-      this.assertExpectedRevision(tournament, expectedRevision);
-
-      const readiness = this.evaluateReadiness(tournamentId);
-      if (!readiness.canStartRunning) {
-        throw createTournamentError({
-          code: "CONFLICT",
-          statusCode: 409,
-          message: `Giải đấu chưa đủ điều kiện bắt đầu (${readiness.blockers.join(", ")}).`,
-          details: {
-            reason: "READINESS_BLOCKED",
-            blockerCode: readiness.blockers[0] ?? "INSUFFICIENT_ELIGIBLE_PARTICIPANTS",
-            tournamentId,
-          },
+      const auditLength = this.store.auditRecords.length;
+      let stagedCommit: { tournament: TournamentDto; before: TournamentDto; nowIso: string } | undefined;
+      const applyInMemoryCommit = (commit: { tournament: TournamentDto; before: TournamentDto; nowIso: string }) => {
+        this.store.tournaments.set(tournamentId, commit.tournament);
+        this.store.audit.append({
+          actorUserId: actor.userId,
+          actorRole: "TOURNAMENT_ADMIN",
+          action: "TOURNAMENT_STARTED",
+          targetType: "TOURNAMENT",
+          targetId: tournamentId,
+          beforeSnapshot: commit.before,
+          afterSnapshot: commit.tournament,
+          correlationId: actor.correlationId ?? null,
+          nowIso: commit.nowIso,
         });
-      }
+      };
 
-      const updated = TournamentDtoSchema.parse({
-        ...tournament,
-        status: "RUNNING",
-        revision: tournament.revision + 1,
-        startedAt: tournament.startedAt ?? nowIso,
-        updatedAt: nowIso,
-      });
-      this.store.tournaments.set(tournamentId, updated);
-      this.store.audit.append({
-        actorUserId: actor.userId,
-        actorRole: "TOURNAMENT_ADMIN",
-        action: "TOURNAMENT_STARTED",
-        targetType: "TOURNAMENT",
-        targetId: tournamentId,
-        beforeSnapshot: tournament,
-        afterSnapshot: updated,
-        correlationId: actor.correlationId ?? null,
-        nowIso,
-      });
-      return updated;
+      const transition = async (transactionClient?: Prisma.TransactionClient): Promise<TournamentDto> => {
+        const tournament = this.store.tournaments.get(tournamentId) ?? before;
+        const contract = this.store.contracts.get(tournament.contractId)!;
+        const nowIso = this.store.nowIso();
+        assertTaContractOrTournamentAccess(actor, contract, {
+          mode: "OPERATE_EXISTING",
+          tournament,
+          serverNowIso: nowIso,
+        });
+        this.assertExpectedRevision(tournament, expectedRevision);
+
+        const readiness = await this.evaluateReadiness(tournamentId, transactionClient);
+        if (!readiness.canStartRunning) {
+          throw createTournamentError({
+            code: "CONFLICT",
+            statusCode: 409,
+            message: `Giải đấu chưa đủ điều kiện bắt đầu (${readiness.blockers.join(", ")}).`,
+            details: {
+              reason: "READINESS_BLOCKED",
+              blockerCode: readiness.blockers[0] ?? "INSUFFICIENT_ELIGIBLE_PARTICIPANTS",
+              tournamentId,
+            },
+          });
+        }
+
+        if (this.acknowledgementGuard && tournament.activeConfigVersionId) {
+          await this.acknowledgementGuard.assertReadyForStart(
+            tournamentId,
+            tournament.activeConfigVersionId,
+            transactionClient,
+          );
+        }
+
+        // Re-read every mutable readiness source after the ACK check. This
+        // closes the in-process TOCTOU window where a referee is revoked while
+        // the durable ACK transaction is in flight. The PostgreSQL boundary
+        // additionally holds the shared advisory lock through this commit.
+        const finalReadiness = await this.evaluateReadiness(tournamentId, transactionClient);
+        if (!finalReadiness.canStartRunning) {
+          throw createTournamentError({
+            code: "CONFLICT",
+            statusCode: 409,
+            message: `Giải đấu chưa đủ điều kiện bắt đầu (${finalReadiness.blockers.join(", ")}).`,
+            details: {
+              reason: "READINESS_BLOCKED",
+              blockerCode: finalReadiness.blockers[0] ?? "INSUFFICIENT_ELIGIBLE_PARTICIPANTS",
+              tournamentId,
+            },
+          });
+        }
+
+        const updated = TournamentDtoSchema.parse({
+          ...tournament,
+          status: "RUNNING",
+          revision: tournament.revision + 1,
+          startedAt: tournament.startedAt ?? nowIso,
+          updatedAt: nowIso,
+        });
+
+        if (transactionClient && "tournament" in transactionClient) {
+          const durable = await transactionClient.tournament.updateMany({
+            where: {
+              id: tournamentId,
+              status: { in: ["APPROVED", "SCHEDULED"] },
+              revision: tournament.revision,
+            },
+            data: {
+              status: "RUNNING",
+              revision: { increment: 1 },
+              startedAt: new Date(updated.startedAt ?? nowIso),
+              updatedAt: new Date(nowIso),
+            },
+          });
+          if (durable.count !== 1) {
+            throw createTournamentError({
+              code: "CONFLICT",
+              statusCode: 409,
+              message: "Trạng thái giải đấu đã thay đổi trong lúc bắt đầu.",
+              details: { reason: "LIFECYCLE_CONCURRENT_UPDATE", tournamentId },
+              retryable: true,
+            });
+          }
+          await transactionClient.tournamentAuditLogRecord.create({
+            data: {
+              id: randomUUID(), actorUserId: actor.userId, actorRole: "TOURNAMENT_ADMIN",
+              action: "TOURNAMENT_STARTED", targetType: "TOURNAMENT", targetId: tournamentId,
+              beforeSnapshot: tournament, afterSnapshot: updated,
+              correlationId: actor.correlationId ?? null, createdAt: new Date(nowIso),
+            },
+          });
+        }
+
+        if (transactionClient && "tournament" in transactionClient) {
+          // Keep the process-local projection staged until the database
+          // transaction has actually committed. This is essential when a
+          // serializable retry (P2034) re-enters the callback.
+          stagedCommit = { tournament: updated, before: tournament, nowIso };
+        } else {
+          applyInMemoryCommit({ tournament: updated, before: tournament, nowIso });
+        }
+        return updated;
+      };
+
+      try {
+        const result = this.startTransaction
+          ? await this.startTransaction.run(tournamentId, transition)
+          : await transition();
+        if (stagedCommit) applyInMemoryCommit(stagedCommit);
+        return result;
+      } catch (error) {
+        // A boundary may explicitly mark a response as lost after durable
+        // commit; apply the staged projection so a retry observes RUNNING.
+        // Ordinary failures (including P2034 retries that ultimately exhaust)
+        // restore the exact pre-transition state and audit length.
+        if ((error as { committed?: boolean }).committed) {
+          if (stagedCommit) applyInMemoryCommit(stagedCommit);
+        } else {
+          this.store.tournaments.set(tournamentId, before);
+          this.store.auditRecords.splice(auditLength);
+        }
+        throw error;
+      }
     });
   }
 

@@ -44,6 +44,7 @@ import { registerTournamentRuleVersionRoutes } from "./modules/tournament-versio
 import type { TournamentVersioningPort } from "./modules/tournament-versioning/versioning.port.js";
 import { registerTournamentAcknowledgementRoutes } from "./modules/tournament-acknowledgement/acknowledgement.route.js";
 import { TournamentAcknowledgementService } from "./modules/tournament-acknowledgement/acknowledgement.service.js";
+import { PrismaTournamentAcknowledgementGuard } from "./modules/tournament-core/acknowledgement-guard.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -130,12 +131,16 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     : new BotOnlineService(botLibrary, matches, { resolveRoom: (roomId, userId) => rooms.search(roomId, userId), ...(botRuntimeAdapter ? { adapter: botRuntimeAdapter } : {}) }));
   const tournamentRulesPreview = options.tournamentRulesPreview
     ?? (database instanceof PrismaDatabase ? new TournamentRulesPreviewService(new PrismaTournamentPreviewScopeReader(database.client)) : undefined);
+  const acknowledgementService = database instanceof PrismaDatabase
+    ? new TournamentAcknowledgementService(database.client)
+    : undefined;
 
   await registerCors(app, env.corsOrigins);
   registerErrorHandler(app);
   const tournamentBundle = options.tournamentBundle ?? createTournamentRuntimeBundle({
     database: database instanceof PrismaDatabase ? database.client : undefined,
     botLibrary,
+    ...(acknowledgementService ? { acknowledgementGuard: new PrismaTournamentAcknowledgementGuard((database as PrismaDatabase).client, acknowledgementService) } : {}),
   });
   await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   // Register API diagnostics before the SPA catch-all so provider evidence
@@ -155,9 +160,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerBotLibraryRoutes(app, auth, botLibrary);
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
   if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
-  if (database instanceof PrismaDatabase) {
-    registerTournamentAcknowledgementRoutes(app, auth, new TournamentAcknowledgementService(database.client));
-  }
+  if (acknowledgementService) registerTournamentAcknowledgementRoutes(app, auth, acknowledgementService);
   await registerRosterRoutes(app, auth, rosterService, activationService);
   const tournamentVersioning = options.tournamentVersioning ?? tournamentBundle.versioningAdapter;
   await registerTournamentRuleVersionRoutes(app, auth, tournamentVersioning);

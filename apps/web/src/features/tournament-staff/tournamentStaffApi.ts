@@ -22,7 +22,15 @@ type StaffListResponse = {
 };
 
 async function requestJson<T>(path: string, init: RequestInit = {}, parser?: { parse: (value: unknown) => T }): Promise<T> {
-  const response = await fetch(path, { ...init, credentials: "include", headers: { "Content-Type": "application/json", ...(init.headers ?? {}) } });
+  const response = await fetch(path, {
+    ...init,
+    credentials: "include",
+    headers: {
+      "X-OTT-Request": "1",
+      ...(init.body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...(init.headers ?? {}),
+    },
+  });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new ApiError(
