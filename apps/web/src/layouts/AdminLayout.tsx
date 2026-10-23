@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ThemeSwitcher, UiGlyph, useToast } from "../components/ui";
+import { ThemeSwitcher } from "../components/ui";
 import { routes } from "../app/routes";
 import { getHealth, isCoreServiceReady } from "../services/health/healthApi";
 import { getMe, logout, type UserProfile } from "../services/auth/authApi";
@@ -10,7 +10,6 @@ import { AdminCapabilityGuard } from "../features/admin/shell/AdminCapabilityGua
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { notify } = useToast();
   const [network, setNetwork] = useState<"checking" | "online" | "offline" | "reconnecting" | "degraded">("checking");
   const [user, setUser] = useState<UserProfile | null>(null);
   const profileDetailsRef = useRef<HTMLDetailsElement | null>(null);

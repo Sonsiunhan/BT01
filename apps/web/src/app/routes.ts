@@ -38,18 +38,16 @@ export const routes = {
   adminTournamentNew: "/admin/tournaments/new",
   adminTournamentEdit: "/admin/tournaments/:tournamentId/edit",
   adminTournamentDetail: "/admin/tournaments/:tournamentId",
-<<<<<<< Updated upstream
-=======
   adminTournamentRules: "/admin/tournaments/:tournamentId/rules",
   adminTournamentStaff: "/admin/tournaments/:tournamentId/staff",
   adminTournamentRoster: "/admin/tournaments/:tournamentId/roster",
+  adminTournamentBotReadiness: "/admin/tournaments/:tournamentId/bot-readiness",
   staffInvitation: "/staff/invitations/:tournamentId/:token",
   accountActivation: "/kich-hoat/:token?",
   canonicalAccountActivation: "/activate/:token?",
   accountAccess: "/account-access",
   accountAccessReset: "/account-access/reset",
   adminSupport: "/admin/support",
->>>>>>> Stashed changes
   adminTournamentOperations: "/admin/tournaments/:tournamentId/operations",
   adminAudit: "/admin/audit",
   adminTournamentAudit: "/admin/tournaments/:tournamentId/audit",

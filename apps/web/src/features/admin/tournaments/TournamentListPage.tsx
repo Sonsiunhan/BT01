@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { UiGlyph } from "../../../components/ui/UiGlyph";
 import type {
-  TournamentListItem,
   TournamentListQuery,
   TournamentListResponse,
 } from "./tournamentTypes";
