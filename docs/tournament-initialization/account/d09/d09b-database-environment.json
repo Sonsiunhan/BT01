@@ -1,0 +1,12 @@
+{
+  "scope": "D09-B",
+  "host": "127.0.0.1",
+  "port": 51180,
+  "database": "ottv2_d09b_test_1792737213770",
+  "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-d09b-test-h67DBe",
+  "postgres": "18",
+  "productionMutation": false,
+  "schemaPush": "PASS",
+  "tests": "PASS",
+  "stopped": true
+}

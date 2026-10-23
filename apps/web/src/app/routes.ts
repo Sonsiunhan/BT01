@@ -47,6 +47,7 @@ export const routes = {
   canonicalAccountActivation: "/activate/:token?",
   accountAccess: "/account-access",
   accountAccessReset: "/account-access/reset",
+  tournamentRulesAcknowledgement: "/tournaments/:tournamentId/rules-ack/:contractId",
   adminSupport: "/admin/support",
   adminTournamentOperations: "/admin/tournaments/:tournamentId/operations",
   adminAudit: "/admin/audit",

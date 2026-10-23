@@ -165,10 +165,25 @@ export class TournamentStaffService {
       }
       const timestamp = this.now();
       const nextStatus = action === "ACCEPT" ? "ACTIVE" : "DECLINED";
-      const invitationUpdate = await tx.tournamentStaffInvitation.update({
-        where: { id: invitation.id },
+      // Fence the terminal transition at the database row. Two requests can
+      // both read INVITED before either commits; only one conditional update
+      // may win, and the loser replays the durable terminal decision.
+      const invitationUpdateResult = await tx.tournamentStaffInvitation.updateMany({
+        where: { id: invitation.id, status: "INVITED", expiresAt: { gt: timestamp } },
         data: action === "ACCEPT" ? { status: "ACTIVE", acceptedAt: timestamp } : { status: "DECLINED", declinedAt: timestamp },
       });
+      if (invitationUpdateResult.count !== 1) {
+        const currentInvitation = await tx.tournamentStaffInvitation.findUnique({ where: { id: invitation.id } });
+        if (currentInvitation && ((action === "ACCEPT" && currentInvitation.status === "ACTIVE") || (action === "REJECT" && currentInvitation.status === "DECLINED"))) {
+          return { invitation: currentInvitation, tournament, replayed: true };
+        }
+        if (currentInvitation?.status === "INVITED" && currentInvitation.expiresAt <= timestamp) {
+          fail("CONFLICT", "Lời mời đã hết hạn.", 409, { reason: "INVITATION_EXPIRED" });
+        }
+        fail("CONFLICT", "Lời mời đã thay đổi trong lúc xử lý.", 409, { reason: "STAFF_INVITATION_RACE" });
+      }
+      const invitationUpdate = await tx.tournamentStaffInvitation.findUnique({ where: { id: invitation.id } });
+      if (!invitationUpdate) fail("NOT_FOUND", "Không tìm thấy lời mời sau khi cập nhật.", 404, { reason: "INVITATION_NOT_FOUND_AFTER_UPDATE" });
       await tx.tournamentStaffAssignmentRecord.update({
         where: { id: assignment.id },
         data: { status: nextStatus },

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { D07SupportRequestStatus, SupportRequestView } from "@ottv2/contracts";
 import { Button } from "../../../components/ui";
 import { ApiError } from "../../../services/http/apiError";
+import { safeErrorMessage } from "../../../services/http/safeErrorMessage";
 import { recoveryApi, type RecoveryApi } from "../../../services/support/recoveryApi";
 
 export interface SupportRecoveryPageProps {
@@ -39,7 +40,7 @@ export default function SupportRecoveryPage({ api = recoveryApi }: SupportRecove
       setSelected((current) => current ? result.requests.find((item) => item.id === current.id) ?? current : result.requests[0] ?? null);
     } catch (cause) {
       if (cause instanceof ApiError && cause.status === 403) setError("Bạn không có quyền truy cập hàng đợi hỗ trợ.");
-      else setError(cause instanceof Error ? cause.message : "Không thể tải hàng đợi hỗ trợ.");
+      else setError(safeErrorMessage(cause, "Không thể tải hàng đợi hỗ trợ."));
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ export default function SupportRecoveryPage({ api = recoveryApi }: SupportRecove
     try {
       setSelected(await api.detail(item.id));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Không thể tải chi tiết yêu cầu.");
+      setError(safeErrorMessage(cause, "Không thể tải chi tiết yêu cầu."));
     }
   };
 
@@ -70,7 +71,7 @@ export default function SupportRecoveryPage({ api = recoveryApi }: SupportRecove
       setRequests((current) => current.map((item) => item.id === result.request.id ? result.request : item));
       setVerificationReference("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Không thể cập nhật yêu cầu.");
+      setError(safeErrorMessage(cause, "Không thể cập nhật yêu cầu."));
     } finally {
       setBusy(false);
     }
@@ -87,7 +88,7 @@ export default function SupportRecoveryPage({ api = recoveryApi }: SupportRecove
       setSelected(result.request);
       setRequests((current) => current.map((item) => item.id === result.request.id ? result.request : item));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Không thể cấp mã khôi phục.");
+      setError(safeErrorMessage(cause, "Không thể cấp mã khôi phục."));
     } finally {
       setBusy(false);
     }

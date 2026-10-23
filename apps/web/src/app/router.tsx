@@ -41,6 +41,7 @@ const AccountActivationPage = lazy(() => import("../pages/AccountActivationPage"
 const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
 const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
 const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
+const RulesAcknowledgementPage = lazy(() => import("../features/account/RulesAcknowledgementPage"));
 
 export function AppRouter() {
   return (
@@ -82,6 +83,7 @@ export function AppRouter() {
         <Route path={routes.canonicalAccountActivation} element={<AccountActivationPage />} />
         <Route path={routes.accountAccess} element={<AccountAccessPage />} />
         <Route path={routes.accountAccessReset} element={<AccountAccessPage />} />
+        <Route path={routes.tournamentRulesAcknowledgement} element={<RulesAcknowledgementPage />} />
       </Route>
 
       {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}

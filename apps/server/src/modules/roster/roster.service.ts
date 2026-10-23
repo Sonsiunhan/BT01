@@ -63,6 +63,17 @@ function normalizeUsername(username: string): string {
   return username.trim().toLowerCase();
 }
 
+/**
+ * Idempotency compares the canonical import payload, not only person_key.
+ * A command key reused with a changed display name, unit or seed must fail
+ * closed instead of replaying a response for a different request.
+ */
+function rosterPayloadDigest(rows: readonly NormalizedCommitRow[]): string {
+  return createHash("sha256")
+    .update(JSON.stringify(rows.map(({ rowNumber: _rowNumber, ...row }) => row)))
+    .digest("hex");
+}
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,32}$/;
 
@@ -79,6 +90,15 @@ interface NormalizedCommitRow {
 
 export class RosterService {
   constructor(private readonly db?: PrismaClient) {}
+
+  /** List existing enrollments for a tournament. */
+  async listEnrollments(tournamentId: string) {
+    if (!this.db) return [];
+    return this.db.tournamentEnrollmentRecord.findMany({
+      where: { tournamentId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 
   /** Resolve authority from persisted bindings, never from upload content. */
   async readAllowedUnits(userId: string, role: string): Promise<string[]> {
@@ -101,15 +121,6 @@ export class RosterService {
     } catch {
       throw new AppError("SERVICE_UNAVAILABLE", "Chưa thể xác minh phạm vi đơn vị.", 503, true, "RECOVERABLE");
     }
-  }
-
-  /** List existing enrollments for a tournament. */
-  async listEnrollments(tournamentId: string) {
-    if (!this.db) return [];
-    return (this.db as any).tournamentEnrollmentRecord.findMany({
-      where: { tournamentId },
-      orderBy: { createdAt: "desc" },
-    });
   }
 
   /**
@@ -575,25 +586,8 @@ export class RosterService {
       );
     }
 
-    // 3. Idempotency fast-path: check if this commandId was already committed
-    if (request.idempotencyKey && (this.db as any).commandLedgerEntry) {
-      const existingLedger = await (this.db as any).commandLedgerEntry.findUnique({
-        where: {
-          principalId_targetId_operation_commandId: {
-            principalId: actor.userId,
-            targetId: request.tournamentId,
-            operation: "ROSTER_IMPORT_COMMIT",
-            commandId: request.idempotencyKey,
-          },
-        },
-      });
-
-      if (existingLedger && existingLedger.outcome === "COMMITTED" && existingLedger.ackPayload) {
-        return existingLedger.ackPayload as unknown as RosterCommitResponse;
-      }
-    }
-
-    // 4. Normalize and validate input rows
+    // 3. Normalize and validate input rows before idempotency lookup so the
+    // server can compare the complete canonical payload, not just person_key.
     const normalizedRows: NormalizedCommitRow[] = [];
     const seenPersonKeys = new Map<string, number>();
     const seenUsernames = new Map<string, number>();
@@ -724,6 +718,37 @@ export class RosterService {
       }
     }
 
+    const payloadDigest = rosterPayloadDigest(normalizedRows);
+
+    // 4. Idempotency fast-path: the same scoped key may replay only the same
+    // canonical payload. A changed payload is a conflict and never mutates.
+    if (request.idempotencyKey && (this.db as any).commandLedgerEntry) {
+      const existingLedger = await (this.db as any).commandLedgerEntry.findUnique({
+        where: {
+          principalId_targetId_operation_commandId: {
+            principalId: actor.userId,
+            targetId: request.tournamentId,
+            operation: "ROSTER_IMPORT_COMMIT",
+            commandId: request.idempotencyKey,
+          },
+        },
+      });
+
+      if (existingLedger && existingLedger.outcome === "COMMITTED" && existingLedger.ackPayload) {
+        if (existingLedger.payloadDigest !== payloadDigest) {
+          throw new AppError(
+            "CONFLICT",
+            "Khóa idempotency đã được dùng cho dữ liệu import khác.",
+            409,
+            false,
+            "INVALID",
+            { reason: "IDEMPOTENCY_KEY_REUSED" },
+          );
+        }
+        return existingLedger.ackPayload as unknown as RosterCommitResponse;
+      }
+    }
+
     // 5. Revalidate Unit Scope for every row against tournament and contract allowed units
     const allowedUnitsSet = new Set<string>();
     if (tournament.unit?.unitCode) {
@@ -787,8 +812,13 @@ export class RosterService {
       );
     }
 
-    // 7. Atomic Transactional Import Execution
-    const response = await (this.db as any).$transaction(async (tx: any) => {
+    // 7. Atomic Transactional Import Execution. A transaction can commit while
+    // the client loses the response, and a concurrent loser can observe a
+    // unique-key error after the winner commits. In both cases the committed
+    // ledger is the only replay authority.
+    let response: RosterCommitResponse;
+    try {
+      response = await (this.db as any).$transaction(async (tx: any) => {
       // Recheck uniqueness of personKeys in DB within transaction
       const personKeys = normalizedRows.map((r) => r.personKey);
       const existingInDb = await tx.tournamentEnrollmentRecord.findMany({
@@ -903,9 +933,7 @@ export class RosterService {
             targetId: request.tournamentId,
             operation: "ROSTER_IMPORT_COMMIT",
             commandId: request.idempotencyKey,
-            payloadDigest: createHash("sha256")
-              .update(JSON.stringify(normalizedRows.map((r) => r.personKey)))
-              .digest("hex"),
+            payloadDigest,
             outcome: "COMMITTED",
             stateVersion: tournament.revision ?? 1,
             sequence: 1,
@@ -934,8 +962,55 @@ export class RosterService {
         });
       }
 
-      return responsePayload;
-    });
+        return responsePayload;
+      });
+    } catch (error) {
+      if (request.idempotencyKey && (this.db as any).commandLedgerEntry) {
+        const committedLedger = await (this.db as any).commandLedgerEntry.findUnique({
+          where: {
+            principalId_targetId_operation_commandId: {
+              principalId: actor.userId,
+              targetId: request.tournamentId,
+              operation: "ROSTER_IMPORT_COMMIT",
+              commandId: request.idempotencyKey,
+            },
+          },
+        });
+        if (committedLedger?.outcome === "COMMITTED" && committedLedger.ackPayload) {
+          if (committedLedger.payloadDigest !== payloadDigest) {
+            throw new AppError(
+              "CONFLICT",
+              "Khóa idempotency đã được dùng cho dữ liệu import khác.",
+              409,
+              false,
+              "INVALID",
+              { reason: "IDEMPOTENCY_KEY_REUSED" },
+            );
+          }
+          return committedLedger.ackPayload as unknown as RosterCommitResponse;
+        }
+      }
+
+      // The database uniqueness fence remains authoritative for different
+      // idempotency keys racing on one logical person_key. Convert the raw
+      // Prisma error into the canonical conflict taxonomy without masking
+      // unrelated unique constraints (for example username).
+      const prismaError = error as { code?: string; meta?: { target?: unknown } };
+      const target = Array.isArray(prismaError.meta?.target)
+        ? prismaError.meta?.target.join("_")
+        : String(prismaError.meta?.target ?? "");
+      if (prismaError.code === "P2002" && target.includes("personKey")) {
+        throw new AppError(
+          "CONFLICT",
+          "Thí sinh có person_key đã được ghi danh trong giải đấu này.",
+          409,
+          false,
+          "INVALID",
+          { reason: "DUPLICATE_PERSON_KEY" },
+        );
+      }
+      throw error;
+    }
 
     return response;
   }

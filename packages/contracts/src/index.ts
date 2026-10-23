@@ -29,6 +29,7 @@ export * from "./account/d00.dto.js";
 export * from "./account/d02.dto.js";
 export * from "./account/d06.dto.js";
 export * from "./account/d07.dto.js";
+export * from "./account/d08.dto.js";
 export * from "./roster/d03.dto.js";
 export * from "./roster/d04.dto.js";
 export * from "./roster/d05.dto.js";

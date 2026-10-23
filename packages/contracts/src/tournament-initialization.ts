@@ -391,6 +391,10 @@ export const TournamentCoreConfigSchema = z.object({
   kFactor: z.number().int().min(8).max(64).default(32), // F64
   scoreFloor: z.number().int().min(0).max(1000).default(0), // F65
   botDeadlineAt: z.string().datetime().nullable().default(null), // F66 (Conditional on BOT_VS_BOT)
+  // D08 / BA-SA F63: optional for legacy snapshots; ACK fails closed until published.
+  rulesAckRequired: z.boolean().optional(),
+  regulationsFull: z.string().trim().min(1).optional(),
+  rulesQuickSummary: z.string().optional(),
   refereeRequired: z.boolean().optional(),
   minReadyOnlineReferees: z.number().int().min(1).max(20).optional(),
 });

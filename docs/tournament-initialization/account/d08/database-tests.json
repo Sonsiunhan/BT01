@@ -1,0 +1,114 @@
+{
+  "numTotalTests": 8,
+  "numPassedTests": 8,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "D08-A real PostgreSQL durability and transaction boundaries"
+          ],
+          "fullName": "D08-A real PostgreSQL durability and transaction boundaries writes durable evidence once under concurrent retries and survives client restart",
+          "status": "passed",
+          "title": "writes durable evidence once under concurrent retries and survives client restart",
+          "duration": 79.71190000000001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "D08-A real PostgreSQL durability and transaction boundaries"
+          ],
+          "fullName": "D08-A real PostgreSQL durability and transaction boundaries does not roll old evidence forward and rejects stale or foreign scopes",
+          "status": "passed",
+          "title": "does not roll old evidence forward and rejects stale or foreign scopes",
+          "duration": 10.966000000000008,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "D08-A real PostgreSQL durability and transaction boundaries"
+          ],
+          "fullName": "D08-A real PostgreSQL durability and transaction boundaries rolls back evidence if audit fails, with no partial acknowledgement",
+          "status": "passed",
+          "title": "rolls back evidence if audit fails, with no partial acknowledgement",
+          "duration": 7.147199999999998,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "D08-A real PostgreSQL durability and transaction boundaries"
+          ],
+          "fullName": "D08-A real PostgreSQL durability and transaction boundaries lets admission check share the consumer transaction and rolls its work back on failure",
+          "status": "passed",
+          "title": "lets admission check share the consumer transaction and rolls its work back on failure",
+          "duration": 8.005699999999933,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "D08-A real PostgreSQL durability and transaction boundaries"
+          ],
+          "fullName": "D08-A real PostgreSQL durability and transaction boundaries loads configurable durable metadata, preserving candidate and separate audit policy",
+          "status": "passed",
+          "title": "loads configurable durable metadata, preserving candidate and separate audit policy",
+          "duration": 3.271600000000035,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1792730019504,
+      "endTime": 1792730019613.2715,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Admin/Documents/BT01/apps/server/test/integration/d08-acknowledgement.integration.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "D08-B real PostgreSQL retention enforcement"
+          ],
+          "fullName": "D08-B real PostgreSQL retention enforcement cleans expired secrets and operational records while preserving identities, rights, ACK, and audit",
+          "status": "passed",
+          "title": "cleans expired secrets and operational records while preserving identities, rights, ACK, and audit",
+          "duration": 20.77170000000001,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "D08-B real PostgreSQL retention enforcement"
+          ],
+          "fullName": "D08-B real PostgreSQL retention enforcement is retry-safe under concurrent cleanup and never deletes a newer record",
+          "status": "passed",
+          "title": "is retry-safe under concurrent cleanup and never deletes a newer record",
+          "duration": 139.6501,
+          "failureMessages": [],
+          "meta": {}
+        },
+        {
+          "ancestorTitles": [
+            "D08-B real PostgreSQL retention enforcement"
+          ],
+          "fullName": "D08-B real PostgreSQL retention enforcement rejects contract mismatch before any mutation",
+          "status": "passed",
+          "title": "rejects contract mismatch before any mutation",
+          "duration": 2.958099999999945,
+          "failureMessages": [],
+          "meta": {}
+        }
+      ],
+      "startTime": 1792730020548,
+      "endTime": 1792730020710.958,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/Admin/Documents/BT01/apps/server/test/integration/d08-retention.integration.test.ts"
+    }
+  ]
+}

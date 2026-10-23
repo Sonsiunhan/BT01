@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { tournamentStaffApi } from "./tournamentStaffApi";
 import type { StaffInvitationDecision, StaffInvitationRecipientView } from "@ottv2/contracts";
+import { safeErrorMessage } from "../../services/http/safeErrorMessage";
 
 const roleLabel = (role: string) => role === "REFEREE" ? "Trọng tài (REFEREE)" : "Nhân sự (STAFF)";
 
@@ -20,7 +21,7 @@ export function InvitationAcceptancePage({ apiClient = tournamentStaffApi, tourn
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try { setInvitation(await apiClient.viewInvitation(resolvedTournamentId, resolvedToken)); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "Không thể tải lời mời."); }
+    catch (cause) { setError(safeErrorMessage(cause, "Không thể tải lời mời.")); }
     finally { setLoading(false); }
   }, [apiClient, resolvedToken, resolvedTournamentId]);
 
@@ -32,7 +33,7 @@ export function InvitationAcceptancePage({ apiClient = tournamentStaffApi, tourn
       const result: StaffInvitationDecision = await apiClient[action](resolvedTournamentId, resolvedToken);
       setInvitation(result.invitation);
       setMessage(result.replayed ? "Trạng thái trước đó đã được giữ nguyên." : action === "acceptInvitation" ? "Bạn đã chấp nhận lời mời." : "Bạn đã từ chối lời mời.");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Không thể cập nhật lời mời."); }
+    } catch (cause) { setError(safeErrorMessage(cause, "Không thể cập nhật lời mời.")); }
     finally { setBusy(false); }
   };
 

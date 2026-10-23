@@ -1,0 +1,11 @@
+{
+  "host": "127.0.0.1",
+  "port": 61443,
+  "database": "ottv2_d08_test_1792730010175",
+  "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-d08-test-hxEI6S",
+  "postgres": "18",
+  "productionMutation": false,
+  "schemaPush": "PASS",
+  "tests": "PASS",
+  "stopped": true
+}
