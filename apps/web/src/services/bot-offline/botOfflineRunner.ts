@@ -1,4 +1,5 @@
-import { createBotTurnState, DEFAULT_BOT_LIMITS, validateBotSource, type BotTurnState } from "@ottv2/bot-sdk";
+import { createBotTurnState, DEFAULT_BOT_LIMITS, digestSource, validateBotSource, type BotExecutionReceipt, type BotReceiptContext, type BotTurnState } from "@ottv2/bot-sdk";
+import type { BotInvocationRequest } from "@ottv2/bot-sdk";
 import { createInitialState } from "@ottv2/game-rules";
 import type { BotMove, JsonValue } from "@ottv2/bot-sdk";
 import { executeOfflineIsolated, OfflineCompartmentError } from "./offlineCompartment";
@@ -17,6 +18,8 @@ export const OFFLINE_RUNTIME_STATUS: OfflineRuntimeStatus = {
   verifying: false,
   message: "Python Offline chưa được xác minh trong sandbox của trình duyệt này. Hãy tải kit rồi kiểm tra lại.",
 };
+
+export type OfflineReceiptContext = Omit<BotReceiptContext, "sourceDigest"> & { sourceDigest?: string };
 
 const TRUSTED_PROBE_SOURCE = `# ottv2-memory-schema: ottv2-offline-attestation-v1\ndef choose_move(state, memory):\n    current = memory if isinstance(memory, dict) else {}\n    return state["legal_moves"][0], {"schema": "ottv2-offline-attestation-v1", "counter": int(current.get("counter", 0)) + 1}\n`;
 let verificationFlight: Promise<OfflineRuntimeStatus> | null = null;
@@ -65,7 +68,7 @@ export async function verifyOfflineRuntime(signal?: AbortSignal): Promise<Offlin
 
 export function invalidateOfflineRuntime(message = "Offline kit hoặc sandbox đã thay đổi; cần xác minh lại trước khi chạy."): void { blockRuntime(message); }
 
-export async function runOfflineBotTurn(input: { source: string; state: BotTurnState; memory: unknown; signal?: AbortSignal; preflight?: boolean }): Promise<{ move: BotMove; memory: unknown; computeMs: number }> {
+export async function runOfflineBotTurn(input: { source: string; state: BotTurnState; memory: unknown; signal?: AbortSignal; preflight?: boolean; receiptContext?: OfflineReceiptContext }): Promise<{ move: BotMove; memory: unknown; computeMs: number; receipt?: BotExecutionReceipt }> {
   const validation = validateBotSource(input.source);
   if (!validation.ok) throw new BotOfflineRunnerError(validation.code, validation.message);
   if (input.signal?.aborted) throw new BotOfflineRunnerError("ABORTED", "Lượt tính đã được dừng ở ranh giới an toàn.");
@@ -73,7 +76,18 @@ export async function runOfflineBotTurn(input: { source: string; state: BotTurnS
   const kit = await getOfflineKitStatus();
   if (!kit.ready) { invalidateOfflineRuntime(kit.message); throw new BotOfflineRunnerError("OFFLINE_KIT_MISSING", kit.message); }
   try {
-    return await executeOfflineIsolated({ source: input.source, state: input.state, memory: input.memory as JsonValue ?? null, seed: 42 }, input.signal, input.preflight);
+    const receiptContext = input.receiptContext
+      ? { ...input.receiptContext, sourceDigest: input.receiptContext.sourceDigest ?? await digestSource(input.source) }
+      : undefined;
+    const request: BotInvocationRequest = {
+      source: input.source,
+      state: input.state,
+      memory: input.memory as JsonValue ?? null,
+      seed: 42,
+      phase: input.preflight ? "PREFLIGHT" : "TURN",
+      ...(receiptContext === undefined ? {} : { receiptContext }),
+    };
+    return await executeOfflineIsolated(request, input.signal, input.preflight);
   } catch (error) {
     const code = error instanceof OfflineCompartmentError ? error.code : "BOT_WORKER_FAILED";
     if (["OFFLINE_KIT_MISSING", "RUNTIME_HASH_MISMATCH", "FRAME_ISOLATION_FAILED", "RUNTIME_ISOLATION_FAILED"].includes(code)) invalidateOfflineRuntime("Offline kit hoặc sandbox không còn đạt kiểm chứng; đã khóa chạy để bảo toàn an toàn.");

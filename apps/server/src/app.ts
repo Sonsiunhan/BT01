@@ -131,6 +131,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   registerErrorHandler(app);
   const tournamentBundle = options.tournamentBundle ?? createTournamentRuntimeBundle({
     database: database instanceof PrismaDatabase ? database.client : undefined,
+    botLibrary,
   });
   await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   // Register API diagnostics before the SPA catch-all so provider evidence

@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { performance } from "node:perf_hooks";
-import { DEFAULT_BOT_LIMITS, BOT_SDK_VERSION, BOT_STATE_SCHEMA_VERSION, validateBotSource, utf8ByteLength, createIsolatedRuntimeHarness, createBotTurnState, BotOutputValidationError, type IsolatedRuntimeAdapter } from "@ottv2/bot-sdk";
-import { createInitialState } from "@ottv2/game-rules";
-import type { BotLibraryItem, BotLibraryListResponse, BotRevision, BotRevisionTestResponse, BotSdkDocsResponse } from "@ottv2/contracts";
+import { DEFAULT_BOT_LIMITS, BOT_ONLINE_RUNTIME_VERSION, BOT_RUNTIME_POLICY_VERSION, BOT_SDK_VERSION, BOT_STATE_SCHEMA_VERSION, validateBotSource, utf8ByteLength, createIsolatedRuntimeHarness, createBotTurnState, BotOutputValidationError, type BotMoveRecord, type IsolatedRuntimeAdapter, type JsonValue } from "@ottv2/bot-sdk";
+import { createInitialState, type RuleProfile, type RuleState, type Side } from "@ottv2/game-rules";
+import type { BotExecutionReceipt, BotLibraryItem, BotLibraryListResponse, BotRevision, BotRevisionTestResponse, BotSdkDocsResponse } from "@ottv2/contracts";
 import { BotRevisionSchema } from "@ottv2/contracts";
 
 import { AppError } from "../../shared/errors/app-error.js";
@@ -232,7 +232,70 @@ export class BotLibraryService {
     return revision.source;
   }
 
-  async testRevision(ownerUserId: string, botId: string, revisionId: string): Promise<BotRevisionTestResponse> {
+  /**
+   * Runs one server-authored turn through the same isolated runtime used by
+   * Bot Online.  This is intentionally not an HTTP-facing source API: callers
+   * receive only the trusted move, memory and N06 receipt after the host has
+   * validated them.  Tournament readiness uses this for its offline proof.
+   */
+  async runTrustedTurn(input: {
+    ownerUserId: string;
+    botId: string;
+    revisionId: string;
+    side: Side;
+    state: RuleState;
+    history: readonly BotMoveRecord[];
+    clocksMs: Readonly<{ BLUE: number; RED: number }>;
+    memory: JsonValue;
+    seed: number;
+    matchId: string;
+    stateVersion: number;
+  }): Promise<{ move: { from: string; to: string }; memory: JsonValue; computeMs: number; receipt: BotExecutionReceipt }> {
+    const listing = await this.list(input.ownerUserId);
+    const bot = listing.bots.find((candidate) => candidate.id === input.botId);
+    const revision = bot?.revisions.find((candidate) => candidate.id === input.revisionId);
+    if (!bot || !revision) throw new AppError("NOT_FOUND", "Không tìm thấy revision Bot thuộc tài khoản.", 404, false, "INVALID");
+    if (revision.status === "INVALID" || revision.status === "FAILED") {
+      throw new BotOutputValidationError("Revision Bot không vượt qua kiểm tra an toàn.");
+    }
+    const source = await this.source(input.ownerUserId, input.botId, input.revisionId);
+    const state = createBotTurnState(input.state, input.side, input.history, input.clocksMs, input.history.length + 1);
+    const result = await this.runtime.runTurn({
+      source,
+      state,
+      memory: input.memory,
+      seed: input.seed,
+      phase: "TURN",
+      receiptContext: {
+        receiptId: randomUUID(),
+        ownerId: input.ownerUserId,
+        botId: input.botId,
+        revisionId: input.revisionId,
+        sourceDigest: revision.sourceDigest,
+        ruleVersion: state.rules.version,
+        sdkVersion: state.sdkVersion,
+        schemaVersion: state.schemaVersion,
+        runtimeVersion: BOT_ONLINE_RUNTIME_VERSION,
+        policyVersion: BOT_RUNTIME_POLICY_VERSION,
+        phase: "TURN",
+        matchId: input.matchId,
+        stateVersion: input.stateVersion,
+        invocationId: randomUUID(),
+        timestamp: new Date().toISOString(),
+      },
+    }, { aborted: false });
+    if (!result.receipt || result.receipt.outcome !== "ACCEPTED") {
+      throw new AppError("SERVICE_UNAVAILABLE", "Runtime không tạo được receipt tin cậy.", 503, true, "RECOVERABLE", { reason: "BOT_RUNTIME_RECEIPT_UNAVAILABLE" });
+    }
+    return {
+      move: result.move,
+      memory: result.memory,
+      computeMs: result.computeMs ?? 0,
+      receipt: result.receipt,
+    };
+  }
+
+  async testRevision(ownerUserId: string, botId: string, revisionId: string, options?: { ruleProfile?: RuleProfile }): Promise<BotRevisionTestResponse> {
     this.assertAccount(ownerUserId);
     const source = await this.source(ownerUserId, botId, revisionId);
     const started = performance.now();
@@ -246,7 +309,8 @@ export class BotLibraryService {
       this.preflightBusy = true;
       try {
         for (const side of ["BLUE", "RED"] as const) {
-          const state = createBotTurnState({ ...createInitialState(), currentTurn: side }, side, [], { BLUE: DEFAULT_BOT_LIMITS.wholeMatchMs, RED: DEFAULT_BOT_LIMITS.wholeMatchMs }, 1);
+          const initialStateOptions = options?.ruleProfile ? { profile: options.ruleProfile } : {};
+          const state = createBotTurnState({ ...createInitialState(initialStateOptions), currentTurn: side }, side, [], { BLUE: DEFAULT_BOT_LIMITS.wholeMatchMs, RED: DEFAULT_BOT_LIMITS.wholeMatchMs }, 1);
           const result = await this.runtime.runTurn({ source, state, memory: null, seed: 42, phase: "PREFLIGHT" }, { aborted: false });
           legalPreview.push(`${side === "BLUE" ? "Xanh" : "Đỏ"}: ${result.move.from.toUpperCase()} → ${result.move.to.toUpperCase()}`);
         }

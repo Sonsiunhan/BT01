@@ -19,6 +19,9 @@ import {
   type ReadinessSourcesPort,
 } from "./readiness-sources.port.js";
 import { TournamentVersioningAdapter } from "./tournament-versioning.adapter.js";
+import { BotLibraryService } from "../bot-library/bot-library.service.js";
+import { BotReadinessService } from "../tournament-bot-readiness/bot-readiness.service.js";
+import { registerBotReadinessRoutes } from "../tournament-bot-readiness/bot-readiness.route.js";
 
 export interface TournamentRuntimeBundle {
   store: TournamentStateStore;
@@ -30,6 +33,7 @@ export interface TournamentRuntimeBundle {
   adjudicationLedgerService: AdjudicationLedgerService;
   readinessSourcesPort: ReadinessSourcesPort;
   versioningAdapter: TournamentVersioningAdapter;
+  botReadinessService: BotReadinessService;
 }
 
 export function createTournamentRuntimeBundle(options?: {
@@ -37,6 +41,7 @@ export function createTournamentRuntimeBundle(options?: {
   store?: TournamentStateStore | undefined;
   database?: PrismaClient | undefined;
   readinessSourcesPort?: ReadinessSourcesPort | undefined;
+  botLibrary?: BotLibraryService | undefined;
 }): TournamentRuntimeBundle {
   const store = options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn });
   const unitContractService = new UnitContractService(store);
@@ -55,6 +60,7 @@ export function createTournamentRuntimeBundle(options?: {
   );
   const admissionGateService = new AdmissionGateService(store);
   const versioningAdapter = new TournamentVersioningAdapter(store);
+  const botReadinessService = new BotReadinessService(store, options?.botLibrary ?? new BotLibraryService());
 
   return {
     store,
@@ -66,6 +72,7 @@ export function createTournamentRuntimeBundle(options?: {
     adjudicationLedgerService,
     readinessSourcesPort,
     versioningAdapter,
+    botReadinessService,
   };
 }
 
@@ -87,6 +94,7 @@ export async function registerTournamentInitializationRoutes(
     admissionGateService: bundle.admissionGateService,
     adjudicationLedgerService: bundle.adjudicationLedgerService,
   });
+  await registerBotReadinessRoutes(app, auth, bundle.store, bundle.botReadinessService);
 
   // C32 & T005 Hook on Online Matchmaking Queue, Room Creation/Join, Spectate and Seat Upgrade
   app.addHook("preHandler", async (request) => {
@@ -175,4 +183,5 @@ export {
   InMemoryReadinessSourcesAdapter,
   PrismaReadinessSourcesAdapter,
   TournamentVersioningAdapter,
+  BotReadinessService,
 };

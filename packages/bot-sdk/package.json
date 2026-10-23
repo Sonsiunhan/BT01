@@ -17,6 +17,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ottv2/contracts": "workspace:*",
     "@ottv2/game-rules": "workspace:*"
   },
   "devDependencies": {

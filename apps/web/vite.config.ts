@@ -14,7 +14,29 @@ export default defineConfig({
       this.emitFile({ type: "asset", fileName: "offline-assets.json", source: JSON.stringify({ assets }) });
     },
   }],
-  server: { port: 3000 },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const normalized = id.replaceAll("\\\\", "/");
+          if (normalized.includes("/apps/web/src/features/admin/tournaments/")) return "admin-tournaments";
+          if (normalized.includes("/apps/web/src/features/admin/")) return "admin-pages";
+          if (normalized.includes("/apps/web/src/pages/")) return "app-pages";
+        },
+      },
+    },
+  },
+  // Local P16/browser QA uses the server-authoritative API rather than a
+  // Vite fallback document. Production can still set VITE_API_BASE_URL.
+  server: {
+    port: 3000,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:3001",
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,

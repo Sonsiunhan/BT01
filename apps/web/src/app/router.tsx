@@ -25,6 +25,11 @@ const BotOfflinePage = lazy(() => import("../pages/BotOfflinePage"));
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
+const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
+const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
+const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
+const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
+const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentRosterPage = lazy(() => import("../features/tournament-roster/TournamentRosterPage"));
 const AccountActivationPage = lazy(() => import("../pages/AccountActivationPage"));
@@ -76,36 +81,19 @@ export function AppRouter() {
         <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route
           path={routes.adminTournamentNew}
-          element={
-            <AdminRoutePending
-              pageCode="P02"
-              title="Khởi tạo giải đấu mới (Wizard)"
-              targetTask="S03"
-              description="Wizard 4 bước khởi tạo hồ sơ giải đấu, cấu hình thể thức và chuẩn bị nộp duyệt."
-            />
-          }
+          element={<TournamentWizardPage />}
         />
         <Route
           path={routes.adminTournamentEdit}
-          element={
-            <AdminRoutePending
-              pageCode="P02"
-              title="Chỉnh sửa bản nháp giải đấu"
-              targetTask="S03"
-              description="Cập nhật cấu hình bản nháp giải đấu đang mở hoặc giải được yêu cầu chỉnh sửa."
-            />
-          }
+          element={<TournamentWizardPage />}
         />
         <Route
           path={routes.adminTournamentDetail}
-          element={
-            <AdminRoutePending
-              pageCode="P03"
-              title="Chi tiết & Match-Center giải đấu"
-              targetTask="S05"
-              description="Tổng quan tiến độ giải đấu, bảng lịch trận CTF/Custom và panel giám sát theo thời gian thực."
-            />
-          }
+          element={<TournamentDetailPage />}
+        />
+        <Route
+          path={routes.adminTournamentRules}
+          element={<TournamentRulesPage />}
         />
         <Route
           path={routes.adminTournamentRoster}
@@ -122,27 +110,14 @@ export function AppRouter() {
             />
           }
         />
+        <Route path={routes.adminTournamentBotReadiness} element={<BotReadinessPage />} />
         <Route
           path={routes.adminAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán hệ thống"
-              targetTask="S06"
-              description="Lịch sử các thao tác quản trị toàn hệ thống đã được lọc và che dấu dữ liệu nhạy cảm."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminTournamentAudit}
-          element={
-            <AdminRoutePending
-              pageCode="P14"
-              title="Nhật ký kiểm toán giải đấu"
-              targetTask="S06"
-              description="Truy vết các thao tác thay đổi cấu hình, phân công nhân sự và duyệt trận trong giải đấu."
-            />
-          }
+          element={<AuditLogsViewerPage />}
         />
         <Route
           path={routes.adminOffline}
