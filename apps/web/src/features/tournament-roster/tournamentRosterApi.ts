@@ -1,16 +1,13 @@
-import {
-  RosterPreviewResponseSchema,
-  RosterCommitResponseSchema,
-  IssueActivationTokenResponseSchema,
-  ActivationStatusResponseSchema,
-  type RosterPreviewRequest,
-  type RosterPreviewResponse,
-  type RosterCommitRequest,
-  type RosterCommitResponse,
-  type IssueActivationTokenRequest,
-  type IssueActivationTokenResponse,
-  type ActivationStatusResponse,
+import type {
+  RosterPreviewRequest,
+  RosterPreviewResponse,
+  RosterCommitRequest,
+  RosterCommitResponse,
+  IssueActivationTokenRequest,
+  IssueActivationTokenResponse,
+  ActivationStatusResponse,
 } from "@ottv2/contracts";
+import { getJson, requestJson } from "../../services/http/httpClient";
 
 export interface EnrollmentRecordItem {
   id: string;
@@ -34,60 +31,34 @@ export interface TournamentEnrollmentsResponse {
   enrollments: EnrollmentRecordItem[];
 }
 
-async function requestJson<T>(
-  path: string,
-  init: RequestInit = {},
-  parser?: { parse: (value: unknown) => T },
-): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-    },
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const error = new Error(
-      (body as { message?: string }).message ?? "Không thể kết nối dịch vụ thí sinh giải đấu.",
-    );
-    Object.assign(error, { statusCode: response.status, code: (body as { code?: string }).code });
-    throw error;
-  }
-  return parser ? parser.parse(body) : (body as T);
-}
-
-const encoded = (value: string) => encodeURIComponent(value);
-
 export const tournamentRosterApi = {
   preview(payload: RosterPreviewRequest): Promise<RosterPreviewResponse> {
-    return requestJson("/admin/roster/preview", {
+    return requestJson<RosterPreviewResponse>("/admin/roster/preview", {
       method: "POST",
-      body: JSON.stringify(payload),
-    }, RosterPreviewResponseSchema);
+      body: payload,
+    });
   },
 
   commit(payload: RosterCommitRequest): Promise<RosterCommitResponse> {
-    return requestJson("/admin/roster/commit", {
+    return requestJson<RosterCommitResponse>("/admin/roster/commit", {
       method: "POST",
-      body: JSON.stringify(payload),
-    }, RosterCommitResponseSchema);
+      body: payload,
+    });
   },
 
   listEnrollments(tournamentId: string): Promise<TournamentEnrollmentsResponse> {
-    return requestJson(`/admin/tournaments/${encoded(tournamentId)}/roster`);
+    return getJson(`/admin/tournaments/${encodeURIComponent(tournamentId)}/roster`) as Promise<TournamentEnrollmentsResponse>;
   },
 
   issueActivationToken(payload: IssueActivationTokenRequest): Promise<IssueActivationTokenResponse> {
-    return requestJson("/admin/roster/activation/issue", {
+    return requestJson<IssueActivationTokenResponse>("/admin/roster/activation/issue", {
       method: "POST",
-      body: JSON.stringify(payload),
-    }, IssueActivationTokenResponseSchema);
+      body: payload,
+    });
   },
 
   getActivationStatus(enrollmentId: string): Promise<ActivationStatusResponse> {
-    return requestJson(`/admin/roster/activation/${encoded(enrollmentId)}`, {}, ActivationStatusResponseSchema);
+    return getJson(`/admin/roster/activation/${encodeURIComponent(enrollmentId)}`) as Promise<ActivationStatusResponse>;
   },
 };
 

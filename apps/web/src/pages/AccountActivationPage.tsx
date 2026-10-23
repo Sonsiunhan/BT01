@@ -11,6 +11,19 @@ export interface AccountActivationPageProps {
   token?: string;
 }
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "0.6rem 0.8rem",
+  borderRadius: "0.4rem",
+  border: "1px solid var(--border)",
+  background: "var(--surface)",
+};
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontWeight: 600,
+  marginBottom: "0.3rem",
+};
+
 export function AccountActivationPage({
   apiClient = activationApi,
   token: propToken,
@@ -28,7 +41,6 @@ export function AccountActivationPage({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Step 1 = Enter info & Claim, Step 2 = Set password, Step 3 = Done
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +49,6 @@ export function AccountActivationPage({
   const [setupOutcome, setSetupOutcome] = useState<SetupCredentialResponse | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Step 1: Claim Activation Identity
   const handleClaimSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -79,7 +90,6 @@ export function AccountActivationPage({
     }
   };
 
-  // Step 2: Setup Credential (Password)
   const handlePasswordSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -133,7 +143,7 @@ export function AccountActivationPage({
 
             <form onSubmit={handleClaimSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div className="form-group">
-                <label htmlFor="claim-token-input" style={{ display: "block", fontWeight: 600, marginBottom: "0.3rem" }}>
+                <label htmlFor="claim-token-input" style={labelStyle}>
                   Mã kích hoạt (Token) <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <input
@@ -144,12 +154,12 @@ export function AccountActivationPage({
                   onChange={(e) => setClaimToken(e.target.value)}
                   placeholder="Nhập mã kích hoạt…"
                   required
-                  style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "0.4rem", border: "1px solid var(--border)", background: "var(--surface)" }}
+                  style={inputStyle}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="activation-username" style={{ display: "block", fontWeight: 600, marginBottom: "0.3rem" }}>
+                <label htmlFor="activation-username" style={labelStyle}>
                   Tên đăng nhập mong muốn <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <input
@@ -160,12 +170,12 @@ export function AccountActivationPage({
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Từ 3–32 ký tự (chữ, số, _, -)"
                   required
-                  style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "0.4rem", border: "1px solid var(--border)", background: "var(--surface)" }}
+                  style={inputStyle}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="activation-display-name" style={{ display: "block", fontWeight: 600, marginBottom: "0.3rem" }}>
+                <label htmlFor="activation-display-name" style={labelStyle}>
                   Tên hiển thị <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <input
@@ -176,7 +186,7 @@ export function AccountActivationPage({
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Họ và tên của bạn"
                   required
-                  style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "0.4rem", border: "1px solid var(--border)", background: "var(--surface)" }}
+                  style={inputStyle}
                 />
               </div>
 
@@ -213,7 +223,7 @@ export function AccountActivationPage({
 
             <form onSubmit={handlePasswordSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div className="form-group">
-                <label htmlFor="activation-password" style={{ display: "block", fontWeight: 600, marginBottom: "0.3rem" }}>
+                <label htmlFor="activation-password" style={labelStyle}>
                   Mật khẩu mới <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <input
@@ -224,12 +234,12 @@ export function AccountActivationPage({
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Tối thiểu 8 ký tự…"
                   required
-                  style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "0.4rem", border: "1px solid var(--border)", background: "var(--surface)" }}
+                  style={inputStyle}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="activation-confirm-password" style={{ display: "block", fontWeight: 600, marginBottom: "0.3rem" }}>
+                <label htmlFor="activation-confirm-password" style={labelStyle}>
                   Xác nhận lại mật khẩu <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <input
@@ -240,7 +250,7 @@ export function AccountActivationPage({
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Nhập lại mật khẩu…"
                   required
-                  style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: "0.4rem", border: "1px solid var(--border)", background: "var(--surface)" }}
+                  style={inputStyle}
                 />
               </div>
 
