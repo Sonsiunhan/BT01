@@ -297,7 +297,6 @@ export async function registerRosterRoutes(
       },
     );
 
-    // List tournament enrollments (admin / TA only)
     const listHandler = async (request: FastifyRequest, reply: any) => {
       const cookie = readCookie(request);
       const context = await auth.authenticate(cookie);
@@ -313,10 +312,7 @@ export async function registerRosterRoutes(
       }
 
       const userRole = context.user.role;
-      const isSystemAdmin = userRole === "SYSTEM_ADMIN";
-      const isTournamentAdmin = userRole === "TOURNAMENT_ADMIN";
-
-      if (!isSystemAdmin && !isTournamentAdmin) {
+      if (userRole !== "SYSTEM_ADMIN" && userRole !== "TOURNAMENT_ADMIN") {
         throw new AppError(
           "UNAUTHORIZED",
           "Chỉ quản trị hệ thống hoặc quản trị giải đấu được xem danh sách thí sinh.",
@@ -326,8 +322,8 @@ export async function registerRosterRoutes(
         );
       }
 
-      const tournamentId = (request.params as any).tournamentId;
-      if (!tournamentId || typeof tournamentId !== "string") {
+      const tournamentId = (request.params as { tournamentId?: unknown }).tournamentId;
+      if (typeof tournamentId !== "string" || !tournamentId) {
         throw new AppError("VALIDATION_ERROR", "Thiếu tournamentId.", 400, false, "INVALID");
       }
 

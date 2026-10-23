@@ -67,6 +67,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Build web bundle for release gate
+        run: pnpm --filter @ottv2/web build
+
       - name: B14 release gate
         run: pnpm release:gate
 

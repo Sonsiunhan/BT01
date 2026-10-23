@@ -28,15 +28,20 @@ const TournamentListPage = lazy(() => import("../features/admin/tournaments/Tour
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
 const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
-const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
-const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
 const OfflineHubPage = lazy(() => import("../features/admin/offline/OfflineHubPage"));
 const OfflineBotsPage = lazy(() => import("../features/admin/offline/OfflineBotsPage"));
 const OfflinePracticeHumanBotPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanBotPage"));
 const OfflinePracticeHumanHumanPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanHumanPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
+const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
 const TournamentRosterPage = lazy(() => import("../features/tournament-roster/TournamentRosterPage"));
+const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
+const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
 const AccountActivationPage = lazy(() => import("../pages/AccountActivationPage"));
+const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
+const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
+const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
+const RulesAcknowledgementPage = lazy(() => import("../features/account/RulesAcknowledgementPage"));
 
 export function AppRouter() {
   return (
@@ -73,8 +78,12 @@ export function AppRouter() {
         <Route path={routes.botOnline} element={<BotOnlinePage />} />
         <Route path={routes.botOffline} element={<BotOfflinePage />} />
         <Route path={routes.botWorkbench} element={<BotWorkbenchPage />} />
+        <Route path={routes.staffInvitation} element={<InvitationAcceptancePage />} />
         <Route path={routes.accountActivation} element={<AccountActivationPage />} />
         <Route path={routes.canonicalAccountActivation} element={<AccountActivationPage />} />
+        <Route path={routes.accountAccess} element={<AccountAccessPage />} />
+        <Route path={routes.accountAccessReset} element={<AccountAccessPage />} />
+        <Route path={routes.tournamentRulesAcknowledgement} element={<RulesAcknowledgementPage />} />
       </Route>
 
       {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}
@@ -82,6 +91,7 @@ export function AppRouter() {
         <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
         <Route path={routes.adminTa} element={<AdminTaPage />} />
         <Route path={routes.adminAccounts} element={<AdminTaPage />} />
+        <Route path={routes.adminSupport} element={<SupportRecoveryPage />} />
         <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route
           path={routes.adminTournamentNew}
@@ -98,6 +108,10 @@ export function AppRouter() {
         <Route
           path={routes.adminTournamentRules}
           element={<TournamentRulesPage />}
+        />
+        <Route
+          path={routes.adminTournamentStaff}
+          element={<TournamentStaffPage />}
         />
         <Route
           path={routes.adminTournamentRoster}

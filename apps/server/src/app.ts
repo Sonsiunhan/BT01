@@ -39,9 +39,11 @@ import {
 } from "./modules/tournament-core/index.js";
 import { registerTournamentRulesPreviewRoutes } from "./modules/tournament-rules-preview/rules-preview.route.js";
 import { PrismaTournamentPreviewScopeReader, TournamentRulesPreviewService } from "./modules/tournament-rules-preview/rules-preview.service.js";
-import { RosterService, registerRosterRoutes } from "./modules/roster/index.js";
+import { RosterService, ActivationService, registerRosterRoutes } from "./modules/roster/index.js";
 import { registerTournamentRuleVersionRoutes } from "./modules/tournament-versioning/versioning.route.js";
 import type { TournamentVersioningPort } from "./modules/tournament-versioning/versioning.port.js";
+import { registerTournamentAcknowledgementRoutes } from "./modules/tournament-acknowledgement/acknowledgement.route.js";
+import { TournamentAcknowledgementService } from "./modules/tournament-acknowledgement/acknowledgement.service.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -73,6 +75,7 @@ export type BuildAppOptions = {
   tournamentBundle?: TournamentRuntimeBundle;
   tournamentRulesPreview?: TournamentRulesPreviewService;
   rosterService?: RosterService;
+  activationService?: ActivationService;
   /** L05-owned canonical version store; N04 only registers its typed adapter. */
   tournamentVersioning?: TournamentVersioningPort;
 };
@@ -104,6 +107,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   const history = options.history ?? new MatchHistoryService(database instanceof PrismaDatabase ? database.client : undefined);
   const social = options.social ?? new SocialService(database instanceof PrismaDatabase ? database.client : undefined, rooms);
   const rosterService = options.rosterService ?? new RosterService(database instanceof PrismaDatabase ? database.client : undefined);
+  const activationService = options.activationService ?? new ActivationService(database instanceof PrismaDatabase ? database.client : undefined);
   const guestImport = options.guestImport ?? new GuestImportService(database instanceof PrismaDatabase ? database.client : undefined);
   const metrics = options.metrics ?? new MetricsRegistry();
   const capacity = options.capacityController ?? new CapacityController({ metrics });
@@ -151,7 +155,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await registerBotLibraryRoutes(app, auth, botLibrary);
   await registerBotOnlineRoutes(app, auth, rooms, botOnline);
   if (tournamentRulesPreview) await registerTournamentRulesPreviewRoutes(app, auth, tournamentRulesPreview);
-  await registerRosterRoutes(app, auth, rosterService);
+  if (database instanceof PrismaDatabase) {
+    registerTournamentAcknowledgementRoutes(app, auth, new TournamentAcknowledgementService(database.client));
+  }
+  await registerRosterRoutes(app, auth, rosterService, activationService);
   const tournamentVersioning = options.tournamentVersioning ?? tournamentBundle.versioningAdapter;
   await registerTournamentRuleVersionRoutes(app, auth, tournamentVersioning);
   const botProbe = () => ({

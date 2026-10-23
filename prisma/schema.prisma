@@ -38,6 +38,7 @@ model User {
   blocksReceived    Block[] @relation("Blocked")
   guestHistoryImports GuestHistoryImport[]
   botLibraries      BotLibrary[]
+  rulesAcknowledgements TournamentRulesAcknowledgement[]
 
   @@index([usernameNormalized])
 }
@@ -482,6 +483,7 @@ model Tournament {
   changeRequests            TournamentChangeRequestRecord[]
   enrollments               TournamentEnrollmentRecord[]
   staffAssignments          TournamentStaffAssignmentRecord[]
+  staffInvitations          TournamentStaffInvitation[]
   adjudications             ManualAdjudicationRequestRecord[]
   scoreLedgerEntries        TournamentScoreLedgerRecord[]
 
@@ -502,6 +504,9 @@ model TournamentConfigVersionRecord {
   createdAt           DateTime   @default(now())
   tournament          Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
+  rulesAcknowledgements TournamentRulesAcknowledgement[]
+
+  @@unique([id, tournamentId])
   @@unique([tournamentId, versionNumber])
   @@index([tournamentId, effectiveAt])
 }
@@ -561,12 +566,73 @@ model TournamentStaffAssignmentRecord {
   role          String
   status        String     @default("ACTIVE")
   assignedRooms Json?
+  invitationId  String?    @unique
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  invitation    TournamentStaffInvitation? @relation(fields: [invitationId], references: [id], onDelete: SetNull)
 
   @@unique([tournamentId, userId, role])
   @@index([userId, status])
+}
+
+/// Durable, one-time staff/referee invitation handoff for D06-A.
+/// Raw tokens are never persisted; tokenHash is SHA-256 of the handoff token.
+model TournamentStaffInvitation {
+  id               String   @id @default(uuid())
+  tournamentId     String
+  contractId       String
+  recipientUserId  String
+  role             String
+  purpose          String   @default("TOURNAMENT_STAFF_INVITE")
+  status           String   @default("INVITED")
+  tokenHash        String   @unique
+  idempotencyKey   String
+  inviterUserId    String
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  acceptedAt       DateTime?
+  declinedAt       DateTime?
+  revokedAt        DateTime?
+  tournament       Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  assignment       TournamentStaffAssignmentRecord?
+
+  @@unique([tournamentId, idempotencyKey])
+  @@index([tournamentId, status])
+  @@index([recipientUserId, status])
+  @@index([expiresAt, status])
+}
+
+/// Durable support/recovery queue record for D07-A.
+/// Only the one-way recovery token hash is persisted; raw tokens are handoff-only.
+model SupportRecoveryTicket {
+  id                      String    @id @default(uuid())
+  tenantId                String?
+  requestType             String    @default("ACCOUNT_RECOVERY")
+  targetUserId            String
+  requesterUserId         String?
+  description             String
+  status                  String    @default("OPEN")
+  assignedOperatorUserId  String?
+  verificationReference   String?
+  idempotencyKey          String
+  recoveryTokenHash       String?   @unique
+  recoveryTokenPurpose    String?
+  recoveryTokenExpiresAt  DateTime?
+  recoveryTokenIssuedAt   DateTime?
+  recoveryTokenConsumedAt DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  verifiedAt              DateTime?
+  rejectedAt              DateTime?
+  resolvedAt              DateTime?
+  closedAt                DateTime?
+
+  @@unique([targetUserId, idempotencyKey])
+  @@index([tenantId, status, createdAt])
+  @@index([targetUserId, status])
+  @@index([assignedOperatorUserId, status])
+  @@index([recoveryTokenExpiresAt])
 }
 
 model ManualAdjudicationRequestRecord {
@@ -635,3 +701,27 @@ model TournamentAuditLogRecord {
 }
 
 
+
+/// D08-A: immutable explicit acknowledgement; no credentials, tokens or copied PII.
+/// Migration and identity-mapping/deletion policy require Long review.
+model TournamentRulesAcknowledgement {
+  id              String   @id @default(uuid())
+  userId          String
+  contractId      String
+  tournamentId    String
+  configVersionId String
+  acknowledgedAt  DateTime @default(now())
+  evidenceKind    String   @default("AUTHENTICATED_EXPLICIT_ACK")
+  user            User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  configVersion   TournamentConfigVersionRecord @relation(fields: [configVersionId, tournamentId], references: [id, tournamentId], onDelete: Restrict)
+
+  @@unique([userId, contractId, tournamentId, configVersionId])
+  @@index([contractId, tournamentId])
+}
+
+/// D08-A: server-provisioned, versioned policy metadata; no public writer.
+model ArtifactRetentionPolicyRecord {
+  artifact  String @id
+  policy    Json
+  updatedAt DateTime @updatedAt
+}

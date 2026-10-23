@@ -1,0 +1,11 @@
+{
+  "host": "127.0.0.1",
+  "port": 49343,
+  "database": "ottv2_d09_test_1792735222473",
+  "directory": "C:\\Users\\Admin\\AppData\\Local\\Temp\\ottv2-d09-test-nH7xqA",
+  "postgres": "18",
+  "productionMutation": false,
+  "schemaPush": "PASS",
+  "tests": "PASS",
+  "stopped": true
+}
