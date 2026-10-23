@@ -49,7 +49,6 @@ export const routes = {
   accountAccessReset: "/account-access/reset",
   adminSupport: "/admin/support",
   adminTournamentOperations: "/admin/tournaments/:tournamentId/operations",
-  adminTournamentBotReadiness: "/admin/tournaments/:tournamentId/bot-readiness",
   adminAudit: "/admin/audit",
   adminTournamentAudit: "/admin/tournaments/:tournamentId/audit",
   adminOffline: "/admin/offline",
