@@ -117,13 +117,27 @@ function fixture() {
       try {
         return await fn(db);
       } catch (error) {
+        // The in-memory harness lets two callbacks overlap on one object. A
+        // losing conditional token claim must not roll back the winner's
+        // committed state; real PostgreSQL row locking provides this fence.
+        const winner = error && typeof error === "object" && (error as any).statusCode === 401
+          ? tickets.find((ticket) => ticket.recoveryTokenConsumedAt !== null)
+          : undefined;
+        const winnerUsers = winner ? [...users.entries()].map(([id, user]) => [id, { ...user }] as const) : [];
+        const winnerAudits = winner ? audits.slice(auditLength) : [];
         tickets.length = 0;
         tickets.push(...ticketSnapshot);
+        if (winner) {
+          const snapshotTicket = tickets.find((ticket) => ticket.id === winner.id);
+          if (snapshotTicket) Object.assign(snapshotTicket, winner);
+        }
         users.clear();
         for (const [id, user] of userSnapshot) users.set(id, user);
+        for (const [id, user] of winnerUsers) users.set(id, user);
         sessions.length = 0;
         sessions.push(...sessionSnapshot);
         audits.length = auditLength;
+        audits.push(...winnerAudits);
         throw error;
       }
     },
@@ -398,5 +412,29 @@ describe("D07-B token-only account recovery execution", () => {
     await expect(service.consumeRecoveryToken({ token, newPassword: "new-secure-password" })).rejects.toMatchObject({ statusCode: 401 });
     expect(f.users.get("user-1").passwordHash).toBe("password-hash-1");
     expect(f.tickets[0].status).toBe("VERIFIED");
+  });
+
+  it("consumes a recovery token once when two callers race", async () => {
+    const { f, service, token } = await verifiedRecoveryFixture();
+    const originalUpdateMany = f.db.supportRecoveryTicket.updateMany;
+    let arrivals = 0;
+    let release!: () => void;
+    const barrier = new Promise<void>((resolve) => { release = resolve; });
+    f.db.supportRecoveryTicket.updateMany = async (args: any) => {
+      arrivals += 1;
+      if (arrivals === 2) release();
+      await barrier;
+      return originalUpdateMany(args);
+    };
+    const results = await Promise.allSettled([
+      service.consumeRecoveryToken({ token, newPassword: "new-secure-password" }),
+      service.consumeRecoveryToken({ token, newPassword: "new-secure-password" }),
+    ]);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    expect(f.tickets[0].status).toBe("RESOLVED");
+    expect(f.tickets[0].recoveryTokenConsumedAt).toEqual(expect.any(Date));
+    expect(f.audits.filter((entry) => entry.action === "SUPPORT_RECOVERY_COMPLETED")).toHaveLength(1);
+    expect(await verifySecret("new-secure-password", f.users.get("user-1").passwordHash)).toBe(true);
   });
 });

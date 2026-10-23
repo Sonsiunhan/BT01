@@ -318,7 +318,9 @@ export class ActivationService {
     // 4. Determine outcome inside a transaction
     const claimedAt = new Date();
 
-    const response = await this.db.$transaction(async (tx) => {
+    let response: ClaimActivationResponse;
+    try {
+      response = await this.db.$transaction(async (tx) => {
       let userId: string;
       let outcome: "NEWLY_ACTIVATED" | "LINKED_TO_EXISTING";
 
@@ -452,8 +454,31 @@ export class ActivationService {
         },
       });
 
-      return responsePayload;
-    });
+        return responsePayload;
+      });
+    } catch (error) {
+      // A concurrent claim may lose on the enrollment username/ledger
+      // uniqueness fence after the winning transaction commits. Re-read the
+      // durable claim ledger and replay that safe result instead of exposing a
+      // raw unique-key failure or creating another account.
+      const committedClaim = await this.db.commandLedgerEntry.findFirst({
+        where: { targetId: enrollmentId, operation: OPERATION_CLAIM, outcome: "CLAIMED" },
+      });
+      if (committedClaim?.ackPayload) {
+        const ack = committedClaim.ackPayload as any;
+        return {
+          success: true,
+          enrollmentId,
+          userId: ack.userId,
+          username: ack.username,
+          displayName: ack.displayName,
+          personKey: ack.personKey,
+          claimedAt: (committedClaim.committedAt ?? committedClaim.receivedAt).toISOString(),
+          outcome: "LINKED_TO_EXISTING",
+        };
+      }
+      throw error;
+    }
 
     return response;
   }

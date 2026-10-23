@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { RulesAcknowledgementStatus } from "@ottv2/contracts";
 import { rulesAcknowledgementApi, type RulesAcknowledgementApi } from "./rulesAcknowledgementApi";
+import { safeErrorMessage } from "../../services/http/safeErrorMessage";
 
 type PageState =
   | { kind: "loading" }
@@ -15,7 +16,7 @@ export type RulesAcknowledgementPageProps = {
 };
 
 function safeError(cause: unknown): string {
-  return cause instanceof Error && cause.message ? cause.message : "Không thể tải điều lệ hiện hành.";
+  return safeErrorMessage(cause, "Không thể tải điều lệ hiện hành.");
 }
 
 export function RulesAcknowledgementPage({ apiClient = rulesAcknowledgementApi, contractId: propContractId, tournamentId: propTournamentId }: RulesAcknowledgementPageProps = {}) {
