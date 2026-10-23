@@ -144,6 +144,33 @@ export function AdminLayout() {
                 Giải đấu
               </NavLink>
               <NavLink
+                to={routes.adminUnits}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
+                }
+                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+              >
+                Đơn vị
+              </NavLink>
+              <NavLink
+                to={routes.adminContracts}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
+                }
+                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+              >
+                Hợp đồng
+              </NavLink>
+              <NavLink
+                to={routes.adminApprovals}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
+                }
+                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+              >
+                Xét duyệt
+              </NavLink>
+              <NavLink
                 to={routes.adminAudit}
                 className={({ isActive }) =>
                   `nav-link ${isActive ? "active font-bold text-primary" : ""}`
