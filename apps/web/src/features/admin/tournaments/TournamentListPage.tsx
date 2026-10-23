@@ -178,7 +178,7 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
           data-testid="tournament-loading-skeleton"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
             gap: "1rem",
           }}
         >
@@ -239,7 +239,7 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
             data-testid="tournament-cards-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
               gap: "1.1rem",
             }}
           >
