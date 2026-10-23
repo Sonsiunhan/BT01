@@ -680,7 +680,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           { step: 1, title: "1. Hồ sơ & Đơn vị", sub: "Tên, slug, hợp đồng" },
           { step: 2, title: "2. Lịch trình", sub: "Thời gian, múi giờ" },
           { step: 3, title: "3. Quy mô & Thể thức", sub: "Thí sinh, ARENA" },
-          { step: 4, title: "4. Tổng quan", sub: "Xem lại & Lưu nháp" },
+          { step: 4, title: "4. Tổng quan & Luật", sub: "Luật chơi & Lưu nháp" },
         ].map((item) => {
           const isActive = currentStep === item.step;
           const isPassed = currentStep > item.step;
