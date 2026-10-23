@@ -425,6 +425,14 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             Luật thi đấu
           </Link>
           <Link
+            to={routes.adminTournamentRoster.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-roster-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Vận động viên / Roster
+          </Link>
+          <Link
             to={routes.adminTournamentStaff.replace(":tournamentId", tournament.id)}
             className="button secondary"
             data-testid="action-staff-btn"

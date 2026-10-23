@@ -45,6 +45,7 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
         boxShadow: "var(--lab-bevel)",
         padding: "1.15rem",
         gap: "1rem",
+        minWidth: 0,
         transition: "transform var(--motion-fast), box-shadow var(--motion-fast)",
       }}
     >
