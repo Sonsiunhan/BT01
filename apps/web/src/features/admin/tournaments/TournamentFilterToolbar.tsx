@@ -46,7 +46,7 @@ export const TournamentFilterToolbar: React.FC<TournamentFilterToolbarProps> = (
           gap: "0.85rem",
         }}
       >
-        <div style={{ position: "relative", minWidth: "260px", flex: "1 1 320px" }}>
+        <div style={{ position: "relative", minWidth: 0, flex: "1 1 200px" }}>
           <input
             type="search"
             data-testid="tournament-search-input"

@@ -47,7 +47,9 @@ describe("W6 MatchmakingManager", () => {
     const queue = new MatchmakingManager(rooms, matches);
     const first = await queue.join(blue, 1000, "client-blue");
     const cancelled = queue.cancel(first.queueId, blue.userId);
+    await new Promise((resolve) => setTimeout(resolve, 5));
     expect(queue.cancel(first.queueId, blue.userId)).toEqual(cancelled);
+    expect(queue.get(first.queueId, blue.userId)).toEqual(cancelled);
     expect((await queue.join(red, 1000, "client-red")).status).toBe("QUEUED");
     expect(queue.get(first.queueId, blue.userId).status).toBe("CANCELLED");
     expect(rooms.size()).toBe(0);
