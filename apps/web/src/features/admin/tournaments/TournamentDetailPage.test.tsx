@@ -255,4 +255,16 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       );
     });
   });
+
+  it("7. renders navigation links to Rules, Roster, Staff, Bot Readiness, and Audit", async () => {
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("action-rules-btn")).toHaveAttribute("href", "/admin/tournaments/tour-001/rules");
+      expect(screen.getByTestId("action-roster-btn")).toHaveAttribute("href", "/admin/tournaments/tour-001/roster");
+      expect(screen.getByTestId("action-staff-btn")).toHaveAttribute("href", "/admin/tournaments/tour-001/staff");
+      expect(screen.getByTestId("action-bot-readiness-btn")).toHaveAttribute("href", "/admin/tournaments/tour-001/bot-readiness");
+      expect(screen.getByTestId("action-audit-btn")).toHaveAttribute("href", "/admin/tournaments/tour-001/audit");
+    });
+  });
 });

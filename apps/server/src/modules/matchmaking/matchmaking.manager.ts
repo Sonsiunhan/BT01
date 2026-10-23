@@ -20,6 +20,7 @@ type QueueEntry = {
   roomId: string | null;
   matchId: string | null;
   sequence: number;
+  terminalAt?: number;
 };
 
 const BASE_RANGE = 100;
@@ -108,11 +109,14 @@ export class MatchmakingManager {
       const match = this.matches.ensure(matchedRoom);
       this.matches.acquireActiveLock(matchedRoom, candidate.actor.userId, candidate.clientId);
       this.matches.acquireActiveLock(matchedRoom, actor.userId, clientId);
+      const matchNow = this.now();
       candidate.status = "MATCHED";
+      candidate.terminalAt = matchNow;
       candidate.opponent = this.playerOf(entry);
       candidate.roomId = matchedRoom.roomId;
       candidate.matchId = match.matchId;
       entry.status = "MATCHED";
+      entry.terminalAt = matchNow;
       entry.opponent = this.playerOf(candidate);
       entry.roomId = matchedRoom.roomId;
       entry.matchId = match.matchId;
@@ -124,6 +128,7 @@ export class MatchmakingManager {
       // already have received this queueId while room creation was awaiting storage;
       // deleting it would turn a legitimate cancel/reconcile into a misleading 404.
       entry.status = "CANCELLED";
+      entry.terminalAt = this.now();
       this.byUser.delete(actor.userId);
       this.emit(entry, "QUEUE_CANCELLED");
       if (matchedRoom) {
@@ -151,6 +156,7 @@ export class MatchmakingManager {
     if (entry.status === "MATCHED") return this.snapshot(entry);
     if (entry.status === "CANCELLED") return this.snapshot(entry);
     entry.status = "CANCELLED";
+    entry.terminalAt = this.now();
     this.byUser.delete(userId);
     this.emit(entry, "QUEUE_CANCELLED");
     return this.snapshot(entry);
@@ -172,6 +178,7 @@ export class MatchmakingManager {
       if (entry.status !== "QUEUED") continue;
       if (now >= entry.leaseExpiresAt || now >= entry.maxWaitDeadline) {
         entry.status = "CANCELLED";
+        entry.terminalAt = now;
         this.byUser.delete(entry.actor.userId);
         this.pendingUsers.delete(entry.actor.userId);
         this.emit(entry, "QUEUE_CANCELLED");
@@ -212,10 +219,12 @@ export class MatchmakingManager {
   }
 
   private range(entry: QueueEntry): number {
-    return Math.min(MAX_RANGE, BASE_RANGE + Math.floor(Math.max(0, this.now() - entry.joinedAt) / RANGE_STEP_MS) * RANGE_STEP);
+    const effectiveNow = entry.terminalAt ?? this.now();
+    return Math.min(MAX_RANGE, BASE_RANGE + Math.floor(Math.max(0, effectiveNow - entry.joinedAt) / RANGE_STEP_MS) * RANGE_STEP);
   }
 
   private snapshot(entry: QueueEntry): MatchmakingSnapshot {
+    const effectiveNow = entry.terminalAt ?? this.now();
     return {
       queueId: entry.queueId,
       mode: entry.mode,
@@ -223,7 +232,7 @@ export class MatchmakingManager {
       player: this.playerOf(entry),
       opponent: entry.opponent,
       range: this.range(entry),
-      elapsedMs: Math.max(0, this.now() - entry.joinedAt),
+      elapsedMs: Math.max(0, effectiveNow - entry.joinedAt),
       joinedAt: entry.joinedAt,
       roomId: entry.roomId,
       matchId: entry.matchId,
