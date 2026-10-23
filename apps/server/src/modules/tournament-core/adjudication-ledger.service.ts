@@ -1,10 +1,16 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
   ManualAdjudicationRequestSchema,
+  ManualAdjudicationBoardSchema,
+  ManualAdjudicationTieIndicatorsSchema,
+  ManualAdjudicationViewSchema,
   SubmitManualAdjudicationVerdictInputSchema,
   TournamentLeaderboardSnapshotSchema,
   TournamentScoreLedgerEntrySchema,
   type ManualAdjudicationRequestDto,
+  type ManualAdjudicationBoard,
+  type ManualAdjudicationTieIndicators,
+  type ManualAdjudicationViewDto,
   type SubmitManualAdjudicationVerdictInput,
   type TournamentLeaderboardSnapshotDto,
   type TournamentScoreLedgerEntryDto,
@@ -70,6 +76,106 @@ function resolveDeterministicFallbackSide(
   if (fallbackPolicy === "RED_ADVANTAGE") return "RED";
   const digest = createHash("sha256").update(matchId).digest();
   return (digest[0]! & 1) === 0 ? "BLUE" : "RED";
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function nonNegativeInt(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
+function safeSide(value: unknown): "BLUE" | "RED" | null {
+  return value === "BLUE" || value === "RED" ? value : null;
+}
+
+function safePiece(value: unknown): "R" | "P" | "S" | null {
+  return value === "R" || value === "P" || value === "S" ? value : null;
+}
+
+function projectSafeBoard(snapshot: Record<string, unknown>): ManualAdjudicationBoard | null {
+  const boardSource = Array.isArray(snapshot.board)
+    ? { cells: snapshot.board }
+    : asRecord(snapshot.board);
+  const rows = nonNegativeInt(boardSource.rows ?? boardSource.height);
+  const columns = nonNegativeInt(boardSource.columns ?? boardSource.width);
+  const rawCells = Array.isArray(boardSource.cells) ? boardSource.cells : null;
+  if (!rows || !columns || rows > 15 || columns > 15 || !rawCells) return null;
+  if (rawCells.length !== rows * columns) return null;
+
+  const cells: Array<{ row: number; column: number; side: "BLUE" | "RED" | null; pieceType: "R" | "P" | "S" | null }> = [];
+  const positions = new Set<string>();
+  for (const value of rawCells) {
+    const cell = asRecord(value);
+    const row = nonNegativeInt(cell.row);
+    const column = nonNegativeInt(cell.column ?? cell.col);
+    if (row === null || column === null || row >= rows || column >= columns) return null;
+    const position = `${row}:${column}`;
+    if (positions.has(position)) return null;
+    positions.add(position);
+    const side = safeSide(cell.side ?? cell.owner);
+    const pieceType = safePiece(cell.pieceType ?? cell.type);
+    if ((side === null) !== (pieceType === null)) return null;
+    cells.push({ row, column, side, pieceType });
+  }
+
+  const parsed = ManualAdjudicationBoardSchema.safeParse({ rows, columns, cells });
+  return parsed.success ? parsed.data : null;
+}
+
+function projectSafeMetrics(value: unknown): ManualAdjudicationTieIndicators["blue"] | null {
+  const item = asRecord(value);
+  const material = asRecord(item.materialByType ?? item.pieceCounts);
+  const candidate = {
+    materialByType: {
+      R: material.R,
+      P: material.P,
+      S: material.S,
+    },
+    goalDistance: item.goalDistance ?? null,
+    mobility: item.mobility,
+  };
+  const parsed = ManualAdjudicationTieIndicatorsSchema.shape.blue.safeParse(candidate);
+  return parsed.success ? parsed.data : null;
+}
+
+function projectSafeTieIndicators(snapshot: Record<string, unknown>): ManualAdjudicationTieIndicators | null {
+  const rawIndicators = asRecord(snapshot.tieIndicators);
+  const blue = projectSafeMetrics(rawIndicators.BLUE ?? rawIndicators.blue);
+  const red = projectSafeMetrics(rawIndicators.RED ?? rawIndicators.red);
+  return blue && red ? { blue, red } : null;
+}
+
+function projectSafeSnapshot(request: ManualAdjudicationRequestDto): Pick<
+  ManualAdjudicationViewDto,
+  "board" | "sideToMove" | "tieIndicators" | "ruleVersion"
+> {
+  const snapshot = asRecord(request.frozenSnapshot);
+  const board = projectSafeBoard(snapshot);
+  const tieIndicators = projectSafeTieIndicators(snapshot);
+  const ruleVersion = typeof snapshot.ruleVersion === "string"
+    ? snapshot.ruleVersion
+    : typeof snapshot.ruleVersionNumber === "number"
+      ? String(snapshot.ruleVersionNumber)
+      : null;
+
+  return {
+    board,
+    sideToMove: safeSide(snapshot.sideToMove),
+    tieIndicators,
+    ruleVersion,
+  };
+}
+
+function hasReviewableSnapshot(request: ManualAdjudicationRequestDto): boolean {
+  const projected = projectSafeSnapshot(request);
+  return projected.board !== null
+    && projected.sideToMove !== null
+    && projected.tieIndicators !== null
+    && projected.ruleVersion !== null;
 }
 
 interface ParticipantRunningStats {
@@ -590,6 +696,18 @@ export class AdjudicationLedgerService {
         });
       }
 
+      if (!hasReviewableSnapshot(req)) {
+        throw createTournamentError({
+          code: "CONFLICT",
+          statusCode: 409,
+          message: "Không thể ghi phán quyết khi snapshot trận đấu thiếu dữ liệu canonical.",
+          details: {
+            reason: "ADJUDICATION_SNAPSHOT_INCOMPLETE",
+            adjudicationRequestId,
+          },
+        });
+      }
+
       const ledgerEntry = this.appendLedgerEntryInternal({
         tournamentId: req.tournamentId,
         matchId: req.matchId,
@@ -752,6 +870,40 @@ export class AdjudicationLedgerService {
 
   getLedgerEntries(tournamentId: string): TournamentScoreLedgerEntryDto[] {
     return [...(this.store.scoreLedger.get(tournamentId) ?? [])];
+  }
+
+  toManualAdjudicationView(request: ManualAdjudicationRequestDto): ManualAdjudicationViewDto {
+    const safeSnapshot = projectSafeSnapshot(request);
+    const participantLabel = (participantId: string): string => {
+      const enrollment = this.store.enrollments.get(participantId);
+      return enrollment?.tournamentId === request.tournamentId
+        ? enrollment.displayName
+        : participantId;
+    };
+    return ManualAdjudicationViewSchema.parse({
+      id: request.id,
+      tournamentId: request.tournamentId,
+      matchId: request.matchId,
+      roomId: request.roomId,
+      blueParticipant: { id: request.blueParticipantId, label: participantLabel(request.blueParticipantId) },
+      redParticipant: { id: request.redParticipantId, label: participantLabel(request.redParticipantId) },
+      status: request.status,
+      ...safeSnapshot,
+      deadlineAt: request.deadlineAt,
+      fallbackPolicy: request.fallbackPolicy,
+      winnerSide: request.winnerSide,
+      reason: request.decisionReason,
+      resolutionSource: request.status === "DECIDED"
+        ? "MANUAL"
+        : request.status === "FALLBACK_APPLIED"
+          ? "FALLBACK_POLICY"
+          : null,
+      decidedByUserId: request.decidedByUserId,
+      finishedAtIso: request.decidedAt,
+      finishSequence: request.finishSequence,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+    });
   }
 
   getAdjudicationRequest(adjudicationRequestId: string): ManualAdjudicationRequestDto | undefined {

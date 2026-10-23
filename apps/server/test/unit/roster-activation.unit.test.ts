@@ -370,6 +370,57 @@ describe("D05-A — Roster Participant Activation & Account Handoff", () => {
     expect(mock.store.users.size).toBe(userCountAfterFirst); // No duplicate user
   });
 
+  it("handles concurrent claims with one durable account and a safe replay", async () => {
+    const issueRes = await service.issueActivationToken(
+      { enrollmentId: "enr-1" },
+      { userId: "ta-user-1", role: "TOURNAMENT_ADMIN" },
+    );
+
+    // Hold both pre-transaction replay reads so neither request can observe
+    // the winner before entering the serialized transaction boundary.
+    const originalFindFirst = mock.prisma.commandLedgerEntry.findFirst;
+    let claimReads = 0;
+    let releaseReads!: () => void;
+    const readsReady = new Promise<void>((resolve) => { releaseReads = resolve; });
+    mock.prisma.commandLedgerEntry.findFirst = async (args: any) => {
+      const result = await originalFindFirst(args);
+      if (args.where?.operation === "ROSTER_ACTIVATION_CLAIM" && !result) {
+        claimReads += 1;
+        if (claimReads === 2) releaseReads();
+        await readsReady;
+      }
+      return result;
+    };
+
+    // A real database serializes the claim transaction. Model that boundary
+    // in the unit harness so the second transaction sees the first durable
+    // user/claim and rolls back its own attempt.
+    const originalTransaction = mock.prisma.$transaction;
+    let queue = Promise.resolve();
+    mock.prisma.$transaction = async (callback: any) => {
+      const previous = queue;
+      let release!: () => void;
+      queue = new Promise<void>((resolve) => { release = resolve; });
+      await previous;
+      try {
+        return await originalTransaction(callback);
+      } finally {
+        release();
+      }
+    };
+
+    const results = await Promise.all([
+      service.claimActivation({ claimToken: issueRes.claimToken, username: "race-user", displayName: "Race User" }),
+      service.claimActivation({ claimToken: issueRes.claimToken, username: "race-user", displayName: "Race User" }),
+    ]);
+
+    expect(results.every((result) => result.success)).toBe(true);
+    expect(new Set(results.map((result) => result.userId)).size).toBe(1);
+    expect(mock.store.users.size).toBe(1);
+    expect([...mock.store.commandLedger.values()].filter((entry) => entry.operation === "ROSTER_ACTIVATION_CLAIM")).toHaveLength(1);
+    expect([...mock.store.auditLogs.values()].filter((entry) => entry.action === "ROSTER_ACTIVATION_CLAIMED")).toHaveLength(1);
+  });
+
   // -------------------------------------------------------------------------
   // 5. Reused/existing account (from D04-B)
   // -------------------------------------------------------------------------

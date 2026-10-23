@@ -70,9 +70,11 @@ if (entryGzip > 170 * 1024) fail(`initial JS entry is ${(entryGzip / 1024).toFix
 // Robot Lab V10 adds the approved Bot Online/Offline, Guest and replay routes.
 // The S02 tournament list and D02 admin console add lazy route chunks as well.
 // Keep the initial entry gate at 170 KB while allowing the complete lazy-route
-// graph to grow to the measured 300 KB envelope; this is a total-graph budget,
-// not a permission to ship an oversized initial payload.
-if (totalJsGzip > 300 * 1024) fail(`all JS chunks total ${(totalJsGzip / 1024).toFixed(1)} KB gzip; limit is 300 KB.`);
+// graph to grow to the measured 316 KB envelope. P14 audit, P15 offline tools,
+// P16 bot-readiness, and the D08 account acknowledgement route are independently
+// add independently lazy administration routes; this remains a total-graph
+// budget, not a permission to ship an oversized initial payload.
+if (totalJsGzip > 316 * 1024) fail(`all JS chunks total ${(totalJsGzip / 1024).toFixed(1)} KB gzip; limit is 316 KB.`);
 
 const effectSources = [
   "apps/web/src/foundation/AmbientArena.tsx",

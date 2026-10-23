@@ -87,7 +87,13 @@ function decisionFixture(status = "INVITED") {
   const db: any = {
     tournamentStaffInvitation: {
       findFirst: async ({ where }: any) => where.tournamentId === invitation.tournamentId && where.tokenHash === invitation.tokenHash ? invitation : null,
+      findUnique: async ({ where }: any) => where.id === invitation.id ? invitation : null,
       update: async ({ data }: any) => Object.assign(invitation, data),
+      updateMany: async ({ where, data }: any) => {
+        if (where.id !== invitation.id || where.status !== invitation.status || (where.expiresAt?.gt && invitation.expiresAt <= where.expiresAt.gt)) return { count: 0 };
+        Object.assign(invitation, data);
+        return { count: 1 };
+      },
     },
     tournament: { findUnique: async () => ({ id: "t-1", tournamentCode: "CUP-1", contractId: "c-1" }) },
     tournamentStaffAssignmentRecord: {
@@ -129,6 +135,32 @@ describe("D06-B recipient invitation flow", () => {
     const replay = await service.acceptInvitation({ userId: "staff-1" }, { tournamentId: "t-1", token: f.rawToken });
     expect(replay.replayed).toBe(true);
     expect(f.assignment.status).toBe("ACTIVE");
+  });
+
+  it("allows only one concurrent acceptance transition and replays the losing request", async () => {
+    const f = decisionFixture();
+    const service = new TournamentStaffService(f.db, { now });
+    const originalUpdateMany = f.db.tournamentStaffInvitation.updateMany;
+    let arrivals = 0;
+    let release!: () => void;
+    const barrier = new Promise<void>((resolve) => { release = resolve; });
+    f.db.tournamentStaffInvitation.updateMany = async (args: any) => {
+      arrivals += 1;
+      if (arrivals === 2) release();
+      await barrier;
+      return originalUpdateMany(args);
+    };
+    const results = await Promise.allSettled([
+      service.acceptInvitation({ userId: "staff-1" }, { tournamentId: "t-1", token: f.rawToken }),
+      service.acceptInvitation({ userId: "staff-1" }, { tournamentId: "t-1", token: f.rawToken }),
+    ]);
+    expect(results.every((result) => result.status === "fulfilled")).toBe(true);
+    const decisions = results.map((result) => (result as PromiseFulfilledResult<any>).value);
+    expect(decisions.filter((decision) => decision.replayed)).toHaveLength(1);
+    expect(decisions.filter((decision) => !decision.replayed)).toHaveLength(1);
+    expect(f.invitation.status).toBe("ACTIVE");
+    expect(f.assignment.status).toBe("ACTIVE");
+    expect(f.audits.filter((audit) => audit.action === "STAFF_INVITATION_ACCEPTED")).toHaveLength(1);
   });
 
   it("rejects atomically, is idempotent, and blocks opposite transitions", async () => {

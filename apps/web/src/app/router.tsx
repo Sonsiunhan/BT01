@@ -28,10 +28,20 @@ const TournamentListPage = lazy(() => import("../features/admin/tournaments/Tour
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
 const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
+const OfflineHubPage = lazy(() => import("../features/admin/offline/OfflineHubPage"));
+const OfflineBotsPage = lazy(() => import("../features/admin/offline/OfflineBotsPage"));
+const OfflinePracticeHumanBotPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanBotPage"));
+const OfflinePracticeHumanHumanPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanHumanPage"));
 const AdminTaPage = lazy(() => import("../pages/AdminTaPage"));
 const TournamentStaffPage = lazy(() => import("../features/tournament-staff/TournamentStaffPage"));
+const TournamentRosterPage = lazy(() => import("../features/tournament-roster/TournamentRosterPage"));
+const BotReadinessPage = lazy(() => import("../features/admin/tournaments/BotReadinessPage"));
 const InvitationAcceptancePage = lazy(() => import("../features/tournament-staff/InvitationAcceptancePage"));
+const AccountActivationPage = lazy(() => import("../pages/AccountActivationPage"));
+const AccountAccessPage = lazy(() => import("../pages/AccountAccessPage"));
+const SupportRecoveryPage = lazy(() => import("../features/admin/support/SupportRecoveryPage"));
 const AuditLogsViewerPage = lazy(() => import("../features/admin/tournaments/AuditLogsViewerPage"));
+const RulesAcknowledgementPage = lazy(() => import("../features/account/RulesAcknowledgementPage"));
 
 export function AppRouter() {
   return (
@@ -69,6 +79,11 @@ export function AppRouter() {
         <Route path={routes.botOffline} element={<BotOfflinePage />} />
         <Route path={routes.botWorkbench} element={<BotWorkbenchPage />} />
         <Route path={routes.staffInvitation} element={<InvitationAcceptancePage />} />
+        <Route path={routes.accountActivation} element={<AccountActivationPage />} />
+        <Route path={routes.canonicalAccountActivation} element={<AccountActivationPage />} />
+        <Route path={routes.accountAccess} element={<AccountAccessPage />} />
+        <Route path={routes.accountAccessReset} element={<AccountAccessPage />} />
+        <Route path={routes.tournamentRulesAcknowledgement} element={<RulesAcknowledgementPage />} />
       </Route>
 
       {/* Admin Console Shell (S01: No Online CTA, Role-aware, Lazy routes) */}
@@ -76,6 +91,7 @@ export function AppRouter() {
         <Route path={routes.admin} element={<Navigate to={routes.adminTournaments} replace />} />
         <Route path={routes.adminTa} element={<AdminTaPage />} />
         <Route path={routes.adminAccounts} element={<AdminTaPage />} />
+        <Route path={routes.adminSupport} element={<SupportRecoveryPage />} />
         <Route path={routes.adminTournaments} element={<TournamentListPage />} />
         <Route
           path={routes.adminTournamentNew}
@@ -98,6 +114,10 @@ export function AppRouter() {
           element={<TournamentStaffPage />}
         />
         <Route
+          path={routes.adminTournamentRoster}
+          element={<TournamentRosterPage />}
+        />
+        <Route
           path={routes.adminTournamentOperations}
           element={
             <AdminRoutePending
@@ -108,6 +128,7 @@ export function AppRouter() {
             />
           }
         />
+        <Route path={routes.adminTournamentBotReadiness} element={<BotReadinessPage />} />
         <Route
           path={routes.adminAudit}
           element={<AuditLogsViewerPage />}
@@ -116,50 +137,12 @@ export function AppRouter() {
           path={routes.adminTournamentAudit}
           element={<AuditLogsViewerPage />}
         />
-        <Route
-          path={routes.adminOffline}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Hub công cụ Offline"
-              targetTask="S08"
-              description="Cổng truy cập tập trung vào các công cụ thực thi offline: Kho Bot, Đấu Bot và Phòng luyện tập."
-            />
-          }
-        />
-        <Route
-          path={routes.adminOfflineBots}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Kho Bot của tôi"
-              targetTask="S08"
-              description="Quản lí danh sách mã nguồn Bot cá nhân và theo dõi trạng thái tương thích với các bộ luật."
-            />
-          }
-        />
-        <Route
-          path={routes.adminOfflinePracticeHumanBot}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Phòng tập Người – Bot Offline"
-              targetTask="S08"
-              description="Môi trường thi đấu luyện tập cục bộ giữa người chơi và Bot Python trong sandbox an toàn."
-            />
-          }
-        />
-        <Route
-          path={routes.adminOfflinePracticeHumanHuman}
-          element={
-            <AdminRoutePending
-              pageCode="P15"
-              title="Phòng tập Người – Người Offline"
-              targetTask="S08"
-              description="Chế độ chơi hai người trên cùng một thiết bị với luật thi đấu tùy biến."
-            />
-          }
-        />
+        <Route path={routes.adminOffline} element={<OfflineHubPage />} />
+        <Route path="/admin/offline-hub" element={<Navigate to={routes.adminOffline} replace />} />
+        <Route path="/admin/offline-tools" element={<Navigate to={routes.adminOffline} replace />} />
+        <Route path={routes.adminOfflineBots} element={<OfflineBotsPage />} />
+        <Route path={routes.adminOfflinePracticeHumanBot} element={<OfflinePracticeHumanBotPage />} />
+        <Route path={routes.adminOfflinePracticeHumanHuman} element={<OfflinePracticeHumanHumanPage />} />
       </Route>
 
       {/* 404 Catch-All */}

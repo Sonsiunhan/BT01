@@ -433,6 +433,14 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             Nhân sự / Referee
           </Link>
           <Link
+            to={routes.adminTournamentBotReadiness.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-bot-readiness-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Trạng thái Bot
+          </Link>
+          <Link
             to={routes.adminTournamentAudit.replace(":tournamentId", tournament.id)}
             className="button secondary"
             data-testid="action-audit-btn"

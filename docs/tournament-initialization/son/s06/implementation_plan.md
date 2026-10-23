@@ -1,10 +1,10 @@
 # S06 — Implementation Plan: Audit Viewer FE/BE và Nối Readiness Core (P14 | P03)
 
-**Owner:** Sơn  
-**Task:** S06  
-**Trang:** P14 — Nhật ký kiểm toán (`/admin/audit`, `/admin/tournaments/:tournamentId/audit`) & P03 — Chi tiết giải đấu  
-**Dependencies:** S05, L05; G0 PASS  
-**Status:** IN_PROGRESS  
+**Owner:** Sơn
+**Task:** S06
+**Trang:** P14 — Nhật ký kiểm toán (`/admin/audit`, `/admin/tournaments/:tournamentId/audit`) & P03 — Chi tiết giải đấu
+**Dependencies:** S05, L05; G0 PASS
+**Status:** IN_PROGRESS
 
 ---
 

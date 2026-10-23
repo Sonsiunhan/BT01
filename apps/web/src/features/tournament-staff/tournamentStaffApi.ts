@@ -14,6 +14,7 @@ import {
   type StaffReadiness,
   type StaffRevokeResult,
 } from "@ottv2/contracts";
+import { ApiError } from "../../services/http/apiError";
 
 type StaffListResponse = {
   invitations: StaffInvitationView[];
@@ -24,9 +25,11 @@ async function requestJson<T>(path: string, init: RequestInit = {}, parser?: { p
   const response = await fetch(path, { ...init, credentials: "include", headers: { "Content-Type": "application/json", ...(init.headers ?? {}) } });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error((body as { message?: string }).message ?? "Không thể kết nối dịch vụ nhân sự giải đấu.");
-    Object.assign(error, { statusCode: response.status, code: (body as { code?: string }).code });
-    throw error;
+    throw new ApiError(
+      (body as { message?: string }).message ?? "Không thể kết nối dịch vụ nhân sự giải đấu.",
+      response.status,
+      (body as { code?: string }).code ?? "HTTP_ERROR",
+    );
   }
   return parser ? parser.parse(body) : (body as T);
 }

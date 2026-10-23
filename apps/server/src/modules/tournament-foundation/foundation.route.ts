@@ -192,4 +192,53 @@ export async function registerTournamentFoundationRoutes(
     });
     return reply.status(200).send({ logs });
   });
+
+  // P15: Offline Hub Capabilities & Modes (/api/admin/offline/capabilities)
+  app.get("/api/admin/offline/capabilities", async (request, reply) => {
+    const actor = await resolveTournamentRequestActor(request, auth, store);
+    assertAdminActor(actor);
+    return reply.status(200).send({
+      capabilities: {
+        "offline.hub.read": true,
+        "offline.bot.read": true,
+        "offline.practice.humanBot": true,
+        "offline.practice.humanHuman": true,
+      },
+      runtime: {
+        status: "READY",
+        policy: "NO_SERVER_RUNNER",
+        isolation: "BROWSER_WORKER_CPYTHON",
+      },
+      modes: [
+        {
+          id: "BOT_LIBRARY",
+          title: "Kho Bot của tôi",
+          description: "Quản lí danh sách mã nguồn Bot cá nhân và theo dõi trạng thái tương thích.",
+          route: "/admin/offline/bots",
+          status: "ACTIVE",
+        },
+        {
+          id: "BOT_VS_BOT",
+          title: "Đấu Bot Offline (Bot – Bot)",
+          description: "Môi trường giả lập hai Bot thi đấu đối kháng trực tiếp trong trình duyệt.",
+          route: "/dau-chuong-trinh/offline",
+          status: "ACTIVE",
+        },
+        {
+          id: "PRACTICE_HUMAN_BOT",
+          title: "Phòng tập Người – Bot",
+          description: "Môi trường thi đấu luyện tập cục bộ giữa người chơi và Bot Python trong sandbox an toàn.",
+          route: "/admin/offline/practice/human-bot",
+          status: "ACTIVE",
+        },
+        {
+          id: "PRACTICE_HUMAN_HUMAN",
+          title: "Phòng tập Người – Người",
+          description: "Chế độ chơi hai người trên cùng một thiết bị với bàn cờ Robot Lab.",
+          route: "/admin/offline/practice/human-human",
+          status: "ACTIVE",
+        },
+      ],
+    });
+  });
 }
