@@ -2,10 +2,10 @@
 
 > **Trạng thái mới nhất (final re-review revision 2, 23/10/2026): PASS — 18/18 AC (100%), 0 P0, 0 P1.** Xem mục final re-review cuối tài liệu. Kết luận này thay thế các kết luận HOLD lịch sử cho quyết định requirements gate hiện tại.
 
-**Reviewer scope:** N08 only — runtime proof and P16 Bot readiness  
-**Reviewed requirements:** `N08-REQUIREMENTS-2026-10-22.md`, revision 1  
-**Requirements SHA-256:** `3B767F4C4E2988F9C9AFED2160412543139619907079CC284603B996067D0350`  
-**Source baseline:** `a1d0547313a48ad9ded0b10be922ea52d0554792`  
+**Reviewer scope:** N08 only — runtime proof and P16 Bot readiness
+**Reviewed requirements:** `N08-REQUIREMENTS-2026-10-22.md`, revision 1
+**Requirements SHA-256:** `3B767F4C4E2988F9C9AFED2160412543139619907079CC284603B996067D0350`
+**Source baseline:** `a1d0547313a48ad9ded0b10be922ea52d0554792`
 **Review mode:** source/docs inspection only; no application code, database or production-data mutation
 
 ## Kết luận
@@ -76,9 +76,9 @@ Chỉ chạy các lệnh read-only: `Get-Content`, `Get-ChildItem`, `Get-FileHas
 
 ## Re-review — requirements revision 2 — 2026-10-23
 
-**Reviewed requirements:** `N08-REQUIREMENTS-2026-10-22.md`, revision 2  
-**Requirements SHA-256:** `BC7C3B9319D5F2095C19B0AF20583C687FF09370178F7EC366A4BE2E8F42162E`  
-**Source baseline:** `a1d0547313a48ad9ded0b10be922ea52d0554792`  
+**Reviewed requirements:** `N08-REQUIREMENTS-2026-10-22.md`, revision 2
+**Requirements SHA-256:** `BC7C3B9319D5F2095C19B0AF20583C687FF09370178F7EC366A4BE2E8F42162E`
+**Source baseline:** `a1d0547313a48ad9ded0b10be922ea52d0554792`
 **Method:** re-read the full revision, compare G01–G07 closure with the current enrollment contract/store, N06 receipt/runtime boundary and the stable 18-AC checklist.
 
 ### Kết luận revision 2
@@ -127,8 +127,8 @@ Hai sửa đổi này là contract/accessibility guardrail, không mở lại bu
 
 ## Final re-review — requirements revision 2 — 2026-10-23
 
-**Reviewed requirements:** `N08-REQUIREMENTS-2026-10-22.md`, revision 2 final closure  
-**Requirements SHA-256:** `7E9C75D0B87144824A737DB32BD62F2A08F7B8B6A175BDF15F8399B08725A351`  
+**Reviewed requirements:** `N08-REQUIREMENTS-2026-10-22.md`, revision 2 final closure
+**Requirements SHA-256:** `7E9C75D0B87144824A737DB32BD62F2A08F7B8B6A175BDF15F8399B08725A351`
 **Source baseline:** `a1d0547313a48ad9ded0b10be922ea52d0554792`
 
 ### Kết luận cuối
