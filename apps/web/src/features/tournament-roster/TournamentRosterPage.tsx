@@ -11,6 +11,16 @@ import type {
   RosterCommitResponse,
 } from "@ottv2/contracts";
 
+const thStyle: React.CSSProperties = { padding: "0.5rem 0.75rem", textAlign: "left" };
+const tdStyle: React.CSSProperties = { padding: "0.5rem 0.75rem" };
+const boxStyle: React.CSSProperties = {
+  padding: "1.25rem",
+  border: "1px solid var(--border)",
+  borderRadius: "0.8rem",
+  background: "var(--surface)",
+  marginBottom: "1.5rem",
+};
+
 export function TournamentRosterPage({
   apiClient = tournamentRosterApi,
   tournamentId: propTournamentId,
@@ -25,19 +35,16 @@ export function TournamentRosterPage({
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
   const [enrollmentsError, setEnrollmentsError] = useState<string | null>(null);
 
-  // File upload & preview state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileBase64, setFileBase64] = useState<string>("");
+  const [fileBase64, setFileBase64] = useState("");
   const [previewing, setPreviewing] = useState(false);
   const [previewResult, setPreviewResult] = useState<RosterPreviewResponse | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
-  // Commit state
   const [committing, setCommitting] = useState(false);
   const [commitResult, setCommitResult] = useState<RosterCommitResponse | null>(null);
   const [commitError, setCommitError] = useState<string | null>(null);
 
-  // Activation issuance state
   const [issuingForId, setIssuingForId] = useState<string | null>(null);
   const [issuedTokenInfo, setIssuedTokenInfo] = useState<{
     enrollmentId: string;
@@ -78,9 +85,8 @@ export function TournamentRosterPage({
       reader.onload = () => {
         const result = reader.result;
         if (typeof result === "string") {
-          // If data URL, extract base64 part
-          const commaIndex = result.indexOf(",");
-          setFileBase64(commaIndex !== -1 ? result.slice(commaIndex + 1) : result);
+          const idx = result.indexOf(",");
+          setFileBase64(idx !== -1 ? result.slice(idx + 1) : result);
         }
       };
       reader.readAsDataURL(file);
@@ -95,7 +101,6 @@ export function TournamentRosterPage({
       setPreviewError("Vui lòng chọn một tệp CSV hoặc XLSX.");
       return;
     }
-
     setPreviewing(true);
     setPreviewError(null);
     setCommitResult(null);
@@ -114,7 +119,6 @@ export function TournamentRosterPage({
 
   const handleCommit = async () => {
     if (!previewResult || !resolvedTournamentId) return;
-
     setCommitting(true);
     setCommitError(null);
     try {
@@ -174,7 +178,7 @@ export function TournamentRosterPage({
           className="button secondary"
           style={{ fontSize: "0.85rem" }}
         >
-          ← Quay lại chi tiết giải
+          Quay lại chi tiết giải
         </Link>
       </div>
 
@@ -185,15 +189,7 @@ export function TournamentRosterPage({
       )}
 
       {/* SECTION 1: Upload & Preview */}
-      <section
-        style={{
-          padding: "1.25rem",
-          border: "1px solid var(--border)",
-          borderRadius: "0.8rem",
-          background: "var(--surface)",
-          marginBottom: "1.5rem",
-        }}
-      >
+      <section style={boxStyle}>
         <h2 style={{ fontSize: "1.15rem", marginTop: 0 }}>Tải lên tệp danh sách thí sinh (CSV / XLSX)</h2>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem", margin: "0.25rem 0 1rem" }}>
           Hỗ trợ các cột chuẩn: <code>unit_code</code>, <code>student_or_member_id</code>, <code>full_name</code>, <code>username</code>, <code>email</code>.
@@ -217,24 +213,12 @@ export function TournamentRosterPage({
           </button>
         </form>
 
-        {previewError && (
-          <div role="alert" style={{ marginTop: "1rem", color: "#ef4444" }}>
-            {previewError}
-          </div>
-        )}
+        {previewError && <div role="alert" style={{ marginTop: "1rem", color: "#ef4444" }}>{previewError}</div>}
 
-        {/* Preview Results Panel */}
         {previewResult && (
           <div style={{ marginTop: "1.5rem" }} data-testid="roster-preview-result">
             <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Kết quả kiểm tra trước import</h3>
-            <div
-              style={{
-                display: "flex",
-                gap: "1rem",
-                flexWrap: "wrap",
-                marginBottom: "1rem",
-              }}
-            >
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
               <span className="badge" data-testid="badge-total">Tổng số: {previewResult.totalRows}</span>
               <span className="badge" data-testid="badge-valid" style={{ background: "rgba(16, 185, 129, 0.2)", color: "#10b981" }}>
                 Hợp lệ: {previewResult.validRows}
@@ -247,19 +231,13 @@ export function TournamentRosterPage({
               </span>
             </div>
 
-            {/* Preview Rows Table */}
-            <div style={{ overflowX: "auto", maxHeight: "360px", border: "1px solid var(--border)", borderRadius: "0.5rem" }}>
+            <div style={{ overflowX: "auto", maxHeight: 360, border: "1px solid var(--border)", borderRadius: "0.5rem" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                 <thead>
                   <tr style={{ background: "rgba(255, 255, 255, 0.05)", borderBottom: "1px solid var(--border)" }}>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>#</th>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>Đơn vị</th>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>Mã định danh</th>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>Họ và tên</th>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>Tên đăng nhập</th>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>Email</th>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>Trạng thái</th>
-                    <th style={{ padding: "0.5rem 0.75rem", textAlign: "left" }}>Ghi chú / Lỗi</th>
+                    {["#", "Đơn vị", "Mã định danh", "Họ và tên", "Tên đăng nhập", "Email", "Trạng thái", "Ghi chú / Lỗi"].map((h) => (
+                      <th key={h} style={thStyle}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -271,16 +249,16 @@ export function TournamentRosterPage({
                         background: row.valid ? "transparent" : "rgba(239, 68, 68, 0.08)",
                       }}
                     >
-                      <td style={{ padding: "0.5rem 0.75rem" }}>{row.rowNumber}</td>
-                      <td style={{ padding: "0.5rem 0.75rem" }}>{String(row.data.unit_code ?? "")}</td>
-                      <td style={{ padding: "0.5rem 0.75rem" }}>{String(row.data.student_or_member_id ?? "")}</td>
-                      <td style={{ padding: "0.5rem 0.75rem" }}>{String(row.data.full_name ?? "")}</td>
-                      <td style={{ padding: "0.5rem 0.75rem" }}>{String(row.data.username ?? "")}</td>
-                      <td style={{ padding: "0.5rem 0.75rem" }}>{String(row.data.email ?? "")}</td>
-                      <td style={{ padding: "0.5rem 0.75rem", fontWeight: 600, color: row.valid ? "#10b981" : "#ef4444" }}>
+                      <td style={tdStyle}>{row.rowNumber}</td>
+                      <td style={tdStyle}>{String(row.data.unit_code ?? "")}</td>
+                      <td style={tdStyle}>{String(row.data.student_or_member_id ?? "")}</td>
+                      <td style={tdStyle}>{String(row.data.full_name ?? "")}</td>
+                      <td style={tdStyle}>{String(row.data.username ?? "")}</td>
+                      <td style={tdStyle}>{String(row.data.email ?? "")}</td>
+                      <td style={{ ...tdStyle, fontWeight: 600, color: row.valid ? "#10b981" : "#ef4444" }}>
                         {row.valid ? "Hợp lệ" : "Lỗi"}
                       </td>
-                      <td style={{ padding: "0.5rem 0.75rem", color: row.valid ? "var(--muted)" : "#ef4444" }}>
+                      <td style={{ ...tdStyle, color: row.valid ? "var(--muted)" : "#ef4444" }}>
                         {row.errors.length > 0
                           ? row.errors.join("; ")
                           : row.warnings.length > 0
@@ -293,7 +271,6 @@ export function TournamentRosterPage({
               </table>
             </div>
 
-            {/* Commit Action */}
             <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", alignItems: "center" }}>
               <button
                 type="button"
@@ -309,7 +286,6 @@ export function TournamentRosterPage({
           </div>
         )}
 
-        {/* Commit Outcome Display */}
         {commitResult && (
           <div
             style={{
@@ -379,14 +355,7 @@ export function TournamentRosterPage({
       )}
 
       {/* SECTION 3: Current Tournament Enrollments */}
-      <section
-        style={{
-          padding: "1.25rem",
-          border: "1px solid var(--border)",
-          borderRadius: "0.8rem",
-          background: "var(--surface)",
-        }}
-      >
+      <section style={{ ...boxStyle, marginBottom: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
           <h2 style={{ fontSize: "1.15rem", margin: 0 }}>Thí sinh hiện tại trong giải ({enrollments.length})</h2>
           <button
@@ -413,24 +382,21 @@ export function TournamentRosterPage({
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }} data-testid="roster-table">
               <thead>
                 <tr style={{ background: "rgba(255, 255, 255, 0.05)", borderBottom: "1px solid var(--border)" }}>
-                  <th style={{ padding: "0.6rem 0.75rem", textAlign: "left" }}>Mã định danh (personKey)</th>
-                  <th style={{ padding: "0.6rem 0.75rem", textAlign: "left" }}>Họ và tên</th>
-                  <th style={{ padding: "0.6rem 0.75rem", textAlign: "left" }}>Đơn vị</th>
-                  <th style={{ padding: "0.6rem 0.75rem", textAlign: "left" }}>Email</th>
-                  <th style={{ padding: "0.6rem 0.75rem", textAlign: "left" }}>Hạt giống</th>
-                  <th style={{ padding: "0.6rem 0.75rem", textAlign: "left" }}>Trạng thái tài khoản</th>
-                  <th style={{ padding: "0.6rem 0.75rem", textAlign: "right" }}>Thao tác</th>
+                  {["Mã định danh (personKey)", "Họ và tên", "Đơn vị", "Email", "Hạt giống", "Trạng thái tài khoản"].map((h) => (
+                    <th key={h} style={thStyle}>{h}</th>
+                  ))}
+                  <th style={{ ...thStyle, textAlign: "right" }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {enrollments.map((enr) => (
                   <tr key={enr.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td style={{ padding: "0.6rem 0.75rem", fontWeight: 600 }}>{enr.personKey}</td>
-                    <td style={{ padding: "0.6rem 0.75rem" }}>{enr.displayName}</td>
-                    <td style={{ padding: "0.6rem 0.75rem" }}>{enr.unitCode}</td>
-                    <td style={{ padding: "0.6rem 0.75rem" }}>{enr.email ?? "—"}</td>
-                    <td style={{ padding: "0.6rem 0.75rem" }}>{enr.seedRating}</td>
-                    <td style={{ padding: "0.6rem 0.75rem" }}>
+                    <td style={{ ...tdStyle, fontWeight: 600 }}>{enr.personKey}</td>
+                    <td style={tdStyle}>{enr.displayName}</td>
+                    <td style={tdStyle}>{enr.unitCode}</td>
+                    <td style={tdStyle}>{enr.email ?? "—"}</td>
+                    <td style={tdStyle}>{enr.seedRating}</td>
+                    <td style={tdStyle}>
                       <span
                         className="badge"
                         style={{
@@ -441,7 +407,7 @@ export function TournamentRosterPage({
                         {enr.userId ? "Đã liên kết" : "Chưa kích hoạt"}
                       </span>
                     </td>
-                    <td style={{ padding: "0.6rem 0.75rem", textAlign: "right" }}>
+                    <td style={{ ...tdStyle, textAlign: "right" }}>
                       <button
                         type="button"
                         className="button secondary"
