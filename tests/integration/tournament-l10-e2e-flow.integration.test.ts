@@ -600,7 +600,20 @@ describe("L10 — End-to-End Tournament Initialization & C32 HTTP Integration Fl
         roomId: "e2e-room-1",
         blueParticipantId: blueAuth.user.id,
         redParticipantId: redAuth.user.id,
-        frozenSnapshot: { turn: 120 },
+        frozenSnapshot: {
+          board: {
+            rows: 1,
+            columns: 1,
+            cells: [{ row: 0, column: 0, side: null, pieceType: null }],
+          },
+          sideToMove: "BLUE",
+          ruleVersion: "rps-v1",
+          tieIndicators: {
+            blue: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+            red: { materialByType: { R: 0, P: 0, S: 0 }, goalDistance: null, mobility: 0 },
+          },
+          turn: 120,
+        },
       });
 
     const verdictRes = await app.inject({
