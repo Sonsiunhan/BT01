@@ -492,6 +492,87 @@ describe("L10 — End-to-End Tournament Initialization & C32 HTTP Integration Fl
     };
     expect(approved.status).toBe("APPROVED");
 
+    // 7b. Post-approval ChangeRequest & SA Approval (T024, T061)
+    const crRes = await app.inject({
+      method: "POST",
+      url: `/api/tournaments/${approved.id}/change-requests`,
+      headers: {
+        origin: ORIGIN,
+        "x-ott-request": "1",
+        cookie: taAuth.cookie,
+      },
+      payload: {
+        reason: "Cập nhật mô tả giải đấu sau khi đã được phê duyệt",
+        effectiveAt: "2026-11-01T08:00:00.000Z",
+        proposedCoreConfigPatch: { shortDescription: "Giải chính thức cấp Khoa CNTT - Phiên bản nâng cấp" },
+      },
+    });
+    expect(crRes.statusCode).toBe(201);
+    const { changeRequest } = JSON.parse(crRes.payload) as {
+      changeRequest: { id: string; status: string };
+    };
+    expect(changeRequest.status).toBe("PENDING");
+
+    const crDecisionRes = await app.inject({
+      method: "POST",
+      url: `/api/admin/change-requests/${changeRequest.id}/decision`,
+      headers: {
+        origin: ORIGIN,
+        "x-ott-request": "1",
+        cookie: adminAuth.cookie,
+      },
+      payload: {
+        decision: "APPROVE",
+        note: "Chấp thuận thay đổi cấu hình",
+      },
+    });
+    expect(crDecisionRes.statusCode).toBe(200);
+
+    // 7c. Within-Envelope Rule Update by TA directly without re-review (BR-10, T025)
+    const latestTourRes = await app.inject({
+      method: "GET",
+      url: `/api/tournaments/${approved.id}`,
+      headers: { cookie: taAuth.cookie },
+    });
+    const latestTour = JSON.parse(latestTourRes.payload).tournament;
+
+    const ruleUpdateRes = await app.inject({
+      method: "POST",
+      url: `/api/tournaments/${approved.id}/rule-versions`,
+      headers: {
+        origin: ORIGIN,
+        "x-ott-request": "1",
+        cookie: taAuth.cookie,
+      },
+      payload: {
+        expectedRevision: latestTour.revision,
+        effectiveAt: "2026-11-01T08:00:00.000Z",
+        changeSummary: "Điều chỉnh thời gian lượt đi trong khung hợp đồng",
+        ruleProfilePatch: { turnSeconds: 20 },
+      },
+    });
+    expect(ruleUpdateRes.statusCode).toBe(200);
+
+    // 7d. Evaluate Readiness before participant enrollment -> blocked
+    const readinessBeforeRes = await app.inject({
+      method: "GET",
+      url: `/api/tournaments/${approved.id}/readiness`,
+      headers: { cookie: taAuth.cookie },
+    });
+    expect(readinessBeforeRes.statusCode).toBe(200);
+    const readinessBefore = JSON.parse(readinessBeforeRes.payload).readiness;
+    expect(readinessBefore.canStartRunning).toBe(false);
+    expect(readinessBefore.blockers).toContain("INSUFFICIENT_ELIGIBLE_PARTICIPANTS");
+
+    // 7e. P15 Offline Hub Capabilities route check
+    const offlineCapsRes = await app.inject({
+      method: "GET",
+      url: "/api/admin/offline/capabilities",
+      headers: { cookie: adminAuth.cookie },
+    });
+    expect(offlineCapsRes.statusCode).toBe(200);
+    expect(JSON.parse(offlineCapsRes.payload).capabilities["offline.hub.read"]).toBe(true);
+
     // 8. Enroll 2 eligible participants & start tournament -> RUNNING
     const taActor = bundle.store.resolveAuthoritativeActor({
       userId: taAuth.user.id,
