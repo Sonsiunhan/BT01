@@ -135,7 +135,31 @@ export class RetentionEnforcementService {
           take: this.maxBatchSize,
         })
       : [];
-    return { recovery, invitations, idempotency };
+
+    let terminalTournamentEligible = false;
+    if (scope.tournamentId && tx.tournament) {
+      const tournament = await (tx.tournament as any).findUnique({
+        where: { id: scope.tournamentId },
+        select: { id: true, status: true, finalizedAt: true, cancelledAt: true },
+      }) as { id: string; status: string; finalizedAt: Date | null; cancelledAt: Date | null } | null;
+      if (tournament && (tournament.status === "FINALIZED" || tournament.status === "CANCELLED")) {
+        const anchor = tournament.finalizedAt ?? tournament.cancelledAt;
+        if (anchor && now.getTime() >= anchor.getTime() + 90 * 24 * 60 * 60 * 1000) {
+          terminalTournamentEligible = true;
+        }
+      }
+    }
+
+    const auditCutoff = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+    const expiredAudits = (scope.tournamentId && tx.tournamentAuditLogRecord && typeof tx.tournamentAuditLogRecord.findMany === "function")
+      ? await tx.tournamentAuditLogRecord.findMany({
+          where: { targetId: scope.tournamentId, createdAt: { lt: auditCutoff } },
+          select: { id: true },
+          take: this.maxBatchSize,
+        })
+      : [];
+
+    return { recovery, invitations, idempotency, terminalTournamentEligible, expiredAudits };
   }
 
   private result(scope: RetentionScope, dryRun: boolean, candidates: Awaited<ReturnType<RetentionEnforcementService["candidates"]>>, changed: RetentionRunResult["changed"]): RetentionRunResult {
@@ -248,11 +272,87 @@ export class RetentionEnforcementService {
         });
       }
 
+      if (candidates.terminalTournamentEligible) {
+        if (tx.tournamentRulesAcknowledgement && typeof tx.tournamentRulesAcknowledgement.deleteMany === "function") {
+          await tx.tournamentRulesAcknowledgement.deleteMany({
+            where: { tournamentId: scope.tournamentId! },
+          });
+        }
+        if (tx.tournamentEnrollmentRecord && typeof tx.tournamentEnrollmentRecord.deleteMany === "function") {
+          await tx.tournamentEnrollmentRecord.deleteMany({
+            where: { tournamentId: scope.tournamentId! },
+          });
+        }
+        await tx.tournamentAuditLogRecord.create({
+          data: {
+            id: randomUUID(),
+            actorUserId: actor.userId,
+            actorRole: "SYSTEM_ADMIN",
+            action: "RETENTION_TOURNAMENT_OWNED_CLEANED",
+            targetType: "TOURNAMENT",
+            targetId: scope.tournamentId!,
+            afterSnapshot: {
+              transition: "TERMINAL_TOURNAMENT_DATA_CLEANED",
+              tournamentId: scope.tournamentId!,
+            },
+            reason: "D12-F03 90-day terminal tournament cleanup",
+          },
+        });
+      }
+
+      if (candidates.expiredAudits.length > 0 && tx.tournamentAuditLogRecord && typeof tx.tournamentAuditLogRecord.deleteMany === "function") {
+        await tx.tournamentAuditLogRecord.deleteMany({
+          where: {
+            id: { in: candidates.expiredAudits.map((a: { id: string }) => a.id) },
+          },
+        });
+      }
+
       return this.result(scope, false, candidates, {
         expiredRecoverySecrets,
         expiredStaffInvitations,
         expiredRosterIdempotency: deleted.count,
       });
     }, { isolationLevel: "Serializable" }));
+  }
+
+  /**
+   * Performs an automated retention sweep across all terminal tournaments
+   * (>90 days finalized or cancelled) and purges audit logs (>365 days).
+   * Safe to call from a scheduled maintenance worker or cron task (D12-F03, D12-F04).
+   */
+  async runScheduledRetentionSweep(actor: RetentionActor): Promise<{
+    cleanedTournaments: number;
+    purgedAuditLogs: number;
+  }> {
+    this.assertAuthority(actor);
+    const now = requireFiniteDate(this.now());
+    const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    const threeSixtyFiveDaysAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+    const eligibleTournaments = await this.db.tournament.findMany({
+      where: {
+        OR: [
+          { status: "FINALIZED", finalizedAt: { lte: ninetyDaysAgo } },
+          { status: "CANCELLED", cancelledAt: { lte: ninetyDaysAgo } },
+        ],
+      },
+      select: { id: true, contractId: true },
+    });
+
+    let cleanedTournaments = 0;
+    for (const t of eligibleTournaments) {
+      await this.execute(actor, { tournamentId: t.id, contractId: t.contractId });
+      cleanedTournaments += 1;
+    }
+
+    const purgedAudits = await this.db.tournamentAuditLogRecord.deleteMany({
+      where: { createdAt: { lt: threeSixtyFiveDaysAgo } },
+    });
+
+    return {
+      cleanedTournaments,
+      purgedAuditLogs: purgedAudits.count,
+    };
   }
 }

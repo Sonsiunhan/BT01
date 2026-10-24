@@ -175,4 +175,17 @@ describe("P10 TournamentRosterPage", () => {
     expect(await screen.findByTestId("token-handoff-banner")).toBeInTheDocument();
     expect(screen.getByTestId("claim-token-value")).toHaveTextContent("ACT-TOKEN-123456");
   });
+
+  it("hides administrative upload controls and shows forbidden alert when user is unauthorized (D12-F02)", async () => {
+    const error = Object.assign(new Error("403 FORBIDDEN: Không có quyền truy cập"), { status: 403 });
+    const api = createMockApi({
+      listEnrollments: vi.fn().mockRejectedValue(error),
+    });
+    renderWithProviders(<TournamentRosterPage apiClient={api} tournamentId="t-1" />);
+
+    expect(await screen.findByTestId("roster-forbidden-banner")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Không có quyền truy cập/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("roster-file-input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("roster-preview-btn")).not.toBeInTheDocument();
+  });
 });

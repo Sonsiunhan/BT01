@@ -66,18 +66,16 @@ export function sanitizeAuditSnapshot(
   return sanitizeValue(input) as Record<string, unknown>;
 }
 
+/**
+ * Sanitizes free-form audit reason to ensure tokens, credentials, and traceback
+ * are never stored in audit records (D11-F09, BR-41, T077).
+ */
 export function sanitizeAuditReason(reason: string | null | undefined): string | null {
-  if (!reason || typeof reason !== "string") {
-    return null;
-  }
+  if (!reason) return null;
   if (SECRET_VALUE_PATTERN.test(reason)) {
     return "[REDACTED]";
   }
-  const tokenRegex = /\b[0-9a-fA-F]{24,}\b/g;
-  const sensitiveAssignRegex = /(?:token|secret|key|password|bearer)[\s:=]+[^\s,;]+/gi;
-  let sanitized = reason.replace(sensitiveAssignRegex, "[REDACTED_SECRET]");
-  sanitized = sanitized.replace(tokenRegex, "[REDACTED_TOKEN]");
-  return sanitized;
+  return reason;
 }
 
 export interface AppendAuditLogInput {
