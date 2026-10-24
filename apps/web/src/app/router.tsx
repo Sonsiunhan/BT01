@@ -24,7 +24,7 @@ const BotWorkbenchPage = lazy(() => import("../pages/BotWorkbenchPage"));
 const BotOfflinePage = lazy(() => import("../pages/BotOfflinePage"));
 
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
-const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
+export const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
@@ -46,6 +46,8 @@ const RulesAcknowledgementPage = lazy(() => import("../features/account/RulesAck
 const UnitsAdminPage = lazy(() => import("../features/admin/units/UnitsAdminPage"));
 const ContractsAdminPage = lazy(() => import("../features/admin/contracts/ContractsAdminPage"));
 const ApprovalsAdminPage = lazy(() => import("../features/admin/approvals/ApprovalsAdminPage"));
+const ManualAdjudicationPage = lazy(() => import("../features/admin/tournaments/ManualAdjudicationPage"));
+const TournamentOperationsPage = lazy(() => import("../features/admin/tournaments/TournamentOperationsPage"));
 
 export function AppRouter() {
   return (
@@ -127,14 +129,11 @@ export function AppRouter() {
         />
         <Route
           path={routes.adminTournamentOperations}
-          element={
-            <AdminRoutePending
-              pageCode="P03"
-              title="Điều hành & Xử lý sự cố giải đấu"
-              targetTask="S05"
-              description="Các thao tác điều hành giải đấu, xử lý hoãn trận, gia hạn và nhật ký sự cố trọng tài."
-            />
-          }
+          element={<TournamentOperationsPage />}
+        />
+        <Route
+          path={routes.adminTournamentAdjudications}
+          element={<ManualAdjudicationPage />}
         />
         <Route path={routes.adminTournamentBotReadiness} element={<BotReadinessPage />} />
         <Route

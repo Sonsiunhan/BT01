@@ -20,6 +20,7 @@
   --text-secondary: #486278;
   --text-muted: #486278;
   --system-cyan: #007381;
+  --text-on-cyan: #ffffff;
   --blue-player: #1957B8;
   --blue-high: #6D9FE0;
   --red-player: #B13244;
@@ -85,6 +86,7 @@
   --text-secondary: #A5BACD;
   --text-muted: #A5BACD;
   --system-cyan: #69EEE7;
+  --text-on-cyan: #0B1421;
   --blue-player: #70ADFF;
   --blue-high: #B5DBFF;
   --red-player: #FF8695;

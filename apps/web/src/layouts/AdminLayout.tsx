@@ -179,6 +179,15 @@ export function AdminLayout() {
               >
                 Nhật ký
               </NavLink>
+              <NavLink
+                to={routes.adminSupport}
+                className={({ isActive }) =>
+                  `nav-link ${isActive || location.pathname.startsWith("/admin/support") ? "active font-bold text-primary" : ""}`
+                }
+                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+              >
+                Hỗ trợ
+              </NavLink>
             </div>
 
             <span style={{ color: "var(--border)", userSelect: "none" }}>|</span>

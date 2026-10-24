@@ -66,6 +66,20 @@ export function sanitizeAuditSnapshot(
   return sanitizeValue(input) as Record<string, unknown>;
 }
 
+export function sanitizeAuditReason(reason: string | null | undefined): string | null {
+  if (!reason || typeof reason !== "string") {
+    return null;
+  }
+  if (SECRET_VALUE_PATTERN.test(reason)) {
+    return "[REDACTED]";
+  }
+  const tokenRegex = /\b[0-9a-fA-F]{24,}\b/g;
+  const sensitiveAssignRegex = /(?:token|secret|key|password|bearer)[\s:=]+[^\s,;]+/gi;
+  let sanitized = reason.replace(sensitiveAssignRegex, "[REDACTED_SECRET]");
+  sanitized = sanitized.replace(tokenRegex, "[REDACTED_TOKEN]");
+  return sanitized;
+}
+
 export interface AppendAuditLogInput {
   actorUserId: string;
   actorRole: TournamentRole;
@@ -109,7 +123,7 @@ export class SanitizingAuditService implements AuditPort {
       targetId: input.targetId,
       beforeSnapshot: sanitizeAuditSnapshot(input.beforeSnapshot ?? null),
       afterSnapshot: sanitizeAuditSnapshot(input.afterSnapshot ?? null),
-      reason: input.reason ?? null,
+      reason: sanitizeAuditReason(input.reason),
       correlationId: input.correlationId ?? null,
       createdAt: input.nowIso ?? new Date().toISOString(),
     });

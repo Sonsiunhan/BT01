@@ -485,7 +485,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 fontSize: "0.85rem",
                 padding: "0.45rem 0.9rem",
                 background: "var(--system-cyan)",
-                color: "#0B1421",
+                color: "var(--text-on-cyan, #ffffff)",
                 fontWeight: 700,
               }}
             >
@@ -762,7 +762,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 placeholder="VLD_ROBOT_LAB_2026"
                 value={formData.slug}
                 onChange={(e) => updateField("slug", slugify(e.target.value))}
-                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", fontFamily: "monospace" }}
+                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", fontFamily: "var(--font-data)" }}
               />
               <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                 Mã duy nhất viết hoa gồm chữ cái, số và dấu gạch dưới (_). Tự động gợi ý từ tên giải.
@@ -1096,7 +1096,14 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   id={compModeInputId}
                   className="select"
                   value={formData.competitionMode}
-                  onChange={(e) => updateField("competitionMode", e.target.value as DraftFormData["competitionMode"])}
+                  onChange={(e) => {
+                    const newMode = e.target.value as DraftFormData["competitionMode"];
+                    setFormData((prev) => ({
+                      ...prev,
+                      competitionMode: newMode,
+                      botDeadlineAt: newMode === "BOT_VS_BOT" ? prev.botDeadlineAt : null,
+                    }));
+                  }}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
                 >
                   <option value="HUMAN_ONLINE">HUMAN_ONLINE — Đấu thủ người trực tuyến</option>
@@ -1708,7 +1715,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                     style={{
                       fontSize: "0.85rem",
                       background: "var(--system-cyan)",
-                      color: "#0B1421",
+                      color: "var(--text-on-cyan, #ffffff)",
                       fontWeight: 700,
                     }}
                   >
@@ -1830,7 +1837,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 style={{
                   fontSize: "0.85rem",
                   background: "var(--system-cyan)",
-                  color: "#0B1421",
+                  color: "var(--text-on-cyan, #ffffff)",
                   fontWeight: 700,
                 }}
               >

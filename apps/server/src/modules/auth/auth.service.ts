@@ -43,6 +43,7 @@ export type SelfProfile = {
   privacy: { presenceVisibility: PresenceVisibility; friendListVisibility: "PRIVATE"; fullNameVisibility: "PRIVATE" };
   stats: { elo: number; rankedWins: number; rankedLosses: number; quickWins: number; quickLosses: number };
   botStats: BotStats;
+  role?: string;
 };
 
 export type PublicProfile = {
@@ -95,7 +96,7 @@ function statsOf(stats: UserStats | null) {
 const EMPTY_BOT_STATS: BotStats = { wins: 0, losses: 0 };
 
 function toSelf(user: UserWithData, botStats: BotStats = EMPTY_BOT_STATS): SelfProfile {
-  return { id: user.id, fullName: user.fullName, displayName: user.displayName, username: user.username, theme: themeOf(user.profile), avatarPreset: avatarOf(user.profile), privacy: privacyOf(user.profile), stats: statsOf(user.stats), botStats };
+  return { id: user.id, fullName: user.fullName, displayName: user.displayName, username: user.username, theme: themeOf(user.profile), avatarPreset: avatarOf(user.profile), privacy: privacyOf(user.profile), stats: statsOf(user.stats), botStats, role: (user as any).role };
 }
 
 function unavailable(): never {

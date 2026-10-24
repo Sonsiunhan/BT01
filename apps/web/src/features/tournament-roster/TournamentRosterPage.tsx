@@ -234,7 +234,7 @@ export function TournamentRosterPage({
             <div style={{ overflowX: "auto", maxHeight: 360, border: "1px solid var(--border)", borderRadius: "0.5rem" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                 <thead>
-                  <tr style={{ background: "rgba(255, 255, 255, 0.05)", borderBottom: "1px solid var(--border)" }}>
+                  <tr style={{ background: "var(--surface-raised)", borderBottom: "1px solid var(--border)" }}>
                     {["#", "Đơn vị", "Mã định danh", "Họ và tên", "Tên đăng nhập", "Email", "Trạng thái", "Ghi chú / Lỗi"].map((h) => (
                       <th key={h} style={thStyle}>{h}</th>
                     ))}

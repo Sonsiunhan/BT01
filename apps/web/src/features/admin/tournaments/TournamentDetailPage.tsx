@@ -350,7 +350,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                   fontSize: "0.85rem",
                   padding: "0.45rem 0.9rem",
                   background: "var(--system-cyan)",
-                  color: "#0B1421",
+                  color: "var(--text-on-cyan, #ffffff)",
                   fontWeight: 700,
                 }}
               >
@@ -447,6 +447,22 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
           >
             Trạng thái Bot
+          </Link>
+          <Link
+            to={routes.adminTournamentOperations.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-operations-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Điều hành sự cố
+          </Link>
+          <Link
+            to={routes.adminTournamentAdjudications.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-adjudications-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Phán quyết hòa
           </Link>
           <Link
             to={routes.adminTournamentAudit.replace(":tournamentId", tournament.id)}

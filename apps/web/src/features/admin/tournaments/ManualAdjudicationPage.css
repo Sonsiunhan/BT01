@@ -1,30 +1,30 @@
-.manual-adjudication-page { display: grid; gap: 1.25rem; max-width: 70rem; margin: 0 auto; padding: 1.5rem; color: var(--text-primary, #e7edf7); }
+.manual-adjudication-page { display: grid; gap: 1.25rem; max-width: 70rem; margin: 0 auto; padding: 1.5rem; color: var(--text); }
 .manual-adjudication-page__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.manual-adjudication-page__eyebrow { margin: 0 0 .35rem; color: var(--text-muted, #94a3b8); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
-.manual-adjudication-page__title { margin: 0; font-size: clamp(1.35rem, 2vw, 2rem); }
-.manual-adjudication-page__notice { padding: .75rem 1rem; border: 1px solid color-mix(in srgb, #f59e0b 45%, transparent); border-radius: .75rem; background: color-mix(in srgb, #f59e0b 11%, transparent); }
+.manual-adjudication-page__eyebrow { margin: 0 0 .35rem; color: var(--text-secondary); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; font-family: var(--font-data); }
+.manual-adjudication-page__title { margin: 0; font-size: clamp(1.35rem, 2vw, 2rem); font-family: var(--font-display); }
+.manual-adjudication-page__notice { padding: .75rem 1rem; border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent); border-radius: .75rem; background: color-mix(in srgb, var(--warning) 11%, transparent); }
 .manual-adjudication-page__list { display: grid; gap: 1rem; }
-.manual-adjudication-card { display: grid; gap: 1rem; padding: 1rem; border: 1px solid var(--border-subtle, #263247); border-radius: 1rem; background: var(--surface-raised, #111a2a); }
+.manual-adjudication-card { display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface-raised); box-shadow: var(--shadow-raised); }
 .manual-adjudication-card__top, .manual-adjudication-card__participants { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.manual-adjudication-card__meta { margin: 0; color: var(--text-muted, #94a3b8); font-size: .9rem; }
+.manual-adjudication-card__meta { margin: 0; color: var(--text-secondary); font-size: .9rem; }
 .manual-adjudication-card__participants { justify-content: flex-start; }
-.manual-adjudication-card__side { min-width: 10rem; padding: .75rem 1rem; border-radius: .75rem; background: var(--surface-sunken, #0b1220); }
-.manual-adjudication-card__side--blue { border-left: 3px solid #38bdf8; }
-.manual-adjudication-card__side--red { border-left: 3px solid #fb7185; }
-.manual-adjudication-card__vs { color: var(--text-muted, #94a3b8); font-weight: 700; }
+.manual-adjudication-card__side { min-width: 10rem; padding: .75rem 1rem; border-radius: .75rem; background: var(--surface); border: 1px solid var(--border); }
+.manual-adjudication-card__side--blue { border-left: 4px solid var(--blue-player, #38bdf8); }
+.manual-adjudication-card__side--red { border-left: 4px solid var(--red-player, #fb7185); }
+.manual-adjudication-card__vs { color: var(--text-secondary); font-weight: 700; }
 .manual-adjudication-card__snapshot { display: grid; gap: .65rem; }
 .manual-adjudication-card__snapshot h3 { margin: 0; font-size: 1rem; }
 .manual-adjudication-card__metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
-.manual-adjudication-card__metric { padding: .65rem; border-radius: .65rem; background: var(--surface-sunken, #0b1220); }
+.manual-adjudication-card__metric { padding: .65rem; border-radius: .65rem; background: var(--surface); border: 1px solid var(--border); }
 .manual-adjudication-card__metric strong { display: block; margin-bottom: .25rem; }
-.manual-adjudication-card__form { display: grid; gap: .75rem; padding-top: .75rem; border-top: 1px solid var(--border-subtle, #263247); }
+.manual-adjudication-card__form { display: grid; gap: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
 .manual-adjudication-card__form fieldset { display: flex; gap: 1rem; padding: 0; border: 0; }
 .manual-adjudication-card__form label { display: inline-flex; align-items: center; gap: .4rem; }
-.manual-adjudication-card__form textarea { min-height: 5rem; width: 100%; resize: vertical; padding: .65rem; border: 1px solid var(--border-subtle, #263247); border-radius: .65rem; color: inherit; background: var(--surface-sunken, #0b1220); }
+.manual-adjudication-card__form textarea { min-height: 5rem; width: 100%; resize: vertical; padding: .65rem; border: 1px solid var(--border); border-radius: .65rem; color: inherit; background: var(--surface); font-family: var(--font-body); }
 .manual-adjudication-card__actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
-.manual-adjudication-card__button { padding: .6rem 1rem; border: 0; border-radius: .65rem; color: #07111f; background: #7dd3fc; font-weight: 700; cursor: pointer; }
+.manual-adjudication-card__button { padding: .6rem 1.2rem; border: 0; border-radius: .65rem; color: var(--text-on-cyan, #ffffff); background: var(--primary); font-weight: 700; cursor: pointer; }
 .manual-adjudication-card__button:disabled { cursor: wait; opacity: .55; }
-.manual-adjudication-card__terminal { padding: .75rem; border-radius: .65rem; background: var(--surface-sunken, #0b1220); }
-.manual-adjudication-page__state { padding: 1rem; border: 1px dashed var(--border-subtle, #263247); border-radius: .8rem; }
+.manual-adjudication-card__terminal { padding: .75rem; border-radius: .65rem; background: var(--surface); border: 1px solid var(--border); }
+.manual-adjudication-page__state { padding: 1rem; border: 1px dashed var(--border); border-radius: .8rem; background: var(--surface); }
 @media (max-width: 640px) { .manual-adjudication-page { padding: 1rem; } .manual-adjudication-card__metrics { grid-template-columns: 1fr; } .manual-adjudication-card__side { min-width: 0; flex: 1 1 9rem; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
