@@ -14,6 +14,8 @@ import {
   type TournamentReadinessSnapshot,
   type TournamentConfigVersionDto,
   type AuditLogRecordDto,
+  type TournamentLeaderboardSnapshotDto,
+  type TournamentScoreLedgerEntryDto,
   DEFAULT_TOURNAMENT_RULE_PROFILE,
 } from "@ottv2/contracts";
 
@@ -202,6 +204,8 @@ export interface TournamentApiPort {
   // S05 Lifecycle and Readiness APIs
   getTournamentDetail(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }>;
   getTournamentReadiness(tournamentId: string): Promise<{ readiness: TournamentReadinessSnapshot }>;
+  getLeaderboard?(tournamentId: string): Promise<{ leaderboard: TournamentLeaderboardSnapshotDto }>;
+  getMatches?(tournamentId: string): Promise<{ matches: TournamentScoreLedgerEntryDto[] }>;
   openScheduled(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
   startTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
   pauseTournament(tournamentId: string, reason: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
@@ -225,29 +229,57 @@ export class TournamentApiClient implements TournamentApiPort {
   }
 
   async listTournaments(query: TournamentListQuery = {}): Promise<TournamentListResponse> {
-    if (this.useRealApi) {
-      try {
-        const params = new URLSearchParams();
-        if (query.q) params.set("q", query.q);
-        if (query.unitId) params.set("unitId", query.unitId);
-        if (query.page) params.set("page", String(query.page));
-        if (query.pageSize) params.set("pageSize", String(query.pageSize));
-        if (query.sort) params.set("sort", query.sort);
-        if (query.statuses && query.statuses.length > 0) {
-          params.set("statuses", query.statuses.join(","));
-        }
-
-        const res = await fetch(`/api/tournaments?${params.toString()}`, {
-          headers: { Accept: "application/json" },
-        });
-
-        if (res.ok) {
-          const data = (await res.json()) as TournamentListResponse;
-          return data;
-        }
-      } catch {
-        // Fall back to client-filtered dataset when API is not running
+    try {
+      const params = new URLSearchParams();
+      if (query.q) params.set("q", query.q);
+      if (query.unitId) params.set("unitId", query.unitId);
+      if (query.page) params.set("page", String(query.page));
+      if (query.pageSize) params.set("pageSize", String(query.pageSize));
+      if (query.sort) params.set("sort", query.sort);
+      if (query.statuses && query.statuses.length > 0) {
+        params.set("statuses", query.statuses.join(","));
       }
+
+      const res = await fetch(`/api/tournaments?${params.toString()}`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.tournaments) && data.tournaments.length > 0) {
+          const serverItems: TournamentListItem[] = data.tournaments.map((t: any) => ({
+            tournamentId: t.id,
+            name: t.coreConfig?.tournamentName || "Giải đấu",
+            slug: t.coreConfig?.tournamentCode || t.id,
+            status: t.status,
+            visibility:
+              t.coreConfig?.audienceScope === "PUBLIC_COMMUNITY" ||
+              t.coreConfig?.audienceScope === "PUBLIC_REGISTERED"
+                ? "PUBLIC"
+                : "PRIVATE",
+            startAt: t.coreConfig?.scheduledStartAt ?? null,
+            endAt: t.coreConfig?.scheduledEndAt ?? null,
+            timezone: t.coreConfig?.timezone || "Asia/Ho_Chi_Minh",
+            ownerDisplay: t.coreConfig?.organizersText || "Ban Tổ chức",
+            unitId: t.unitId,
+            unitName: t.coreConfig?.organizersText || "Đơn vị",
+            participantCount: t.coreConfig?.maxParticipants ?? 0,
+            maxParticipants: t.coreConfig?.maxParticipants ?? 0,
+            readiness: { state: "READY", blockerCount: 0 },
+            permittedActions: ["view", "manage_matches", "pause", "incident"],
+            revision: `rev-${t.revision ?? 1}`,
+          }));
+          const serverIds = new Set(serverItems.map((item) => item.tournamentId));
+          const combined = [
+            ...serverItems,
+            ...FIXTURE_TOURNAMENTS.filter((f) => !serverIds.has(f.tournamentId)),
+          ];
+          return this.filterFixtures(query, combined);
+        }
+      }
+    } catch {
+      // Fall back to client-filtered dataset when API is not running
     }
 
     // Client-side filtering logic matching server contract
@@ -599,6 +631,28 @@ export class TournamentApiClient implements TournamentApiPort {
       };
       return { readiness: mockSnapshot };
     }
+  }
+
+  async getLeaderboard(tournamentId: string): Promise<{ leaderboard: TournamentLeaderboardSnapshotDto }> {
+    const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/leaderboard`, {
+      credentials: "include",
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+    const err = await res.json().catch(() => ({}));
+    throw createHttpError(err, res.status, "Không thể tải bảng xếp hạng giải đấu", "GET_LEADERBOARD_FAILED");
+  }
+
+  async getMatches(tournamentId: string): Promise<{ matches: TournamentScoreLedgerEntryDto[] }> {
+    const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches`, {
+      credentials: "include",
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+    const err = await res.json().catch(() => ({}));
+    throw createHttpError(err, res.status, "Không thể tải nhật ký trận đấu", "GET_MATCHES_FAILED");
   }
 
   async openScheduled(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {

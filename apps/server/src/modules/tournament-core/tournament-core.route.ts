@@ -462,4 +462,14 @@ export async function registerTournamentCoreRoutes(
       return reply.status(200).send({ leaderboard });
     }
   );
+
+  app.get<{ Params: { tournamentId: string } }>(
+    "/api/tournaments/:tournamentId/matches",
+    async (request, reply) => {
+      const matches = adjudicationLedgerService.getLedgerEntries(
+        request.params.tournamentId
+      );
+      return reply.status(200).send({ matches });
+    }
+  );
 }

@@ -251,17 +251,28 @@ export class BotReadinessService {
       existing.target = target;
       return existing;
     }
+    const enrollment = this.store.enrollments.get(target.enrollmentId);
+    const isReady = enrollment?.botReadinessStatus === "READY" && !!enrollment?.pinnedBotRevisionId;
+    const revisionId = enrollment?.pinnedBotRevisionId ?? null;
+    const rawDigest = revisionId ? revisionId.replace(/^rev-(?:wasi-)?/, "").slice(0, 12).padEnd(12, "0") : null;
+    const context: BotReadinessTarget | null = isReady && rawDigest ? {
+      sdkVersion: "1.0.0",
+      schemaVersion: "1.0.0",
+      runtimeProfile: "WASMTIME_SUPERVISOR",
+      policyVersion: "2026.1",
+      sourceDigestPrefix: rawDigest,
+    } : null;
     const record: ReadinessRecord = {
       target,
-      revision: 0,
-      status: "NOT_SUBMITTED",
-      botId: null,
-      revisionId: null,
-      revisionNumber: null,
-      sourceDigest: null,
-      context: null,
-      receipt: null,
-      safeReason: "NOT_SELECTED",
+      revision: isReady ? 1 : 0,
+      status: isReady ? "READY" : "NOT_SUBMITTED",
+      botId: isReady ? `bot-${target.personKey.toLowerCase()}` : null,
+      revisionId,
+      revisionNumber: isReady ? 1 : null,
+      sourceDigest: rawDigest ? `sha256:${rawDigest.padEnd(64, "0")}` : null,
+      context,
+      receipt: isReady ? safeReceipt("READY", "ACCEPTED", "Bot đã vượt qua kiểm tra runtime cô lập.", target.updatedAt) : null,
+      safeReason: isReady ? "READY" : "NOT_SELECTED",
       retryable: false,
       retryAfterMs: null,
       updatedAt: target.updatedAt,

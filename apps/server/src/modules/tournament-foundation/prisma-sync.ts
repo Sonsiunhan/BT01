@@ -229,7 +229,6 @@ export async function syncPrismaToTournamentStore(
           role: s.role as any,
           status: s.status as any,
           assignedRooms: (s.assignedRooms as any) ?? [],
-          invitationId: s.invitationId ?? null,
           createdAt: s.createdAt.toISOString(),
           updatedAt: s.updatedAt.toISOString(),
         });

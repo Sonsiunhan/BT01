@@ -7,6 +7,9 @@ import type {
   TournamentDto,
   TournamentReadinessSnapshot,
   ReadinessChecklistItem,
+  TournamentLeaderboardSnapshotDto,
+  TournamentScoreLedgerEntryDto,
+  TournamentStandingRowDto,
 } from "@ottv2/contracts";
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -26,11 +29,17 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
   const tournamentId = propTournamentId || paramTournamentId || "tour-001";
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "config" | "readiness">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "config" | "readiness" | "leaderboard" | "matches">("overview");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [readiness, setReadiness] = useState<TournamentReadinessSnapshot | null>(null);
+  const [leaderboard, setLeaderboard] = useState<TournamentLeaderboardSnapshotDto | null>(null);
+  const [matches, setMatches] = useState<TournamentScoreLedgerEntryDto[]>([]);
+  const [searchLb, setSearchLb] = useState<string>("");
+  const [searchMatches, setSearchMatches] = useState<string>("");
+  const [pageLb, setPageLb] = useState<number>(1);
+  const [pageMatches, setPageMatches] = useState<number>(1);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -43,9 +52,11 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const [detailRes, readinessRes] = await Promise.allSettled([
+      const [detailRes, readinessRes, lbRes, matchesRes] = await Promise.allSettled([
         apiClient.getTournamentDetail(tournamentId),
         apiClient.getTournamentReadiness(tournamentId),
+        apiClient.getLeaderboard ? apiClient.getLeaderboard(tournamentId) : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/leaderboard`).then(r => r.json()),
+        apiClient.getMatches ? apiClient.getMatches(tournamentId) : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches`).then(r => r.json()),
       ]);
 
       if (detailRes.status === "fulfilled") {
@@ -56,6 +67,12 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
 
       if (readinessRes.status === "fulfilled") {
         setReadiness(readinessRes.value.readiness);
+      }
+      if (lbRes.status === "fulfilled" && lbRes.value?.leaderboard) {
+        setLeaderboard(lbRes.value.leaderboard);
+      }
+      if (matchesRes.status === "fulfilled" && matchesRes.value?.matches) {
+        setMatches(matchesRes.value.matches);
       }
     } catch (error: unknown) {
       setError(errorMessage(error, "Đã xảy ra lỗi khi tải dữ liệu giải đấu."));
@@ -591,6 +608,84 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             </span>
           )}
         </button>
+
+        <button
+          type="button"
+          role="tab"
+          id="tab-leaderboard"
+          aria-selected={activeTab === "leaderboard"}
+          aria-controls="panel-leaderboard"
+          data-testid="tab-leaderboard-btn"
+          onClick={() => setActiveTab("leaderboard")}
+          style={{
+            padding: "0.55rem 1rem",
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            fontWeight: activeTab === "leaderboard" ? 700 : 500,
+            color: activeTab === "leaderboard" ? "var(--system-cyan)" : "var(--text-muted)",
+            borderBottom: activeTab === "leaderboard" ? "2px solid var(--system-cyan)" : "2px solid transparent",
+            fontSize: "0.9rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+          }}
+        >
+          <span>Bảng xếp hạng</span>
+          {leaderboard?.standings && (
+            <span
+              style={{
+                fontSize: "0.72rem",
+                padding: "0.15rem 0.45rem",
+                borderRadius: "10px",
+                background: "color-mix(in srgb, var(--system-cyan) 20%, transparent)",
+                color: "var(--system-cyan)",
+                fontWeight: 700,
+              }}
+            >
+              {leaderboard.standings.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          id="tab-matches"
+          aria-selected={activeTab === "matches"}
+          aria-controls="panel-matches"
+          data-testid="tab-matches-btn"
+          onClick={() => setActiveTab("matches")}
+          style={{
+            padding: "0.55rem 1rem",
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            fontWeight: activeTab === "matches" ? 700 : 500,
+            color: activeTab === "matches" ? "var(--system-cyan)" : "var(--text-muted)",
+            borderBottom: activeTab === "matches" ? "2px solid var(--system-cyan)" : "2px solid transparent",
+            fontSize: "0.9rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+          }}
+        >
+          <span>Nhật ký trận đấu</span>
+          {matches.length > 0 && (
+            <span
+              style={{
+                fontSize: "0.72rem",
+                padding: "0.15rem 0.45rem",
+                borderRadius: "10px",
+                background: "color-mix(in srgb, var(--system-purple) 20%, transparent)",
+                color: "var(--system-purple)",
+                fontWeight: 700,
+              }}
+            >
+              {matches.length}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Tab 1: Overview */}
@@ -942,6 +1037,404 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
               );
             })}
           </div>
+        </section>
+      )}
+
+      {/* Tab 4: Leaderboard */}
+      {activeTab === "leaderboard" && (
+        <section
+          id="panel-leaderboard"
+          role="tabpanel"
+          aria-labelledby="tab-leaderboard"
+          data-testid="panel-leaderboard"
+          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+        >
+          {/* Header Summary & Search */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+              background: "var(--surface)",
+              padding: "1rem 1.25rem",
+              borderRadius: "8px",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <div>
+              <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem", color: "var(--system-cyan)" }}>
+                Bảng Xếp Hạng Giải Đấu ({leaderboard?.standings?.length ?? 0} Thí Sinh)
+              </h3>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                Công thức: <strong>{leaderboard?.formulaPreset ?? core.scoringFormulaPreset}</strong> · Thứ tự hoàn tất gần nhất: #{leaderboard?.lastFinishSequence ?? 0}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <input
+                type="text"
+                placeholder="Tìm Bot, thí sinh, mã trường..."
+                value={searchLb}
+                onChange={(e) => { setSearchLb(e.target.value); setPageLb(1); }}
+                style={{
+                  padding: "0.45rem 0.8rem",
+                  borderRadius: "6px",
+                  border: "1px solid var(--border)",
+                  background: "var(--surface-subtle)",
+                  color: "var(--text)",
+                  fontSize: "0.85rem",
+                  minWidth: "240px",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Top 3 Podium Cards */}
+          {leaderboard?.standings && leaderboard.standings.length >= 3 && !searchLb && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
+              {leaderboard.standings.slice(0, 3).map((st, i) => {
+                const medals = ["🥇 Quán quân", "🥈 Á quân", "🥉 Hạng ba"];
+                const colors = ["#ffd700", "#c0c0c0", "#cd7f32"];
+                return (
+                  <div
+                    key={st.participantId}
+                    style={{
+                      background: "var(--surface)",
+                      border: `1px solid ${colors[i]}`,
+                      borderRadius: "8px",
+                      padding: "1rem",
+                      position: "relative",
+                      boxShadow: `0 0 12px ${colors[i]}22`,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: colors[i] }}>
+                        {medals[i]}
+                      </span>
+                      <span style={{ fontSize: "0.75rem", background: "var(--surface-subtle)", padding: "0.15rem 0.45rem", borderRadius: "4px" }}>
+                        {st.unitCode}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.25rem" }}>
+                      {st.displayName}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
+                      Mã: {st.personKey}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", borderTop: "1px solid var(--border)", paddingTop: "0.5rem" }}>
+                      <span>Điểm: <strong style={{ color: "var(--system-cyan)" }}>{st.tournamentScore}</strong></span>
+                      <span>Elo: <strong style={{ color: "var(--system-green)" }}>{st.tournamentElo}</strong></span>
+                      <span>Thắng: <strong>{st.wins}/{st.matchesPlayed}</strong></span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Standings Table */}
+          {(() => {
+            const all = leaderboard?.standings ?? [];
+            const filtered = all.filter((s) => {
+              if (!searchLb) return true;
+              const q = searchLb.toLowerCase();
+              return (
+                s.displayName.toLowerCase().includes(q) ||
+                s.personKey.toLowerCase().includes(q) ||
+                s.unitCode.toLowerCase().includes(q)
+              );
+            });
+            const pageSize = 50;
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            const displayed = filtered.slice((pageLb - 1) * pageSize, pageLb * pageSize);
+
+            return (
+              <div
+                style={{
+                  background: "var(--surface)",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border)",
+                  overflowX: "auto",
+                }}
+              >
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", textAlign: "left" }}>
+                  <thead>
+                    <tr style={{ background: "var(--surface-subtle)", borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
+                      <th style={{ padding: "0.75rem 1rem", width: "60px" }}>Hạng</th>
+                      <th style={{ padding: "0.75rem 1rem" }}>Thí sinh / Bot</th>
+                      <th style={{ padding: "0.75rem 1rem" }}>Đơn vị</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Điểm giải</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Elo</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Thắng</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Thua</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Số trận</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Trận cuối</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayed.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>
+                          Không tìm thấy thí sinh nào phù hợp.
+                        </td>
+                      </tr>
+                    ) : (
+                      displayed.map((row) => (
+                        <tr key={row.participantId} style={{ borderBottom: "1px solid var(--border)" }}>
+                          <td style={{ padding: "0.75rem 1rem", fontWeight: row.rank <= 3 ? 800 : 500 }}>
+                            {row.rank === 1 ? "🥇 1" : row.rank === 2 ? "🥈 2" : row.rank === 3 ? "🥉 3" : `#${row.rank}`}
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem" }}>
+                            <div style={{ fontWeight: 600, color: "var(--text)" }}>{row.displayName}</div>
+                            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{row.personKey}</div>
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem" }}>
+                            <span style={{ background: "var(--surface-subtle)", padding: "0.15rem 0.45rem", borderRadius: "4px", fontSize: "0.8rem" }}>
+                              {row.unitCode}
+                            </span>
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontWeight: 700, color: "var(--system-cyan)" }}>
+                            {row.tournamentScore}
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontWeight: 600, color: "var(--system-green)" }}>
+                            {row.tournamentElo}
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--system-green)", fontWeight: 600 }}>
+                            {row.wins}
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--system-red)" }}>
+                            {row.losses}
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
+                            {row.matchesPlayed}
+                          </td>
+                          <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                            #{row.lastFinishedSequence || "-"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem", borderTop: "1px solid var(--border)" }}>
+                    <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                      Trang {pageLb} / {totalPages} (Tổng số {filtered.length} thí sinh)
+                    </span>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        type="button"
+                        disabled={pageLb <= 1}
+                        onClick={() => setPageLb((p) => Math.max(1, p - 1))}
+                        className="button secondary"
+                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                      >
+                        Trang trước
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pageLb >= totalPages}
+                        onClick={() => setPageLb((p) => Math.min(totalPages, p + 1))}
+                        className="button secondary"
+                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                      >
+                        Trang sau
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </section>
+      )}
+
+      {/* Tab 5: Matches & Pairings */}
+      {activeTab === "matches" && (
+        <section
+          id="panel-matches"
+          role="tabpanel"
+          aria-labelledby="tab-matches"
+          data-testid="panel-matches"
+          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+        >
+          {/* Header Summary */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+              background: "var(--surface)",
+              padding: "1rem 1.25rem",
+              borderRadius: "8px",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <div>
+              <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem", color: "var(--system-purple)" }}>
+                Nhật Ký Trận Đấu & Xếp Cặp ({matches.length} Trận Đấu)
+              </h3>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                Phương pháp ghép cặp: <strong>{core.pairingMethod}</strong> · Giới hạn tải: {core.maxConcurrentMatches} trận đồng thời
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <input
+                type="text"
+                placeholder="Tìm mã trận, thí sinh..."
+                value={searchMatches}
+                onChange={(e) => { setSearchMatches(e.target.value); setPageMatches(1); }}
+                style={{
+                  padding: "0.45rem 0.8rem",
+                  borderRadius: "6px",
+                  border: "1px solid var(--border)",
+                  background: "var(--surface-subtle)",
+                  color: "var(--text)",
+                  fontSize: "0.85rem",
+                  minWidth: "240px",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Matches Table */}
+          {(() => {
+            const filtered = matches.filter((m) => {
+              if (!searchMatches) return true;
+              const q = searchMatches.toLowerCase();
+              return (
+                m.matchId.toLowerCase().includes(q) ||
+                m.blueParticipantId.toLowerCase().includes(q) ||
+                m.redParticipantId.toLowerCase().includes(q) ||
+                m.resolutionSource.toLowerCase().includes(q)
+              );
+            });
+            const pageSize = 50;
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            const displayed = filtered.slice((pageMatches - 1) * pageSize, pageMatches * pageSize);
+
+            return (
+              <div
+                style={{
+                  background: "var(--surface)",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border)",
+                  overflowX: "auto",
+                }}
+              >
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", textAlign: "left" }}>
+                  <thead>
+                    <tr style={{ background: "var(--surface-subtle)", borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
+                      <th style={{ padding: "0.75rem 1rem", width: "70px" }}>STT</th>
+                      <th style={{ padding: "0.75rem 1rem" }}>Mã trận</th>
+                      <th style={{ padding: "0.75rem 1rem", color: "var(--system-blue)" }}>Bên Xanh (Blue)</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Kết quả</th>
+                      <th style={{ padding: "0.75rem 1rem", color: "var(--system-red)" }}>Bên Đỏ (Red)</th>
+                      <th style={{ padding: "0.75rem 1rem" }}>Hình thức thắng</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Thời gian</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayed.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>
+                          Chưa có trận đấu nào trong nhật ký.
+                        </td>
+                      </tr>
+                    ) : (
+                      displayed.map((m) => {
+                        const isBlueWinner = m.winnerSide === "BLUE";
+                        return (
+                          <tr key={m.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                            <td style={{ padding: "0.75rem 1rem", fontWeight: 700 }}>
+                              #{m.finishSequence}
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                              <code>{m.matchId}</code>
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem" }}>
+                              <div style={{ fontWeight: isBlueWinner ? 700 : 500, color: isBlueWinner ? "var(--system-cyan)" : "var(--text)" }}>
+                                {m.blueParticipantId}
+                              </div>
+                              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                {m.blueScoreBefore}đ (Elo {m.blueEloBefore}) → <strong>{m.blueScoreAfter}đ</strong> (Elo {m.blueEloAfter})
+                              </div>
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
+                              <span
+                                style={{
+                                  padding: "0.2rem 0.55rem",
+                                  borderRadius: "4px",
+                                  fontSize: "0.75rem",
+                                  fontWeight: 700,
+                                  background: isBlueWinner ? "color-mix(in srgb, var(--system-blue) 20%, transparent)" : "color-mix(in srgb, var(--system-red) 20%, transparent)",
+                                  color: isBlueWinner ? "var(--system-cyan)" : "var(--system-red)",
+                                }}
+                              >
+                                {isBlueWinner ? "XANH THẮNG" : "ĐỎ THẮNG"}
+                              </span>
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem" }}>
+                              <div style={{ fontWeight: !isBlueWinner ? 700 : 500, color: !isBlueWinner ? "var(--system-red)" : "var(--text)" }}>
+                                {m.redParticipantId}
+                              </div>
+                              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                {m.redScoreBefore}đ (Elo {m.redEloBefore}) → <strong>{m.redScoreAfter}đ</strong> (Elo {m.redEloAfter})
+                              </div>
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem" }}>
+                              <span style={{ fontSize: "0.78rem", background: "var(--surface-subtle)", padding: "0.15rem 0.45rem", borderRadius: "4px" }}>
+                                {m.resolutionSource}
+                              </span>
+                            </td>
+                            <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                              {new Date(m.finishedAt).toLocaleTimeString("vi-VN")}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem", borderTop: "1px solid var(--border)" }}>
+                    <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                      Trang {pageMatches} / {totalPages} (Tổng số {filtered.length} trận đấu)
+                    </span>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        type="button"
+                        disabled={pageMatches <= 1}
+                        onClick={() => setPageMatches((p) => Math.max(1, p - 1))}
+                        className="button secondary"
+                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                      >
+                        Trang trước
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pageMatches >= totalPages}
+                        onClick={() => setPageMatches((p) => Math.min(totalPages, p + 1))}
+                        className="button secondary"
+                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                      >
+                        Trang sau
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </section>
       )}
 

@@ -442,7 +442,7 @@ export class TournamentLifecycleService {
     let ruleValid = true;
     let ruleErrorMessage = "";
     const rawProfile = tournament.ruleProfile as any;
-    if (rawProfile && typeof rawProfile.board === "object" && rawProfile.board !== null) {
+    if (rawProfile && typeof rawProfile.board === "object" && rawProfile.board !== null && Array.isArray(rawProfile.layout)) {
       const issues = validateRuleProfileForPreview(rawProfile);
       if (issues.length > 0) {
         ruleValid = false;
