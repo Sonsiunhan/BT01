@@ -184,6 +184,25 @@ export function ApprovalsAdminPage({
     );
   }
 
+  if (loading) {
+    return (
+      <div style={{ padding: "3rem", textAlign: "center" }}>
+        <div
+          style={{
+            width: "2rem",
+            height: "2rem",
+            border: "3px solid var(--border)",
+            borderTopColor: "var(--system-cyan)",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 1rem",
+          }}
+        />
+        <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>Đang tải danh sách xét duyệt...</p>
+      </div>
+    );
+  }
+
   const selectedTournament =
     initialSubmissions.find((t) => t.id === selectedTournamentId) ??
     initialSubmissions[0] ??

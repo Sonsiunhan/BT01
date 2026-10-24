@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ThemeSwitcher } from "../components/ui";
 import { routes } from "../app/routes";
@@ -13,6 +13,13 @@ export function AdminLayout() {
   const [network, setNetwork] = useState<"checking" | "online" | "offline" | "reconnecting" | "degraded">("checking");
   const [user, setUser] = useState<UserProfile | null>(null);
   const profileDetailsRef = useRef<HTMLDetailsElement | null>(null);
+
+  const userRoles = (user as (UserProfile & { roles?: string[] }) | null)?.roles;
+  const isSystemAdmin =
+    user?.role === "SYSTEM_ADMIN" ||
+    user?.role === "ADMIN" ||
+    Boolean(userRoles?.includes("ADMIN")) ||
+    Boolean(userRoles?.includes("SYSTEM_ADMIN"));
 
   useEffect(() => {
     const onPointerDown = (event: Event) => {
@@ -125,15 +132,17 @@ export function AdminLayout() {
             style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <NavLink
-                to={routes.adminTa}
-                className={({ isActive }) =>
-                  `nav-link ${isActive || location.pathname.startsWith("/admin/ta") ? "active font-bold text-primary" : ""}`
-                }
-                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
-              >
-                Tài khoản TA
-              </NavLink>
+              {isSystemAdmin && (
+                <NavLink
+                  to={routes.adminTa}
+                  className={({ isActive }) =>
+                    `nav-link ${isActive || location.pathname.startsWith("/admin/ta") ? "active font-bold text-primary" : ""}`
+                  }
+                  style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+                >
+                  Tài khoản TA
+                </NavLink>
+              )}
               <NavLink
                 to={routes.adminTournaments}
                 className={({ isActive }) =>
@@ -143,33 +152,37 @@ export function AdminLayout() {
               >
                 Giải đấu
               </NavLink>
-              <NavLink
-                to={routes.adminUnits}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
-                }
-                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
-              >
-                Đơn vị
-              </NavLink>
-              <NavLink
-                to={routes.adminContracts}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
-                }
-                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
-              >
-                Hợp đồng
-              </NavLink>
-              <NavLink
-                to={routes.adminApprovals}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
-                }
-                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
-              >
-                Xét duyệt
-              </NavLink>
+              {isSystemAdmin && (
+                <>
+                  <NavLink
+                    to={routes.adminUnits}
+                    className={({ isActive }) =>
+                      `nav-link ${isActive ? "active font-bold text-primary" : ""}`
+                    }
+                    style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+                  >
+                    Đơn vị
+                  </NavLink>
+                  <NavLink
+                    to={routes.adminContracts}
+                    className={({ isActive }) =>
+                      `nav-link ${isActive ? "active font-bold text-primary" : ""}`
+                    }
+                    style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+                  >
+                    Hợp đồng
+                  </NavLink>
+                  <NavLink
+                    to={routes.adminApprovals}
+                    className={({ isActive }) =>
+                      `nav-link ${isActive ? "active font-bold text-primary" : ""}`
+                    }
+                    style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+                  >
+                    Xét duyệt
+                  </NavLink>
+                </>
+              )}
               <NavLink
                 to={routes.adminAudit}
                 className={({ isActive }) =>
@@ -258,7 +271,36 @@ export function AdminLayout() {
 
         {/* Nội dung chính của trang quản trị */}
         <main className="page-container admin-page-container" style={{ padding: "1.5rem" }}>
-          <Outlet />
+          <Suspense
+            fallback={
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "350px",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <div style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      width: "2rem",
+                      height: "2rem",
+                      border: "3px solid var(--border)",
+                      borderTopColor: "var(--system-cyan)",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                      margin: "0 auto 1rem",
+                    }}
+                  />
+                  <p style={{ fontSize: "0.9rem" }}>Đang tải...</p>
+                </div>
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </AdminCapabilityGuard>
