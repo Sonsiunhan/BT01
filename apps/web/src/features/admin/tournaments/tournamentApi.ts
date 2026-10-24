@@ -248,34 +248,31 @@ export class TournamentApiClient implements TournamentApiPort {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.tournaments) && data.tournaments.length > 0) {
-          const serverItems: TournamentListItem[] = data.tournaments.map((t: any) => ({
-            tournamentId: t.id,
-            name: t.coreConfig?.tournamentName || "Giải đấu",
-            slug: t.coreConfig?.tournamentCode || t.id,
-            status: t.status,
-            visibility:
-              t.coreConfig?.audienceScope === "PUBLIC_COMMUNITY" ||
-              t.coreConfig?.audienceScope === "PUBLIC_REGISTERED"
-                ? "PUBLIC"
-                : "PRIVATE",
-            startAt: t.coreConfig?.scheduledStartAt ?? null,
-            endAt: t.coreConfig?.scheduledEndAt ?? null,
-            timezone: t.coreConfig?.timezone || "Asia/Ho_Chi_Minh",
-            ownerDisplay: t.coreConfig?.organizersText || "Ban Tổ chức",
-            unitId: t.unitId,
-            unitName: t.coreConfig?.organizersText || "Đơn vị",
-            participantCount: t.coreConfig?.maxParticipants ?? 0,
-            maxParticipants: t.coreConfig?.maxParticipants ?? 0,
-            readiness: { state: "READY", blockerCount: 0 },
-            permittedActions: ["view", "manage_matches", "pause", "incident"],
-            revision: `rev-${t.revision ?? 1}`,
-          }));
-          const serverIds = new Set(serverItems.map((item) => item.tournamentId));
-          const combined = [
-            ...serverItems,
-            ...FIXTURE_TOURNAMENTS.filter((f) => !serverIds.has(f.tournamentId)),
-          ];
-          return this.filterFixtures(query, combined);
+          const serverItems: TournamentListItem[] = data.tournaments
+            .filter((t: any) => t.id === "tour-bot-500" || t.coreConfig?.tournamentCode === "BOT-ARENA-500")
+            .map((t: any) => ({
+              tournamentId: t.id,
+              name: t.coreConfig?.tournamentName || "Giải đấu",
+              slug: t.coreConfig?.tournamentCode || t.id,
+              status: t.status,
+              visibility:
+                t.coreConfig?.audienceScope === "PUBLIC_COMMUNITY" ||
+                t.coreConfig?.audienceScope === "PUBLIC_REGISTERED"
+                  ? "PUBLIC"
+                  : "PRIVATE",
+              startAt: t.coreConfig?.scheduledStartAt ?? null,
+              endAt: t.coreConfig?.scheduledEndAt ?? null,
+              timezone: t.coreConfig?.timezone || "Asia/Ho_Chi_Minh",
+              ownerDisplay: t.coreConfig?.organizersText || "Ban Tổ chức",
+              unitId: t.unitId,
+              unitName: t.coreConfig?.organizersText || "Đơn vị",
+              participantCount: t.coreConfig?.maxParticipants ?? 500,
+              maxParticipants: t.coreConfig?.maxParticipants ?? 500,
+              readiness: { state: "READY", blockerCount: 0 },
+              permittedActions: ["view", "manage_matches", "pause", "incident"],
+              revision: `rev-${t.revision ?? 1}`,
+            }));
+          return this.filterFixtures(query, serverItems.length > 0 ? serverItems : FIXTURE_TOURNAMENTS);
         }
       }
     } catch {

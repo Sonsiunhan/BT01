@@ -493,13 +493,13 @@ async function main() {
     tieIndicators: {
       blue: {
         materialByType: { R: 1, P: 1, S: 0 },
-        goalDistance: 3,
+        goalDistance: { reachable: true, distance: 3 },
         mobility: 14,
       },
       red: {
         materialByType: { R: 1, P: 1, S: 0 },
-        goalDistance: 3,
-        mobility: 14,
+        goalDistance: { reachable: true, distance: 4 },
+        mobility: 12,
       },
     },
   };

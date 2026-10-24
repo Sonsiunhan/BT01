@@ -255,14 +255,16 @@ export function TournamentRosterPage({
             data-testid="roster-file-input"
             aria-label="Chọn tệp danh sách thí sinh"
           />
-          <button
-            type="submit"
-            className="button primary"
-            disabled={!selectedFile || previewing}
-            data-testid="roster-preview-btn"
-          >
-            {previewing ? "Đang đọc tệp…" : "Xem trước (Preview)"}
-          </button>
+          {selectedFile && (
+            <button
+              type="submit"
+              className="button primary"
+              disabled={previewing}
+              data-testid="roster-preview-btn"
+            >
+              {previewing ? "Đang đọc tệp…" : "Xem trước (Preview)"}
+            </button>
+          )}
         </form>
 
         {previewError && <div role="alert" style={{ marginTop: "1rem", color: "#ef4444" }}>{previewError}</div>}

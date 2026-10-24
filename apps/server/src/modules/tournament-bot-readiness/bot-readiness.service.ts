@@ -255,12 +255,29 @@ export class BotReadinessService {
     const isReady = enrollment?.botReadinessStatus === "READY" && !!enrollment?.pinnedBotRevisionId;
     const revisionId = enrollment?.pinnedBotRevisionId ?? null;
     const rawDigest = revisionId ? revisionId.replace(/^rev-(?:wasi-)?/, "").slice(0, 12).padEnd(12, "0") : null;
-    const context: BotReadinessTarget | null = isReady && rawDigest ? {
+    const tournament = this.store.tournaments.get(target.tournamentId);
+    const tuple = isReady && revisionId ? {
+      tournamentId: target.tournamentId,
+      enrollmentId: target.enrollmentId,
+      botId: `bot-${target.personKey.toLowerCase()}`,
+      revisionId,
+      sourceDigest: rawDigest,
+      configVersionNumber: tournament?.activeConfigVersionNumber ?? 1,
+      ruleVersion: tournament?.ruleProfile?.rulesVersion ?? "rps-v1",
       sdkVersion: "1.0.0",
       schemaVersion: "1.0.0",
       runtimeProfile: "WASMTIME_SUPERVISOR",
       policyVersion: "2026.1",
-      sourceDigestPrefix: rawDigest,
+    } : null;
+    const context: BotReadinessTarget | null = tuple && rawDigest ? {
+      targetContextRef: `brt_${fingerprint(tuple).slice(0, 24)}`,
+      configVersionNumber: tuple.configVersionNumber,
+      ruleVersion: tuple.ruleVersion,
+      sdkVersion: tuple.sdkVersion,
+      schemaVersion: tuple.schemaVersion,
+      runtimeProfile: "WASMTIME_SUPERVISOR",
+      policyVersion: tuple.policyVersion,
+      sourceDigestPrefix: rawDigest.slice(0, 12),
     } : null;
     const record: ReadinessRecord = {
       target,

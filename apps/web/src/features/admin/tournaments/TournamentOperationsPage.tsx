@@ -124,8 +124,8 @@ export const TournamentOperationsPage: React.FC = () => {
           </div>
 
           <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            <Link to={`/admin/tournaments/${tournament.id}`} className="button secondary" style={{ fontSize: "0.85rem", padding: "0.45rem 0.85rem" }}>
-              Chi tiết giải
+            <Link to={`/admin/tournaments/${tournament.id}`} className="button secondary">
+              Quay lại chi tiết giải
             </Link>
             <Link to={`/admin/tournaments/${tournament.id}/adjudications`} className="button secondary" style={{ fontSize: "0.85rem", padding: "0.45rem 0.85rem" }}>
               Phán quyết hòa (P05)

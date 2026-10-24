@@ -99,6 +99,12 @@ export async function syncPrismaToTournamentStore(
         contract: true,
       },
     });
+    const dbTourIds = new Set(tournaments.map((t) => t.id));
+    for (const existingId of Array.from(store.tournaments.keys())) {
+      if (!dbTourIds.has(existingId)) {
+        store.tournaments.delete(existingId);
+      }
+    }
     for (const t of tournaments) {
       if (!store.tournaments.has(t.id)) {
         const tournamentDto: TournamentDto = {
@@ -141,27 +147,25 @@ export async function syncPrismaToTournamentStore(
     // 4. Adjudication Requests
     const adjudications = await prisma.manualAdjudicationRequestRecord.findMany();
     for (const a of adjudications) {
-      if (!store.adjudicationRequests.has(a.id)) {
-        store.adjudicationRequests.set(a.id, {
-          id: a.id,
-          tournamentId: a.tournamentId,
-          matchId: a.matchId,
-          roomId: a.roomId,
-          blueParticipantId: a.blueParticipantId,
-          redParticipantId: a.redParticipantId,
-          status: a.status as any,
-          frozenSnapshot: a.frozenSnapshot as any,
-          deadlineAt: a.deadlineAt.toISOString(),
-          fallbackPolicy: a.fallbackPolicy as any,
-          winnerSide: (a.winnerSide as any) ?? null,
-          decidedByUserId: a.decidedByUserId ?? null,
-          decisionReason: a.decisionReason ?? null,
-          decidedAt: a.decidedAt?.toISOString() ?? null,
-          finishSequence: a.finishSequence ?? null,
-          createdAt: a.createdAt.toISOString(),
-          updatedAt: a.updatedAt.toISOString(),
-        });
-      }
+      store.adjudicationRequests.set(a.id, {
+        id: a.id,
+        tournamentId: a.tournamentId,
+        matchId: a.matchId,
+        roomId: a.roomId,
+        blueParticipantId: a.blueParticipantId,
+        redParticipantId: a.redParticipantId,
+        status: a.status as any,
+        frozenSnapshot: a.frozenSnapshot as any,
+        deadlineAt: a.deadlineAt.toISOString(),
+        fallbackPolicy: a.fallbackPolicy as any,
+        winnerSide: (a.winnerSide as any) ?? null,
+        decidedByUserId: a.decidedByUserId ?? null,
+        decisionReason: a.decisionReason ?? null,
+        decidedAt: a.decidedAt?.toISOString() ?? null,
+        finishSequence: a.finishSequence ?? null,
+        createdAt: a.createdAt.toISOString(),
+        updatedAt: a.updatedAt.toISOString(),
+      });
     }
 
     // 5. Score Ledger Records
