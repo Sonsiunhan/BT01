@@ -137,6 +137,62 @@ export async function syncPrismaToTournamentStore(
         tournamentsCount++;
       }
     }
+
+    // 4. Adjudication Requests
+    const adjudications = await prisma.manualAdjudicationRequestRecord.findMany();
+    for (const a of adjudications) {
+      if (!store.adjudicationRequests.has(a.id)) {
+        store.adjudicationRequests.set(a.id, {
+          id: a.id,
+          tournamentId: a.tournamentId,
+          matchId: a.matchId,
+          roomId: a.roomId,
+          blueParticipantId: a.blueParticipantId,
+          redParticipantId: a.redParticipantId,
+          status: a.status as any,
+          frozenSnapshot: a.frozenSnapshot as any,
+          deadlineAt: a.deadlineAt.toISOString(),
+          fallbackPolicy: a.fallbackPolicy as any,
+          winnerSide: (a.winnerSide as any) ?? null,
+          decidedByUserId: a.decidedByUserId ?? null,
+          decisionReason: a.decisionReason ?? null,
+          decidedAt: a.decidedAt?.toISOString() ?? null,
+          finishSequence: a.finishSequence ?? null,
+          createdAt: a.createdAt.toISOString(),
+          updatedAt: a.updatedAt.toISOString(),
+        });
+      }
+    }
+
+    // 5. Score Ledger Records
+    const ledgerRecords = await prisma.tournamentScoreLedgerRecord.findMany({
+      orderBy: { finishSequence: "asc" },
+    });
+    for (const l of ledgerRecords) {
+      const list = store.scoreLedger.get(l.tournamentId) ?? [];
+      if (!list.some((item) => item.id === l.id)) {
+        list.push({
+          id: l.id,
+          tournamentId: l.tournamentId,
+          matchId: l.matchId,
+          finishSequence: l.finishSequence,
+          blueParticipantId: l.blueParticipantId,
+          redParticipantId: l.redParticipantId,
+          winnerSide: l.winnerSide as any,
+          resolutionSource: l.resolutionSource as any,
+          blueEloBefore: l.blueEloBefore,
+          blueEloAfter: l.blueEloAfter,
+          blueScoreBefore: l.blueScoreBefore,
+          blueScoreAfter: l.blueScoreAfter,
+          redEloBefore: l.redEloBefore,
+          redEloAfter: l.redEloAfter,
+          redScoreBefore: l.redScoreBefore,
+          redScoreAfter: l.redScoreAfter,
+          finishedAt: l.finishedAt.toISOString(),
+        });
+        store.scoreLedger.set(l.tournamentId, list);
+      }
+    }
   } catch (err) {
     // If table doesn't exist yet (e.g. before initial migration in test), log and continue safely
     console.warn("[syncPrismaToTournamentStore] Warning during database hydration:", (err as Error).message);
