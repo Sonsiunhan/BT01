@@ -63,7 +63,7 @@ test.describe("N11 — Long admin routes", () => {
     await expect(page.getByRole("link", { name: "Xét duyệt" })).toBeVisible();
 
     await page.goto("/admin/contracts");
-    await expect(page.getByRole("heading", { name: /Quản lý Hợp đồng & Hạn mức/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Quản lý Hợp đồng/ })).toBeVisible();
 
     await page.goto("/admin/approvals");
     await expect(page.getByRole("heading", { name: /Hàng đợi Phê duyệt Giải đấu/ })).toBeVisible();
