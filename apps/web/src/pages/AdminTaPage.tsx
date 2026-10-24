@@ -11,6 +11,7 @@ import {
   revokeTaAccount,
   type TaUserItem,
 } from "../services/admin/taApi";
+import { AdminForbiddenState } from "../features/admin/shell/AdminForbiddenState";
 
 export default function AdminTaPage() {
   const { notify } = useToast();
@@ -188,15 +189,14 @@ export default function AdminTaPage() {
 
   if (statusCode === 403) {
     return (
-      <div className="panel" style={{ padding: "2rem", textAlign: "center" }} data-testid="ta-forbidden">
-        <h2 style={{ color: "var(--danger)" }}>Không đủ quyền hạn</h2>
-        <p style={{ color: "var(--text-secondary)" }}>
-          Chỉ Quản trị viên hệ thống (SYSTEM_ADMIN) mới có quyền quản lý tài khoản Tournament Admin.
-        </p>
-        <Link to={routes.adminTournaments} className="button secondary" style={{ marginTop: "1rem", display: "inline-block" }}>
-          Quay lại Bảng điều khiển
-        </Link>
-      </div>
+      <AdminForbiddenState
+        testId="ta-forbidden"
+        title="Không đủ quyền hạn"
+        featureName="Quản lý tài khoản Tournament Admin"
+        message="Chỉ Quản trị viên hệ thống (SYSTEM_ADMIN) mới có quyền quản lý tài khoản Tournament Admin."
+        backTo={routes.adminTournaments}
+        backText="Quay lại Bảng điều khiển Giải đấu"
+      />
     );
   }
 

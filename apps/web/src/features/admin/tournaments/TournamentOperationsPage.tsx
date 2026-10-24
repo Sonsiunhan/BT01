@@ -123,14 +123,14 @@ export const TournamentOperationsPage: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
             <Link to={`/admin/tournaments/${tournament.id}`} className="button secondary">
-              Quay lại
+              Quay lại chi tiết giải
             </Link>
-            <Link to={`/admin/tournaments/${tournament.id}/adjudications`} className="button secondary">
+            <Link to={`/admin/tournaments/${tournament.id}/adjudications`} className="button secondary" style={{ fontSize: "0.85rem", padding: "0.45rem 0.85rem" }}>
               Phán quyết hòa (P05)
             </Link>
-            <Link to={`/admin/tournaments/${tournament.id}/audit`} className="button secondary">
+            <Link to={`/admin/tournaments/${tournament.id}/audit`} className="button secondary" style={{ fontSize: "0.85rem", padding: "0.45rem 0.85rem" }}>
               Nhật ký kiểm toán
             </Link>
           </div>
