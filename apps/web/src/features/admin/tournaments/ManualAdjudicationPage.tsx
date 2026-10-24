@@ -124,7 +124,7 @@ export default function ManualAdjudicationPage() {
         <div><p className="manual-adjudication-page__eyebrow">P05 · EXACT-TIE</p><h1 className="manual-adjudication-page__title" tabIndex={-1} ref={headingRef}>Phân xử trận hòa tuyệt đối</h1></div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <button className="button secondary" type="button" onClick={() => void load(true)}>Tải lại</button>
-          <Link className="button secondary" to={`/admin/tournaments/${tournamentId}`}>Quay lại chi tiết giải</Link>
+          <Link className="button secondary" to={`/admin/tournaments/${tournamentId}`}>Quay lại</Link>
         </div>
       </header>
       <p className="manual-adjudication-page__notice" role="note">Chỉ quản trị giải sở hữu giải có thể quyết định. Hệ thống dùng thời gian máy chủ và fallback đã công bố.</p>

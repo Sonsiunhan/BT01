@@ -71,9 +71,9 @@ export function TournamentStaffPage({ apiClient = tournamentStaffApi, tournament
   return (
     <main className="page-container" data-testid="tournament-staff-page" style={{ maxWidth: 1080, margin: "0 auto", width: "100%" }}>
       <p className="eyebrow">P11 // STAFF / REFEREE MANAGEMENT</p>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
         <div><h1 style={{ marginBottom: "0.35rem" }}>Nhân sự giải đấu</h1><p style={{ color: "var(--text-secondary)" }}>Quản lý phân công theo đúng tournament scope.</p></div>
-        <Link className="button secondary" to={routes.adminTournamentDetail.replace(":tournamentId", resolvedTournamentId)}>Quay lại chi tiết giải</Link>
+        <Link className="button secondary" to={routes.adminTournamentDetail.replace(":tournamentId", resolvedTournamentId)}>Quay lại</Link>
       </div>
       <section aria-label="Referee readiness" data-testid="staff-readiness" style={{ padding: "1rem", border: "1px solid var(--border)", borderRadius: "0.75rem", background: "var(--surface)" }}>
         <strong>{readiness?.hasAcceptedReferee ? "Đã có trọng tài được chấp nhận" : "Chưa có trọng tài được chấp nhận"}</strong>

@@ -181,7 +181,7 @@ export function TournamentRosterPage({
       data-testid="tournament-roster-page"
       style={{ maxWidth: 1100, margin: "0 auto", width: "100%", padding: "1.5rem 1rem" }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
         <div>
           <p className="eyebrow">P10 // QUẢN LÝ THÍ SINH & IMPORT ROSTER</p>
           <h1 style={{ margin: "0.25rem 0 0.5rem" }}>Danh sách thí sinh giải đấu</h1>
@@ -189,9 +189,8 @@ export function TournamentRosterPage({
         <Link
           to={routes.adminTournamentDetail.replace(":tournamentId", resolvedTournamentId)}
           className="button secondary"
-          style={{ fontSize: "0.85rem" }}
         >
-          Quay lại chi tiết giải
+          Quay lại
         </Link>
       </div>
 

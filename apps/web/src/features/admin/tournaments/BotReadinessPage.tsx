@@ -192,7 +192,7 @@ export default function BotReadinessPage() {
         <h1 id="bot-readiness-title">Trạng thái sẵn sàng Bot</h1>
         <p className="page-subtitle">Theo dõi revision đã ghim, policy gate và kết quả runtime cô lập của từng đăng ký.</p>
       </div>
-      <Link className="button secondary" to={routes.adminTournamentDetail.replace(":tournamentId", tournamentId)}>Quay lại chi tiết giải</Link>
+      <Link className="button secondary" to={routes.adminTournamentDetail.replace(":tournamentId", tournamentId)}>Quay lại</Link>
     </div>
 
     <div className="bot-readiness-toolbar" aria-label="Bộ lọc trạng thái Bot">

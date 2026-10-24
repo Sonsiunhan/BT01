@@ -3,7 +3,7 @@
 .admin-header > *, .admin-header .admin-nav, .admin-header .header-actions { min-width: 0; }
 .admin-header .admin-nav { max-width: 100%; overflow-x: auto; }
 .bot-readiness-page { display: grid; gap: 1rem; }
-.bot-readiness-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.bot-readiness-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .bot-readiness-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .75rem; padding: .85rem 1rem; border: 1px solid color-mix(in srgb, var(--system-cyan) 30%, var(--border)); border-radius: var(--radius-md); background: color-mix(in srgb, var(--surface-raised) 93%, var(--system-cyan)); box-shadow: var(--lab-bevel); }
 .bot-readiness-toolbar label { display: grid; gap: .35rem; color: var(--text-secondary); font-size: .78rem; font-weight: 800; }
 .bot-readiness-toolbar select { min-width: 13rem; min-height: 2.5rem; }

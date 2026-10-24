@@ -1,5 +1,5 @@
 .manual-adjudication-page { display: grid; gap: 1.25rem; max-width: 70rem; margin: 0 auto; padding: 1.5rem; color: var(--text); }
-.manual-adjudication-page__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.manual-adjudication-page__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
 .manual-adjudication-page__eyebrow { margin: 0 0 .35rem; color: var(--text-secondary); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; font-family: var(--font-data); }
 .manual-adjudication-page__title { margin: 0; font-size: clamp(1.35rem, 2vw, 2rem); font-family: var(--font-display); }
 .manual-adjudication-page__notice { padding: .75rem 1rem; border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent); border-radius: .75rem; background: color-mix(in srgb, var(--warning) 11%, transparent); }
