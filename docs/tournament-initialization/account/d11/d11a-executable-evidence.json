@@ -1,0 +1,46 @@
+{
+  "scope": "D11-A",
+  "purpose": "F01/F02 authorization and integration reproduction",
+  "browser": "PASS",
+  "postgres": "18",
+  "host": "127.0.0.1",
+  "pgPort": 53226,
+  "serverPort": 53227,
+  "webPort": 53228,
+  "database": "ottv2_d11a_1792776135006",
+  "directory": "DISPOSABLE LOCALHOST ONLY",
+  "productionMutation": false,
+  "sharedDatabaseTouched": false,
+  "schemaPush": "PASS",
+  "apiProbes": {
+    "contractCreated": true,
+    "taBindingCreated": true,
+    "p14": {
+      "admin": {
+        "status": 200
+      },
+      "ta": {
+        "status": 403
+      },
+      "player": {
+        "status": 403
+      },
+      "referee": {
+        "status": 403
+      },
+      "guest": {
+        "status": 401
+      }
+    },
+    "admission": {
+      "status": 200,
+      "allowed": false,
+      "reasonCode": "ADMIN_CANNOT_PLAY_ONLINE",
+      "manipulatedPayloadRoles": [
+        "PLAYER"
+      ]
+    }
+  },
+  "e2e": "PASS",
+  "stopped": true
+}

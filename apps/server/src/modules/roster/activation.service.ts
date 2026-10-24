@@ -14,6 +14,7 @@ import {
 
 import { AppError } from "../../shared/errors/app-error.js";
 import { createRecoveryCode, hashSecret } from "../auth/auth.crypto.js";
+import { assertActorScopeForContract } from "./roster-authorization.js";
 
 // ---------------------------------------------------------------------------
 // Constants derived from canonical policy (never hardcode a numeric TTL)
@@ -105,7 +106,7 @@ export class ActivationService {
     }
 
     // 2. Authorization: verify actor scope against enrollment's contract
-    await this._assertActorScopeForContract(actor, enrollment.contractId);
+    await assertActorScopeForContract(this.requireDb(), actor, enrollment.contractId);
 
     // 3. Check if already fully claimed with a credential
     if (enrollment.userId !== null) {
@@ -708,7 +709,7 @@ export class ActivationService {
       throw new AppError("NOT_FOUND", "Không tìm thấy bản ghi đăng ký.", 404, false, "INVALID");
     }
 
-    await this._assertActorScopeForContract(actor, enrollment.contractId);
+    await assertActorScopeForContract(this.requireDb(), actor, enrollment.contractId);
 
     let status: ActivationStatus = "UNCLAIMED";
     let tokenExpiresAt: string | undefined;
@@ -766,58 +767,4 @@ export class ActivationService {
   // -------------------------------------------------------------------------
   // Internal: assert actor scope for a contract
   // -------------------------------------------------------------------------
-  private async _assertActorScopeForContract(
-    actor: ActivationActor,
-    contractId: string,
-  ): Promise<void> {
-    if (actor.role === "SYSTEM_ADMIN" || actor.role === "ADMIN") return; // full access
-
-    if (actor.role !== "TOURNAMENT_ADMIN") {
-      throw new AppError(
-        "UNAUTHORIZED",
-        "Chỉ quản trị hệ thống hoặc quản trị giải đấu được phép thực hiện thao tác này.",
-        403,
-        false,
-        "INVALID",
-      );
-    }
-
-    const db = this.requireDb();
-    const now = new Date();
-    const binding = await db.tournamentContractTaBinding.findFirst({
-      where: {
-        contractId,
-        userId: actor.userId,
-        status: "ACTIVE",
-      },
-    });
-
-    if (!binding) {
-      throw new AppError(
-        "UNAUTHORIZED",
-        "Bạn không có quyền truy cập hợp đồng này.",
-        403,
-        false,
-        "INVALID",
-        { reason: "OUT_OF_SCOPE" },
-      );
-    }
-
-    // Verify contract is still valid
-    const contract = await db.tournamentContract.findUnique({
-      where: { id: contractId },
-      select: { status: true, validFrom: true, validTo: true },
-    });
-
-    if (!contract || contract.status !== "ACTIVE" || contract.validFrom > now || contract.validTo < now) {
-      throw new AppError(
-        "UNAUTHORIZED",
-        "Hợp đồng không còn hiệu lực.",
-        403,
-        false,
-        "INVALID",
-        { reason: "CONTRACT_INACTIVE" },
-      );
-    }
-  }
 }

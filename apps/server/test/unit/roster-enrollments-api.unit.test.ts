@@ -31,6 +31,20 @@ describe("D03 / D04 — Roster Enrollment List API Tests", () => {
     ];
 
     const mockDb = {
+      tournament: {
+        findUnique: vi.fn().mockResolvedValue({ id: "tour-100", contractId: "contract-100" }),
+      },
+      tournamentContractTaBinding: {
+        findFirst: vi.fn().mockResolvedValue({ contractId: "contract-100", userId: "ta-user-1", status: "ACTIVE" }),
+      },
+      tournamentContract: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "contract-100",
+          status: "ACTIVE",
+          validFrom: new Date("2026-01-01"),
+          validTo: new Date("2026-12-31T23:59:59Z"),
+        }),
+      },
       tournamentEnrollmentRecord: {
         findMany: vi.fn().mockResolvedValue(mockEnrollments),
       },

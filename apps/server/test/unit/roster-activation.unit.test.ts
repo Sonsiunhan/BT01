@@ -20,7 +20,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ActivationService } from "../../src/modules/roster/activation.service.js";
 import { AppError } from "../../src/shared/errors/app-error.js";
 import { verifySecret } from "../../src/modules/auth/auth.crypto.js";
-import { SetupCredentialRequestSchema } from "@ottv2/contracts";
+import { CANDIDATE_POLICY_DEFAULTS_V1, SetupCredentialRequestSchema } from "@ottv2/contracts";
 
 // ---------------------------------------------------------------------------
 // Mock Prisma factory for Activation tests
@@ -899,5 +899,69 @@ describe("D05-A — Roster Participant Activation & Account Handoff", () => {
       expect(serialized).not.toContain(plainPassword);
       expect(serialized).not.toContain(recoveryCode);
     }
+  });
+
+  // -------------------------------------------------------------------------
+  // 21. D13-A: Approved 24-hour activation TTL and expiry boundary
+  // -------------------------------------------------------------------------
+  it("21. uses the approved 24-hour TTL and rejects at or after the expiry boundary", async () => {
+    expect(CANDIDATE_POLICY_DEFAULTS_V1.claimTokenTtlHours).toBe(24);
+
+    const issued = await service.issueActivationToken(
+      { enrollmentId: "enr-1" },
+      { userId: "ta-user-1", role: "TOURNAMENT_ADMIN" },
+    );
+    const issuedEntry = [...mock.store.commandLedger.values()].find(
+      (entry) => entry.operation === "ROSTER_ACTIVATION_ISSUE",
+    );
+    expect(issuedEntry).toBeDefined();
+    expect(issuedEntry!.expiresAt.getTime() - Date.now()).toBeGreaterThan(24 * 60 * 60 * 1000 - 2_000);
+    expect(issuedEntry!.expiresAt.getTime() - Date.now()).toBeLessThan(24 * 60 * 60 * 1000 + 2_000);
+
+    const serializedLedger = JSON.stringify(issuedEntry);
+    const serializedAudit = JSON.stringify([...mock.store.auditLogs.values()]);
+    expect(serializedLedger).not.toContain(issued.claimToken);
+    expect(serializedAudit).not.toContain(issued.claimToken);
+
+    issuedEntry!.expiresAt = new Date(Date.now() + 1_000);
+    await expect(service.claimActivation({
+      claimToken: issued.claimToken,
+      username: "before_expiry",
+      displayName: "Before expiry",
+    })).resolves.toMatchObject({ success: true });
+
+    const exactFixture = createMockPrisma();
+    seedCommon(exactFixture.store);
+    const exactService = new ActivationService(exactFixture.prisma);
+    const exact = await exactService.issueActivationToken(
+      { enrollmentId: "enr-1" },
+      { userId: "ta-user-1", role: "TOURNAMENT_ADMIN" },
+    );
+    const exactEntry = [...exactFixture.store.commandLedger.values()].find(
+      (entry) => entry.operation === "ROSTER_ACTIVATION_ISSUE",
+    )!;
+    exactEntry.expiresAt = new Date(Date.now());
+    await expect(exactService.claimActivation({
+      claimToken: exact.claimToken,
+      username: "exact_expiry",
+      displayName: "Exact expiry",
+    })).rejects.toMatchObject({ statusCode: 401, details: { reason: "TOKEN_EXPIRED" } });
+
+    const afterFixture = createMockPrisma();
+    seedCommon(afterFixture.store);
+    const afterService = new ActivationService(afterFixture.prisma);
+    const after = await afterService.issueActivationToken(
+      { enrollmentId: "enr-1" },
+      { userId: "ta-user-1", role: "TOURNAMENT_ADMIN" },
+    );
+    const afterEntry = [...afterFixture.store.commandLedger.values()].find(
+      (entry) => entry.operation === "ROSTER_ACTIVATION_ISSUE",
+    )!;
+    afterEntry.expiresAt = new Date(Date.now() - 1);
+    await expect(afterService.claimActivation({
+      claimToken: after.claimToken,
+      username: "after_expiry",
+      displayName: "After expiry",
+    })).rejects.toMatchObject({ statusCode: 401, details: { reason: "TOKEN_EXPIRED" } });
   });
 });
