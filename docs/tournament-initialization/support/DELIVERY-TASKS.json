@@ -30,7 +30,7 @@
       "dependsOn": [],
       "deliverable": "Quyết định defaults + đề nghị independent re-review; wireframe và Rule/Resolution DTO. G0 chỉ PASS bằng bằng chứng, không vì hết giờ.",
       "handoversDuringTask": [],
-      "status": "READY_PREPARATION",
+      "status": "DONE",
       "gate": null,
       "hours": 1,
       "workSegments": [
@@ -54,7 +54,7 @@
       ],
       "deliverable": "RAY/LEAP, type+side, board5..15, blocker/jump, counts/layout; old-profile regression.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 3,
       "workSegments": [
@@ -79,7 +79,7 @@
       ],
       "deliverable": "POST validate/preview dùng engine thật; golden legalMoves; lỗi field/version/caps; typed widget contract.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 3.5,
       "workSegments": [
@@ -103,7 +103,7 @@
       ],
       "deliverable": "Goal profile và seed/round replay; Q17/18 fixtures; không auto-win và không tăng round do pause.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 3,
       "workSegments": [
@@ -133,7 +133,7 @@
       ],
       "deliverable": "Trọng số/event/finaltie, version immutable, create>=effective, envelope guard; endpoints list/diff/publish.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 3,
       "workSegments": [
@@ -162,7 +162,7 @@
       ],
       "deliverable": "Editor export value/onChange/errors/previewRequest; chọn movement/goal; API thật; interface cố định cho Sơn.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 2,
       "workSegments": [
@@ -188,7 +188,7 @@
       ],
       "deliverable": "ABI dimensions/goals/rules/legalMoves; receipt owner/hash/rule/SDK/runtime; no hardcoded9. Kiểm consumer Human–Python Bot Offline; nếu thiếu phải có adapter/harness thực, không thay AI heuristic thành Python.",
       "handoversDuringTask": [],
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "gate": "G0",
       "hours": 3,
       "workSegments": [
@@ -217,7 +217,7 @@
       ],
       "deliverable": "UI diff/reason/effective/publish, conditional fields, old-version display; giữ interface V1.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 3,
       "workSegments": [
@@ -249,7 +249,7 @@
       ],
       "deliverable": "Preflight thật/hardcompute/policy gate; status/retry không lộ source; unavailable phải BLOCKED. Proof consumer Offline Người–Python Bot và Bot–Bot; thiếu môi trường/runtime thì BLOCKED.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 2,
       "workSegments": [
@@ -275,7 +275,7 @@
       ],
       "deliverable": "Request list→staff match→winner+reason; DTO/API/ACL thật, timeout/cancel conflict; không player role.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 3,
       "workSegments": [
@@ -306,7 +306,7 @@
       ],
       "deliverable": "Golden board/movement/goal/tie/clock/receipt; actual evidence, không mock runtime pass. Tối thiểu1trận engine thật qua accepted moves→exact comparator tie→WAITING→manual/timeout→one result; fault fixtures riêng, không thay bằng seed pending request.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 2,
       "workSegments": [
@@ -333,7 +333,7 @@
       ],
       "deliverable": "Ghi findings, chủ Long sửa.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 1,
       "workSegments": [
@@ -360,7 +360,7 @@
       ],
       "deliverable": "Candidate + test logs + known gaps/NOT RUN; không tự gắn DONE nếu mandatory fail.",
       "handoversDuringTask": [],
-      "status": "WAITING_G0",
+      "status": "DONE",
       "gate": "G0",
       "hours": 2,
       "workSegments": [

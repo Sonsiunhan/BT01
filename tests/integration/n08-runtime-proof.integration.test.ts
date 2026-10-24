@@ -4,14 +4,25 @@ import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { BotLibraryService } from "../../apps/server/src/modules/bot-library/bot-library.service.js";
-import { createWasmtimeCpythonAdapter } from "../../apps/server/src/modules/bot-online/wasmtime.adapter.js";
+import {
+  createWasmtimeCpythonAdapter,
+  DEFAULT_CPYTHON_WASM_SHA256,
+  DEFAULT_WASMTIME_LINUX_SHA256,
+} from "../../apps/server/src/modules/bot-online/wasmtime.adapter.js";
 import { BotReadinessService } from "../../apps/server/src/modules/tournament-bot-readiness/bot-readiness.service.js";
 import { TournamentStateStore } from "../../apps/server/src/modules/tournament-foundation/tournament-store.js";
 
-const runtimeRoot = resolve(process.env.OTT_V2_RUNTIME_ARTIFACTS ?? "D:/BT01/.worktrees/w1-runtime-artifacts");
-const wasmtimePath = join(runtimeRoot, "wasmtime.exe");
-const cpythonDir = join(runtimeRoot, "cpython");
+const isWindows = process.platform === "win32";
+const defaultWorktree = isWindows ? "D:/BT01/.worktrees/w1-runtime-artifacts" : resolve(process.cwd(), ".worktrees/w1-runtime-artifacts");
+const runtimeRoot = resolve(process.env.OTT_V2_RUNTIME_ARTIFACTS ?? defaultWorktree);
+const wasmtimeExecutable = isWindows ? "wasmtime.exe" : "wasmtime";
+const wasmtimePath = process.env.R10_WASMTIME_PATH ?? process.env.BOT_WASMTIME_PATH ?? join(runtimeRoot, wasmtimeExecutable);
+const cpythonDir = process.env.R10_CPYTHON_DIR ?? process.env.BOT_CPYTHON_WASI_DIR ?? join(runtimeRoot, "cpython");
 const runtimeAvailable = existsSync(wasmtimePath) && existsSync(join(cpythonDir, "python.wasm"));
+const wasmtimeSha256 = process.env.BOT_WASMTIME_SHA256 ?? (isWindows
+  ? "51165ae46e2e4ca71b52efff33432d9e58db41bf236cb7c768adb03f653a7152"
+  : DEFAULT_WASMTIME_LINUX_SHA256);
+const cpythonWasmSha256 = process.env.BOT_CPYTHON_WASM_SHA256 ?? DEFAULT_CPYTHON_WASM_SHA256;
 const source = "def choose_move(state, memory):\n    return state['legal_moves'][0], memory\n";
 
 /**
@@ -26,8 +37,8 @@ describe("N08 — isolated runtime proof", () => {
     const adapter = createWasmtimeCpythonAdapter({
       wasmtimePath,
       cpythonDir,
-      wasmtimeSha256: "51165ae46e2e4ca71b52efff33432d9e58db41bf236cb7c768adb03f653a7152",
-      cpythonWasmSha256: "d24bd98d3071af6b17d51d53a08700b9acef59172a0afcb6adb733645c2a1715",
+      wasmtimeSha256,
+      cpythonWasmSha256,
       workDir: join(tmpdir(), "ottv2-n08-runtime-proof"),
     });
     const store = new TournamentStateStore();

@@ -1,0 +1,53 @@
+{
+  "slice": "D13-A",
+  "date": "2026-10-24",
+  "owner": "Đức",
+  "findings": {
+    "D12-F01": {
+      "status": "FIXED / VERIFIED",
+      "originalRepro": "TOURNAMENT_ADMIN could list a foreign tournament roster by supplying its tournamentId.",
+      "rootCause": "Roster list queried by tournamentId after role-only authorization; contract binding was not checked.",
+      "productionChange": "Shared contract-scope authorization is enforced before roster findMany.",
+      "tests": {
+        "unit": "8/8 passed",
+        "integration": "PASS"
+      },
+      "noMutation": true,
+      "foreignEnrollmentDataReturned": false
+    },
+    "D12-F06": {
+      "status": "FIXED / VERIFIED",
+      "originalRepro": "Activation token TTL was 168 hours.",
+      "rootCause": "Shared claimTokenTtlHours default was 168 instead of approved 24.",
+      "productionChange": "Shared claimTokenTtlHours default is now 24; runtime continues consuming that source.",
+      "sharedContractChange": true,
+      "sharedContractReview": "LONG REVIEW REQUIRED",
+      "tests": {
+        "unit": "22/22 passed",
+        "integration": "PASS"
+      },
+      "boundaries": {
+        "before24Hours": "VALID",
+        "exactly24Hours": "EXPIRED",
+        "after24Hours": "EXPIRED"
+      },
+      "singleUseReplay": "PRESERVED",
+      "rawTokenPersisted": false
+    }
+  },
+  "focusedSuite": {
+    "serverTypecheck": "PASS",
+    "unitTests": "32/32 passed",
+    "postgresIntegration": "2/2 passed",
+    "database": "DISPOSABLE LOCALHOST ONLY",
+    "productionMutation": false,
+    "configuredDatabaseRead": false,
+    "disposablePostgresStopped": true,
+    "disposablePostgresRemoved": true
+  },
+  "scopePreservation": {
+    "D13BImplemented": false,
+    "otherD11D12FindingsFixed": false,
+    "preExistingEvidencePreserved": true
+  }
+}

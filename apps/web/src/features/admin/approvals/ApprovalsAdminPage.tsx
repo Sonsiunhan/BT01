@@ -5,6 +5,7 @@ import type {
   TournamentDto,
 } from "@ottv2/contracts";
 import { ApiError } from "../../../services/http/apiError";
+import { safeErrorMessage } from "../../../services/http/safeErrorMessage";
 import {
   defaultTournamentAdminApi,
   type TournamentAdminApiPort,
@@ -63,13 +64,9 @@ export function ApprovalsAdminPage({
         setForbiddenError(null);
       } catch (err) {
         if (err instanceof ApiError && err.status === 403) {
-          setForbiddenError(err.message);
+          setForbiddenError(safeErrorMessage(err, "Bạn không có quyền xem hàng đợi phê duyệt."));
         } else {
-          setErrorBanner(
-            err instanceof Error
-              ? err.message
-              : "Không thể tải hàng đợi phê duyệt."
-          );
+          setErrorBanner(safeErrorMessage(err, "Không thể tải hàng đợi phê duyệt."));
         }
       } finally {
         setLoading(false);
@@ -134,9 +131,7 @@ export function ApprovalsAdminPage({
         `Đã xử lý hồ sơ giải "${res.tournament.coreConfig.tournamentCode}" -> trạng thái ${res.tournament.status}.`
       );
     } catch (err) {
-      setErrorBanner(
-        err instanceof Error ? err.message : "Không thể thực hiện quyết định."
-      );
+      setErrorBanner(safeErrorMessage(err, "Không thể thực hiện quyết định."));
     } finally {
       setSubmitting(false);
     }
@@ -173,11 +168,7 @@ export function ApprovalsAdminPage({
         `Đã xử lý ChangeRequest của giải "${cr.tournamentCode}" -> ${res.changeRequest.status}.`
       );
     } catch (err) {
-      setErrorBanner(
-        err instanceof Error
-          ? err.message
-          : "Xử lý yêu cầu thay đổi thất bại."
-      );
+      setErrorBanner(safeErrorMessage(err, "Xử lý yêu cầu thay đổi thất bại."));
     } finally {
       setSubmitting(false);
     }

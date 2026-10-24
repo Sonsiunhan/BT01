@@ -1,0 +1,76 @@
+{
+  "scope": "D11-C",
+  "pages": [
+    "P14",
+    "P15"
+  ],
+  "postgres": "18",
+  "host": "127.0.0.1",
+  "database": "ottv2_d11c_1792777699447",
+  "directory": "DISPOSABLE LOCALHOST ONLY",
+  "productionMutation": false,
+  "sharedDatabaseTouched": false,
+  "schemaPush": "PASS",
+  "api": {
+    "p14Authorization": {
+      "admin": 200,
+      "ta": 403,
+      "player": 403,
+      "referee": 403,
+      "guest": 403,
+      "unauthenticated": 401
+    },
+    "p14Scope": {
+      "systemAdminFilterAOnly": true,
+      "systemAdminFilterBOnly": true,
+      "scopedTaOwnRequestStatus": 403,
+      "scopedTaCanReadOwnAudit": false
+    },
+    "auditPrivacy": {
+      "rawPassword": false,
+      "rawToken": true,
+      "botSource": false,
+      "diagnostics": false
+    },
+    "p15CapabilityStatuses": {
+      "admin": 200,
+      "ta": 403,
+      "player": 403,
+      "referee": 403,
+      "guest": 403,
+      "unauthenticated": 401
+    },
+    "botLibraryStatuses": {
+      "admin": 200,
+      "ta": 200,
+      "player": 200,
+      "referee": 200,
+      "guest": 401
+    },
+    "botPrivacy": {
+      "createResponseHasSource": false,
+      "listResponseHasSource": false,
+      "ownerSourceStatus": 200,
+      "ownerSourceHasSentinel": true,
+      "foreignSourceStatus": 401,
+      "foreignSourceHasSentinel": false
+    },
+    "diagnosticLeakage": false,
+    "identifiers": {
+      "unitA": "5a696fbd-7c7c-49ef-a4da-82731a3362c1",
+      "unitB": "6fe1efef-585e-4d02-884d-24ce9f2f443b",
+      "contractA": "811a46af-c65e-4e5e-b185-3e725939426e",
+      "contractB": "c3f1d0b2-badb-4bcd-8639-558a8a5d6221",
+      "botId": "c85f1f94-16db-48ef-a8f6-a3f50db2c0a9",
+      "revisionId": "60025872-effc-48b3-b21d-02a7189b817c"
+    }
+  },
+  "browser": "PASS",
+  "stopped": true,
+  "findings": {
+    "F03": "VERIFIED",
+    "F04": "VERIFIED",
+    "F05": "VERIFIED",
+    "F09": "VERIFIED"
+  }
+}
