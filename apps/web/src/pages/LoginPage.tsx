@@ -27,7 +27,10 @@ export default function LoginPage() {
     try {
       const result = await login({ username: username.trim(), password, remember });
       window.dispatchEvent(new CustomEvent("ottv2:auth-change", { detail: { user: result.user } }));
-      navigate(safeReturnTo(searchParams.get("returnTo"), routes.profile), { replace: true });
+      const role = result.user.role;
+      const isAdmin = role === "SYSTEM_ADMIN" || role === "TOURNAMENT_ADMIN";
+      const defaultPath = isAdmin ? routes.adminTournaments : routes.profile;
+      navigate(safeReturnTo(searchParams.get("returnTo"), defaultPath), { replace: true });
     }
     catch (reason) { setError(reason instanceof ApiError ? reason.message : "Không thể đăng nhập."); }
     finally { setPending(false); }
