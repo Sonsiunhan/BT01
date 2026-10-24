@@ -302,18 +302,18 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                   tournament.status === "RUNNING"
                     ? "color-mix(in srgb, var(--system-green) 18%, transparent)"
                     : tournament.status === "PAUSED"
-                      ? "color-mix(in srgb, var(--system-amber) 18%, transparent)"
-                      : tournament.status === "APPROVED" || tournament.status === "SCHEDULED"
-                        ? "color-mix(in srgb, var(--system-cyan) 18%, transparent)"
-                        : "color-mix(in srgb, var(--text-muted) 18%, transparent)",
+                    ? "color-mix(in srgb, var(--system-amber) 18%, transparent)"
+                    : tournament.status === "APPROVED" || tournament.status === "SCHEDULED"
+                    ? "color-mix(in srgb, var(--system-cyan) 18%, transparent)"
+                    : "color-mix(in srgb, var(--text-muted) 18%, transparent)",
                 color:
                   tournament.status === "RUNNING"
                     ? "var(--system-green)"
                     : tournament.status === "PAUSED"
-                      ? "var(--system-amber)"
-                      : tournament.status === "APPROVED" || tournament.status === "SCHEDULED"
-                        ? "var(--system-cyan)"
-                        : "var(--text)",
+                    ? "var(--system-amber)"
+                    : tournament.status === "APPROVED" || tournament.status === "SCHEDULED"
+                    ? "var(--system-cyan)"
+                    : "var(--text)",
                 border: "1px solid currentColor",
                 fontSize: "0.78rem",
                 padding: "0.25rem 0.65rem",
@@ -328,19 +328,22 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "1.2rem",
-              marginTop: "0.4rem",
-              fontSize: "0.82rem",
-              color: "var(--text-muted)",
-              flexWrap: "wrap",
+              flexDirection: "column",
+              gap: "0.35rem",
+              marginTop: "0.6rem",
+              fontSize: "0.85rem",
+              color: "var(--text-secondary)",
             }}
           >
-            <span>
-              Mã: <code style={{ color: "var(--system-cyan)" }}>{core.tournamentCode}</code>
-            </span>
-            <span>Đơn vị: <strong style={{ color: "var(--text)" }}>{core.organizersText}</strong></span>
-            <span>Múi giờ: <strong style={{ color: "var(--text)" }}>{core.timezone}</strong></span>
+            <div>
+              Mã: <code style={{ color: "var(--system-cyan)", padding: "0.15rem 0.4rem", background: "rgba(6, 182, 212, 0.1)", borderRadius: "4px" }}>{core.tournamentCode}</code>
+            </div>
+            <div>
+              Đơn vị: <strong style={{ color: "var(--text)" }}>{core.organizersText}</strong>
+            </div>
+            <div>
+              Múi giờ: <strong style={{ color: "var(--text)" }}>{core.timezone}</strong>
+            </div>
           </div>
         </div>
 
@@ -597,14 +600,28 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                 fontSize: "0.72rem",
                 padding: "0.15rem 0.45rem",
                 borderRadius: "10px",
-                background: readiness.canStartRunning
+                background: tournament.status === "RUNNING"
+                  ? "color-mix(in srgb, var(--system-green) 20%, transparent)"
+                  : tournament.status === "PAUSED"
+                  ? "color-mix(in srgb, var(--system-amber) 20%, transparent)"
+                  : readiness.canStartRunning
                   ? "color-mix(in srgb, var(--system-green) 20%, transparent)"
                   : "color-mix(in srgb, var(--system-red) 20%, transparent)",
-                color: readiness.canStartRunning ? "var(--system-green)" : "var(--system-red)",
+                color: tournament.status === "RUNNING" || (tournament.status !== "PAUSED" && readiness.canStartRunning)
+                  ? "var(--system-green)"
+                  : tournament.status === "PAUSED"
+                  ? "var(--system-amber)"
+                  : "var(--system-red)",
                 fontWeight: 700,
               }}
             >
-              {readiness.canStartRunning ? "SẴN SÀNG" : `${readiness.blockers.length} CHẶN`}
+              {tournament.status === "RUNNING"
+                ? "ĐANG CHẠY"
+                : tournament.status === "PAUSED"
+                ? "TẠM DỪNG"
+                : readiness.canStartRunning
+                ? "SẴN SÀNG"
+                : `${readiness.blockers.length} CHẶN`}
             </span>
           )}
         </button>
@@ -710,17 +727,91 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                 borderRadius: "8px",
                 background: "var(--surface)",
                 border: "1px solid var(--border)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
               }}
             >
-              <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>
-                TIẾN ĐỘ THỜI GIAN
-              </span>
-              <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "var(--text)" }}>
-                {core.scheduledStartAt ? new Date(core.scheduledStartAt).toLocaleString("vi-VN") : "Chưa ấn định"}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.05em", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    TIẾN ĐỘ THỜI GIAN
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "0.15rem 0.5rem",
+                      borderRadius: "10px",
+                      fontWeight: 700,
+                      background: tournament.status === "RUNNING"
+                        ? "color-mix(in srgb, var(--system-green) 18%, transparent)"
+                        : tournament.status === "PAUSED"
+                        ? "color-mix(in srgb, var(--system-amber) 18%, transparent)"
+                        : "color-mix(in srgb, var(--text-muted) 15%, transparent)",
+                      color: tournament.status === "RUNNING"
+                        ? "var(--system-green)"
+                        : tournament.status === "PAUSED"
+                        ? "var(--system-amber)"
+                        : "var(--text-secondary)",
+                    }}
+                  >
+                    {tournament.status === "RUNNING" ? "ĐANG DIỄN RA" : tournament.status === "PAUSED" ? "TẠM DỪNG" : tournament.status === "ENDED" ? "ĐÃ KẾT THÚC" : "SẮP DIỄN RA"}
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", margin: "0.4rem 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                    <span style={{ color: "var(--text-muted)" }}>Bắt đầu:</span>
+                    <strong style={{ color: "var(--text)", fontFamily: "var(--font-data)" }}>
+                      {core.scheduledStartAt ? new Date(core.scheduledStartAt).toLocaleString("vi-VN") : "Chưa ấn định"}
+                    </strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                    <span style={{ color: "var(--text-muted)" }}>Kết thúc:</span>
+                    <strong style={{ color: "var(--text)", fontFamily: "var(--font-data)" }}>
+                      {core.scheduledEndAt ? new Date(core.scheduledEndAt).toLocaleString("vi-VN") : "Chưa ấn định"}
+                    </strong>
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
-                đến {core.scheduledEndAt ? new Date(core.scheduledEndAt).toLocaleString("vi-VN") : "Chưa ấn định"}
-              </div>
+
+              {(() => {
+                const startMs = core.scheduledStartAt ? new Date(core.scheduledStartAt).getTime() : 0;
+                const endMs = core.scheduledEndAt ? new Date(core.scheduledEndAt).getTime() : 0;
+                const nowMs = Date.now();
+                let progressPercent = 0;
+                if (startMs && endMs && endMs > startMs) {
+                  if (nowMs >= endMs || tournament.status === "ENDED") {
+                    progressPercent = 100;
+                  } else if (nowMs <= startMs) {
+                    progressPercent = 0;
+                  } else {
+                    progressPercent = Math.min(100, Math.max(0, Math.round(((nowMs - startMs) / (endMs - startMs)) * 100)));
+                  }
+                }
+                return (
+                  <div style={{ marginTop: "0.6rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.25rem" }}>
+                      <span>Tiến trình giải</span>
+                      <span style={{ fontWeight: 600, color: "var(--system-cyan)" }}>{progressPercent}%</span>
+                    </div>
+                    <div style={{ height: "6px", width: "100%", background: "var(--border)", borderRadius: "3px", overflow: "hidden" }}>
+                      <div
+                        style={{
+                          width: `${progressPercent}%`,
+                          height: "100%",
+                          background: "linear-gradient(90deg, var(--system-cyan), var(--system-green))",
+                          transition: "width 0.3s ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div
@@ -898,54 +989,83 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
         >
           {/* Readiness Status Banner */}
-          <div
-            data-testid="readiness-banner"
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: readiness?.canStartRunning
-                ? "color-mix(in srgb, var(--system-green) 12%, var(--surface))"
-                : "color-mix(in srgb, var(--system-red) 12%, var(--surface))",
-              border: `1px solid ${readiness?.canStartRunning ? "var(--system-green)" : "var(--system-red)"}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "1rem",
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                {readiness?.canStartRunning ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--system-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : (
-                  <UiGlyph name="warning" size={20} style={{ color: "var(--system-red)" }} />
-                )}
-                <strong
-                  data-testid="readiness-overall-status"
-                  style={{
-                    fontSize: "1.05rem",
-                    color: readiness?.canStartRunning ? "var(--system-green)" : "var(--system-red)",
-                  }}
-                >
-                  {readiness?.canStartRunning
-                    ? "ĐỦ ĐIỀU KIỆN SẴN SÀNG KHỞI CHẠY (READY)"
-                    : "CHƯA ĐỦ ĐIỀU KIỆN KHỞI CHẠY (BLOCKED)"}
-                </strong>
-              </div>
-              <p style={{ margin: "0.3rem 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                {readiness?.canStartRunning
-                  ? "Tất cả các điều kiện tiên quyết từ máy chủ đã hoàn tất. Có thể bắt đầu giải đấu bất cứ lúc nào."
-                  : `Hệ thống ghi nhận ${readiness?.blockers.length ?? 0} lý do chặn giải đấu khởi chạy. Vui lòng hoàn thành các yêu cầu bên dưới.`}
-              </p>
-            </div>
+          {(() => {
+            const isTournamentRunning = tournament.status === "RUNNING";
+            const isTournamentPaused = tournament.status === "PAUSED";
+            const isTournamentEnded = tournament.status === "ENDED";
+            const isReadyToStart = readiness?.canStartRunning;
 
-            <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-              Kiểm tra lúc: {readiness ? new Date(readiness.evaluatedAt).toLocaleTimeString("vi-VN") : "--"}
-            </div>
-          </div>
+            let bannerColor = "var(--system-red)";
+            let bannerTitle = "CHƯA ĐỦ ĐIỀU KIỆN KHỞI CHẠY (BLOCKED)";
+            let bannerDesc = `Hệ thống ghi nhận ${readiness?.blockers.length ?? 0} lý do chặn giải đấu khởi chạy. Vui lòng hoàn thành các yêu cầu bên dưới.`;
+            let showSuccessIcon = false;
+
+            if (isTournamentRunning) {
+              bannerColor = "var(--system-green)";
+              bannerTitle = "GIẢI ĐẤU ĐANG DIỄN RA (RUNNING)";
+              bannerDesc = "Giải đấu đã hoàn tất toàn bộ điều kiện khởi chạy và đang trong giai đoạn thi đấu chính thức.";
+              showSuccessIcon = true;
+            } else if (isTournamentPaused) {
+              bannerColor = "var(--system-amber)";
+              bannerTitle = "GIẢI ĐẤU ĐANG TẠM DỪNG (PAUSED)";
+              bannerDesc = "Giải đấu đang tạm dừng. Các đồng hồ thi đấu và tiến trình trận đấu tạm thời đóng băng.";
+            } else if (isTournamentEnded) {
+              bannerColor = "var(--text-secondary)";
+              bannerTitle = "GIẢI ĐẤU ĐÃ KẾT THÚC (ENDED)";
+              bannerDesc = "Giải đấu đã hoàn tất mọi trận đấu và công bố kết quả xếp hạng chung cuộc.";
+              showSuccessIcon = true;
+            } else if (isReadyToStart) {
+              bannerColor = "var(--system-green)";
+              bannerTitle = "ĐỦ ĐIỀU KIỆN SẴN SÀNG KHỞI CHẠY (READY)";
+              bannerDesc = "Tất cả các điều kiện tiên quyết từ máy chủ đã hoàn tất. Có thể bắt đầu giải đấu bất cứ lúc nào.";
+              showSuccessIcon = true;
+            }
+
+            return (
+              <div
+                data-testid="readiness-banner"
+                style={{
+                  padding: "1.25rem",
+                  borderRadius: "8px",
+                  background: `color-mix(in srgb, ${bannerColor} 12%, var(--surface))`,
+                  border: `1px solid ${bannerColor}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "1rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {showSuccessIcon ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={bannerColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <UiGlyph name="warning" size={20} style={{ color: bannerColor }} />
+                    )}
+                    <strong
+                      data-testid="readiness-overall-status"
+                      style={{
+                        fontSize: "1.05rem",
+                        color: bannerColor,
+                      }}
+                    >
+                      {bannerTitle}
+                    </strong>
+                  </div>
+                  <p style={{ margin: "0.3rem 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                    {bannerDesc}
+                  </p>
+                </div>
+
+                <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                  Kiểm tra lúc: {readiness ? new Date(readiness.evaluatedAt).toLocaleTimeString("vi-VN") : "--"}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Blockers list if any */}
           {isBlocked && (
@@ -991,12 +1111,13 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                     padding: "1rem 1.25rem",
                     borderRadius: "8px",
                     background: "var(--surface)",
-                    border: `1px solid ${isPass
+                    border: `1px solid ${
+                      isPass
                         ? "color-mix(in srgb, var(--system-green) 40%, var(--border))"
                         : isWarn
-                          ? "color-mix(in srgb, var(--system-amber) 40%, var(--border))"
-                          : "color-mix(in srgb, var(--system-red) 40%, var(--border))"
-                      }`,
+                        ? "color-mix(in srgb, var(--system-amber) 40%, var(--border))"
+                        : "color-mix(in srgb, var(--system-red) 40%, var(--border))"
+                    }`,
                     gap: "1rem",
                   }}
                 >
@@ -1019,13 +1140,13 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                       background: isPass
                         ? "color-mix(in srgb, var(--system-green) 15%, transparent)"
                         : isWarn
-                          ? "color-mix(in srgb, var(--system-amber) 15%, transparent)"
-                          : "color-mix(in srgb, var(--system-red) 15%, transparent)",
+                        ? "color-mix(in srgb, var(--system-amber) 15%, transparent)"
+                        : "color-mix(in srgb, var(--system-red) 15%, transparent)",
                       color: isPass
                         ? "var(--system-green)"
                         : isWarn
-                          ? "var(--system-amber)"
-                          : "var(--system-red)",
+                        ? "var(--system-amber)"
+                        : "var(--system-red)",
                       border: "1px solid currentColor",
                       flexShrink: 0,
                     }}

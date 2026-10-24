@@ -191,7 +191,7 @@ export function TournamentRosterPage({
           className="button secondary"
           style={{ fontSize: "0.85rem" }}
         >
-          Quay lại chi tiết giải
+          Quay lại
         </Link>
       </div>
 
