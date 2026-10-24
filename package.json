@@ -41,8 +41,8 @@
     "db:generate": "corepack pnpm --filter @ottv2/server db:generate",
     "db:migrate": "corepack pnpm --filter @ottv2/server db:migrate",
     "db:deploy": "corepack pnpm --filter @ottv2/server db:deploy",
-    "db:status": "corepack pnpm --filter @ottv2/server db:status",
-    "simulate:tournament": "corepack pnpm --filter @ottv2/server exec tsx ../../scripts/simulate-tournament-matches.ts"
+    "simulate:tournament": "corepack pnpm --filter @ottv2/server exec tsx ../../scripts/simulate-tournament-matches.ts",
+    "simulate:500-bots": "corepack pnpm --filter @ottv2/server exec tsx ../../scripts/simulate-500-bots.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

@@ -193,6 +193,48 @@ export async function syncPrismaToTournamentStore(
         store.scoreLedger.set(l.tournamentId, list);
       }
     }
+
+    // 6. Enrollments
+    const enrollments = await prisma.tournamentEnrollmentRecord.findMany();
+    for (const e of enrollments) {
+      if (!store.enrollments.has(e.id)) {
+        store.enrollments.set(e.id, {
+          id: e.id,
+          tournamentId: e.tournamentId,
+          contractId: e.contractId,
+          personKey: e.personKey,
+          userId: e.userId ?? null,
+          displayName: e.displayName,
+          unitCode: e.unitCode,
+          email: e.email ?? null,
+          seedRating: e.seedRating,
+          eligibilityStatus: e.eligibilityStatus as any,
+          checkedInAt: e.checkedInAt?.toISOString() ?? null,
+          pinnedBotRevisionId: e.pinnedBotRevisionId ?? null,
+          botReadinessStatus: e.botReadinessStatus as any,
+          createdAt: e.createdAt.toISOString(),
+          updatedAt: e.updatedAt.toISOString(),
+        });
+      }
+    }
+
+    // 7. Staff Assignments
+    const staff = await prisma.tournamentStaffAssignmentRecord.findMany();
+    for (const s of staff) {
+      if (!store.staffAssignments.has(s.id)) {
+        store.staffAssignments.set(s.id, {
+          id: s.id,
+          tournamentId: s.tournamentId,
+          userId: s.userId,
+          role: s.role as any,
+          status: s.status as any,
+          assignedRooms: (s.assignedRooms as any) ?? [],
+          invitationId: s.invitationId ?? null,
+          createdAt: s.createdAt.toISOString(),
+          updatedAt: s.updatedAt.toISOString(),
+        });
+      }
+    }
   } catch (err) {
     // If table doesn't exist yet (e.g. before initial migration in test), log and continue safely
     console.warn("[syncPrismaToTournamentStore] Warning during database hydration:", (err as Error).message);

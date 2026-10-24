@@ -272,8 +272,8 @@ export class AdjudicationLedgerService {
       blueScore: blueCurrent.score,
       redScore: redCurrent.score,
       winnerSide: params.winnerSide,
-      kFactor: tournament.coreConfig.kFactor,
-      scoreFloor: tournament.coreConfig.scoreFloor,
+      kFactor: tournament.coreConfig.kFactor ?? 32,
+      scoreFloor: tournament.coreConfig.scoreFloor ?? 0,
     });
 
     currentStats.set(params.blueParticipantId, {
@@ -456,8 +456,8 @@ export class AdjudicationLedgerService {
         blueScore: bStat.score,
         redScore: rStat.score,
         winnerSide: item.winnerSide,
-        kFactor: tournament.coreConfig.kFactor,
-        scoreFloor: tournament.coreConfig.scoreFloor,
+        kFactor: tournament.coreConfig.kFactor ?? 32,
+        scoreFloor: tournament.coreConfig.scoreFloor ?? 0,
       });
 
       map.set(item.blueParticipantId, {
