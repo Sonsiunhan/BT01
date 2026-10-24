@@ -19,8 +19,8 @@ export function createRetentionPolicies(overrides: PolicyOverrides = {}): Record
     STAFF_INVITATION: base("STAFF_INVITATION", "MODULE_DEFINED", null, CANDIDATE_POLICY_DEFAULTS_V1.invitationTtlHours * HOUR, "CANDIDATE_PENDING", "Existing CANDIDATE_POLICY_DEFAULTS_V1.invitationTtlHours"),
     RECOVERY: base("RECOVERY", "MODULE_DEFINED", null, HOUR / 2, "CANDIDATE_PENDING", "BA/SA section15 and D07 resetTokenTtlMinutes default30"),
     SUPPORT_EVIDENCE: base("SUPPORT_EVIDENCE", "RESOLVED_AT", 90 * DAY, null, "CANDIDATE_PENDING", "BA/SA section15 support evidence90days after resolution"),
-    ACK_EVIDENCE: base("ACK_EVIDENCE", "MODULE_DEFINED", null, null, "MODULE_POLICY_REQUIRED", "BA/SA BR27; evidence retention duration not specified", true),
-    AUDIT: base("AUDIT", "MODULE_DEFINED", null, null, "CANONICAL", "BA/SA section12: append-only, separate identity mapping", true),
+    ACK_EVIDENCE: base("ACK_EVIDENCE", "MODULE_DEFINED", 90 * DAY, null, "CANONICAL", "BA/SA BR27/8.1A: 90 days tied to tournament lifecycle", true),
+    AUDIT: base("AUDIT", "MODULE_DEFINED", 365 * DAY, null, "CANONICAL", "BA/SA section12/8.2A: 365 days from createdAt, append-only with retention boundary", true),
     SECURITY_RECORD: base("SECURITY_RECORD", "MODULE_DEFINED", null, null, "MODULE_POLICY_REQUIRED", "BA/SA F66: security/log TTL separately owned"),
   };
   for (const artifact of Object.keys(policies) as RetentionArtifact[]) {
@@ -28,7 +28,8 @@ export function createRetentionPolicies(overrides: PolicyOverrides = {}): Record
     if (policy.artifact !== artifact || !policy.preserveSharedIdentity) throw new Error("Invalid retention scope");
     // Final durations cannot be silently changed by a caller or candidate override.
     if (artifact === "TOURNAMENT_DATA" && (policy.retentionMs !== 90 * DAY || policy.status !== "CANONICAL")) throw new Error("Tournament retention is fixed by BA/SA F66");
-    if ((artifact === "AUDIT" || artifact === "ACK_EVIDENCE") && (!policy.appendOnly || policy.retentionMs !== null)) throw new Error("Evidence must be preserved pending its separate policy");
+    if (artifact === "ACK_EVIDENCE" && (policy.retentionMs !== 90 * DAY || policy.status !== "CANONICAL" || !policy.appendOnly)) throw new Error("ACK evidence retention is fixed at 90 days by 8.1A");
+    if (artifact === "AUDIT" && (policy.retentionMs !== 365 * DAY || policy.status !== "CANONICAL" || !policy.appendOnly)) throw new Error("Audit retention is fixed at 365 days by 8.2A");
     if (policies[artifact].status !== "CANONICAL" && policy.status === "CANONICAL") throw new Error("Candidate policy cannot be silently promoted");
     policies[artifact] = policy;
   }

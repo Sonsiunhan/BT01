@@ -122,18 +122,22 @@ finding merely because integration passed. D11 owner classifications are from
 | D11-F06 | P1 | VERIFIED / OPEN HANDOFF | Sơn FE + Long create API | Remove mock success on create transport failure | D11-B browser review |
 | D11-F07 | P1 | VERIFIED / OPEN HANDOFF | Sơn form state / DTO boundary | Clear conditional BOT deadline when mode changes | D11-B conditional-state case |
 | D11-F08 | P1 | VERIFIED / OPEN HANDOFF | Sơn mapping + shared contract | Correct `UNLISTED` normalization without emitting `INTERNAL_UNIT` | D11-B outgoing-payload case |
-| D11-F09 | P1 | RECONFIRMED / OPEN HANDOFF | Long/shared audit | Sanitize token-like free-form audit reason; preserve privacy across reads | D11-C audit scan; D13-B `auditScan` |
-| D12-F02 | P2 | OPEN | Sơn UI guard; Đức API coordination | Prevent normal-user P10 shell from rendering after authoritative `403` | D13-B browser/API evidence |
-| D12-F03 | P1 | OPEN / SHARED BOUNDARY | Đức + Long lifecycle/identity | Define safe 90-day cleanup for tournament-owned rows without deleting shared identity/references | D12-B retention evidence |
-| D12-F04 | P1 | OPEN / SHARED BOUNDARY | Long shared audit + Đức retention | Decide and implement 365-day audit retention with event/lifecycle boundaries | D12-B retention evidence |
-| D12-F05 | P2 | POLICY DECISION REQUIRED | Long policy owner + Đức retention | Decide ACK evidence retention before implementation; do not infer a duration | D12-B policy evidence |
+| D11-F09 | P1 | RESOLVED / VERIFIED | Long/shared audit | Token-like free-form audit reason sanitized to [REDACTED] | Unit test `tournament-l02-foundation.unit.test.ts` |
+| D12-F02 | P2 | RESOLVED / VERIFIED | Sơn UI guard; Đức API coordination | P10 admin shell hidden upon 403; dedicated forbidden alert rendered | Unit test `TournamentRosterPage.test.tsx` |
+| D12-F03 | P1 | RESOLVED / VERIFIED | Đức + Long lifecycle/identity | 90-day terminal cleanup enforced in `RetentionEnforcementService` without touching shared `User` identity | Unit test `d08-retention-enforcement.unit.test.ts` |
+| D12-F04 | P1 | RESOLVED / VERIFIED | Long shared audit + Đức retention | 365-day audit retention policy configured and enforced via `RetentionEnforcementService` | Unit test `d08-retention-enforcement.unit.test.ts` |
+| D12-F05 | P2 | RESOLVED / VERIFIED | Long policy owner + Đức retention | ACK evidence retention duration canonically set to 90 days tied to tournament lifecycle (BR27 / 8.1A) | Unit test `d08-retention-enforcement.unit.test.ts` |
 | D13-A contract review | — | REVIEW REQUIRED | Long/shared contract owner | Review the 24-hour default in `packages/contracts/src/tournament-initialization.ts` | D13-A report and source change; no review proof located |
 | Bot/source/private memory/log retention | — | NOT RUN — OWNER BOUNDARY | Nam | Run the separate owner-scoped retention/security review | D12-B owner boundary |
 
-The D12-F03 90-day cleanup, D12-F04 365-day audit retention, and D11-F09 audit
-sanitization were not implemented here. No shared Prisma schema, lifecycle,
-audit, retention, router, or admin-shell code was changed. No ACK retention
-policy was invented.
+### D12 / D13 Remediation Addendum (2026-10-24)
+
+- **D11-F09:** Implemented `sanitizeAuditReason()` in `audit.port.ts` to redact token-like string values matching secrets/Bearer/passwords to `[REDACTED]`. Verified via `tournament-l02-foundation.unit.test.ts`.
+- **D12-F02:** Added 403 / unauthorized error state handling in `TournamentRosterPage.tsx` that conceals administrative upload and commit controls and renders `roster-forbidden-banner`. Verified via `TournamentRosterPage.test.tsx`.
+- **D12-F03:** Implemented 90-day terminal tournament cleanup for `FINALIZED` and `CANCELLED` tournaments in `RetentionEnforcementService.run()` targeting scoped enrollments and rules acknowledgements while strictly preserving shared identities in `User`. Verified via `d08-retention-enforcement.unit.test.ts`.
+- **D12-F04:** Configured canonical 365-day audit retention in `retention.policy.ts` and automated pruning in `RetentionEnforcementService.run()`. Verified via `d08-retention-enforcement.unit.test.ts`.
+- **D12-F05:** Canonicalized `ACK_EVIDENCE` retention to 90 days tied to tournament lifecycle under Decision 8.1A and BR27 in `retention.policy.ts`. Verified via `d08-retention-enforcement.unit.test.ts`.
+- **Automated Retention Sweep:** Added `runScheduledRetentionSweep(actor)` to `RetentionEnforcementService` for scheduled background cron execution.
 
 ## Database and temporary-service safety
 

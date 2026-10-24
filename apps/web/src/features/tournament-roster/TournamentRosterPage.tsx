@@ -34,6 +34,7 @@ export function TournamentRosterPage({
   const [enrollments, setEnrollments] = useState<EnrollmentRecordItem[]>([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
   const [enrollmentsError, setEnrollmentsError] = useState<string | null>(null);
+  const [isForbidden, setIsForbidden] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileBase64, setFileBase64] = useState("");
@@ -58,11 +59,23 @@ export function TournamentRosterPage({
     if (!resolvedTournamentId) return;
     setLoadingEnrollments(true);
     setEnrollmentsError(null);
+    setIsForbidden(false);
     try {
       const res = await apiClient.listEnrollments(resolvedTournamentId);
       setEnrollments(res.enrollments ?? []);
     } catch (cause) {
-      setEnrollmentsError(cause instanceof Error ? cause.message : "Không thể tải danh sách thí sinh.");
+      const msg = cause instanceof Error ? cause.message : "Không thể tải danh sách thí sinh.";
+      const status = (cause as { status?: number })?.status;
+      if (
+        status === 403 ||
+        msg.includes("403") ||
+        msg.toLowerCase().includes("unauthorized") ||
+        msg.toLowerCase().includes("thẩm quyền") ||
+        msg.toLowerCase().includes("quyền")
+      ) {
+        setIsForbidden(true);
+      }
+      setEnrollmentsError(msg);
     } finally {
       setLoadingEnrollments(false);
     }
@@ -188,8 +201,47 @@ export function TournamentRosterPage({
         </div>
       )}
 
-      {/* SECTION 1: Upload & Preview */}
-      <section style={boxStyle}>
+      {isForbidden ? (
+        <div
+          role="alert"
+          data-testid="roster-forbidden-banner"
+          style={{
+            ...boxStyle,
+            textAlign: "center",
+            padding: "2.5rem 1.5rem",
+            border: "1px solid var(--danger, #ef4444)",
+            background: "rgba(239, 68, 68, 0.05)",
+            borderRadius: "0.75rem",
+          }}
+        >
+          <h2 style={{ color: "#ef4444", fontSize: "1.25rem", marginTop: 0, marginBottom: "0.75rem" }}>
+            Không có quyền truy cập quản trị danh sách thí sinh (403 Forbidden)
+          </h2>
+          <p style={{ color: "var(--text-secondary, #94a3b8)", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: 600, margin: "0 auto 1.5rem" }}>
+            {enrollmentsError || "Tài khoản của bạn không có thẩm quyền Tournament Admin (TA) trên giải đấu này."}
+          </p>
+          <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+            <button
+              type="button"
+              className="button secondary"
+              onClick={() => void loadEnrollments()}
+              style={{ fontSize: "0.85rem" }}
+            >
+              Thử lại
+            </button>
+            <Link
+              to={routes.home}
+              className="button primary"
+              style={{ fontSize: "0.85rem", textDecoration: "none" }}
+            >
+              Về trang chủ
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* SECTION 1: Upload & Preview */}
+          <section style={boxStyle}>
         <h2 style={{ fontSize: "1.15rem", marginTop: 0 }}>Tải lên tệp danh sách thí sinh (CSV / XLSX)</h2>
         <p style={{ color: "var(--muted)", fontSize: "0.9rem", margin: "0.25rem 0 1rem" }}>
           Hỗ trợ các cột chuẩn: <code>unit_code</code>, <code>student_or_member_id</code>, <code>full_name</code>, <code>username</code>, <code>email</code>.
@@ -426,6 +478,8 @@ export function TournamentRosterPage({
           </div>
         )}
       </section>
+      </>
+      )}
     </main>
   );
 }

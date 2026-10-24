@@ -66,6 +66,18 @@ export function sanitizeAuditSnapshot(
   return sanitizeValue(input) as Record<string, unknown>;
 }
 
+/**
+ * Sanitizes free-form audit reason to ensure tokens, credentials, and traceback
+ * are never stored in audit records (D11-F09, BR-41, T077).
+ */
+export function sanitizeAuditReason(reason: string | null | undefined): string | null {
+  if (!reason) return null;
+  if (SECRET_VALUE_PATTERN.test(reason)) {
+    return "[REDACTED]";
+  }
+  return reason;
+}
+
 export interface AppendAuditLogInput {
   actorUserId: string;
   actorRole: TournamentRole;
@@ -109,7 +121,7 @@ export class SanitizingAuditService implements AuditPort {
       targetId: input.targetId,
       beforeSnapshot: sanitizeAuditSnapshot(input.beforeSnapshot ?? null),
       afterSnapshot: sanitizeAuditSnapshot(input.afterSnapshot ?? null),
-      reason: input.reason ?? null,
+      reason: sanitizeAuditReason(input.reason),
       correlationId: input.correlationId ?? null,
       createdAt: input.nowIso ?? new Date().toISOString(),
     });

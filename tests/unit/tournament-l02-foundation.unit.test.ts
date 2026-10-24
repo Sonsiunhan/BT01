@@ -121,6 +121,7 @@ describe("L02 foundation services", () => {
           safeField: "kept",
         },
       },
+      reason: "Rejection due to Bearer D11_UNSAFE_TOKEN_SENTINEL",
       nowIso: now,
     });
 
@@ -128,6 +129,7 @@ describe("L02 foundation services", () => {
       passwordHash: "[REDACTED]",
       nested: { sourceText: "[REDACTED]", safeField: "kept" },
     });
+    expect(record.reason).toBe("[REDACTED]");
     expect(Object.isFrozen(record)).toBe(true);
     expect(audit.list({ targetId: contract.id })).toHaveLength(1);
   });

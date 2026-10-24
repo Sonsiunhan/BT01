@@ -25,8 +25,40 @@ function fixture() {
     { id: "l-other", targetId: "t-b", operation: "ROSTER_IMPORT_COMMIT", expiresAt: new Date("2026-10-20"), ackPayload: { email: "other@example.invalid" }, payloadDigest: "OTHER_DIGEST" },
   ];
   const audits: any[] = [];
+  let enrollments = [{ id: "e-1", tournamentId: "t-finalized" }];
+  let acknowledgements = [{ id: "ack-1", tournamentId: "t-finalized" }];
+
   const db: any = {
-    tournament: { findUnique: async ({ where }: any) => where.id === "t-a" ? { id: "t-a", contractId: "c-a" } : where.id === "t-b" ? { id: "t-b", contractId: "c-b" } : null },
+    tournament: {
+      findUnique: async ({ where }: any) => {
+        if (where.id === "t-a") return { id: "t-a", contractId: "c-a" };
+        if (where.id === "t-b") return { id: "t-b", contractId: "c-b" };
+        if (where.id === "t-finalized") {
+          return {
+            id: "t-finalized",
+            contractId: "c-a",
+            status: "FINALIZED",
+            finalizedAt: new Date(now.getTime() - 91 * 24 * 60 * 60 * 1000),
+          };
+        }
+        return null;
+      },
+      findMany: async () => [{ id: "t-finalized", contractId: "c-a" }],
+    },
+    tournamentRulesAcknowledgement: {
+      deleteMany: async ({ where }: any) => {
+        const count = acknowledgements.filter((a) => a.tournamentId === where.tournamentId).length;
+        acknowledgements = acknowledgements.filter((a) => a.tournamentId !== where.tournamentId);
+        return { count };
+      },
+    },
+    tournamentEnrollmentRecord: {
+      deleteMany: async ({ where }: any) => {
+        const count = enrollments.filter((e) => e.tournamentId === where.tournamentId).length;
+        enrollments = enrollments.filter((e) => e.tournamentId !== where.tournamentId);
+        return { count };
+      },
+    },
     supportRecoveryTicket: {
       findMany: async ({ where }: any) => recovery.filter((row) => row.tenantId === where.tenantId && where.recoveryTokenExpiresAt.lte >= row.recoveryTokenExpiresAt && where.recoveryTokenHash.not === null && where.status.in.includes(row.status)).map(({ id, recoveryTokenExpiresAt, status }) => ({ id, recoveryTokenExpiresAt, status })),
       updateMany: async ({ where, data }: any) => {
@@ -53,10 +85,14 @@ function fixture() {
         return { count: before - ledger.length };
       },
     },
-    tournamentAuditLogRecord: { create: async ({ data }: any) => (audits.push(data), data) },
+    tournamentAuditLogRecord: {
+      create: async ({ data }: any) => (audits.push(data), data),
+      findMany: async ({ where }: any) => audits.filter((a) => !where?.createdAt?.lt || a.createdAt < where.createdAt.lt),
+      deleteMany: async () => ({ count: 1 }),
+    },
     $transaction: async (fn: any) => fn(db),
   };
-  return { db, recovery, invitations, ledger, audits };
+  return { db, recovery, invitations, ledger, audits, getEnrollments: () => enrollments, getAcknowledgements: () => acknowledgements };
 }
 
 describe("D08-B retention enforcement", () => {
@@ -195,5 +231,23 @@ describe("D08-B retention enforcement", () => {
     const f = fixture();
     f.db.$transaction = async () => { throw new AppError("CONFLICT", "race", 409, true, "RECOVERABLE"); };
     await expect(new RetentionEnforcementService(f.db, { now: () => now }).execute(admin, { tenantId: "tenant-a" })).rejects.toMatchObject({ statusCode: 409 });
+  });
+
+  it("enforces 90-day terminal cleanup on finalized/cancelled tournaments (D12-F03)", async () => {
+    const f = fixture();
+    expect(f.getEnrollments()).toHaveLength(1);
+    expect(f.getAcknowledgements()).toHaveLength(1);
+    await new RetentionEnforcementService(f.db, { now: () => now }).execute(admin, { tournamentId: "t-finalized", contractId: "c-a" });
+    expect(f.getEnrollments()).toHaveLength(0);
+    expect(f.getAcknowledgements()).toHaveLength(0);
+    expect(f.audits.some((a) => a.action === "RETENTION_TOURNAMENT_OWNED_CLEANED")).toBe(true);
+  });
+
+  it("performs automated maintenance sweep over eligible tournaments and audits (D12-F04)", async () => {
+    const f = fixture();
+    const service = new RetentionEnforcementService(f.db, { now: () => now });
+    const sweepResult = await service.runScheduledRetentionSweep(admin);
+    expect(sweepResult.cleanedTournaments).toBe(1);
+    expect(sweepResult.purgedAuditLogs).toBe(1);
   });
 });
