@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ThemeSwitcher } from "../components/ui";
+import { Button, Modal, ThemeSwitcher } from "../components/ui";
 import { routes } from "../app/routes";
 import { getHealth, isCoreServiceReady } from "../services/health/healthApi";
 import { getMe, logout, type UserProfile } from "../services/auth/authApi";
@@ -12,6 +12,7 @@ export function AdminLayout() {
   const location = useLocation();
   const [network, setNetwork] = useState<"checking" | "online" | "offline" | "reconnecting" | "degraded">("checking");
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
   const profileDetailsRef = useRef<HTMLDetailsElement | null>(null);
 
   const userRoles = (user as (UserProfile & { roles?: string[] }) | null)?.roles;
@@ -232,12 +233,109 @@ export function AdminLayout() {
             <ThemeSwitcher />
             {user ? (
               <details ref={profileDetailsRef} className="profile-menu">
-                <summary aria-label="Mở menu quản trị viên">{user.displayName || user.username}</summary>
-                <div>
-                  <NavLink to={routes.profile}>Hồ sơ cá nhân</NavLink>
-                  <NavLink to={routes.home}>Về sảnh game</NavLink>
-                  <button type="button" onClick={signOut}>
-                    Đăng xuất
+                <summary
+                  aria-label="Mở menu quản trị viên"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    cursor: "pointer",
+                    userSelect: "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: isSystemAdmin ? "var(--system-cyan, #06b6d4)" : "var(--system-amber, #f59e0b)",
+                    }}
+                  />
+                  <span>{user.displayName || user.username}</span>
+                  <span
+                    style={{
+                      fontSize: "0.65rem",
+                      padding: "0.1rem 0.4rem",
+                      borderRadius: "0.25rem",
+                      background: isSystemAdmin ? "rgba(6, 182, 212, 0.15)" : "rgba(245, 158, 11, 0.15)",
+                      color: isSystemAdmin ? "var(--system-cyan, #06b6d4)" : "var(--system-amber, #f59e0b)",
+                      fontWeight: 700,
+                      border: `1px solid ${isSystemAdmin ? "rgba(6, 182, 212, 0.3)" : "rgba(245, 158, 11, 0.3)"}`,
+                    }}
+                  >
+                    {isSystemAdmin ? "SA" : "TA"}
+                  </span>
+                </summary>
+                <div style={{ minWidth: "15rem", padding: "0.5rem" }}>
+                  <div
+                    style={{
+                      padding: "0.5rem 0.6rem 0.65rem",
+                      borderBottom: "1px solid var(--border)",
+                      marginBottom: "0.4rem",
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text)" }}>
+                      {user.displayName || user.username}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.15rem" }}>
+                      @{user.username}
+                    </div>
+                    <div style={{ marginTop: "0.4rem" }}>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          padding: "0.15rem 0.5rem",
+                          borderRadius: "0.25rem",
+                          fontSize: "0.68rem",
+                          fontWeight: 600,
+                          background: isSystemAdmin ? "rgba(6, 182, 212, 0.12)" : "rgba(245, 158, 11, 0.12)",
+                          color: isSystemAdmin ? "var(--system-cyan, #06b6d4)" : "var(--system-amber, #f59e0b)",
+                          border: `1px solid ${isSystemAdmin ? "rgba(6, 182, 212, 0.25)" : "rgba(245, 158, 11, 0.25)"}`,
+                        }}
+                      >
+                        {isSystemAdmin ? "🛡️ Quản trị hệ thống (SA)" : "📋 Quản trị giải đấu (TA)"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (profileDetailsRef.current) profileDetailsRef.current.removeAttribute("open");
+                      setAccountModalOpen(true);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      width: "100%",
+                      padding: "0.5rem 0.6rem",
+                      borderRadius: "0.25rem",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    <span>ℹ️</span>
+                    <span>Thông tin tài khoản</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={signOut}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      width: "100%",
+                      padding: "0.5rem 0.6rem",
+                      borderRadius: "0.25rem",
+                      fontSize: "0.85rem",
+                      color: "var(--system-red, #ef4444)",
+                      marginTop: "0.2rem",
+                    }}
+                  >
+                    <span>🚪</span>
+                    <span>Đăng xuất</span>
                   </button>
                 </div>
               </details>
@@ -302,6 +400,84 @@ export function AdminLayout() {
             <Outlet />
           </Suspense>
         </main>
+
+        {user && (
+          <Modal
+            open={accountModalOpen}
+            title="Thông tin Quản trị viên"
+            description="Định danh và phạm vi thẩm quyền của tài khoản quản trị"
+            onClose={() => setAccountModalOpen(false)}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "0.5rem" }}>
+              <div
+                style={{
+                  padding: "0.85rem 1rem",
+                  background: "var(--surface-raised)",
+                  borderRadius: "0.5rem",
+                  border: "1px solid var(--border)",
+                  display: "grid",
+                  gridTemplateColumns: "130px 1fr",
+                  gap: "0.6rem 1rem",
+                  fontSize: "0.85rem",
+                }}
+              >
+                <span style={{ color: "var(--text-muted)" }}>Họ và tên:</span>
+                <strong>{user.displayName || "Chưa thiết lập"}</strong>
+
+                <span style={{ color: "var(--text-muted)" }}>Tài khoản:</span>
+                <code>@{user.username}</code>
+
+                <span style={{ color: "var(--text-muted)" }}>Mã người dùng:</span>
+                <code style={{ fontSize: "0.78rem" }}>{user.id}</code>
+
+                <span style={{ color: "var(--text-muted)" }}>Vai trò hệ thống:</span>
+                <div>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      padding: "0.15rem 0.5rem",
+                      borderRadius: "0.25rem",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      background: isSystemAdmin ? "rgba(6, 182, 212, 0.15)" : "rgba(245, 158, 11, 0.15)",
+                      color: isSystemAdmin ? "var(--system-cyan, #06b6d4)" : "var(--system-amber, #f59e0b)",
+                      border: `1px solid ${isSystemAdmin ? "rgba(6, 182, 212, 0.3)" : "rgba(245, 158, 11, 0.3)"}`,
+                    }}
+                  >
+                    {isSystemAdmin ? "SYSTEM_ADMIN (Quản trị hệ thống)" : "TOURNAMENT_ADMIN (Quản trị giải đấu)"}
+                  </span>
+                </div>
+
+                <span style={{ color: "var(--text-muted)" }}>Phạm vi phụ trách:</span>
+                <span style={{ lineHeight: 1.4 }}>
+                  {isSystemAdmin
+                    ? "Toàn quyền hệ thống: Cấp tài khoản TA, quản lý đơn vị tổ chức, phê duyệt hợp đồng thương mại, kiểm toán nhật ký hệ thống."
+                    : "Vận hành giải đấu: Khởi tạo và thiết lập giải đấu, giám sát tiến độ trận đấu, quản lý kho Bot và công cụ offline."}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  padding: "0.75rem 1rem",
+                  background: "rgba(59, 130, 246, 0.08)",
+                  border: "1px solid rgba(59, 130, 246, 0.2)",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.8rem",
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong>Chính sách phân tách thẩm quyền (Best Practice):</strong> Tài khoản quản trị chỉ phục vụ mục đích vận hành và giám sát hệ thống, tách biệt hoàn toàn khỏi hoạt động thi đấu của người chơi nhằm ngăn chặn xung đột lợi ích. Để tham gia các giải đấu với tư cách vận động viên, vui lòng sử dụng tài khoản người chơi riêng biệt.
+              </div>
+
+              <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                <Button variant="secondary" onClick={() => setAccountModalOpen(false)}>
+                  Đóng
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        )}
       </div>
     </AdminCapabilityGuard>
   );
