@@ -242,7 +242,7 @@ export class TournamentApiClient implements TournamentApiPort {
       }
 
       const res = await fetch(`/api/tournaments?${params.toString()}`, {
-        headers: { Accept: "application/json" },
+        headers: { Accept: "application/json", "X-OTT-Request": "1" },
         credentials: "include",
       });
 
@@ -339,7 +339,7 @@ export class TournamentApiClient implements TournamentApiPort {
     try {
       const res = await fetch("/api/tournaments/drafts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
         credentials: "include",
         body: JSON.stringify(input),
       });
@@ -392,6 +392,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async getDraft(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }> {
     try {
       const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
+        headers: { Accept: "application/json", "X-OTT-Request": "1" },
         credentials: "include",
       });
       if (res.ok) {
@@ -457,7 +458,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async patchDraft(tournamentId: string, input: PatchTournamentDraftInput): Promise<TournamentDto> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify(input),
     });
@@ -472,6 +473,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async deleteDraft(tournamentId: string): Promise<{ deleted: boolean; quotaRefunded: boolean }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
       method: "DELETE",
+      headers: { "X-OTT-Request": "1" },
       credentials: "include",
     });
     if (res.ok) {
@@ -486,7 +488,7 @@ export class TournamentApiClient implements TournamentApiPort {
     if (this.useRealApi) {
       const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/submit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
         credentials: "include",
         body: JSON.stringify(input),
       });
@@ -561,6 +563,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async getTournamentReadiness(tournamentId: string): Promise<{ readiness: TournamentReadinessSnapshot }> {
     try {
       const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/readiness`, {
+        headers: { Accept: "application/json", "X-OTT-Request": "1" },
         credentials: "include",
       });
       if (res.ok) {
@@ -631,6 +634,7 @@ export class TournamentApiClient implements TournamentApiPort {
 
   async getLeaderboard(tournamentId: string): Promise<{ leaderboard: TournamentLeaderboardSnapshotDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/leaderboard`, {
+      headers: { Accept: "application/json", "X-OTT-Request": "1" },
       credentials: "include",
     });
     if (res.ok) {
@@ -642,6 +646,7 @@ export class TournamentApiClient implements TournamentApiPort {
 
   async getMatches(tournamentId: string): Promise<{ matches: TournamentScoreLedgerEntryDto[] }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches`, {
+      headers: { Accept: "application/json", "X-OTT-Request": "1" },
       credentials: "include",
     });
     if (res.ok) {
@@ -654,7 +659,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async openScheduled(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/open-scheduled`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ expectedRevision }),
     });
@@ -668,7 +673,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async startTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/start`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ expectedRevision }),
     });
@@ -682,7 +687,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async pauseTournament(tournamentId: string, reason: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/pause`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ reason, expectedRevision }),
     });
@@ -696,7 +701,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async resumeTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/resume`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ expectedRevision }),
     });
@@ -720,7 +725,7 @@ export class TournamentApiClient implements TournamentApiPort {
         const qs = params.toString();
         const res = await fetch(`/api/admin/audit-logs${qs ? `?${qs}` : ""}`, {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
           credentials: "include",
         });
         if (res.ok) {

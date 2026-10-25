@@ -194,8 +194,34 @@ export function TournamentRuleManagementPanel({
 
       <RuleEditor value={value} onChange={handleValueChange} errors={preview?.errors ?? []} disabled={previewPending || publishPending} />
 
+      {!tournamentId && (
+        <div
+          data-testid={`${testIdPrefix}-no-draft-notice`}
+          style={{
+            fontSize: "0.8rem",
+            color: "var(--text-secondary)",
+            background: "color-mix(in srgb, var(--surface) 60%, transparent)",
+            padding: "0.6rem 0.85rem",
+            borderRadius: "6px",
+            borderLeft: "3px solid var(--system-cyan)",
+            lineHeight: 1.5,
+          }}
+        >
+          💡 <strong>Lưu ý:</strong> Nút &quot;Kiểm tra luật&quot; và &quot;Phát hành phiên bản luật&quot; chỉ kích hoạt sau khi bản nháp giải đấu được lưu lên máy chủ. Để nộp duyệt hoặc lưu nháp giải đấu, bạn <strong>không bắt buộc</strong> phải phát hành thêm phiên bản luật vì giải đấu đã tự động áp dụng bộ luật Robot Lab 2026 mặc định.
+        </div>
+      )}
+
       <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
-        <button type="button" className="button secondary" onClick={handlePreview} disabled={!tournamentId || previewPending} data-testid={`${testIdPrefix}-preview-btn`}>{previewPending ? "Đang kiểm tra..." : "Kiểm tra luật"}</button>
+        <button
+          type="button"
+          className="button secondary"
+          onClick={handlePreview}
+          disabled={!tournamentId || previewPending}
+          data-testid={`${testIdPrefix}-preview-btn`}
+          title={!tournamentId ? "Vui lòng lưu bản nháp giải đấu trước khi kiểm tra luật" : undefined}
+        >
+          {previewPending ? "Đang kiểm tra..." : "Kiểm tra luật"}
+        </button>
         {preview && <span role="status" aria-live="polite" data-testid={`${testIdPrefix}-preview-status`} style={{ fontSize: "0.8rem", color: preview.valid ? "var(--system-green)" : "var(--system-red)" }}>{preview.valid ? "Hợp lệ" : `Chưa hợp lệ · ${preview.errors.length} lỗi`}</span>}
       </div>
       {previewError && <div role="alert" data-testid={`${testIdPrefix}-preview-error`} style={{ color: "var(--system-red)", fontSize: "0.8rem" }}>{previewError}</div>}
@@ -204,7 +230,16 @@ export function TournamentRuleManagementPanel({
         <label style={{ display: "grid", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 600 }}>Lý do phát hành<input className="input" value={reason} minLength={3} maxLength={1000} onChange={(event) => setReason(event.target.value)} placeholder="Ví dụ: Cập nhật goal cho vòng chung kết" data-testid={`${testIdPrefix}-reason-input`} /></label>
         <label style={{ display: "grid", gap: "0.3rem", fontSize: "0.8rem", fontWeight: 600 }}>Có hiệu lực từ<input className="input" type="datetime-local" value={effectiveAt} onChange={(event) => setEffectiveAt(event.target.value)} data-testid={`${testIdPrefix}-effective-input`} /></label>
       </div>
-      <button type="button" className="button primary" onClick={handlePublish} disabled={!tournamentId || !preview?.valid || reason.trim().length < 3 || !effectiveAt || publishPending} data-testid={`${testIdPrefix}-publish-btn`}>{publishPending ? "Đang phát hành..." : "Phát hành phiên bản luật"}</button>
+      <button
+        type="button"
+        className="button primary"
+        onClick={handlePublish}
+        disabled={!tournamentId || !preview?.valid || reason.trim().length < 3 || !effectiveAt || publishPending}
+        data-testid={`${testIdPrefix}-publish-btn`}
+        title={!tournamentId ? "Vui lòng lưu bản nháp giải đấu trước khi phát hành phiên bản luật" : undefined}
+      >
+        {publishPending ? "Đang phát hành..." : "Phát hành phiên bản luật"}
+      </button>
       {publishMessage && <div role="status" aria-live="polite" data-testid={`${testIdPrefix}-publish-message`} style={{ fontSize: "0.8rem" }}>{publishMessage}</div>}
 
       <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>

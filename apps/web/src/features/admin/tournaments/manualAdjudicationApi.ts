@@ -29,7 +29,7 @@ async function responseError(response: Response): Promise<never> {
 
 export async function listManualAdjudications(tournamentId: string): Promise<ManualAdjudicationViewDto[]> {
   const response = await fetch(api(`/api/tournaments/${encodeURIComponent(tournamentId)}/adjudications`), {
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", "X-OTT-Request": "1" },
     credentials: "include",
   });
   if (!response.ok) await responseError(response);
@@ -45,7 +45,7 @@ export async function submitManualAdjudicationVerdict(
   const body = SubmitManualAdjudicationVerdictInputSchema.parse(input);
   const response = await fetch(api(`/api/tournaments/adjudications/${encodeURIComponent(adjudicationRequestId)}/verdict`), {
     method: "POST",
-    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    headers: { Accept: "application/json", "Content-Type": "application/json", "X-OTT-Request": "1" },
     credentials: "include",
     body: JSON.stringify(body),
   });

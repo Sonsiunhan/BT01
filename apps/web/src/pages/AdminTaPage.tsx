@@ -189,7 +189,7 @@ export default function AdminTaPage() {
 
   if (statusCode === 403) {
     return (
-      <div data-testid="ta-forbidden">
+      <div>
         <AdminForbiddenState
           testId="ta-forbidden"
           title="Không đủ quyền hạn"
