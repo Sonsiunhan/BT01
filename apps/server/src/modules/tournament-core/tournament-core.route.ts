@@ -179,7 +179,7 @@ export async function registerTournamentCoreRoutes(
     async (request, reply) => {
       const actor = await resolveTournamentRequestActor(request, auth, store);
       assertAdminActor(actor);
-      const queue = approvalService.listApprovalQueue(request.query);
+      const queue = await approvalService.listApprovalQueue(request.query);
       return reply.status(200).send(queue);
     }
   );

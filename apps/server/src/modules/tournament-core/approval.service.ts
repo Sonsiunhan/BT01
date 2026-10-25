@@ -24,7 +24,7 @@ import {
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
 import type { PrismaClient } from "@prisma/client";
-import { persistTournamentToPrisma } from "../tournament-foundation/prisma-sync.js";
+import { persistTournamentToPrisma, syncPrismaToTournamentStore } from "../tournament-foundation/prisma-sync.js";
 
 function deepFreeze<T>(obj: T): T {
   if (obj === null || typeof obj !== "object") {
@@ -171,10 +171,17 @@ export class ApprovalService {
     };
   }
 
-  listApprovalQueue(filter?: { status?: string }): {
+  async listApprovalQueue(filter?: { status?: string }): Promise<{
     initialSubmissions: TournamentDto[];
     changeRequests: TournamentChangeRequestDto[];
-  } {
+  }> {
+    if (this.database) {
+      try {
+        await syncPrismaToTournamentStore(this.database, this.store);
+      } catch {
+        // Safe fallback to store
+      }
+    }
     const initialSubmissions = Array.from(this.store.tournaments.values()).filter(
       (t) => {
         if (filter?.status) return t.status === filter.status;

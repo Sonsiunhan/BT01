@@ -106,42 +106,40 @@ export async function syncPrismaToTournamentStore(
       }
     }
     for (const t of tournaments) {
-      if (!store.tournaments.has(t.id)) {
-        const tournamentDto: TournamentDto = {
-          id: t.id,
-          contractId: t.contractId,
-          contractCode: t.contract.contractCode,
-          unitId: t.unitId,
-          ownerTaUserId: t.ownerTaUserId,
-          status: t.status as any,
-          revision: t.revision,
-          coreConfig: (t.coreConfig as any) ?? {},
-          ruleProfile: (t.ruleProfile as any) ?? DEFAULT_TOURNAMENT_RULE_PROFILE,
-          activeConfigVersionId: t.activeConfigVersionId ?? null,
-          activeConfigVersionNumber: t.activeConfigVersionNumber ?? 0,
-          approvedSnapshot: (t.approvedSnapshot as any) ?? null,
-          everApproved: t.everApproved,
-          quotaRefunded: t.quotaRefunded,
-          submittedAt: t.submittedAt?.toISOString() ?? null,
-          approvedAt: t.approvedAt?.toISOString() ?? null,
-          rejectedAt: t.rejectedAt?.toISOString() ?? null,
-          changesRequestedAt: t.changesRequestedAt?.toISOString() ?? null,
-          lastReviewNote: t.lastReviewNote ?? null,
-          lastReviewFieldNotes: {},
-          startedAt: t.startedAt?.toISOString() ?? null,
-          pausedAt: t.pausedAt?.toISOString() ?? null,
-          pauseReason: t.pauseReason ?? null,
-          endedAt: t.endedAt?.toISOString() ?? null,
-          cancelledAt: t.cancelledAt?.toISOString() ?? null,
-          cancelReason: t.cancelReason ?? null,
-          finalizedAt: t.finalizedAt?.toISOString() ?? null,
-          copiedFromTournamentId: t.copiedFromTournamentId ?? null,
-          createdAt: t.createdAt.toISOString(),
-          updatedAt: t.updatedAt.toISOString(),
-        };
-        store.tournaments.set(t.id, tournamentDto);
-        tournamentsCount++;
-      }
+      const tournamentDto: TournamentDto = {
+        id: t.id,
+        contractId: t.contractId,
+        contractCode: t.contract.contractCode,
+        unitId: t.unitId,
+        ownerTaUserId: t.ownerTaUserId,
+        status: t.status as any,
+        revision: t.revision,
+        coreConfig: (t.coreConfig as any) ?? {},
+        ruleProfile: (t.ruleProfile as any) ?? DEFAULT_TOURNAMENT_RULE_PROFILE,
+        activeConfigVersionId: t.activeConfigVersionId ?? null,
+        activeConfigVersionNumber: t.activeConfigVersionNumber ?? 0,
+        approvedSnapshot: (t.approvedSnapshot as any) ?? null,
+        everApproved: t.everApproved,
+        quotaRefunded: t.quotaRefunded,
+        submittedAt: t.submittedAt?.toISOString() ?? null,
+        approvedAt: t.approvedAt?.toISOString() ?? null,
+        rejectedAt: t.rejectedAt?.toISOString() ?? null,
+        changesRequestedAt: t.changesRequestedAt?.toISOString() ?? null,
+        lastReviewNote: t.lastReviewNote ?? null,
+        lastReviewFieldNotes: {},
+        startedAt: t.startedAt?.toISOString() ?? null,
+        pausedAt: t.pausedAt?.toISOString() ?? null,
+        pauseReason: t.pauseReason ?? null,
+        endedAt: t.endedAt?.toISOString() ?? null,
+        cancelledAt: t.cancelledAt?.toISOString() ?? null,
+        cancelReason: t.cancelReason ?? null,
+        finalizedAt: t.finalizedAt?.toISOString() ?? null,
+        copiedFromTournamentId: t.copiedFromTournamentId ?? null,
+        createdAt: t.createdAt.toISOString(),
+        updatedAt: t.updatedAt.toISOString(),
+      };
+      store.tournaments.set(t.id, tournamentDto);
+      tournamentsCount++;
     }
 
     // 4. Adjudication Requests

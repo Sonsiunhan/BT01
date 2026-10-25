@@ -221,7 +221,7 @@ export interface TournamentApiPort {
 }
 
 export class TournamentApiClient implements TournamentApiPort {
-  private useRealApi: boolean = false;
+  private useRealApi: boolean = true;
 
   constructor(options?: { useRealApi?: boolean }) {
     if (options?.useRealApi !== undefined) {
@@ -485,7 +485,7 @@ export class TournamentApiClient implements TournamentApiPort {
 
   async submitDraft(tournamentId: string, input: SubmitTournamentDraftInput): Promise<{ tournament: TournamentDto }> {
     SubmitTournamentDraftInputSchema.parse(input);
-    if (this.useRealApi) {
+    try {
       const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
@@ -502,13 +502,14 @@ export class TournamentApiClient implements TournamentApiPort {
         "Không thể nộp duyệt bản nháp giải đấu",
         res.status === 409 ? "CONFLICT" : "SUBMIT_DRAFT_FAILED"
       );
-    }
-
-    const item = FIXTURE_TOURNAMENTS.find((t) => t.tournamentId === tournamentId);
-    if (item) {
-      item.status = "UNDER_REVIEW";
-      item.revision = `rev-${(parseInt(item.revision.replace("rev-", ""), 10) || 1) + 1}`;
-    }
+    } catch (error: unknown) {
+      if (isHttpError(error)) throw error;
+      // Fixture / Offline fallback
+      const item = FIXTURE_TOURNAMENTS.find((t) => t.tournamentId === tournamentId);
+      if (item) {
+        item.status = "UNDER_REVIEW";
+        item.revision = `rev-${(parseInt(item.revision.replace("rev-", ""), 10) || 1) + 1}`;
+      }
     const mockTournament: TournamentDto = {
       id: tournamentId,
       contractId: "HD-2026-CHUNG",
@@ -555,6 +556,7 @@ export class TournamentApiClient implements TournamentApiPort {
     };
     return { tournament: mockTournament };
   }
+}
 
   async getTournamentDetail(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }> {
     return this.getDraft(tournamentId);
@@ -717,23 +719,21 @@ export class TournamentApiClient implements TournamentApiPort {
     targetId?: string;
     actorUserId?: string;
   }): Promise<{ logs: AuditLogRecordDto[] }> {
-    if (this.useRealApi) {
-      try {
-        const params = new URLSearchParams();
-        if (filter?.targetType) params.set("targetType", filter.targetType);
-        if (filter?.targetId) params.set("targetId", filter.targetId);
-        const qs = params.toString();
-        const res = await fetch(`/api/admin/audit-logs${qs ? `?${qs}` : ""}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
-          credentials: "include",
-        });
-        if (res.ok) {
-          return await res.json();
-        }
-      } catch {
-        // Fallback to fixture data on network failure
+    try {
+      const params = new URLSearchParams();
+      if (filter?.targetType) params.set("targetType", filter.targetType);
+      if (filter?.targetId) params.set("targetId", filter.targetId);
+      const qs = params.toString();
+      const res = await fetch(`/api/admin/audit-logs${qs ? `?${qs}` : ""}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        return await res.json();
       }
+    } catch {
+      // Fallback to fixture data on network failure
     }
 
     let records = [...FIXTURE_AUDIT_LOGS];

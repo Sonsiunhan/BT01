@@ -563,11 +563,11 @@ export class CoreDraftService {
         serverNowIso: nowIso,
       });
 
-      if (existing.ownerTaUserId !== actor.userId) {
+      if (existing.ownerTaUserId !== actor.userId && !actor.roles.includes("ADMIN")) {
         throw createTournamentError({
           code: "UNAUTHORIZED",
           statusCode: 403,
-          message: "Chỉ Quản trị giải (TA) sở hữu giải đấu mới được gửi duyệt.",
+          message: "Chỉ Quản trị giải (TA) sở hữu giải đấu hoặc Quản trị viên mới được gửi duyệt.",
           details: { reason: "FORBIDDEN_ROLE", tournamentId },
         });
       }

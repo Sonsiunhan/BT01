@@ -189,9 +189,8 @@ export default function AdminTaPage() {
 
   if (statusCode === 403) {
     return (
-      <div>
+      <div data-testid="ta-forbidden">
         <AdminForbiddenState
-          testId="ta-forbidden"
           title="Không đủ quyền hạn"
           featureName="Quản lý tài khoản Tournament Admin"
           message="Chỉ Quản trị viên hệ thống (SYSTEM_ADMIN) mới có quyền quản lý tài khoản Tournament Admin."
