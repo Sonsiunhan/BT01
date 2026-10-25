@@ -245,3 +245,85 @@ export async function syncPrismaToTournamentStore(
 
   return { unitsCount, contractsCount, tournamentsCount };
 }
+
+export async function persistTournamentToPrisma(
+  prisma: PrismaClient,
+  t: TournamentDto
+): Promise<void> {
+  try {
+    await prisma.tournament.upsert({
+      where: { id: t.id },
+      update: {
+        tournamentCode: t.coreConfig.tournamentCode,
+        contractId: t.contractId,
+        unitId: t.unitId,
+        ownerTaUserId: t.ownerTaUserId,
+        status: t.status,
+        revision: t.revision,
+        coreConfig: t.coreConfig as any,
+        ruleProfile: t.ruleProfile as any,
+        activeConfigVersionId: t.activeConfigVersionId,
+        activeConfigVersionNumber: t.activeConfigVersionNumber,
+        approvedSnapshot: t.approvedSnapshot as any,
+        everApproved: t.everApproved,
+        quotaRefunded: t.quotaRefunded,
+        submittedAt: t.submittedAt ? new Date(t.submittedAt) : null,
+        approvedAt: t.approvedAt ? new Date(t.approvedAt) : null,
+        rejectedAt: t.rejectedAt ? new Date(t.rejectedAt) : null,
+        changesRequestedAt: t.changesRequestedAt ? new Date(t.changesRequestedAt) : null,
+        lastReviewNote: t.lastReviewNote,
+        startedAt: t.startedAt ? new Date(t.startedAt) : null,
+        pausedAt: t.pausedAt ? new Date(t.pausedAt) : null,
+        pauseReason: t.pauseReason,
+        endedAt: t.endedAt ? new Date(t.endedAt) : null,
+        cancelledAt: t.cancelledAt ? new Date(t.cancelledAt) : null,
+        cancelReason: t.cancelReason,
+        finalizedAt: t.finalizedAt ? new Date(t.finalizedAt) : null,
+        copiedFromTournamentId: t.copiedFromTournamentId,
+      },
+      create: {
+        id: t.id,
+        tournamentCode: t.coreConfig.tournamentCode,
+        contractId: t.contractId,
+        unitId: t.unitId,
+        ownerTaUserId: t.ownerTaUserId,
+        status: t.status,
+        revision: t.revision,
+        coreConfig: t.coreConfig as any,
+        ruleProfile: t.ruleProfile as any,
+        activeConfigVersionId: t.activeConfigVersionId,
+        activeConfigVersionNumber: t.activeConfigVersionNumber,
+        approvedSnapshot: t.approvedSnapshot as any,
+        everApproved: t.everApproved,
+        quotaRefunded: t.quotaRefunded,
+        submittedAt: t.submittedAt ? new Date(t.submittedAt) : null,
+        approvedAt: t.approvedAt ? new Date(t.approvedAt) : null,
+        rejectedAt: t.rejectedAt ? new Date(t.rejectedAt) : null,
+        changesRequestedAt: t.changesRequestedAt ? new Date(t.changesRequestedAt) : null,
+        lastReviewNote: t.lastReviewNote,
+        startedAt: t.startedAt ? new Date(t.startedAt) : null,
+        pausedAt: t.pausedAt ? new Date(t.pausedAt) : null,
+        pauseReason: t.pauseReason,
+        endedAt: t.endedAt ? new Date(t.endedAt) : null,
+        cancelledAt: t.cancelledAt ? new Date(t.cancelledAt) : null,
+        cancelReason: t.cancelReason,
+        finalizedAt: t.finalizedAt ? new Date(t.finalizedAt) : null,
+        copiedFromTournamentId: t.copiedFromTournamentId,
+      },
+    });
+  } catch (err) {
+    console.warn("[persistTournamentToPrisma] Warning persisting tournament:", (err as Error).message);
+  }
+}
+
+export async function deleteTournamentFromPrisma(
+  prisma: PrismaClient,
+  tournamentId: string
+): Promise<void> {
+  try {
+    await prisma.tournament.delete({ where: { id: tournamentId } });
+  } catch (err) {
+    console.warn("[deleteTournamentFromPrisma] Warning deleting tournament:", (err as Error).message);
+  }
+}
+

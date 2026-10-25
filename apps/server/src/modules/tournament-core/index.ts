@@ -55,8 +55,8 @@ export function createTournamentRuntimeBundle(options?: {
 }): TournamentRuntimeBundle {
   const store = options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn });
   const unitContractService = new UnitContractService(store);
-  const coreDraftService = new CoreDraftService(store);
-  const approvalService = new ApprovalService(store);
+  const coreDraftService = new CoreDraftService(store, options?.database);
+  const approvalService = new ApprovalService(store, options?.database);
   const adjudicationLedgerService = new AdjudicationLedgerService(store);
   const readinessSourcesPort =
     options?.readinessSourcesPort ??

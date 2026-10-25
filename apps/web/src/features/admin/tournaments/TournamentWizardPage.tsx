@@ -268,7 +268,8 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         }));
         setLastSavedTime(new Date().toLocaleTimeString("vi-VN"));
         // Update URL to edit mode without full reload
-        navigate(`/admin/tournaments/${created.id}`, { replace: true });
+        navigate(`/admin/tournaments/${created.id}/edit`, { replace: true });
+        return created.id;
       }
     } catch (err: unknown) {
       const details = errorRecord(err);
@@ -283,6 +284,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
             : "Lỗi kết nối máy chủ khi lưu nháp. Dữ liệu đã được lưu trữ an toàn trong bộ nhớ đệm cục bộ của trình duyệt."
         );
       }
+      return null;
     } finally {
       setSaving(false);
     }
@@ -309,18 +311,34 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     }
   };
 
+  // Open submit modal (auto-saving draft first if needed)
+  const handleOpenSubmitModal = useCallback(async () => {
+    let currentId = formData.tournamentId;
+    if (!currentId) {
+      const savedId = await handleSaveDraft();
+      if (!savedId) return;
+      currentId = savedId;
+    }
+    setShowSubmitModal(true);
+  }, [formData.tournamentId, handleSaveDraft]);
+
   // S07: Submit draft for review
   const handleSubmitDraft = useCallback(async () => {
-    if (!formData.tournamentId) {
-      setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
-      return;
+    let targetId = formData.tournamentId;
+    if (!targetId) {
+      const savedId = await handleSaveDraft();
+      if (!savedId) {
+        setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
+        return;
+      }
+      targetId = savedId;
     }
     setSubmittingDraft(true);
     setErrorMessage(null);
     setConflictWarning(null);
 
     try {
-      const res = await apiClient.submitDraft(formData.tournamentId, {
+      const res = await apiClient.submitDraft(targetId, {
         expectedRevision: serverRevision,
         submissionNote: submissionNote.trim() || undefined,
       });
@@ -330,7 +348,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       setSubmitSuccessMessage(
         "Giải đấu đã được nộp duyệt thành công và chuyển sang trạng thái ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW). Quản trị viên hệ thống sẽ kiểm tra và phản hồi."
       );
-      clearLocalDraftBuffer(formData.tournamentId);
+      clearLocalDraftBuffer(targetId);
     } catch (err: unknown) {
       const details = errorRecord(err);
       if (details.code === "CONFLICT" || details.statusCode === 409) {
@@ -471,11 +489,11 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           )}
 
           {/* Submit Draft Button */}
-          {formData.tournamentId && !isUnderReview && (
+          {!isUnderReview && (
             <button
               type="button"
               data-testid="wizard-top-submit-draft-btn"
-              onClick={() => setShowSubmitModal(true)}
+              onClick={handleOpenSubmitModal}
               disabled={saving || submittingDraft}
               className="button primary"
               style={{
@@ -1702,14 +1720,14 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                     className="button secondary"
                     style={{ fontSize: "0.85rem" }}
                   >
-                    {saving ? "Đang lưu..." : "Hoàn tất lưu nháp"}
+                    {saving ? "Đang lưu..." : "Lưu bản nháp"}
                   </button>
                 )}
-                {formData.tournamentId && !isUnderReview && (
+                {!isUnderReview && (
                   <button
                     type="button"
                     data-testid="wizard-submit-draft-btn"
-                    onClick={() => setShowSubmitModal(true)}
+                    onClick={handleOpenSubmitModal}
                     disabled={saving || submittingDraft}
                     className="button primary"
                     style={{
