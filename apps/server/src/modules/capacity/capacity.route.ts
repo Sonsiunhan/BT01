@@ -5,13 +5,17 @@
  */
 
 import type { FastifyInstance } from "fastify";
+import type { AuthService } from "../auth/auth.service.js";
 import type { CapacityController } from "./capacity.controller.js";
+import { assertDiagnosticsAdmin } from "../diagnostics/diagnostics-auth.js";
 
 export async function registerCapacityRoute(
   app: FastifyInstance,
-  controller: CapacityController
+  controller: CapacityController,
+  auth: AuthService
 ): Promise<void> {
-  app.get("/diagnostics/capacity", async (_request, reply) => {
+  app.get("/diagnostics/capacity", async (request, reply) => {
+    await assertDiagnosticsAdmin(request, auth);
     controller.evaluateMetrics();
     const status = controller.getStatus();
     return reply.status(200).send(status);

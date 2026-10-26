@@ -49,9 +49,10 @@ const healthBody = await health.json();
 assert(typeof healthBody.status === "string", "api /health: invalid status payload");
 
 const metrics = await request(`${apiUrl}/diagnostics/metrics`, { headers: { Origin: webOrigin } });
-assert(metrics.status === 200, `api /diagnostics/metrics: expected 200, received ${metrics.status}`);
-const metricsBody = await metrics.json();
-assert(typeof metricsBody.requestCount === "number", "api metrics: invalid requestCount payload");
+assert(
+  metrics.status === 401 || metrics.status === 403,
+  `api /diagnostics/metrics: expected 401/403 (admin-guarded telemetry), received ${metrics.status}`
+);
 
 const allowOrigin = health.headers.get("access-control-allow-origin");
 assert(allowOrigin === webOrigin, `api CORS: expected ${webOrigin}, received ${allowOrigin || "<none>"}`);

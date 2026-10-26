@@ -28,6 +28,9 @@ export async function runBaselineBenchmarks() {
   // Dynamic imports of server modules via TypeScript/tsx
   const { buildApp } = await import("../../apps/server/src/app.js");
   const { DisabledRealtimeAdapter } = await import("../../apps/server/src/realtime/disabled.adapter.js");
+  const { MetricsRegistry } = await import("../../apps/server/src/modules/diagnostics/metrics.js");
+  const { HealthService } = await import("../../apps/server/src/modules/health/health.service.js");
+  const { InventoryService } = await import("../../apps/server/src/modules/diagnostics/inventory.service.js");
 
   const mockDatabase = {
     check: async () => 2, // 2ms simulated latency
@@ -46,11 +49,19 @@ export async function runBaselineBenchmarks() {
   };
 
   console.log(`\n[1/4] Starting server on ${BASE_URL}...`);
+  // Own the metrics registry so the benchmark can snapshot telemetry in-process;
+  // /diagnostics/metrics is admin-guarded and the harness has no admin session.
+  const metricsRegistry = new MetricsRegistry();
+  const realtime = new DisabledRealtimeAdapter();
   const app = await buildApp({
     env: testEnv,
     database: mockDatabase,
-    realtime: new DisabledRealtimeAdapter(),
+    realtime,
+    metrics: metricsRegistry,
   });
+  const inventoryReader = new InventoryService(
+    new HealthService(mockDatabase, realtime, () => ({ status: "degraded", reason: "wasmtime-unconfigured" }))
+  );
 
   await app.listen({ host: HOST, port: PORT });
   console.log(`  ✓ Server listening on ${BASE_URL}`);
@@ -77,9 +88,7 @@ export async function runBaselineBenchmarks() {
   try {
     // 2. Fetch inventory before load
     console.log("\n[2/4] Verifying segregated health endpoints and system inventory...");
-    const invRes = await fetch(`${BASE_URL}/diagnostics/inventory`);
-    if (!invRes.ok) throw new Error(`GET /diagnostics/inventory failed with ${invRes.status}`);
-    const inventory = await invRes.json();
+    const inventory = await inventoryReader.getInventory();
     report.inventory = inventory;
     console.log(`  ✓ Inventory verified: Node ${inventory.nodeVersion}, ${Object.keys(inventory.components).length} components`);
 
@@ -183,9 +192,7 @@ export async function runBaselineBenchmarks() {
 
     // 5. Capture server-side metrics snapshot
     console.log("\n[5/5] Capturing server-side metrics snapshot & resource utilization...");
-    const metricsRes = await fetch(`${BASE_URL}/diagnostics/metrics`);
-    if (!metricsRes.ok) throw new Error(`GET /diagnostics/metrics failed with ${metricsRes.status}`);
-    const metricsSnapshot = await metricsRes.json();
+    const metricsSnapshot = metricsRegistry.snapshot();
     report.serverMetrics = metricsSnapshot;
 
     console.log("\n--- BASELINE MEASUREMENTS SUMMARY ---");

@@ -456,6 +456,23 @@ export async function registerTournamentCoreRoutes(
   app.get<{ Params: { tournamentId: string } }>(
     "/api/tournaments/:tournamentId/leaderboard",
     async (request, reply) => {
+      const actor = await resolveTournamentRequestActor(request, auth, store);
+      const tournament = coreDraftService.getTournament(request.params.tournamentId);
+      if (
+        !canViewTournamentOperationalDetails(
+          actor,
+          tournament.id,
+          tournament.ownerTaUserId,
+          store
+        )
+      ) {
+        throw createTournamentError({
+          code: "UNAUTHORIZED",
+          statusCode: 403,
+          message: "Bạn không có quyền xem bảng xếp hạng của giải đấu này.",
+          details: { reason: "FORBIDDEN_ROLE", tournamentId: tournament.id },
+        });
+      }
       const leaderboard = adjudicationLedgerService.computeLeaderboardSnapshot(
         request.params.tournamentId
       );
@@ -466,6 +483,23 @@ export async function registerTournamentCoreRoutes(
   app.get<{ Params: { tournamentId: string } }>(
     "/api/tournaments/:tournamentId/matches",
     async (request, reply) => {
+      const actor = await resolveTournamentRequestActor(request, auth, store);
+      const tournament = coreDraftService.getTournament(request.params.tournamentId);
+      if (
+        !canViewTournamentOperationalDetails(
+          actor,
+          tournament.id,
+          tournament.ownerTaUserId,
+          store
+        )
+      ) {
+        throw createTournamentError({
+          code: "UNAUTHORIZED",
+          statusCode: 403,
+          message: "Bạn không có quyền xem danh sách trận của giải đấu này.",
+          details: { reason: "FORBIDDEN_ROLE", tournamentId: tournament.id },
+        });
+      }
       const matches = adjudicationLedgerService.getLedgerEntries(
         request.params.tournamentId
       );

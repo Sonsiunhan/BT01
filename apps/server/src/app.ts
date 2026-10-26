@@ -44,6 +44,7 @@ import { registerTournamentRuleVersionRoutes } from "./modules/tournament-versio
 import type { TournamentVersioningPort } from "./modules/tournament-versioning/versioning.port.js";
 import { registerTournamentAcknowledgementRoutes } from "./modules/tournament-acknowledgement/acknowledgement.route.js";
 import { TournamentAcknowledgementService } from "./modules/tournament-acknowledgement/acknowledgement.service.js";
+import { RetentionEnforcementService } from "./modules/tournament-acknowledgement/retention.service.js";
 import { PrismaTournamentAcknowledgementGuard } from "./modules/tournament-core/acknowledgement-guard.js";
 import { syncPrismaToTournamentStore } from "./modules/tournament-foundation/prisma-sync.js";
 import { registerCors } from "./plugins/cors.js";
@@ -175,9 +176,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   const healthService = new HealthService(database, realtime, botProbe);
   const inventoryService = new InventoryService(healthService);
 
-  await registerMetricsRoute(app, metrics);
-  await registerInventoryRoute(app, inventoryService);
-  await registerCapacityRoute(app, capacity);
+  await registerMetricsRoute(app, metrics, auth);
+  await registerInventoryRoute(app, inventoryService, auth);
+  await registerCapacityRoute(app, capacity, auth);
   await registerHealthRoute(app, healthService);
   // Guest uploads are temporary, not an account cloud library. Keep this
   // bounded sweep independent of user traffic; never prune live references.
@@ -185,6 +186,19 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     void botLibrary.pruneExpiredGuestSources().catch(() => app.log.warn("Guest source cleanup unavailable"));
   }, 60 * 60 * 1000);
   guestSourceSweep.unref();
+  // D12-F03/F04: run the D08 retention enforcement (terminal tournaments older
+  // than 90 days, audit logs older than 365 days) on a bounded hourly sweep.
+  // Best-effort: a transient database failure is logged and retried next tick.
+  let retentionSweep: NodeJS.Timeout | undefined;
+  if (database instanceof PrismaDatabase) {
+    const retentionService = new RetentionEnforcementService(database.client);
+    retentionSweep = setInterval(() => {
+      void retentionService
+        .runScheduledRetentionSweep({ userId: "system:retention", role: "SYSTEM_ADMIN" })
+        .catch((err) => app.log.warn({ err }, "Retention sweep unavailable"));
+    }, 60 * 60 * 1000);
+    retentionSweep.unref();
+  }
   app.addHook("onReady", async () => realtime.start());
   app.addHook("onRequest", csrfMiddleware(env.corsOrigins));
   app.addHook("onResponse", async (request, reply) => {
@@ -195,6 +209,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   });
   app.addHook("onClose", async () => {
     clearInterval(guestSourceSweep);
+    if (retentionSweep) clearInterval(retentionSweep);
     matches.stop();
     botOnline.stopAll();
     matchmaking.stop();
