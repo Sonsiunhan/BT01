@@ -59,6 +59,17 @@ Kiểm chứng sau vá (trình duyệt thật): trang luật giải APPROVED hi�
 
 Suite sau vòng 3: web **71 file / 355 tests PASS** (thêm 1 test chặn nộp duyệt), workspace unit 368 PASS, typecheck + lint + build PASS.
 
+## Vòng 4 — Tự chuyển hướng phiên admin khỏi player shell (2026-10-27)
+
+| # | Yêu cầu | Kết quả |
+|---|---|---|
+| K1 | Admin bấm trực tiếp URL người chơi (trang chủ, /lich-su…) vẫn vào được player shell | **Đã vá**: `AppLayout` guard nhận diện phiên SYSTEM_ADMIN/TOURNAMENT_ADMIN → `Navigate` về `/admin/tournaments` (replace) trên mọi route player shell. Nút "Console Quản trị" thủ công trong player shell trở thành UI chết → đã gỡ |
+| K2 | Ngoại lệ hợp lý | Các luồng token (thư mời trọng tài `/staff/invitations/…`, kích hoạt tài khoản `/kich-hoat/` `/activate/`, khôi phục `/account-access`, rules-ack) **không** bị chuyển hướng — link token chính là đích cần đến |
+
+Kiểm chứng trình duyệt: SA vào `/lich-su` → kết thúc tại `/admin/tournaments`; SA mở link thư mời → vẫn ở trang nhận lời; player vào `/lich-su` → không bị chuyển hướng. Test mới `AppLayout.test.tsx` (5 case: SA, TA, player, ẩn danh, luồng token) — web suite **72 file / 360 tests PASS**, typecheck + lint PASS.
+
+Ghi chú thiết kế: chuyển hướng "ép về console ở mọi route" là mẫu phù hợp cho hệ thống tách biệt nghiêm ngặt staff/player (định hướng đã chốt của dự án từ S01/23009fe). Mẫu phổ biến trong thực tế rộng hơn là chỉ chặn landing root và cho admin tự do xem trang người chơi — nếu sau này cần admin xem trải nghiệm người chơi (QA nội dung), dùng tài khoản player/khách riêng.
+
 ## Cách tái lập môi trường
 
 ```bash

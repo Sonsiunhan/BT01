@@ -27,6 +27,24 @@ export function AppLayout() {
     Boolean(userRoles?.includes("SYSTEM_ADMIN")) ||
     Boolean(userRoles?.includes("TOURNAMENT_ADMIN"));
 
+  // Strict role separation: an administrative session landing on any
+  // player-shell route is sent to the admin console automatically. Token-based
+  // flows (referee invitation, account activation, recovery, rules ack) stay
+  // reachable because the link target itself is the destination for those
+  // sessions.
+  const isTokenFlowRoute =
+    location.pathname.startsWith("/staff/invitations/") ||
+    location.pathname.startsWith("/kich-hoat/") ||
+    location.pathname.startsWith("/activate/") ||
+    location.pathname.startsWith("/account-access") ||
+    location.pathname.startsWith("/tournaments/") && location.pathname.includes("/rules-ack/");
+
+  useEffect(() => {
+    if (isAdmin && !isTokenFlowRoute) {
+      navigate(routes.adminTournaments, { replace: true });
+    }
+  }, [isAdmin, isTokenFlowRoute, navigate]);
+
   useEffect(() => {
     const onPointerDown = (event: Event) => {
       if (profileDetailsRef.current?.open && !profileDetailsRef.current.contains(event.target as Node)) {
@@ -90,48 +108,11 @@ export function AppLayout() {
         <NavLink to={routes.profile}>Hồ sơ</NavLink>
       </nav>
       <div className="header-actions">
-        {isAdmin && (
-          <NavLink
-            to={routes.adminTournaments}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.35rem",
-              padding: "0.3rem 0.65rem",
-              borderRadius: "0.375rem",
-              fontSize: "0.78rem",
-              fontWeight: 700,
-              textDecoration: "none",
-              background: "rgba(6, 182, 212, 0.12)",
-              color: "var(--system-cyan, #06b6d4)",
-              border: "1px solid rgba(6, 182, 212, 0.3)",
-              transition: "all 0.15s ease",
-            }}
-            title="Chuyển đến Console Quản trị"
-          >
-            <span>⚡</span>
-            <span>Console Quản trị</span>
-          </NavLink>
-        )}
         <ThemeSwitcher />
         {user ? (
           <details ref={profileDetailsRef} className="profile-menu">
             <summary aria-label="Mở menu hồ sơ">{user.displayName}</summary>
             <div>
-              {isAdmin && (
-                <NavLink
-                  to={routes.adminTournaments}
-                  style={{
-                    color: "var(--system-cyan, #06b6d4)",
-                    fontWeight: 700,
-                    borderBottom: "1px solid var(--border)",
-                    marginBottom: "0.25rem",
-                    paddingBottom: "0.5rem",
-                  }}
-                >
-                  ⚡ Console Quản trị
-                </NavLink>
-              )}
               <NavLink to={routes.profile}>Xem hồ sơ</NavLink>
               <NavLink to={routes.settings}>Cài đặt</NavLink>
               <button type="button" onClick={signOut}>Đăng xuất</button>
