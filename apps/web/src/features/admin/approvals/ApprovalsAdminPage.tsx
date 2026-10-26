@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type {
   ApprovalDecisionType,
@@ -43,6 +43,11 @@ export function ApprovalsAdminPage({
   const [selectedCrId, setSelectedCrId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [reviewNote, setReviewNote] = useState<string>("");
+  // Missing-note feedback: REJECT/REQUEST_CHANGES require a reason; without an
+  // inline red mark + focus the SA only saw a top-of-page banner and believed
+  // the buttons were dead.
+  const [noteError, setNoteError] = useState<string | null>(null);
+  const noteInputRef = useRef<HTMLTextAreaElement | null>(null);
   const [fieldNotes, setFieldNotes] = useState<Record<string, string>>({});
   const [draftFieldKey, setDraftFieldKey] = useState<string>("");
   const [draftFieldText, setDraftFieldText] = useState<string>("");
@@ -101,6 +106,18 @@ export function ApprovalsAdminPage({
     });
   };
 
+  // Highlight + focus the reason textarea so the SA sees WHY the decision did
+  // not go through instead of a banner far above the action area.
+  const flagMissingNote = (message: string) => {
+    setErrorBanner(message);
+    setNoteError(message);
+    const el = noteInputRef.current;
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   const handleDecideInitial = async (
     tournament: TournamentDto,
     decision: ApprovalDecisionType
@@ -112,7 +129,7 @@ export function ApprovalsAdminPage({
       (decision === "REJECT" || decision === "REQUEST_CHANGES") &&
       reviewNote.trim().length < 3
     ) {
-      setErrorBanner(
+      flagMissingNote(
         "Bắt buộc nhập lý do (ít nhất 3 ký tự) khi Từ chối hoặc Yêu cầu chỉnh sửa (T022)."
       );
       return;
@@ -132,6 +149,7 @@ export function ApprovalsAdminPage({
       );
       setReviewNote("");
       setFieldNotes({});
+      setNoteError(null);
       setSuccessBanner(
         `Đã xử lý hồ sơ giải "${res.tournament.coreConfig.tournamentCode}" -> trạng thái ${res.tournament.status}.`
       );
@@ -153,7 +171,7 @@ export function ApprovalsAdminPage({
       (decision === "REJECT" || decision === "REQUEST_CHANGES") &&
       reviewNote.trim().length < 3
     ) {
-      setErrorBanner(
+      flagMissingNote(
         "Bắt buộc nhập lý do (ít nhất 3 ký tự) khi Từ chối hoặc Yêu cầu chỉnh sửa ChangeRequest."
       );
       return;
@@ -168,6 +186,7 @@ export function ApprovalsAdminPage({
       setChangeRequests((prev) =>
         prev.map((item) => (item.id === cr.id ? res.changeRequest : item))
       );
+      setNoteError(null);
       setReviewNote("");
       setSuccessBanner(
         `Đã xử lý ChangeRequest của giải "${cr.tournamentCode}" -> ${res.changeRequest.status}.`
@@ -562,12 +581,26 @@ export function ApprovalsAdminPage({
                 </label>
                 <textarea
                   id="approval-note-input"
+                  ref={noteInputRef}
                   rows={3}
                   value={reviewNote}
-                  onChange={(e) => setReviewNote(e.target.value)}
+                  onChange={(e) => {
+                    setReviewNote(e.target.value);
+                    if (noteError) setNoteError(null);
+                    if (errorBanner) setErrorBanner(null);
+                  }}
                   placeholder="Nhập nhận xét hoặc lý do yêu cầu chỉnh sửa..."
-                  className="w-full rounded border border-slate-600 bg-slate-950 p-2 text-sm"
+                  className={noteError
+                    ? "w-full rounded border-2 border-red-500 bg-slate-950 p-2 text-sm"
+                    : "w-full rounded border border-slate-600 bg-slate-950 p-2 text-sm"}
+                  aria-invalid={noteError ? true : undefined}
+                  aria-describedby={noteError ? "approval-note-error" : undefined}
                 />
+                {noteError && (
+                  <p id="approval-note-error" role="alert" className="text-xs font-semibold" style={{ color: "var(--system-red, #ef4444)" }}>
+                    {noteError}
+                  </p>
+                )}
               </div>
 
               {selectedTournament.status === "UNDER_REVIEW" && (

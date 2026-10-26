@@ -85,6 +85,16 @@ Báo cáo người dùng: (1) đã có bản nháp nhưng mở "Tạo giải m�
 
 **Kiểm chứng trình duyệt (trình tự đúng như người dùng gặp):** Lưu nháp không có lịch ✓ → Nộp duyệt bị chặn "giá trị tạm" ✓ → chọn lịch thật ở Bước 2 → Nộp duyệt mở modal ✓ → xác nhận → UNDER_REVIEW ✓ → mở lại "Tạo giải mới" → form trắng, không khôi phục ✓. Suite: web 73 file/366 tests PASS (thêm `wizardSubmitValidation.test.ts` 6 case), workspace 368 PASS, typecheck + lint + build PASS.
 
+## Vòng 6 — Nút "Từ chối" / "Yêu cầu chỉnh sửa" của SA tưởng hỏng (2026-10-27)
+
+**Báo cáo:** SA chỉ bấm được "Phê duyệt"; hai nút còn lại "không thể chọn".
+
+**Chẩn đoán (browser + code):** Toàn bộ đường xử lý **hoạt động đúng** — 3 nút gọi đúng giá trị quyết định (APPROVE/REQUEST_CHANGES/REJECT), server xử lý đủ 3 nhánh; kiểm chứng thật: REQUEST_CHANGES ✓, REJECT ✓ (kèm hoàn hạn mức). Vấn đề thật là **UX phản hồi thiếu**: khi bấm mà chưa nhập lý do (bắt buộc theo T022), thông báo chỉ hiện ở **banner đầu trang**, trong khi ô nhập lý do và 3 nút nằm ở panel chi tiết dưới màn hình → SA chỉ thấy "bấm không có gì xảy ra".
+
+**Đã vá (chuẩn UX vòng 3):** thiếu lý do khi bấm → viền đỏ 2px trên ô lý do + thông báo đỏ ngay dưới ô (role=alert, aria-describedby) + **focus và cuộn tới ô lý do**; gõ lý do → tự gỡ đỏ, tắt banner cũ; cả hai handler (hồ sơ lần đầu + ChangeRequest hậu duyệt) dùng chung cơ chế.
+
+**Kiểm chứng trình duyệt:** thiếu lý do → đỏ + focus + alert ✓; gõ → gỡ ✓; có lý do → CHANGES_REQUESTED ✓ và REJECTED ✓. Suite: web 73 file/366 tests PASS, typecheck + lint PASS.
+
 ## Cách tái lập môi trường
 
 ```bash
