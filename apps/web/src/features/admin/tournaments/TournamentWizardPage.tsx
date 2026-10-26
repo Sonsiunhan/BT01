@@ -7,6 +7,7 @@ import {
   saveLocalDraftBuffer,
   getLocalDraftBuffer,
   clearLocalDraftBuffer,
+  getSessionIdentity,
   type TournamentApiPort,
 } from "./tournamentApi";
 import {
@@ -14,6 +15,7 @@ import {
   tournamentDtoToDraftFormData,
   type DraftFormData,
 } from "./tournamentTypes";
+import { isDraftEditableStatus, tournamentStatusLabel } from "./tournamentStatusLabels";
 import {
   DEFAULT_TOURNAMENT_RULE_PROFILE,
 } from "@ottv2/contracts";
@@ -112,18 +114,31 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   const checkinInputId = useId();
 
   const isEditMode = Boolean(tournamentIdParam);
-  const draftStorageKey = tournamentIdParam ? `draft_${tournamentIdParam}` : "new_tournament_draft";
+  const baseBufferKey = tournamentIdParam ? `draft_${tournamentIdParam}` : "new_tournament_draft";
+  // Buffers are namespaced per logged-in account: without this, one user's
+  // in-progress form was restored into another user's wizard on shared browsers.
+  const [bufferOwnerId, setBufferOwnerId] = useState<string | null>(null);
+  const [bufferReady, setBufferReady] = useState<boolean>(false);
+  const draftStorageKey = `${baseBufferKey}:${bufferOwnerId}`;
 
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
-  const [formData, setFormData] = useState<DraftFormData>(() => {
-    const buffered = getLocalDraftBuffer<DraftFormData>(draftStorageKey);
-    return {
-      ...DEFAULT_FORM_DATA,
-      ...buffered,
-      ...initialData,
-      tournamentId: tournamentIdParam ?? initialData?.tournamentId,
+  const [formData, setFormData] = useState<DraftFormData>(() => ({
+    ...DEFAULT_FORM_DATA,
+    ...initialData,
+    tournamentId: tournamentIdParam ?? initialData?.tournamentId,
+  }));
+
+  useEffect(() => {
+    let mounted = true;
+    getSessionIdentity().then((id) => {
+      if (!mounted) return;
+      setBufferOwnerId(id);
+      setBufferReady(true);
+    });
+    return () => {
+      mounted = false;
     };
-  });
+  }, []);
 
   const [saving, setSaving] = useState<boolean>(false);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
@@ -139,16 +154,24 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   const [submissionNote, setSubmissionNote] = useState<string>("");
   const [submitSuccessMessage, setSubmitSuccessMessage] = useState<string | null>(null);
   const [tournamentStatus, setTournamentStatus] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState<string | null>(null);
 
   const isUnderReview = tournamentStatus === "UNDER_REVIEW" || tournamentStatus === "SUBMITTED";
+  const isEditableStatus = isDraftEditableStatus(tournamentStatus);
 
-  // Check if buffer existed on mount
+  // Restore this account's own local buffer once the session identity is known.
   useEffect(() => {
+    if (!bufferReady || isEditMode) return;
     const buffered = getLocalDraftBuffer<DraftFormData>(draftStorageKey);
-    if (buffered && buffered.name && !isEditMode) {
+    if (buffered && buffered.name) {
+      setFormData((prev) => ({
+        ...prev,
+        ...buffered,
+        tournamentId: prev.tournamentId,
+      }));
       setRecoveredFromLocal(true);
     }
-  }, [draftStorageKey, isEditMode]);
+  }, [bufferReady, draftStorageKey, isEditMode]);
 
   // Load existing draft if in edit mode
   useEffect(() => {
@@ -157,13 +180,14 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     let isMounted = true;
     setLoadingInitial(true);
 
-    apiClient
+      apiClient
       .getDraft(tournamentIdParam)
       .then((res) => {
         if (!isMounted) return;
         const dto = res.tournament;
         setServerRevision(dto.revision);
         setTournamentStatus(dto.status);
+        setReviewNote(dto.lastReviewNote ?? null);
         setFormData((prev) => ({
           ...prev,
           ...tournamentDtoToDraftFormData(dto),
@@ -182,10 +206,12 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     };
   }, [apiClient, isEditMode, tournamentIdParam]);
 
-  // Auto-persist to local buffer on formData change
+  // Auto-persist to local buffer on formData change (only after the owning
+  // account identity resolved, so nothing is written under the wrong key).
   useEffect(() => {
+    if (!bufferReady) return;
     saveLocalDraftBuffer(draftStorageKey, formData);
-  }, [formData, draftStorageKey]);
+  }, [formData, draftStorageKey, bufferReady]);
 
   const updateField = <K extends keyof DraftFormData>(field: K, value: DraftFormData[K]) => {
     setFormData((prev) => {
@@ -273,7 +299,10 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       }
     } catch (err: unknown) {
       const details = errorRecord(err);
-      if (details.code === "CONFLICT" || details.statusCode === 409) {
+      // Only a genuine stale-revision clash gets the reload banner; other 409s
+      // (duplicate tournament code, quota exhausted, invalid state transition)
+      // carry their own precise Vietnamese message from the server.
+      if ((details.details as Record<string, unknown> | undefined)?.reason === "STALE_VERSION") {
         setConflictWarning(
           "Bản nháp đã được cập nhật từ phiên khác (Mã lỗi: 409 CONFLICT). Hãy tải lại bản mới nhất từ máy chủ để tránh ghi đè dữ liệu hoặc kiểm tra lại lịch sử thay đổi."
         );
@@ -351,7 +380,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       clearLocalDraftBuffer(targetId);
     } catch (err: unknown) {
       const details = errorRecord(err);
-      if (details.code === "CONFLICT" || details.statusCode === 409) {
+      if ((details.details as Record<string, unknown> | undefined)?.reason === "STALE_VERSION") {
         setConflictWarning(
           "Xung đột phiên bản khi nộp duyệt (Mã lỗi: 409 CONFLICT). Bản nháp đã được chỉnh sửa ở một phiên khác, vui lòng tải lại bản mới nhất."
         );
@@ -464,11 +493,13 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           >
             {isUnderReview
               ? `ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW r${serverRevision})`
-              : `BẢN NHÁP (DRAFT r${serverRevision})`}
+              : !tournamentStatus || tournamentStatus === "DRAFT"
+                ? `BẢN NHÁP (DRAFT r${serverRevision})`
+                : `${tournamentStatusLabel(tournamentStatus).toUpperCase()} (${tournamentStatus} r${serverRevision})`}
           </span>
 
-          {/* Save Draft Button */}
-          {!isUnderReview && (
+          {/* Save Draft Button — only while the lifecycle still allows patching */}
+          {isEditableStatus && (
             <button
               type="button"
               data-testid="wizard-save-draft-btn"
@@ -488,8 +519,8 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
             </button>
           )}
 
-          {/* Submit Draft Button */}
-          {!isUnderReview && (
+          {/* Submit Draft Button — only while the lifecycle still allows submitting */}
+          {isEditableStatus && (
             <button
               type="button"
               data-testid="wizard-top-submit-draft-btn"
@@ -556,6 +587,71 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* SA review note — the SA→TA communication channel for sent-back drafts */}
+      {(tournamentStatus === "CHANGES_REQUESTED" || tournamentStatus === "REJECTED") && (
+        <div
+          data-testid="wizard-review-note-banner"
+          role="alert"
+          style={{
+            padding: "0.85rem 1rem",
+            background: "color-mix(in srgb, var(--warning, #f59e0b) 14%, var(--surface))",
+            border: "1px solid var(--warning, #f59e0b)",
+            borderRadius: "8px",
+            color: "var(--text)",
+            fontSize: "0.85rem",
+          }}
+        >
+          <strong style={{ display: "block" }}>
+            {tournamentStatus === "REJECTED"
+              ? "Hồ sơ đã bị Ban quản trị từ chối."
+              : "Ban quản trị đã yêu cầu chỉnh sửa bản nháp này."}
+          </strong>
+          <p style={{ margin: "0.2rem 0 0 0", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+            {reviewNote
+              ? `Ghi chú của Ban quản trị: “${reviewNote}”`
+              : "Không có ghi chú kèm theo từ Ban quản trị."}
+          </p>
+        </div>
+      )}
+
+      {/* Non-editable lifecycle states lock the draft form server-side */}
+      {tournamentStatus && !isEditableStatus && !isUnderReview && (
+        <div
+          data-testid="wizard-locked-status-banner"
+          role="status"
+          style={{
+            padding: "0.85rem 1rem",
+            background: "color-mix(in srgb, var(--system-cyan) 12%, var(--surface))",
+            border: "1px solid var(--system-cyan)",
+            borderRadius: "8px",
+            color: "var(--text)",
+            fontSize: "0.85rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.75rem",
+          }}
+        >
+          <div>
+            <strong style={{ color: "var(--system-cyan)", display: "block" }}>
+              Giải đấu đang ở trạng thái “{tournamentStatusLabel(tournamentStatus)}” — bản nháp đã khóa.
+            </strong>
+            <p style={{ margin: "0.15rem 0 0 0", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+              Chỉ bản nháp (DRAFT) hoặc hồ sơ được yêu cầu chỉnh sửa (CHANGES_REQUESTED) mới có thể lưu và nộp duyệt tại đây.
+            </p>
+          </div>
+          {tournamentIdParam && (
+            <Link
+              to={`/admin/tournaments/${tournamentIdParam}`}
+              className="button secondary"
+              style={{ flexShrink: 0, fontSize: "0.8rem" }}
+            >
+              Xem chi tiết giải đấu →
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* S07: Locked Banner when UNDER_REVIEW */}
       {isUnderReview && (
@@ -1712,7 +1808,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
               </button>
             ) : (
               <>
-                {!isUnderReview && (
+                {isEditableStatus && (
                   <button
                     type="button"
                     onClick={handleSaveDraft}
@@ -1723,7 +1819,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                     {saving ? "Đang lưu..." : "Lưu bản nháp"}
                   </button>
                 )}
-                {!isUnderReview && (
+                {isEditableStatus && (
                   <button
                     type="button"
                     data-testid="wizard-submit-draft-btn"

@@ -7,9 +7,14 @@ const read = (file: string) => readFileSync(resolve(root, file), "utf8");
 
 describe("S09 — Hoàn thiện UI và Tích hợp Rule Widget Bản Cuối (AC-01..AC-05)", () => {
   it("AC-01: Rule Widget bản cuối tích hợp hoàn chỉnh trong Wizard Step 4 và P04", () => {
-    // 1. P04 TournamentRulesPage mở trực tiếp step 4 của Wizard
+    // 1. P04 TournamentRulesPage là trang chuyên biệt read-first — KHÔNG tái sử dụng
+    //    wizard tạo giải (chuẩn hóa UX 2026-10-27): không bước 1/2/3, không nút
+    //    lưu/nộp nháp, hiển thị luật hiện hành + lịch sử phiên bản bất biến.
     const rulesPageContent = read("apps/web/src/features/admin/tournaments/TournamentRulesPage.tsx");
-    expect(rulesPageContent).toContain("<TournamentWizardPage initialStep={4} />");
+    expect(rulesPageContent).toContain("TournamentRuleManagementPanel");
+    expect(rulesPageContent).not.toContain("<TournamentWizardPage");
+    expect(rulesPageContent).toContain("tournamentStatusLabels");
+    expect(rulesPageContent).toContain("Lịch sử phiên bản luật");
 
     // 2. Wizard step 4 mount TournamentRuleManagementPanel
     const wizardContent = read("apps/web/src/features/admin/tournaments/TournamentWizardPage.tsx");

@@ -29,6 +29,25 @@
 
 Kiểm tra bổ sung: trang Điều hành sự cố là trang thật (cổng RUNNING/PAUSED, không placeholder); trang Roster bị chặn đúng với player; filter "Người thực hiện" hoạt động end-to-end.
 
+## Vòng 2 — Tương tác SA↔TA, validation và chuẩn hóa trang Luật (2026-10-27)
+
+Tài khoản bổ sung: `uitest_ta` (TOURNAMENT_ADMIN theo luồng bootstrap D02, được gán TA binding qua UI).
+
+| # | Kịch bản | Thực trạng trước | Kết quả kiểm thử | Hành động |
+|---|---|---|---|---|
+| G1 | TA đăng nhập → console | — | **PASS** (tự vào `/admin/tournaments`, nav lọc đúng — không thấy mục Đơn vị/Hợp đồng/Xét duyệt) | Không cần |
+| G2 | TA tạo + nộp giải của mình | — | **PASS** (DRAFT r1 → UNDER_REVIEW r2 qua API thật) | Không cần |
+| G3 | TA vào trang Xét duyệt | — | **PASS** (403 rõ ràng "Yêu cầu thẩm quyền Quản trị viên Hệ thống" — đúng đặc tả chỉ SA duyệt) | Không cần |
+| G4 | SA thấy giải TA nộp trong hàng đợi | — | **PASS** (bàn giao SA↔TA hiển thị đúng) | Không cần |
+| G5 | Yêu cầu chỉnh sửa khi thiếu lý do | — | **PASS** (server 400 "Bắt buộc nhập lý do (ít nhất 3 ký tự)… (T022)" hiển thị) | Không cần |
+| V1 | Lưu nháp khi trùng mã giải | Bất kỳ lỗi 409 nào đều hiện banner **"Xung đột phiên bản (OCC)"** sai bản chất | Trùng mã → 409 `TOURNAMENT_CODE_DUPLICATE` nhưng banner nói về revision | **Đã vá**: chỉ `details.reason === "STALE_VERSION"` mới dùng banner OCC; lỗi khác hiển thị message server |
+| V2 | Đệm nháp cục bộ giữa 2 tài khoản | Buffer `"new_tournament_draft"` **dùng chung** — TA được khôi phục form dở của admin (rò rỉ dữ liệu + nguy cơ ghi đè nhầm) | Tái hiện: TA thấy "Đã khôi phục từ bộ nhớ đệm cục bộ" với nội dung của admin | **Đã vá**: key đệm gắn theo user id (`getSessionIdentity` qua `/auth/me`), không khôi phục chéo tài khoản |
+| U1 | Bấm "Luật thi đấu" từ chi tiết giải | Nhảy vào nguyên **wizard "CHỈNH SỬA BẢN NHÁP"** với bước 1/2/3, nút Lưu/Nộp, và badge sai "BẢN NHÁP (DRAFT r3)" cho giải APPROVED | Tái hiện đúng như người dùng báo cáo | **Đã vá**: viết lại `TournamentRulesPage` thành trang chuyên biệt read-first — badge trạng thái thật, lưới "Luật hiện hành" 14 chỉ số, lịch sử phiên bản bất biến, CTA "Mở bản nháp (bước 4)" chỉ khi DRAFT/CHANGES_REQUESTED, panel phát hành phiên bản mới chỉ khi giải đã duyệt |
+| U2 | Wizard mở với giải không chỉnh sửa được | Badge "BẢN NHÁP (DRAFT rN)" cho mọi trạng thái; nút Lưu/Nộp luôn hiện (server sẽ 403/409) | Tái hiện trên giải APPROVED | **Đã vá**: badge nhãn trạng thái thật cho 14 trạng thái; nút Lưu/Nộp chỉ hiện với DRAFT/CHANGES_REQUESTED; banner khóa kèm link chi tiết |
+| U3 | TA nhận ghi chú của SA khi hồ sơ bị trả về | Ghi chú thẩm định **không hiển thị ở bất kỳ đâu** cho TA | Ghi chú chỉ nằm trong DTO | **Đã vá**: banner "Ban quản trị đã yêu cầu chỉnh sửa…" + ghi chú nguyên văn trên trang sửa của TA (DRAFT lẫn CHANGES_REQUESTED) |
+
+Kiểm chứng sau vá (trình duyệt thật): trang luật giải APPROVED hiển thị đúng badge + 14 chỉ số + không còn wizard; wizard `/edit` giải APPROVED hiện banner khóa, 0 nút Lưu/Nộp; banner ghi chú SA hiện đúng nguyên văn cho TA. Test S09-AC-01 gắn cứng với hành vi cũ (assert source chứa `<TournamentWizardPage initialStep={4} />`) đã được cập nhật theo thiết kế mới. Suite: web 71 file/354 tests PASS, workspace unit 368 PASS, typecheck + lint PASS.
+
 ## Cách tái lập môi trường
 
 ```bash

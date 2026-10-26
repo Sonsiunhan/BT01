@@ -161,7 +161,7 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
   });
 
   it("5. renders conflict alert banner when server returns 409 CONFLICT", async () => {
-    const conflictError = Object.assign(new Error("Bản nháp đã cũ"), { code: "CONFLICT", statusCode: 409 });
+    const conflictError = Object.assign(new Error("Bản nháp đã cũ"), { code: "CONFLICT", statusCode: 409, details: { reason: "STALE_VERSION" } });
     vi.mocked(mockApiClient.createDraft).mockRejectedValueOnce(conflictError);
 
     renderWithProviders(<TournamentWizardPage apiClient={mockApiClient} />);
@@ -224,6 +224,7 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
     const conflictError = Object.assign(new Error("Bản nháp đã bị thay đổi"), {
       code: "CONFLICT",
       statusCode: 409,
+      details: { reason: "STALE_VERSION" },
     });
     vi.mocked(mockApiClient.submitDraft).mockRejectedValueOnce(conflictError);
 

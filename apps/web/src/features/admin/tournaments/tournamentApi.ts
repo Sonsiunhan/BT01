@@ -442,6 +442,22 @@ export function saveLocalDraftBuffer<T>(key: string, data: T): void {
   setStorageItem(`${DRAFT_BUFFER_PREFIX}${key}`, JSON.stringify(data));
 }
 
+/**
+ * Resolves the current authenticated user id (uncached so a logout/login in
+ * the same SPA session is honored). Draft buffers are namespaced by this id to
+ * prevent one account's in-progress form from leaking into another account's
+ * wizard on a shared browser.
+ */
+export async function getSessionIdentity(): Promise<string | null> {
+  try {
+    const me = await getMe();
+    const user = me?.user as { id?: string } | undefined;
+    return typeof user?.id === "string" && user.id ? user.id : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getLocalDraftBuffer<T>(key: string): T | null {
   const item = getStorageItem(`${DRAFT_BUFFER_PREFIX}${key}`);
   if (!item) return null;
