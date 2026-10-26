@@ -16,6 +16,7 @@ import {
   type DraftFormData,
 } from "./tournamentTypes";
 import { isDraftEditableStatus, tournamentStatusLabel } from "./tournamentStatusLabels";
+import { FIELD_STEP, validateDraftForSubmit } from "./wizardSubmitValidation";
 import {
   DEFAULT_TOURNAMENT_RULE_PROFILE,
 } from "@ottv2/contracts";
@@ -81,6 +82,12 @@ function slugify(text: string): string {
     .replace(/_+/g, "_")
     .slice(0, 36);
 }
+
+const RED_HINT_STYLE: React.CSSProperties = {
+  fontSize: "0.75rem",
+  color: "var(--system-red)",
+  fontWeight: 600,
+};
 
 function errorRecord(error: unknown): Record<string, unknown> {
   return typeof error === "object" && error !== null ? error as Record<string, unknown> : {};
@@ -155,6 +162,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   const [submitSuccessMessage, setSubmitSuccessMessage] = useState<string | null>(null);
   const [tournamentStatus, setTournamentStatus] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState<string | null>(null);
+  // Pre-submit validation state: red-marked fields + an explicit missing-items banner
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [submitBlockList, setSubmitBlockList] = useState<string[] | null>(null);
 
   const isUnderReview = tournamentStatus === "UNDER_REVIEW" || tournamentStatus === "SUBMITTED";
   const isEditableStatus = isDraftEditableStatus(tournamentStatus);
@@ -222,7 +232,20 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       return updated;
     });
     setErrorMessage(null);
+    // Editing a field clears its red validation mark immediately
+    setFieldErrors((prev) => {
+      if (!(field in prev)) return prev;
+      const next = { ...prev };
+      delete next[field as string];
+      return next;
+    });
   };
+
+  // Red outline for fields flagged by the pre-submit validation
+  const invalidFieldStyle = (field: string): React.CSSProperties =>
+    fieldErrors[field]
+      ? { borderColor: "var(--system-red)", borderWidth: 2 }
+      : {};
 
   const handleRuleConfigRevisionChange = useCallback((revision: number) => {
     setServerRevision(revision);
@@ -342,6 +365,21 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
 
   // Open submit modal (auto-saving draft first if needed)
   const handleOpenSubmitModal = useCallback(async () => {
+    // Pre-submit validation: point the TA at the exact missing/invalid fields
+    // (red marks + banner + jump to the first offending step) before opening
+    // the confirm modal. Saving a draft stays intentionally unvalidated.
+    const errors = validateDraftForSubmit(formData);
+    const errorFields = Object.keys(errors);
+    if (errorFields.length > 0) {
+      setFieldErrors(errors);
+      setSubmitBlockList(errorFields.map((field) => errors[field]!));
+      setShowSubmitModal(false);
+      const firstStep = Math.min(...errorFields.map((field) => FIELD_STEP[field] ?? 1));
+      setCurrentStep(firstStep);
+      return;
+    }
+    setFieldErrors({});
+    setSubmitBlockList(null);
     let currentId = formData.tournamentId;
     if (!currentId) {
       const savedId = await handleSaveDraft();
@@ -349,7 +387,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       currentId = savedId;
     }
     setShowSubmitModal(true);
-  }, [formData.tournamentId, handleSaveDraft]);
+  }, [formData, handleSaveDraft]);
 
   // S07: Submit draft for review
   const handleSubmitDraft = useCallback(async () => {
@@ -762,6 +800,33 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       )}
 
       {/* General Error Banner */}
+      {submitBlockList && submitBlockList.length > 0 && (
+        <div
+          data-testid="wizard-submit-block-banner"
+          role="alert"
+          style={{
+            padding: "0.85rem 1rem",
+            background: "color-mix(in srgb, var(--system-red) 10%, var(--surface))",
+            border: "1px solid var(--system-red)",
+            borderRadius: "8px",
+            color: "var(--text)",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+          }}
+        >
+          <strong style={{ color: "var(--system-red)", display: "block" }}>
+            Chưa thể nộp duyệt — cần bổ sung hoặc sửa {submitBlockList.length} mục sau:
+          </strong>
+          <ul style={{ margin: "0.4rem 0 0.4rem 1.1rem", padding: 0 }}>
+            {submitBlockList.map((message, idx) => (
+              <li key={idx} style={{ margin: "0.15rem 0" }}>{message}</li>
+            ))}
+          </ul>
+          <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--text-muted)" }}>
+            Các ô thiếu hoặc sai đã được đánh dấu màu đỏ. Sau khi bổ sung xong, bấm “Nộp duyệt” một lần nữa. Lưu bản nháp không bắt buộc hoàn thiện các mục này.
+          </p>
+        </div>
+      )}
       {errorMessage && (
         <div
           role="alert"
@@ -857,11 +922,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 placeholder="Ví dụ: Giải Vô địch Quốc gia Robot Lab 2026"
                 value={formData.name}
                 onChange={(e) => updateField("name", e.target.value)}
-                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("name") }}
               />
-              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                Từ 3 đến 120 ký tự, hiển thị chính thức trên thẻ giải và banner.
-              </span>
+              {fieldErrors.name ? (
+                <span style={RED_HINT_STYLE}>{fieldErrors.name}</span>
+              ) : (
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  Từ 3 đến 120 ký tự, hiển thị chính thức trên thẻ giải và banner.
+                </span>
+              )}
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -876,11 +945,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 placeholder="VLD_ROBOT_LAB_2026"
                 value={formData.slug}
                 onChange={(e) => updateField("slug", slugify(e.target.value))}
-                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", fontFamily: "var(--font-data)" }}
+                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", fontFamily: "var(--font-data)", ...invalidFieldStyle("slug") }}
               />
-              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                Mã duy nhất viết hoa gồm chữ cái, số và dấu gạch dưới (_). Tự động gợi ý từ tên giải.
-              </span>
+              {fieldErrors.slug ? (
+                <span style={RED_HINT_STYLE}>{fieldErrors.slug}</span>
+              ) : (
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  Mã duy nhất viết hoa gồm chữ cái, số và dấu gạch dưới (_). Tự động gợi ý từ tên giải.
+                </span>
+              )}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
@@ -895,11 +968,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   className="input"
                   value={formData.contractId}
                   onChange={(e) => updateField("contractId", e.target.value)}
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("contractId") }}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Hợp đồng xác định hạn mức số giải đấu và trần thí sinh được phép tổ chức.
-                </span>
+                {fieldErrors.contractId ? (
+                  <span style={RED_HINT_STYLE}>{fieldErrors.contractId}</span>
+                ) : (
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    Hợp đồng xác định hạn mức số giải đấu và trần thí sinh được phép tổ chức.
+                  </span>
+                )}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -913,11 +990,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   className="input"
                   value={formData.organizerUnitId}
                   onChange={(e) => updateField("organizerUnitId", e.target.value)}
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("organizerUnitId") }}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Khoa, Viện, hoặc CLB bảo trợ đứng tên tổ chức giải đấu.
-                </span>
+                {fieldErrors.organizerUnitId ? (
+                  <span style={RED_HINT_STYLE}>{fieldErrors.organizerUnitId}</span>
+                ) : (
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    Khoa, Viện, hoặc CLB bảo trợ đứng tên tổ chức giải đấu.
+                  </span>
+                )}
               </div>
             </div>
 
@@ -950,8 +1031,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   className="input"
                   value={formData.organizersText || ""}
                   onChange={(e) => updateField("organizersText", e.target.value)}
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("organizersText") }}
                 />
+                {fieldErrors.organizersText && <span style={RED_HINT_STYLE}>{fieldErrors.organizersText}</span>}
               </div>
             </div>
 
@@ -976,11 +1058,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                         .filter(Boolean)
                     )
                   }
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("allowedUnitCodes") }}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Nhập danh sách mã khoa/viện cách nhau bằng dấu phẩy. Bắt buộc có ít nhất 1 đơn vị khi chọn giải nội bộ.
-                </span>
+                {fieldErrors.allowedUnitCodes ? (
+                  <span style={RED_HINT_STYLE}>{fieldErrors.allowedUnitCodes}</span>
+                ) : (
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    Nhập danh sách mã khoa/viện cách nhau bằng dấu phẩy. Bắt buộc có ít nhất 1 đơn vị khi chọn giải nội bộ.
+                  </span>
+                )}
               </div>
             )}
 
@@ -1082,8 +1168,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   className="input"
                   value={formData.startAt ? formData.startAt.slice(0, 16) : ""}
                   onChange={(e) => updateField("startAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("startAt") }}
                 />
+                {fieldErrors.startAt && <span style={RED_HINT_STYLE}>{fieldErrors.startAt}</span>}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -1097,8 +1184,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   className="input"
                   value={formData.endAt ? formData.endAt.slice(0, 16) : ""}
                   onChange={(e) => updateField("endAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("endAt") }}
                 />
+                {fieldErrors.endAt && <span style={RED_HINT_STYLE}>{fieldErrors.endAt}</span>}
               </div>
             </div>
 
@@ -1253,8 +1341,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   max={500}
                   value={formData.minParticipants}
                   onChange={(e) => updateField("minParticipants", Number(e.target.value))}
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("minParticipants") }}
                 />
+                {fieldErrors.minParticipants && <span style={RED_HINT_STYLE}>{fieldErrors.minParticipants}</span>}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -1269,11 +1358,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   max={2000}
                   value={formData.maxParticipants}
                   onChange={(e) => updateField("maxParticipants", Number(e.target.value))}
-                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
+                  style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("maxParticipants") }}
                 />
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Không được vượt quá hạn mức tối đa quy định trong hợp đồng bảo trợ.
-                </span>
+                {fieldErrors.maxParticipants ? (
+                  <span style={RED_HINT_STYLE}>{fieldErrors.maxParticipants}</span>
+                ) : (
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    Không được vượt quá hạn mức tối đa quy định trong hợp đồng bảo trợ.
+                  </span>
+                )}
               </div>
             </div>
 

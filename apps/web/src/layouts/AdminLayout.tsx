@@ -184,15 +184,17 @@ export function AdminLayout() {
                   </NavLink>
                 </>
               )}
-              <NavLink
-                to={routes.adminAudit}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
-                }
-                style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
-              >
-                Nhật ký
-              </NavLink>
+              {isSystemAdmin && (
+                <NavLink
+                  to={routes.adminAudit}
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? "active font-bold text-primary" : ""}`
+                  }
+                  style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
+                >
+                  Nhật ký
+                </NavLink>
+              )}
               <NavLink
                 to={routes.adminSupport}
                 className={({ isActive }) =>
@@ -209,8 +211,9 @@ export function AdminLayout() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
               <NavLink
                 to={routes.adminOffline}
+                end
                 className={({ isActive }) =>
-                  `nav-link ${isActive || location.pathname.startsWith("/admin/offline") ? "active font-bold text-primary" : ""}`
+                  `nav-link ${isActive ? "active font-bold text-primary" : ""}`
                 }
                 style={{ padding: "0.4rem 0.75rem", borderRadius: "0.375rem" }}
               >

@@ -187,6 +187,17 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
         initialData={{
           tournamentId: "tour-draft-123",
           expectedRevision: 1,
+          name: "Giải Kiểm Thử Đủ Dữ Liệu",
+          slug: "GIAI_TEST_DU_DU_LIEU",
+          contractId: "HD_TEST",
+          organizerUnitId: "KHOA_CNTT",
+          organizersText: "Ban Tổ chức Test",
+          visibility: "PRIVATE" as const,
+          allowedUnitCodes: ["KHOA_CNTT"],
+          startAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+          endAt: new Date(Date.now() + 8 * 86400000).toISOString(),
+          minParticipants: 4,
+          maxParticipants: 32,
         }}
         initialStep={4}
       />
@@ -234,6 +245,17 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
         initialData={{
           tournamentId: "tour-draft-123",
           expectedRevision: 1,
+          name: "Giải Kiểm Thử Đủ Dữ Liệu",
+          slug: "GIAI_TEST_DU_DU_LIEU",
+          contractId: "HD_TEST",
+          organizerUnitId: "KHOA_CNTT",
+          organizersText: "Ban Tổ chức Test",
+          visibility: "PRIVATE" as const,
+          allowedUnitCodes: ["KHOA_CNTT"],
+          startAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+          endAt: new Date(Date.now() + 8 * 86400000).toISOString(),
+          minParticipants: 4,
+          maxParticipants: 32,
         }}
         initialStep={4}
       />
@@ -249,5 +271,39 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
     await waitFor(() => {
       expect(screen.getByTestId("wizard-conflict-banner")).toBeInTheDocument();
     });
+  });
+
+  it("8. blocks submit with an explicit missing-items banner and red-marked fields when data is incomplete", async () => {
+    renderWithProviders(
+      <TournamentWizardPage
+        apiClient={mockApiClient}
+        initialData={{
+          tournamentId: "tour-draft-123",
+          expectedRevision: 1,
+          name: "",
+          slug: "",
+          startAt: "",
+          endAt: "",
+        }}
+        initialStep={4}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("wizard-submit-draft-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("wizard-submit-draft-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("wizard-submit-block-banner")).toBeInTheDocument();
+    });
+    expect(screen.getAllByText(/Tên giải đấu bắt buộc/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Vui lòng chọn thời gian bắt đầu/).length).toBeGreaterThan(0);
+    // Modal must not open and no submit request may fire
+    expect(screen.queryByTestId("wizard-submit-modal")).not.toBeInTheDocument();
+    expect(mockApiClient.submitDraft).not.toHaveBeenCalled();
+    // The wizard jumped to the first step containing an error
+    expect(screen.getByText(/Bước 1: Hồ sơ cơ bản/)).toBeInTheDocument();
   });
 });

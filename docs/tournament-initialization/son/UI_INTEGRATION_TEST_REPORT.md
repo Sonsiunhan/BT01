@@ -48,6 +48,17 @@ Tài khoản bổ sung: `uitest_ta` (TOURNAMENT_ADMIN theo luồng bootstrap D02
 
 Kiểm chứng sau vá (trình duyệt thật): trang luật giải APPROVED hiển thị đúng badge + 14 chỉ số + không còn wizard; wizard `/edit` giải APPROVED hiện banner khóa, 0 nút Lưu/Nộp; banner ghi chú SA hiện đúng nguyên văn cho TA. Test S09-AC-01 gắn cứng với hành vi cũ (assert source chứa `<TournamentWizardPage initialStep={4} />`) đã được cập nhật theo thiết kế mới. Suite: web 71 file/354 tests PASS, workspace unit 368 PASS, typecheck + lint PASS.
 
+## Vòng 3 — Báo lỗi nộp duyệt chỉ đích danh, phân quyền nav TA, active-state và upload UI (2026-10-27)
+
+| # | Yêu cầu | Hành động | Kiểm chứng |
+|---|---|---|---|
+| H1 | Nộp duyệt thiếu thông tin phải chỉ rõ thiếu gì + tô đỏ ô lỗi (lưu nháp thì không cần) | Thêm `wizardSubmitValidation.ts`: validate 10 trường bắt buộc khi bấm Nộp duyệt; banner liệt kê từng mục thiếu; viền đỏ + hint đỏ dưới từng ô; **tự nhảy tới bước đầu tiên chứa lỗi**; ô được sửa tự gỡ đỏ; Lưu nháp giữ nguyên không validate | Browser: banner hiện đúng 2 mục thiếu, nhảy tới Bước 2, 2 ô viền đỏ, không mở modal; test mới AC "blocks submit" PASS |
+| H2 | "Nhật ký" ở giao diện TA là gì? | Đó là Nhật ký kiểm toán hệ thống (`/api/admin/audit-logs` có `assertAdminActor` — chỉ SA đọc được); TA bấm vào sẽ 403 | **Đã ẩn** mục "Nhật ký" khỏi nav TA (`isSystemAdmin`); SA vẫn thấy đầy đủ |
+| H3 | "Công cụ Offline" và "Kho Bot" là gì + lỗi sáng 2 nút cùng lúc | "Công cụ Offline" = Trung tâm công cụ Offline (P15: Kho Bot, Đấu Bot, Phòng tập Người–Bot, Người–Người); "Kho Bot" = trang con `/admin/offline/bots`. Lỗi: parent dùng thêm `startsWith("/admin/offline")` nên sáng cả hai | **Đã vá**: NavLink `end` + bỏ startsWith — mỗi trang chỉ sáng đúng 1 nút (browser xác minh cả 2 chiều) |
+| H4 | Ô chọn tệp roster chỉ là dòng chữ "choose File" | Thay input trần bằng khung drop-zone viền nét đứt kèm icon upload + nhãn rõ ràng, hiển thị tên tệp đã chọn; input gốc ẩn trực quan vẫn giữ testid/aria-label | Browser xác minh + screenshot dark theme |
+
+Suite sau vòng 3: web **71 file / 355 tests PASS** (thêm 1 test chặn nộp duyệt), workspace unit 368 PASS, typecheck + lint + build PASS.
+
 ## Cách tái lập môi trường
 
 ```bash
