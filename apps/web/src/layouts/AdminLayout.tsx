@@ -258,10 +258,10 @@ export function AdminLayout() {
                       fontSize: "0.65rem",
                       padding: "0.1rem 0.4rem",
                       borderRadius: "0.25rem",
-                      background: isSystemAdmin ? "rgba(6, 182, 212, 0.15)" : "rgba(245, 158, 11, 0.15)",
+                      background: isSystemAdmin ? "color-mix(in srgb, var(--system-cyan, #06b6d4) 15%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 15%, transparent)",
                       color: isSystemAdmin ? "var(--system-cyan, #06b6d4)" : "var(--system-amber, #f59e0b)",
                       fontWeight: 700,
-                      border: `1px solid ${isSystemAdmin ? "rgba(6, 182, 212, 0.3)" : "rgba(245, 158, 11, 0.3)"}`,
+                      border: `1px solid ${isSystemAdmin ? "color-mix(in srgb, var(--system-cyan, #06b6d4) 30%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 30%, transparent)"}`,
                     }}
                   >
                     {isSystemAdmin ? "SA" : "TA"}
@@ -289,9 +289,9 @@ export function AdminLayout() {
                           borderRadius: "0.25rem",
                           fontSize: "0.68rem",
                           fontWeight: 600,
-                          background: isSystemAdmin ? "rgba(6, 182, 212, 0.12)" : "rgba(245, 158, 11, 0.12)",
+                          background: isSystemAdmin ? "color-mix(in srgb, var(--system-cyan, #06b6d4) 12%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 12%, transparent)",
                           color: isSystemAdmin ? "var(--system-cyan, #06b6d4)" : "var(--system-amber, #f59e0b)",
-                          border: `1px solid ${isSystemAdmin ? "rgba(6, 182, 212, 0.25)" : "rgba(245, 158, 11, 0.25)"}`,
+                          border: `1px solid ${isSystemAdmin ? "color-mix(in srgb, var(--system-cyan, #06b6d4) 25%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 25%, transparent)"}`,
                         }}
                       >
                         {isSystemAdmin ? "🛡️ Quản trị hệ thống (SA)" : "📋 Quản trị giải đấu (TA)"}
@@ -439,9 +439,9 @@ export function AdminLayout() {
                       borderRadius: "0.25rem",
                       fontSize: "0.75rem",
                       fontWeight: 700,
-                      background: isSystemAdmin ? "rgba(6, 182, 212, 0.15)" : "rgba(245, 158, 11, 0.15)",
+                      background: isSystemAdmin ? "color-mix(in srgb, var(--system-cyan, #06b6d4) 15%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 15%, transparent)",
                       color: isSystemAdmin ? "var(--system-cyan, #06b6d4)" : "var(--system-amber, #f59e0b)",
-                      border: `1px solid ${isSystemAdmin ? "rgba(6, 182, 212, 0.3)" : "rgba(245, 158, 11, 0.3)"}`,
+                      border: `1px solid ${isSystemAdmin ? "color-mix(in srgb, var(--system-cyan, #06b6d4) 30%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 30%, transparent)"}`,
                     }}
                   >
                     {isSystemAdmin ? "SYSTEM_ADMIN (Quản trị hệ thống)" : "TOURNAMENT_ADMIN (Quản trị giải đấu)"}
@@ -459,8 +459,8 @@ export function AdminLayout() {
               <div
                 style={{
                   padding: "0.75rem 1rem",
-                  background: "rgba(59, 130, 246, 0.08)",
-                  border: "1px solid rgba(59, 130, 246, 0.2)",
+                  background: "color-mix(in srgb, var(--blue-side, rgb(59, 130, 246)) 8%, transparent)",
+                  border: "1px solid color-mix(in srgb, var(--blue-side, rgb(59, 130, 246)) 20%, transparent)",
                   borderRadius: "0.5rem",
                   fontSize: "0.8rem",
                   color: "var(--text-secondary)",

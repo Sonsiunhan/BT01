@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { DEFAULT_TOURNAMENT_RULE_PROFILE } from "@ottv2/contracts";
 import { ApiError } from "../../services/http/apiError";
 import { ApprovalsAdminPage } from "./approvals/ApprovalsAdminPage";
@@ -10,6 +11,18 @@ import {
 } from "./long-route-meta";
 import type { TournamentAdminApiPort } from "./services/tournamentAdminApi";
 import { UnitsAdminPage } from "./units/UnitsAdminPage";
+
+function renderWithRouter(ui: React.ReactElement, { route = "/admin/approvals" }: { route?: string } = {}) {
+  // useParams cần context khớp Route — đăng ký cùng pattern với app/router.tsx.
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path={LONG_ADMIN_ROUTE_PATHS.approvals} element={ui} />
+        <Route path={LONG_ADMIN_ROUTE_PATHS.approvalsDetail} element={ui} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
 
 function createMockAdminApi(
   overrides: Partial<TournamentAdminApiPort> = {}
@@ -487,7 +500,7 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
 
   it("P08 ApprovalsAdminPage: enforces mandatory note on REJECT/REQUEST_CHANGES (T022), supports status filter, envelope comparison & fieldNotes, approves initial submission with expectedRevision, and switches to ChangeRequest tab (T024)", async () => {
     const api = createMockAdminApi();
-    render(<ApprovalsAdminPage api={api} />);
+    renderWithRouter(<ApprovalsAdminPage api={api} />);
 
     await waitFor(() => {
       expect(
@@ -564,5 +577,41 @@ describe("L03 & L04 — Admin Pages P06, P07, P08 & Click-Path Audit", () => {
         note: undefined,
       });
     });
+  });
+
+  it("P08 ApprovalsAdminPage: route /admin/approvals/:tournamentId focuses the queue on that tournament with a way back to the full queue", async () => {
+    const api = createMockAdminApi();
+    renderWithRouter(<ApprovalsAdminPage api={api} />, {
+      route: "/admin/approvals/tour-1",
+    });
+
+    // Focus banner + cách quay lại hàng đợi đầy đủ
+    await waitFor(() => {
+      expect(screen.getByTestId("approval-focused-tournament-banner")).toHaveTextContent(
+        /tour-1/
+      );
+    });
+    expect(screen.getByTestId("approval-back-to-full-queue")).toHaveTextContent(
+      "Xem toàn bộ hàng đợi"
+    );
+
+    // Chỉ hồ sơ được focus hiển thị trong hàng đợi
+    expect(screen.getByTestId("submission-card-OTT_CNTT_2026")).toBeInTheDocument();
+    expect(screen.queryByText("Không có hồ sơ giải đấu nào trong hàng đợi.")).not.toBeInTheDocument();
+  });
+
+  it("P08 ApprovalsAdminPage: route param for an unknown tournament shows a clear Vietnamese empty state with a way back", async () => {
+    const api = createMockAdminApi();
+    renderWithRouter(<ApprovalsAdminPage api={api} />, {
+      route: "/admin/approvals/tour-khong-ton-tai",
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("approval-focused-tournament-banner")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("approval-focused-not-found")).toHaveTextContent(
+      /Không tìm thấy hồ sơ giải đấu có mã\s*tour-khong-ton-tai\s*trong hàng đợi phê duyệt/
+    );
+    expect(screen.getByTestId("approval-back-to-full-queue")).toBeInTheDocument();
   });
 });

@@ -365,7 +365,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     } finally {
       setSubmittingDraft(false);
     }
-  }, [apiClient, formData.tournamentId, serverRevision, submissionNote]);
+  }, [apiClient, formData.tournamentId, serverRevision, submissionNote, handleSaveDraft]);
 
   const handleDiscardLocalBuffer = () => {
     clearLocalDraftBuffer(draftStorageKey);

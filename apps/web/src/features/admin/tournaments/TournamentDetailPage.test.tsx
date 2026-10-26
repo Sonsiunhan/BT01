@@ -140,7 +140,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
   });
 
   it("1. renders tournament detail header, name, and status badge", async () => {
-    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} tournamentId="tour-001" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("tournament-detail-page")).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
   });
 
   it("2. switches across Overview, Config, and Readiness tabs", async () => {
-    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} tournamentId="tour-001" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("panel-overview")).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
   });
 
   it("3. renders authoritative readiness checklist cards from server", async () => {
-    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} tournamentId="tour-001" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("tab-readiness-btn")).toBeInTheDocument();
@@ -183,7 +183,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
   });
 
   it("4. calls startTournament when clicking start tournament button on ready state", async () => {
-    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} tournamentId="tour-001" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("action-start-tournament-btn")).toBeInTheDocument();
@@ -218,7 +218,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       },
     });
 
-    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} tournamentId="tour-001" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("tab-readiness-btn")).toBeInTheDocument();
@@ -237,7 +237,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
       configVersions: [],
     });
 
-    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} tournamentId="tour-001" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("action-submit-draft-btn")).toBeInTheDocument();
@@ -257,7 +257,7 @@ describe("S05 — TournamentDetailPage Component Tests", () => {
   });
 
   it("7. renders navigation links to Rules, Roster, Staff, Bot Readiness, and Audit", async () => {
-    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} />);
+    renderWithProviders(<TournamentDetailPage apiClient={mockApiClient} tournamentId="tour-001" />);
 
     await waitFor(() => {
       expect(screen.getByTestId("action-rules-btn")).toHaveAttribute("href", "/admin/tournaments/tour-001/rules");

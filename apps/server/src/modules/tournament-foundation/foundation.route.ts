@@ -1,5 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { PrismaClient } from "@prisma/client";
 import type {
+  AuditLogRecordDto,
   CreateTournamentContractInput,
   CreateUnitInput,
   GrantContractTaInput,
@@ -53,7 +55,8 @@ export async function registerTournamentFoundationRoutes(
   app: FastifyInstance,
   auth: AuthService,
   store: TournamentStateStore,
-  unitContractService: UnitContractService
+  unitContractService: UnitContractService,
+  database?: PrismaClient
 ): Promise<void> {
   // P06: Units Management (/api/admin/units)
   app.get("/api/admin/units", async (request, reply) => {
@@ -182,14 +185,53 @@ export async function registerTournamentFoundationRoutes(
         | "RULE_VERSION"
         | "ADJUDICATION";
       targetId?: string;
+      actorUserId?: string;
     };
   }>("/api/admin/audit-logs", async (request, reply) => {
     const actor = await resolveTournamentRequestActor(request, auth, store);
     assertAdminActor(actor);
-    const logs = store.audit.list({
+    const filter = {
       targetType: request.query.targetType,
       targetId: request.query.targetId,
-    });
+      actorUserId: request.query.actorUserId,
+    };
+
+    // With a configured database, the durable TournamentAuditLogRecord table is
+    // the authoritative read path (staff/roster/activation modules write there
+    // too). In-memory records from this process are merged in by id so records
+    // whose write-through has not landed yet remain visible immediately.
+    if (database) {
+      const where: Record<string, string> = {};
+      if (filter.targetType) where.targetType = filter.targetType;
+      if (filter.targetId) where.targetId = filter.targetId;
+      if (filter.actorUserId) where.actorUserId = filter.actorUserId;
+      const rows = await database.tournamentAuditLogRecord.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: 1000,
+      });
+      const dbLogs: AuditLogRecordDto[] = rows.map((row) => ({
+        id: row.id,
+        actorUserId: row.actorUserId,
+        actorRole: row.actorRole as AuditLogRecordDto["actorRole"],
+        action: row.action,
+        targetType: row.targetType as AuditLogRecordDto["targetType"],
+        targetId: row.targetId,
+        beforeSnapshot: (row.beforeSnapshot as Record<string, unknown> | null) ?? null,
+        afterSnapshot: (row.afterSnapshot as Record<string, unknown> | null) ?? null,
+        reason: row.reason ?? null,
+        correlationId: row.correlationId ?? null,
+        createdAt: row.createdAt.toISOString(),
+      }));
+      const seenIds = new Set(dbLogs.map((r) => r.id));
+      const memoryLogs = store.audit.list(filter).filter((r) => !seenIds.has(r.id));
+      const logs = [...dbLogs, ...memoryLogs].sort((a, b) =>
+        b.createdAt.localeCompare(a.createdAt)
+      );
+      return reply.status(200).send({ logs });
+    }
+
+    const logs = store.audit.list(filter);
     return reply.status(200).send({ logs });
   });
 

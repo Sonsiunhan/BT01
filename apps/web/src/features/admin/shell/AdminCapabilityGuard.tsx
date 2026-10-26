@@ -5,7 +5,6 @@ import { loginReturnPath } from "../../../services/auth/returnUrl";
 import { UiGlyph } from "../../../components/ui/UiGlyph";
 
 export interface AdminCapabilityGuardProps {
-  requiredCapability?: string;
   children: React.ReactNode;
 }
 

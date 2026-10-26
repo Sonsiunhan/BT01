@@ -121,6 +121,35 @@ describe("S06 — AuditLogsViewerPage Component Tests", () => {
     });
   });
 
+  it("3b. forwards the actor filter (actorUserId) to the API when set", async () => {
+    renderWithProviders(<AuditLogsViewerPage apiClient={mockApiClient} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("audit-page-title")).toBeInTheDocument();
+    });
+
+    const actorInput = screen.getByTestId("filter-actor-id-input");
+    fireEvent.change(actorInput, { target: { value: "user-ta-01" } });
+
+    await waitFor(() => {
+      expect(mockApiClient.listAuditLogs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actorUserId: "user-ta-01",
+        })
+      );
+    });
+
+    // Xóa điều kiện lọc -> không gửi actorUserId lên máy chủ.
+    fireEvent.change(actorInput, { target: { value: "" } });
+    await waitFor(() => {
+      expect(mockApiClient.listAuditLogs).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actorUserId: undefined,
+        })
+      );
+    });
+  });
+
   it("4. opens snapshot inspector modal when clicking 'Xem chi tiết'", async () => {
     renderWithProviders(<AuditLogsViewerPage apiClient={mockApiClient} />);
 

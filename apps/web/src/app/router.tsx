@@ -24,7 +24,6 @@ const BotWorkbenchPage = lazy(() => import("../pages/BotWorkbenchPage"));
 const BotOfflinePage = lazy(() => import("../pages/BotOfflinePage"));
 
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
-export const AdminRoutePending = lazy(() => import("../features/admin/shell/AdminRoutePending"));
 const TournamentListPage = lazy(() => import("../features/admin/tournaments/TournamentListPage"));
 const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/TournamentWizardPage"));
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));

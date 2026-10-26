@@ -196,7 +196,7 @@ export function TournamentRosterPage({
       </div>
 
       {actionMessage && (
-        <div role="status" style={{ padding: "0.75rem 1rem", background: "rgba(16, 185, 129, 0.15)", border: "1px solid #10b981", borderRadius: "0.5rem", marginBottom: "1.25rem" }}>
+        <div role="status" style={{ padding: "0.75rem 1rem", background: "color-mix(in srgb, var(--system-green, #10b981) 15%, transparent)", border: "1px solid var(--system-green, #10b981)", borderRadius: "0.5rem", marginBottom: "1.25rem" }}>
           {actionMessage}
         </div>
       )}
@@ -210,11 +210,11 @@ export function TournamentRosterPage({
             textAlign: "center",
             padding: "2.5rem 1.5rem",
             border: "1px solid var(--danger, #ef4444)",
-            background: "rgba(239, 68, 68, 0.05)",
+            background: "color-mix(in srgb, var(--system-red, #ef4444) 5%, transparent)",
             borderRadius: "0.75rem",
           }}
         >
-          <h2 style={{ color: "#ef4444", fontSize: "1.25rem", marginTop: 0, marginBottom: "0.75rem" }}>
+          <h2 style={{ color: "var(--system-red, #ef4444)", fontSize: "1.25rem", marginTop: 0, marginBottom: "0.75rem" }}>
             Không có quyền truy cập quản trị danh sách thí sinh (403 Forbidden)
           </h2>
           <p style={{ color: "var(--text-secondary, #94a3b8)", fontSize: "0.95rem", lineHeight: 1.6, maxWidth: 600, margin: "0 auto 1.5rem" }}>
@@ -267,20 +267,20 @@ export function TournamentRosterPage({
               )}
             </form>
 
-            {previewError && <div role="alert" style={{ marginTop: "1rem", color: "#ef4444" }}>{previewError}</div>}
+            {previewError && <div role="alert" style={{ marginTop: "1rem", color: "var(--system-red, #ef4444)" }}>{previewError}</div>}
 
             {previewResult && (
               <div style={{ marginTop: "1.5rem" }} data-testid="roster-preview-result">
                 <h3 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Kết quả kiểm tra trước import</h3>
                 <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
                   <span className="badge" data-testid="badge-total">Tổng số: {previewResult.totalRows}</span>
-                  <span className="badge" data-testid="badge-valid" style={{ background: "rgba(16, 185, 129, 0.2)", color: "#10b981" }}>
+                  <span className="badge" data-testid="badge-valid" style={{ background: "color-mix(in srgb, var(--system-green, #10b981) 20%, transparent)", color: "var(--system-green, #10b981)" }}>
                     Hợp lệ: {previewResult.validRows}
                   </span>
-                  <span className="badge" data-testid="badge-error" style={{ background: "rgba(239, 68, 68, 0.2)", color: "#ef4444" }}>
+                  <span className="badge" data-testid="badge-error" style={{ background: "color-mix(in srgb, var(--system-red, #ef4444) 20%, transparent)", color: "var(--system-red, #ef4444)" }}>
                     Lỗi: {previewResult.errorRows}
                   </span>
-                  <span className="badge" data-testid="badge-warning" style={{ background: "rgba(245, 158, 11, 0.2)", color: "#f59e0b" }}>
+                  <span className="badge" data-testid="badge-warning" style={{ background: "color-mix(in srgb, var(--system-amber, #f59e0b) 20%, transparent)", color: "var(--system-amber, #f59e0b)" }}>
                     Cảnh báo: {previewResult.warningRows}
                   </span>
                 </div>
@@ -300,7 +300,7 @@ export function TournamentRosterPage({
                           key={row.rowNumber}
                           style={{
                             borderBottom: "1px solid var(--border)",
-                            background: row.valid ? "transparent" : "rgba(239, 68, 68, 0.08)",
+                            background: row.valid ? "transparent" : "color-mix(in srgb, var(--system-red, #ef4444) 8%, transparent)",
                           }}
                         >
                           <td style={tdStyle}>{row.rowNumber}</td>
@@ -309,10 +309,10 @@ export function TournamentRosterPage({
                           <td style={tdStyle}>{String(row.data.full_name ?? "")}</td>
                           <td style={tdStyle}>{String(row.data.username ?? "")}</td>
                           <td style={tdStyle}>{String(row.data.email ?? "")}</td>
-                          <td style={{ ...tdStyle, fontWeight: 600, color: row.valid ? "#10b981" : "#ef4444" }}>
+                          <td style={{ ...tdStyle, fontWeight: 600, color: row.valid ? "var(--system-green, #10b981)" : "var(--system-red, #ef4444)" }}>
                             {row.valid ? "Hợp lệ" : "Lỗi"}
                           </td>
-                          <td style={{ ...tdStyle, color: row.valid ? "var(--muted)" : "#ef4444" }}>
+                          <td style={{ ...tdStyle, color: row.valid ? "var(--muted)" : "var(--system-red, #ef4444)" }}>
                             {row.errors.length > 0
                               ? row.errors.join("; ")
                               : row.warnings.length > 0
@@ -335,7 +335,7 @@ export function TournamentRosterPage({
                   >
                     {committing ? "Đang lưu thí sinh…" : `Xác nhận lưu ${previewResult.validRows} thí sinh`}
                   </button>
-                  {commitError && <span role="alert" style={{ color: "#ef4444" }}>{commitError}</span>}
+                  {commitError && <span role="alert" style={{ color: "var(--system-red, #ef4444)" }}>{commitError}</span>}
                 </div>
               </div>
             )}
@@ -346,8 +346,8 @@ export function TournamentRosterPage({
                   marginTop: "1.5rem",
                   padding: "1rem",
                   borderRadius: "0.5rem",
-                  background: "rgba(16, 185, 129, 0.1)",
-                  border: "1px solid #10b981",
+                  background: "color-mix(in srgb, var(--system-green, #10b981) 10%, transparent)",
+                  border: "1px solid var(--system-green, #10b981)",
                 }}
                 data-testid="roster-commit-outcome"
               >
@@ -426,7 +426,7 @@ export function TournamentRosterPage({
             {loadingEnrollments ? (
               <p data-testid="roster-loading">Đang tải danh sách thí sinh…</p>
             ) : enrollmentsError ? (
-              <div role="alert" style={{ color: "#ef4444" }}>{enrollmentsError}</div>
+              <div role="alert" style={{ color: "var(--system-red, #ef4444)" }}>{enrollmentsError}</div>
             ) : enrollments.length === 0 ? (
               <p data-testid="roster-empty" style={{ color: "var(--muted)" }}>
                 Giải đấu hiện chưa có thí sinh nào được ghi danh. Hãy tải tệp danh sách phía trên để nhập thí sinh.
@@ -454,8 +454,8 @@ export function TournamentRosterPage({
                           <span
                             className="badge"
                             style={{
-                              background: enr.userId ? "rgba(16, 185, 129, 0.2)" : "rgba(245, 158, 11, 0.2)",
-                              color: enr.userId ? "#10b981" : "#f59e0b",
+                              background: enr.userId ? "color-mix(in srgb, var(--system-green, #10b981) 20%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 20%, transparent)",
+                              color: enr.userId ? "var(--system-green, #10b981)" : "var(--system-amber, #f59e0b)",
                             }}
                           >
                             {enr.userId ? "Đã liên kết" : "Chưa kích hoạt"}

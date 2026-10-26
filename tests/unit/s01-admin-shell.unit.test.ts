@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -32,7 +32,8 @@ describe("S01 — Admin shell, router and role-aware navigation contract", () =>
     const routerContent = read("apps/web/src/app/router.tsx");
 
     expect(routerContent).toContain("AdminLayout");
-    expect(routerContent).toContain("AdminRoutePending");
+    // Dead lazy route đã được dọn: không còn AdminRoutePending mồ côi trong router.
+    expect(routerContent).not.toContain("AdminRoutePending");
     expect(routerContent).toContain("routes.adminTournaments");
     expect(routerContent).toContain("routes.adminOffline");
     expect(routerContent).toContain("routes.adminAudit");
@@ -58,18 +59,41 @@ describe("S01 — Admin shell, router and role-aware navigation contract", () =>
     expect(layoutContent).not.toContain("Chơi online");
   });
 
-  it("AC-S01-05 & AC-S01-06: AdminCapabilityGuard and AdminRoutePending handle states gracefully", () => {
+  it("AC-S01-05 & AC-S01-06: AdminCapabilityGuard handles states gracefully and dead pending-route code is removed", () => {
     const guardContent = read("apps/web/src/features/admin/shell/AdminCapabilityGuard.tsx");
-    const pendingContent = read("apps/web/src/features/admin/shell/AdminRoutePending.tsx");
 
     // Guard handles auth verification and safe prompt
     expect(guardContent).toContain("getMe");
     expect(guardContent).toContain("ottv2:auth-change");
     expect(guardContent).toContain("Yêu cầu đăng nhập quản trị");
+    // No-op prop `requiredCapability` đã bị loại bỏ.
+    expect(guardContent).not.toContain("requiredCapability");
 
-    // Pending route displays page info and safe return links
-    expect(pendingContent).toContain("AdminRoutePendingProps");
-    expect(pendingContent).toContain("routes.adminTournaments");
-    expect(pendingContent).toContain("routes.adminOffline");
+    // Orphan pending-route component đã bị xóa khỏi repo.
+    expect(
+      existsSync(resolve(root, "apps/web/src/features/admin/shell/AdminRoutePending.tsx"))
+    ).toBe(false);
+    // Placeholder mồ côi cũng đã bị xóa.
+    expect(existsSync(resolve(root, "apps/web/src/pages/PagePlaceholder.tsx"))).toBe(false);
+  });
+
+  it("AC-S01-07: admin route paths have a single source of truth (routes.ts reuses long-route-meta)", () => {
+    const routesContent = read("apps/web/src/app/routes.ts");
+    expect(routesContent).toContain("LONG_ADMIN_ROUTE_PATHS");
+    // Không còn khai báo trùng lặp giá trị đường dẫn dài trong routes.ts.
+    expect(routesContent).not.toContain('adminUnits: "/admin/units"');
+    expect(routesContent).not.toContain('adminApprovals: "/admin/approvals"');
+
+    const metaContent = read("apps/web/src/features/admin/long-route-meta.ts");
+    expect(metaContent).toContain('units: "/admin/units"');
+    expect(metaContent).toContain('approvalsDetail: "/admin/approvals/:tournamentId"');
+
+    // Router và nav cùng dùng một nguồn hằng số.
+    const routerContent = read("apps/web/src/app/router.tsx");
+    expect(routerContent).toContain("LONG_ADMIN_ROUTE_PATHS.units");
+    expect(routerContent).toContain("LONG_ADMIN_ROUTE_PATHS.approvalsDetail");
+    const layoutContent = read("apps/web/src/layouts/AdminLayout.tsx");
+    expect(layoutContent).toContain("routes.adminUnits");
+    expect(layoutContent).toContain("routes.adminApprovals");
   });
 });

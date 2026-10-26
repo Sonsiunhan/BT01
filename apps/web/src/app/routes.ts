@@ -1,3 +1,5 @@
+import { LONG_ADMIN_ROUTE_PATHS } from "../features/admin/long-route-meta";
+
 export const routes = {
   home: "/",
   login: "/dang-nhap",
@@ -34,10 +36,11 @@ export const routes = {
   admin: "/admin",
   adminTa: "/admin/ta",
   adminAccounts: "/admin/accounts",
-  adminUnits: "/admin/units",
-  adminContracts: "/admin/contracts",
-  adminApprovals: "/admin/approvals",
-  adminApprovalDetail: "/admin/approvals/:tournamentId",
+  // Đường dẫn admin dài dùng chung MỘT nguồn sự thật với long-route-meta (P06/P07/P08).
+  adminUnits: LONG_ADMIN_ROUTE_PATHS.units,
+  adminContracts: LONG_ADMIN_ROUTE_PATHS.contracts,
+  adminApprovals: LONG_ADMIN_ROUTE_PATHS.approvals,
+  adminApprovalDetail: LONG_ADMIN_ROUTE_PATHS.approvalsDetail,
   adminTournaments: "/admin/tournaments",
   adminTournamentNew: "/admin/tournaments/new",
   adminTournamentEdit: "/admin/tournaments/:tournamentId/edit",

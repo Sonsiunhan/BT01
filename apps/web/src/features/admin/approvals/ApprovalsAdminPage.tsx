@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import type {
   ApprovalDecisionType,
   TournamentChangeRequestDto,
@@ -6,6 +7,7 @@ import type {
 } from "@ottv2/contracts";
 import { ApiError } from "../../../services/http/apiError";
 import { safeErrorMessage } from "../../../services/http/safeErrorMessage";
+import { routes } from "../../../app/routes";
 import {
   defaultTournamentAdminApi,
   type TournamentAdminApiPort,
@@ -19,6 +21,8 @@ export interface ApprovalsAdminPageProps {
 export function ApprovalsAdminPage({
   api = defaultTournamentAdminApi,
 }: ApprovalsAdminPageProps) {
+  // Route /admin/approvals/:tournamentId tập trung hàng đợi vào một hồ sơ cụ thể.
+  const { tournamentId: routeTournamentId } = useParams<{ tournamentId?: string }>();
   const [activeTab, setActiveTab] = useState<"INITIAL" | "CHANGE_REQUEST">(
     "INITIAL"
   );
@@ -203,9 +207,14 @@ export function ApprovalsAdminPage({
     );
   }
 
+  // Khi có :tournamentId trên route, chỉ hiển thị hồ sơ tương ứng trong hàng đợi.
+  const visibleInitialSubmissions = routeTournamentId
+    ? initialSubmissions.filter((t) => t.id === routeTournamentId)
+    : initialSubmissions;
+
   const selectedTournament =
-    initialSubmissions.find((t) => t.id === selectedTournamentId) ??
-    initialSubmissions[0] ??
+    visibleInitialSubmissions.find((t) => t.id === selectedTournamentId) ??
+    visibleInitialSubmissions[0] ??
     null;
 
   const selectedCr =
@@ -256,6 +265,25 @@ export function ApprovalsAdminPage({
         </div>
       </header>
 
+      {routeTournamentId && (
+        <div
+          data-testid="approval-focused-tournament-banner"
+          className="flex flex-wrap items-center justify-between gap-3 rounded border border-cyan-500/50 bg-cyan-950/30 p-3 text-sm text-cyan-100"
+        >
+          <span>
+            Đang tập trung hàng đợi vào hồ sơ giải đấu:{" "}
+            <strong className="font-mono">{routeTournamentId}</strong>
+          </span>
+          <Link
+            to={routes.adminApprovals}
+            data-testid="approval-back-to-full-queue"
+            className="rounded border border-cyan-500/60 px-3 py-1.5 text-xs font-semibold"
+          >
+            Xem toàn bộ hàng đợi
+          </Link>
+        </div>
+      )}
+
       {errorBanner && (
         <div
           role="alert"
@@ -289,7 +317,7 @@ export function ApprovalsAdminPage({
               : "bg-slate-900 text-slate-300"
           }`}
         >
-          Hồ sơ duyệt lần đầu ({initialSubmissions.length})
+          Hồ sơ duyệt lần đầu ({visibleInitialSubmissions.length})
         </button>
         <button
           type="button"
@@ -314,12 +342,23 @@ export function ApprovalsAdminPage({
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-3">
             <h2 className="text-lg font-semibold">Danh sách Hồ sơ Giải đấu</h2>
-            {initialSubmissions.length === 0 ? (
-              <div className="rounded border border-slate-800 p-4 text-sm text-slate-400">
-                Không có hồ sơ giải đấu nào trong hàng đợi.
+            {visibleInitialSubmissions.length === 0 ? (
+              <div
+                data-testid={routeTournamentId ? "approval-focused-not-found" : undefined}
+                className="rounded border border-slate-800 p-4 text-sm text-slate-400"
+              >
+                {routeTournamentId ? (
+                  <>
+                    Không tìm thấy hồ sơ giải đấu có mã{" "}
+                    <strong className="font-mono">{routeTournamentId}</strong> trong hàng đợi phê
+                    duyệt. Hồ sơ có thể chưa được nộp duyệt, đã được xử lý hoặc không tồn tại.
+                  </>
+                ) : (
+                  "Không có hồ sơ giải đấu nào trong hàng đợi."
+                )}
               </div>
             ) : (
-              initialSubmissions.map((t) => (
+              visibleInitialSubmissions.map((t) => (
                 <article
                   key={t.id}
                   data-testid={`submission-card-${t.coreConfig.tournamentCode}`}

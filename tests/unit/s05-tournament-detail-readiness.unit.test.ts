@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   TournamentDto,
   TournamentReadinessSnapshot,
@@ -7,6 +7,19 @@ import {
   TournamentApiClient,
   type TournamentApiPort,
 } from "../../apps/web/src/features/admin/tournaments/tournamentApi";
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => body,
+  } as unknown as Response;
+
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("S05 — Tournament Detail Page & Authoritative Readiness Panel", () => {
   const baseStart = "2026-11-01T08:00:00.000Z";
@@ -142,14 +155,37 @@ describe("S05 — Tournament Detail Page & Authoritative Readiness Panel", () =>
     blockers: [],
   };
 
-  it("AC-01: retrieves tournament detail and preserves canonical metadata", async () => {
+  it("AC-01: retrieves tournament detail from the real server and preserves canonical metadata", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).endsWith("/api/tournaments/tour-approved-001")) {
+          return jsonResponse({ tournament: mockApprovedTournament, configVersions: [] });
+        }
+        throw new TypeError(`unexpected fetch url: ${String(input)}`);
+      })
+    );
+
     const client = new TournamentApiClient();
-    const detail = await client.getTournamentDetail("tour-001");
+    const detail = await client.getTournamentDetail("tour-approved-001");
 
     expect(detail.tournament).toBeDefined();
-    expect(detail.tournament.id).toBe("tour-001");
+    expect(detail.tournament.id).toBe("tour-approved-001");
     expect(detail.tournament.coreConfig.tournamentName).toBeDefined();
     expect(detail.tournament.coreConfig.scheduledStartAt).toBeDefined();
+  });
+
+  it("AC-01b: propagates server errors for detail loading instead of fabricating a draft", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse({ message: "Giải đấu không tồn tại" }, 404))
+    );
+
+    const client = new TournamentApiClient();
+    await expect(client.getTournamentDetail("tour-missing")).rejects.toMatchObject({
+      statusCode: 404,
+      message: "Giải đấu không tồn tại",
+    });
   });
 
   it("AC-02: provides full operational control, privacy, and scoring properties in CoreConfig", () => {
@@ -166,11 +202,22 @@ describe("S05 — Tournament Detail Page & Authoritative Readiness Panel", () =>
     expect(config.kFactor).toBe(32);
   });
 
-  it("AC-03: evaluates readiness checklist with authoritative checklist items", async () => {
+  it("AC-03: evaluates readiness checklist from the authoritative server snapshot", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).endsWith("/api/tournaments/tour-approved-001/readiness")) {
+          return jsonResponse({ readiness: mockReadyReadiness });
+        }
+        throw new TypeError(`unexpected fetch url: ${String(input)}`);
+      })
+    );
+
     const client = new TournamentApiClient();
-    const res = await client.getTournamentReadiness("tour-001");
+    const res = await client.getTournamentReadiness("tour-approved-001");
 
     expect(res.readiness).toBeDefined();
+    expect(res.readiness).toBe(mockReadyReadiness);
     expect(res.readiness.checklist).toHaveLength(4);
     expect(res.readiness.checklist.map((c) => c.code)).toEqual([
       "APPROVAL_STATUS",
@@ -178,6 +225,18 @@ describe("S05 — Tournament Detail Page & Authoritative Readiness Panel", () =>
       "MIN_ELIGIBLE_PARTICIPANTS",
       "NO_PENDING_ADJUDICATION",
     ]);
+  });
+
+  it("AC-03b: propagates readiness loading failures instead of faking a READY state", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new TypeError("fetch failed");
+    }));
+
+    const client = new TournamentApiClient();
+    await expect(client.getTournamentReadiness("tour-approved-001")).rejects.toMatchObject({
+      code: "NETWORK_ERROR",
+      statusCode: 0,
+    });
   });
 
   it("AC-04: authoritatively prevents fake READY state when blockers exist", () => {

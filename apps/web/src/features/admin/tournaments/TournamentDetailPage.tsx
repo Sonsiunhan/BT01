@@ -9,7 +9,6 @@ import type {
   ReadinessChecklistItem,
   TournamentLeaderboardSnapshotDto,
   TournamentScoreLedgerEntryDto,
-  TournamentStandingRowDto,
 } from "@ottv2/contracts";
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -26,7 +25,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
   tournamentId: propTournamentId,
 }) => {
   const { tournamentId: paramTournamentId } = useParams<{ tournamentId: string }>();
-  const tournamentId = propTournamentId || paramTournamentId || "tour-001";
+  const tournamentId = propTournamentId || paramTournamentId || "";
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<"overview" | "config" | "readiness" | "leaderboard" | "matches">("overview");
@@ -48,15 +47,29 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
   const [pauseReason, setPauseReason] = useState<string>("");
 
   const fetchData = useCallback(async () => {
-    if (!tournamentId) return;
+    if (!tournamentId) {
+      setLoading(false);
+      setError("Không xác định được giải đấu cần xem. Vui lòng mở lại từ danh sách giải đấu.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const [detailRes, readinessRes, lbRes, matchesRes] = await Promise.allSettled([
         apiClient.getTournamentDetail(tournamentId),
         apiClient.getTournamentReadiness(tournamentId),
-        apiClient.getLeaderboard ? apiClient.getLeaderboard(tournamentId) : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/leaderboard`).then(r => r.json()),
-        apiClient.getMatches ? apiClient.getMatches(tournamentId) : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches`).then(r => r.json()),
+        apiClient.getLeaderboard
+          ? apiClient.getLeaderboard(tournamentId)
+          : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/leaderboard`).then((r) => {
+              if (!r.ok) throw new Error(`Không thể tải bảng xếp hạng giải đấu (HTTP ${r.status}).`);
+              return r.json();
+            }),
+        apiClient.getMatches
+          ? apiClient.getMatches(tournamentId)
+          : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches`).then((r) => {
+              if (!r.ok) throw new Error(`Không thể tải nhật ký trận đấu (HTTP ${r.status}).`);
+              return r.json();
+            }),
       ]);
 
       if (detailRes.status === "fulfilled") {

@@ -27,8 +27,10 @@ export type TournamentLifecycleStatus =
 export type TournamentVisibility = "PRIVATE" | "PUBLIC" | "UNLISTED";
 
 export interface TournamentReadinessSummary {
-  state: "READY" | "BLOCKED" | "CHECKING";
-  blockerCount: number;
+  /** "UNKNOWN" khi máy chủ không cung cấp dữ liệu sẵn sàng cho danh sách giải. */
+  state: "READY" | "BLOCKED" | "CHECKING" | "UNKNOWN";
+  /** null khi không xác định được số điểm nghẽn từ dữ liệu máy chủ. */
+  blockerCount: number | null;
 }
 
 export interface TournamentListItem {
@@ -43,8 +45,9 @@ export interface TournamentListItem {
   ownerDisplay: string;
   unitId?: string;
   unitName?: string;
-  participantCount?: number;
-  maxParticipants?: number;
+  /** null khi máy chủ không cung cấp số liệu thí sinh cho danh sách giải. */
+  participantCount: number | null;
+  maxParticipants: number | null;
   readiness: TournamentReadinessSummary;
   permittedActions: string[];
   revision: string;
@@ -70,9 +73,13 @@ export interface TournamentPageInfo {
 }
 
 export interface TournamentCapabilities {
-  canCreate: boolean;
-  canViewAudit: boolean;
-  canManageContracts: boolean;
+  /**
+   * null = không xác định được từ nguồn thực (máy chủ không có endpoint quyền
+   * riêng cho tạo giải; client suy luận từ vai trò phiên đăng nhập).
+   */
+  canCreate: boolean | null;
+  canViewAudit: boolean | null;
+  canManageContracts: boolean | null;
   isSuperAdmin?: boolean;
 }
 
@@ -99,6 +106,7 @@ export function tournamentDtoToListItem(dto: TournamentDto): TournamentListItem 
     timezone: dto.coreConfig.timezone,
     ownerDisplay: dto.coreConfig.organizersText,
     unitId: dto.unitId,
+    participantCount: null,
     maxParticipants: dto.coreConfig.maxParticipants,
     readiness: {
       state:

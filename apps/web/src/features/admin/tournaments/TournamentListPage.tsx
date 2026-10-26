@@ -73,10 +73,12 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
     hasPrev: false,
   };
 
+  // Quyền tạo giải: true/false từ nguồn thực (vai trò phiên đăng nhập),
+  // null = không xác định được -> hiển thị CTA ở trạng thái vô hiệu kèm lý do.
   const canCreate =
     canCreateOverride !== undefined
       ? canCreateOverride
-      : (data?.capabilities?.canCreate ?? true);
+      : (data?.capabilities?.canCreate ?? null);
 
   return (
     <div
@@ -151,7 +153,11 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
               disabled
               data-testid="header-create-tournament-disabled-btn"
               className="button secondary"
-              title="Bạn không có quyền tournament.create để khởi tạo giải đấu mới"
+              title={
+                canCreate === false
+                  ? "Bạn không có quyền tournament.create để khởi tạo giải đấu mới"
+                  : "Không xác định được quyền tạo giải đấu. Vui lòng tải lại trang hoặc đăng nhập lại."
+              }
               style={{
                 padding: "0.55rem 1.15rem",
                 fontSize: "0.88rem",
@@ -159,7 +165,8 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
                 cursor: "not-allowed",
               }}
             >
-              <UiGlyph name="lock" size={15} /> Tạo giải đấu (Chưa cấp quyền)
+              <UiGlyph name="lock" size={15} />{" "}
+              {canCreate === false ? "Tạo giải đấu (Chưa cấp quyền)" : "Tạo giải đấu (Không xác định được quyền)"}
             </button>
           )}
         </div>
@@ -230,7 +237,7 @@ export const TournamentListPage: React.FC<TournamentListPageProps> = ({
         query.q || (query.statusGroup && query.statusGroup !== "ALL") ? (
           <TournamentEmptyState type="no-results" onResetFilter={handleResetFilter} />
         ) : (
-          <TournamentEmptyState type="empty" canCreate={canCreate} />
+          <TournamentEmptyState type="empty" canCreate={canCreate === true} />
         )
       ) : (
         <>

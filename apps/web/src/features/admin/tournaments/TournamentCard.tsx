@@ -134,7 +134,7 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
         <div>
           <span style={{ color: "var(--text-muted)", display: "block", fontSize: "0.72rem" }}>Quy mô thí sinh</span>
           <strong style={{ color: "var(--text)", fontWeight: 600 }}>
-            {participantCount !== undefined ? `${participantCount}` : "--"}
+            {participantCount != null ? `${participantCount}` : "--"}
             {maxParticipants ? ` / ${maxParticipants} người` : " thí sinh"}
           </strong>
         </div>
@@ -160,10 +160,23 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
         {/* Readiness indicator */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.76rem" }}>
           {readiness.state === "READY" ? (
-            <span style={{ color: "var(--system-green)", fontWeight: 600 }}>● Sẵn sàng mở giải</span>
+            <span style={{ color: "var(--system-green, #10b981)", fontWeight: 600 }}>● Sẵn sàng mở giải</span>
           ) : readiness.state === "BLOCKED" ? (
             <span style={{ color: "var(--danger)", fontWeight: 600 }}>
               <UiGlyph name="warning" size={14} /> Có {readiness.blockerCount} điểm nghẽn
+            </span>
+          ) : readiness.state === "UNKNOWN" ? (
+            <span
+              data-testid="tournament-readiness-unknown"
+              style={{
+                color: "var(--text-muted)",
+                fontWeight: 600,
+                border: "1px solid var(--border)",
+                borderRadius: "999px",
+                padding: "0.1rem 0.5rem",
+              }}
+            >
+              ◌ Chưa rõ
             </span>
           ) : (
             <span style={{ color: "var(--text-muted)" }}>◌ Đang đối soát</span>
@@ -204,19 +217,20 @@ export function getStatusBadgeConfig(status: TournamentLifecycleStatus): {
     case "DRAFT":
       return {
         label: "Bản nháp",
-        bg: "color-mix(in srgb, #EAB308 15%, var(--surface))",
-        color: "#FACC15",
-        border: "color-mix(in srgb, #EAB308 40%, transparent)",
+        bg: "color-mix(in srgb, var(--warning, #EAB308) 15%, var(--surface))",
+        color: "var(--warning, #FACC15)",
+        border: "color-mix(in srgb, var(--warning, #EAB308) 40%, transparent)",
       };
     case "SUBMITTED":
     case "UNDER_REVIEW":
       return {
         label: "Chờ xét duyệt",
-        bg: "color-mix(in srgb, #A855F7 15%, var(--surface))",
-        color: "#C084FC",
-        border: "color-mix(in srgb, #A855F7 40%, transparent)",
+        bg: "color-mix(in srgb, var(--violet, #A855F7) 15%, var(--surface))",
+        color: "var(--violet, #C084FC)",
+        border: "color-mix(in srgb, var(--violet, #A855F7) 40%, transparent)",
       };
     case "CHANGES_REQUESTED":
+      // Không có token cam (orange) trong hệ thiết kế — giữ hex gốc, bọc theo cùng mẫu color-mix.
       return {
         label: "Cần chỉnh sửa",
         bg: "color-mix(in srgb, #F97316 15%, var(--surface))",
@@ -235,45 +249,45 @@ export function getStatusBadgeConfig(status: TournamentLifecycleStatus): {
     case "SCHEDULED":
       return {
         label: "Lên lịch / Sẵn sàng",
-        bg: "color-mix(in srgb, #10B981 15%, var(--surface))",
-        color: "#34D399",
-        border: "color-mix(in srgb, #10B981 40%, transparent)",
+        bg: "color-mix(in srgb, var(--success, #10B981) 15%, var(--surface))",
+        color: "var(--success, #34D399)",
+        border: "color-mix(in srgb, var(--success, #10B981) 40%, transparent)",
       };
     case "RUNNING":
       return {
         label: "Đang diễn ra",
-        bg: "color-mix(in srgb, #10B981 22%, var(--surface))",
-        color: "#4ADE80",
-        border: "color-mix(in srgb, #10B981 50%, transparent)",
+        bg: "color-mix(in srgb, var(--success, #10B981) 22%, var(--surface))",
+        color: "var(--success, #4ADE80)",
+        border: "color-mix(in srgb, var(--success, #10B981) 50%, transparent)",
       };
     case "PAUSED":
       return {
         label: "Tạm dừng",
-        bg: "color-mix(in srgb, #F59E0B 18%, var(--surface))",
-        color: "#FBBF24",
-        border: "color-mix(in srgb, #F59E0B 45%, transparent)",
+        bg: "color-mix(in srgb, var(--amber, #F59E0B) 18%, var(--surface))",
+        color: "var(--amber, #FBBF24)",
+        border: "color-mix(in srgb, var(--amber, #F59E0B) 45%, transparent)",
       };
     case "ENDED":
     case "FINALIZED":
       return {
         label: "Đã kết thúc",
-        bg: "color-mix(in srgb, #64748B 15%, var(--surface))",
-        color: "#94A3B8",
-        border: "color-mix(in srgb, #64748B 40%, transparent)",
+        bg: "color-mix(in srgb, var(--text-secondary, #64748B) 15%, var(--surface))",
+        color: "var(--text-muted, #94A3B8)",
+        border: "color-mix(in srgb, var(--text-secondary, #64748B) 40%, transparent)",
       };
     case "REJECTED":
       return {
         label: "Bị từ chối",
-        bg: "color-mix(in srgb, #EF4444 15%, var(--surface))",
-        color: "#F87171",
-        border: "color-mix(in srgb, #EF4444 40%, transparent)",
+        bg: "color-mix(in srgb, var(--danger, #EF4444) 15%, var(--surface))",
+        color: "var(--danger, #F87171)",
+        border: "color-mix(in srgb, var(--danger, #EF4444) 40%, transparent)",
       };
     case "CANCELLED":
       return {
         label: "Đã hủy",
-        bg: "color-mix(in srgb, #6B7280 15%, var(--surface))",
-        color: "#9CA3AF",
-        border: "color-mix(in srgb, #6B7280 40%, transparent)",
+        bg: "color-mix(in srgb, var(--text-secondary, #6B7280) 15%, var(--surface))",
+        color: "var(--text-muted, #9CA3AF)",
+        border: "color-mix(in srgb, var(--text-secondary, #6B7280) 40%, transparent)",
       };
     default:
       return {

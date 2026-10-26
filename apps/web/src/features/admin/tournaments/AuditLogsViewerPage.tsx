@@ -11,17 +11,17 @@ interface AuditLogsViewerPageProps {
   tournamentId?: string;
 }
 
+// Khớp chính xác với union mà máy chủ chấp nhận tại GET /api/admin/audit-logs
+// (apps/server/src/modules/tournament-foundation/foundation.route.ts).
 const TARGET_TYPE_OPTIONS = [
   { value: "", label: "Tất cả đối tượng" },
   { value: "TOURNAMENT", label: "Giải đấu (TOURNAMENT)" },
   { value: "RULE_VERSION", label: "Phiên bản luật (RULE_VERSION)" },
   { value: "CHANGE_REQUEST", label: "Yêu cầu thay đổi (CHANGE_REQUEST)" },
   { value: "CONTRACT", label: "Hợp đồng (CONTRACT)" },
+  { value: "CONTRACT_TA_BINDING", label: "Gán TA vào hợp đồng (CONTRACT_TA_BINDING)" },
   { value: "UNIT", label: "Đơn vị (UNIT)" },
-  { value: "STAFF", label: "Nhân sự / Trọng tài (STAFF)" },
   { value: "ADJUDICATION", label: "Phán quyết trọng tài (ADJUDICATION)" },
-  { value: "ROSTER", label: "Vận động viên (ROSTER)" },
-  { value: "SUPPORT", label: "Hỗ trợ (SUPPORT)" },
 ];
 
 export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
