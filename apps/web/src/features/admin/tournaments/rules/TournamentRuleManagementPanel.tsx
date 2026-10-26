@@ -6,6 +6,7 @@ import type {
   TournamentRulePreviewResponse,
 } from "@ottv2/contracts";
 import { TournamentRuleProfileWidgetSchema } from "@ottv2/contracts";
+import { UiGlyph } from "../../../../components/ui/UiGlyph";
 import { RuleEditor } from "./RuleEditor";
 import { createDefaultRuleEditorValue } from "./ruleEditorDefaults";
 import { createRulePreviewRequest, type RuleEditorValue } from "./ruleEditorTypes";
@@ -207,7 +208,7 @@ export function TournamentRuleManagementPanel({
             lineHeight: 1.5,
           }}
         >
-          💡 <strong>Lưu ý:</strong> Nút &quot;Kiểm tra luật&quot; và &quot;Phát hành phiên bản luật&quot; chỉ kích hoạt sau khi bản nháp giải đấu được lưu lên máy chủ. Để nộp duyệt hoặc lưu nháp giải đấu, bạn <strong>không bắt buộc</strong> phải phát hành thêm phiên bản luật vì giải đấu đã tự động áp dụng bộ luật Robot Lab 2026 mặc định.
+          <UiGlyph name="warning" size={16} /> <strong>Lưu ý:</strong> Nút &quot;Kiểm tra luật&quot; và &quot;Phát hành phiên bản luật&quot; chỉ kích hoạt sau khi bản nháp giải đấu được lưu lên máy chủ. Để nộp duyệt hoặc lưu nháp giải đấu, bạn <strong>không bắt buộc</strong> phải phát hành thêm phiên bản luật vì giải đấu đã tự động áp dụng bộ luật Robot Lab 2026 mặc định.
         </div>
       )}
 

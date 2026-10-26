@@ -249,28 +249,33 @@ export class TournamentApiClient implements TournamentApiPort {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.tournaments)) {
-          const serverItems: TournamentListItem[] = data.tournaments.map((t: any) => ({
-            tournamentId: t.id,
-            name: t.coreConfig?.tournamentName || t.coreConfig?.title || "Giải đấu",
-            slug: t.coreConfig?.tournamentCode || t.id,
-            status: t.status,
+          const serverItems: TournamentListItem[] = data.tournaments.map((raw: unknown) => {
+            const t = raw as Record<string, unknown>;
+            const config = (t.coreConfig && typeof t.coreConfig === "object" ? t.coreConfig : {}) as Record<string, unknown>;
+            const text = (value: unknown, fallback: string) => typeof value === "string" && value ? value : fallback;
+            return {
+            tournamentId: text(t.id, "unknown"),
+            name: text(config.tournamentName, text(config.title, "Giải đấu")),
+            slug: text(config.tournamentCode, text(t.id, "unknown")),
+            status: t.status as TournamentLifecycleStatus,
             visibility:
-              t.coreConfig?.audienceScope === "PUBLIC_COMMUNITY" ||
-              t.coreConfig?.audienceScope === "PUBLIC_REGISTERED"
+              config.audienceScope === "PUBLIC_COMMUNITY" ||
+              config.audienceScope === "PUBLIC_REGISTERED"
                 ? "PUBLIC"
                 : "PRIVATE",
-            startAt: t.coreConfig?.scheduledStartAt ?? null,
-            endAt: t.coreConfig?.scheduledEndAt ?? null,
-            timezone: t.coreConfig?.timezone || "Asia/Ho_Chi_Minh",
-            ownerDisplay: t.coreConfig?.organizersText || "Ban Tổ chức",
-            unitId: t.unitId,
-            unitName: t.coreConfig?.organizersText || "Đơn vị",
-            participantCount: t.coreConfig?.maxParticipants ?? 500,
-            maxParticipants: t.coreConfig?.maxParticipants ?? 500,
+            startAt: typeof config.scheduledStartAt === "string" ? config.scheduledStartAt : null,
+            endAt: typeof config.scheduledEndAt === "string" ? config.scheduledEndAt : null,
+            timezone: text(config.timezone, "Asia/Ho_Chi_Minh"),
+            ownerDisplay: text(config.organizersText, "Ban Tổ chức"),
+            unitId: text(t.unitId, "unknown"),
+            unitName: text(config.organizersText, "Đơn vị"),
+            participantCount: typeof config.maxParticipants === "number" ? config.maxParticipants : 500,
+            maxParticipants: typeof config.maxParticipants === "number" ? config.maxParticipants : 500,
             readiness: { state: "READY", blockerCount: 0 },
             permittedActions: ["view", "manage_matches", "pause", "incident"],
-            revision: `rev-${t.revision ?? 1}`,
-          }));
+            revision: `rev-${typeof t.revision === "number" ? t.revision : 1}`,
+          };
+          });
           return this.filterFixtures(query, serverItems);
         }
       }

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type FC, type ReactNode } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { UiGlyph } from "../../../components/ui/UiGlyph";
+import "./TournamentDetailPage.css";
 import { routes } from "../../../app/routes";
 import { defaultTournamentApi, type TournamentApiPort } from "./tournamentApi";
 import type {
@@ -9,7 +10,6 @@ import type {
   ReadinessChecklistItem,
   TournamentLeaderboardSnapshotDto,
   TournamentScoreLedgerEntryDto,
-  TournamentStandingRowDto,
 } from "@ottv2/contracts";
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -21,7 +21,11 @@ interface TournamentDetailPageProps {
   tournamentId?: string;
 }
 
-export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
+function ConfigurationValue({ label, value }: { label: string; value: ReactNode }) {
+  return <div><span>{label}</span><strong>{value}</strong></div>;
+}
+
+export const TournamentDetailPage: FC<TournamentDetailPageProps> = ({
   apiClient = defaultTournamentApi,
   tournamentId: propTournamentId,
 }) => {
@@ -712,26 +716,10 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-overview"
           data-testid="panel-overview"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            <div
-              style={{
-                padding: "1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
+          <div className="tournament-summary-grid">
+            <div className="tournament-summary-card">
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
                   <span style={{ fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.05em", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
@@ -814,14 +802,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
               })()}
             </div>
 
-            <div
-              style={{
-                padding: "1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-              }}
-            >
+            <div className="tournament-summary-card">
               <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>
                 QUY MÔ THÍ SINH
               </span>
@@ -833,14 +814,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
               </div>
             </div>
 
-            <div
-              style={{
-                padding: "1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-              }}
-            >
+            <div className="tournament-summary-card">
               <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>
                 CHẾ ĐỘ THI ĐẤU
               </span>
@@ -854,18 +828,11 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           </div>
 
           {/* Description Card */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", color: "var(--text)" }}>
+          <div className="tournament-summary-card">
+            <h4>
               Mô tả điều lệ giải đấu
             </h4>
-            <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+            <p>
               {core.shortDescription || "Chưa có mô tả chi tiết cho giải đấu này."}
             </p>
           </div>
@@ -879,101 +846,44 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-config"
           data-testid="panel-config"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
           {/* Operational Controls */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "var(--system-cyan)" }}>
+          <div className="tournament-config-card">
+            <h4>
               Kiểm soát vận hành (Operational Controls)
             </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Số trận tối đa mỗi người:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.maxMatchesPerPlayer ?? "Không giới hạn"}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Số lần gặp nhau tối đa:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.maxPairMeetings} lần</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Thời gian chờ tái đấu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.rematchCooldownMinutes} phút</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Số trận đồng thời tối đa:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.maxConcurrentMatches} trận</strong>
-              </div>
+            <div className="tournament-config-grid">
+              <ConfigurationValue label="Số trận tối đa mỗi người:" value={core.maxMatchesPerPlayer ?? "Không giới hạn"} />
+              <ConfigurationValue label="Số lần gặp nhau tối đa:" value={`${core.maxPairMeetings} lần`} />
+              <ConfigurationValue label="Thời gian chờ tái đấu:" value={`${core.rematchCooldownMinutes} phút`} />
+              <ConfigurationValue label="Số trận đồng thời tối đa:" value={`${core.maxConcurrentMatches} trận`} />
             </div>
           </div>
 
           {/* Privacy & Spectator Policy */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "var(--system-cyan)" }}>
+          <div className="tournament-config-card">
+            <h4>
               Quyền riêng tư & Khán giả (Privacy & Spectators)
             </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Chính sách khán giả:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.spectatorPolicy}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Chính sách phòng trò chuyện:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.chatPolicy}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Hiển thị bảng xếp hạng:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.leaderboardVisibility}</strong>
-              </div>
+            <div className="tournament-config-grid">
+              <ConfigurationValue label="Chính sách khán giả:" value={core.spectatorPolicy} />
+              <ConfigurationValue label="Chính sách phòng trò chuyện:" value={core.chatPolicy} />
+              <ConfigurationValue label="Hiển thị bảng xếp hạng:" value={core.leaderboardVisibility} />
             </div>
           </div>
 
           {/* Scoring & Elo */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "var(--system-cyan)" }}>
+          <div className="tournament-config-card">
+            <h4>
               Hệ thống tính điểm & Elo
             </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Điểm giải ban đầu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.initialScore}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Elo ban đầu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.initialElo}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Hệ số K-Factor:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.kFactor}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Điểm sàn tối thiểu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.scoreFloor}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Điểm khi Bye:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.byeScorePoints}</strong>
-              </div>
+            <div className="tournament-config-grid score">
+              <ConfigurationValue label="Điểm giải ban đầu:" value={core.initialScore} />
+              <ConfigurationValue label="Elo ban đầu:" value={core.initialElo} />
+              <ConfigurationValue label="Hệ số K-Factor:" value={core.kFactor} />
+              <ConfigurationValue label="Điểm sàn tối thiểu:" value={core.scoreFloor} />
+              <ConfigurationValue label="Điểm khi Bye:" value={core.byeScorePoints} />
             </div>
           </div>
         </section>
@@ -986,7 +896,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-readiness"
           data-testid="panel-readiness"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
           {/* Readiness Status Banner */}
           {(() => {
@@ -1024,20 +934,14 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             return (
               <div
                 data-testid="readiness-banner"
+                className="tournament-readiness-banner"
                 style={{
-                  padding: "1.25rem",
-                  borderRadius: "8px",
                   background: `color-mix(in srgb, ${bannerColor} 12%, var(--surface))`,
                   border: `1px solid ${bannerColor}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "1rem",
-                  flexWrap: "wrap",
                 }}
               >
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <div className="tournament-readiness-title-row">
                     {showSuccessIcon ? (
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={bannerColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <polyline points="20 6 9 17 4 12" />
@@ -1047,20 +951,18 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                     )}
                     <strong
                       data-testid="readiness-overall-status"
-                      style={{
-                        fontSize: "1.05rem",
-                        color: bannerColor,
-                      }}
+                      className="tournament-readiness-title"
+                      style={{ color: bannerColor }}
                     >
                       {bannerTitle}
                     </strong>
                   </div>
-                  <p style={{ margin: "0.3rem 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  <p className="tournament-readiness-description">
                     {bannerDesc}
                   </p>
                 </div>
 
-                <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                <div className="tournament-readiness-time">
                   Kiểm tra lúc: {readiness ? new Date(readiness.evaluatedAt).toLocaleTimeString("vi-VN") : "--"}
                 </div>
               </div>
@@ -1069,21 +971,13 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
 
           {/* Blockers list if any */}
           {isBlocked && (
-            <div
-              data-testid="readiness-blockers-list"
-              style={{
-                padding: "1rem 1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--system-red)",
-              }}
-            >
-              <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", color: "var(--system-red)" }}>
+            <div data-testid="readiness-blockers-list" className="tournament-readiness-blockers">
+              <h4>
                 Các điều kiện còn thiếu cần khắc phục:
               </h4>
-              <ul style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "0.88rem", color: "var(--text)" }}>
+              <ul>
                 {readiness?.blockers.map((b) => (
-                  <li key={b} style={{ marginBottom: "0.3rem" }}>
+                  <li key={b}>
                     <code style={{ color: "var(--system-red)", fontWeight: 700 }}>{b}</code>
                   </li>
                 ))}
@@ -1092,8 +986,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           )}
 
           {/* Checklist Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <h4 style={{ margin: "0.5rem 0 0 0", fontSize: "1rem", color: "var(--text)" }}>
+          <div className="tournament-readiness-list">
+            <h4>
               Hạng mục kiểm tra thẩm quyền (Authoritative Checklist)
             </h4>
 
@@ -1104,13 +998,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                 <div
                   key={item.code}
                   data-testid={`readiness-check-${item.code}`}
+                  className="tournament-readiness-card"
                   style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    justifyContent: "space-between",
-                    padding: "1rem 1.25rem",
-                    borderRadius: "8px",
-                    background: "var(--surface)",
                     border: `1px solid ${
                       isPass
                         ? "color-mix(in srgb, var(--system-green) 40%, var(--border))"
@@ -1118,25 +1007,20 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                         ? "color-mix(in srgb, var(--system-amber) 40%, var(--border))"
                         : "color-mix(in srgb, var(--system-red) 40%, var(--border))"
                     }`,
-                    gap: "1rem",
                   }}
                 >
                   <div>
-                    <strong style={{ fontSize: "0.92rem", color: "var(--text)", display: "block" }}>
+                    <strong>
                       {item.title}
                     </strong>
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginTop: "0.2rem", display: "block" }}>
+                    <span>
                       {item.detail}
                     </span>
                   </div>
 
                   <span
-                    className="badge"
+                    className="badge tournament-readiness-badge"
                     style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      padding: "0.2rem 0.55rem",
-                      borderRadius: "4px",
                       background: isPass
                         ? "color-mix(in srgb, var(--system-green) 15%, transparent)"
                         : isWarn
@@ -1147,8 +1031,6 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                         : isWarn
                         ? "var(--system-amber)"
                         : "var(--system-red)",
-                      border: "1px solid currentColor",
-                      flexShrink: 0,
                     }}
                   >
                     {item.status}
@@ -1167,83 +1049,57 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-leaderboard"
           data-testid="panel-leaderboard"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
           {/* Header Summary & Search */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "1rem",
-              flexWrap: "wrap",
-              background: "var(--surface)",
-              padding: "1rem 1.25rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border)",
-            }}
-          >
+          <div className="tournament-data-header">
             <div>
-              <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem", color: "var(--system-cyan)" }}>
+              <h3 className="tournament-data-title" style={{ color: "var(--system-cyan)" }}>
                 Bảng Xếp Hạng Giải Đấu ({leaderboard?.standings?.length ?? 0} Thí Sinh)
               </h3>
-              <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+              <span className="tournament-data-meta">
                 Công thức: <strong>{leaderboard?.formulaPreset ?? core.scoringFormulaPreset}</strong> · Thứ tự hoàn tất gần nhất: #{leaderboard?.lastFinishSequence ?? 0}
               </span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div>
               <input
                 type="text"
                 placeholder="Tìm Bot, thí sinh, mã trường..."
                 value={searchLb}
                 onChange={(e) => { setSearchLb(e.target.value); setPageLb(1); }}
-                style={{
-                  padding: "0.45rem 0.8rem",
-                  borderRadius: "6px",
-                  border: "1px solid var(--border)",
-                  background: "var(--surface-subtle)",
-                  color: "var(--text)",
-                  fontSize: "0.85rem",
-                  minWidth: "240px",
-                }}
+                className="tournament-data-search"
               />
             </div>
           </div>
 
           {/* Top 3 Podium Cards */}
           {leaderboard?.standings && leaderboard.standings.length >= 3 && !searchLb && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
+            <div className="tournament-podium-grid">
               {leaderboard.standings.slice(0, 3).map((st, i) => {
-                const medals = ["🥇 Quán quân", "🥈 Á quân", "🥉 Hạng ba"];
+                const medals = ["Hạng 1 · Quán quân", "Hạng 2 · Á quân", "Hạng 3 · Hạng ba"];
                 const colors = ["#ffd700", "#c0c0c0", "#cd7f32"];
                 return (
                   <div
                     key={st.participantId}
-                    style={{
-                      background: "var(--surface)",
-                      border: `1px solid ${colors[i]}`,
-                      borderRadius: "8px",
-                      padding: "1rem",
-                      position: "relative",
-                      boxShadow: `0 0 12px ${colors[i]}22`,
-                    }}
+                    className="tournament-podium-card"
+                    style={{ border: `1px solid ${colors[i]}`, boxShadow: `0 0 12px ${colors[i]}22` }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: colors[i] }}>
+                    <div className="tournament-podium-top">
+                      <span className="tournament-podium-rank" style={{ color: colors[i] }}>
                         {medals[i]}
                       </span>
-                      <span style={{ fontSize: "0.75rem", background: "var(--surface-subtle)", padding: "0.15rem 0.45rem", borderRadius: "4px" }}>
+                      <span className="tournament-podium-unit">
                         {st.unitCode}
                       </span>
                     </div>
-                    <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.25rem" }}>
+                    <div className="tournament-podium-name">
                       {st.displayName}
                     </div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
+                    <div className="tournament-podium-id">
                       Mã: {st.personKey}
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", borderTop: "1px solid var(--border)", paddingTop: "0.5rem" }}>
+                    <div className="tournament-podium-stats">
                       <span>Điểm: <strong style={{ color: "var(--system-cyan)" }}>{st.tournamentScore}</strong></span>
                       <span>Elo: <strong style={{ color: "var(--system-green)" }}>{st.tournamentElo}</strong></span>
                       <span>Thắng: <strong>{st.wins}/{st.matchesPlayed}</strong></span>
@@ -1271,66 +1127,48 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             const displayed = filtered.slice((pageLb - 1) * pageSize, pageLb * pageSize);
 
             return (
-              <div
-                style={{
-                  background: "var(--surface)",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  overflowX: "auto",
-                }}
-              >
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", textAlign: "left" }}>
+              <div className="tournament-data-table-wrap">
+                <table className="tournament-data-table">
                   <thead>
-                    <tr style={{ background: "var(--surface-subtle)", borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
-                      <th style={{ padding: "0.75rem 1rem", width: "60px" }}>Hạng</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Thí sinh / Bot</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Đơn vị</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Điểm giải</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Elo</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Thắng</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Thua</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Số trận</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Trận cuối</th>
+                    <tr>
+                      <th style={{ width: "60px" }}>Hạng</th><th>Thí sinh / Bot</th><th>Đơn vị</th><th className="tournament-align-right">Điểm giải</th><th className="tournament-align-right">Elo</th><th className="tournament-align-center">Thắng</th><th className="tournament-align-center">Thua</th><th className="tournament-align-center">Số trận</th><th className="tournament-align-right">Trận cuối</th>
                     </tr>
                   </thead>
                   <tbody>
                     {displayed.length === 0 ? (
                       <tr>
-                        <td colSpan={9} style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>
+                        <td colSpan={9} className="tournament-empty-row">
                           Không tìm thấy thí sinh nào phù hợp.
                         </td>
                       </tr>
                     ) : (
                       displayed.map((row) => (
-                        <tr key={row.participantId} style={{ borderBottom: "1px solid var(--border)" }}>
-                          <td style={{ padding: "0.75rem 1rem", fontWeight: row.rank <= 3 ? 800 : 500 }}>
-                            {row.rank === 1 ? "🥇 1" : row.rank === 2 ? "🥈 2" : row.rank === 3 ? "🥉 3" : `#${row.rank}`}
+                        <tr key={row.participantId}>
+                          <td style={{ fontWeight: row.rank <= 3 ? 800 : 500 }}>
+                            {row.rank <= 3 ? `Hạng ${row.rank}` : `#${row.rank}`}
                           </td>
-                          <td style={{ padding: "0.75rem 1rem" }}>
-                            <div style={{ fontWeight: 600, color: "var(--text)" }}>{row.displayName}</div>
-                            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{row.personKey}</div>
+                          <td><div className="tournament-person-name">{row.displayName}</div><div className="tournament-secondary-text">{row.personKey}</div>
                           </td>
-                          <td style={{ padding: "0.75rem 1rem" }}>
-                            <span style={{ background: "var(--surface-subtle)", padding: "0.15rem 0.45rem", borderRadius: "4px", fontSize: "0.8rem" }}>
+                          <td><span className="tournament-data-chip">
                               {row.unitCode}
                             </span>
                           </td>
-                          <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontWeight: 700, color: "var(--system-cyan)" }}>
+                          <td className="tournament-align-right" style={{ fontWeight: 700, color: "var(--system-cyan)" }}>
                             {row.tournamentScore}
                           </td>
-                          <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontWeight: 600, color: "var(--system-green)" }}>
+                          <td className="tournament-align-right" style={{ fontWeight: 600, color: "var(--system-green)" }}>
                             {row.tournamentElo}
                           </td>
-                          <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--system-green)", fontWeight: 600 }}>
+                          <td className="tournament-align-center" style={{ color: "var(--system-green)", fontWeight: 600 }}>
                             {row.wins}
                           </td>
-                          <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--system-red)" }}>
+                          <td className="tournament-align-center" style={{ color: "var(--system-red)" }}>
                             {row.losses}
                           </td>
-                          <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
+                          <td className="tournament-align-center">
                             {row.matchesPlayed}
                           </td>
-                          <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                          <td className="tournament-finish-time">
                             #{row.lastFinishedSequence || "-"}
                           </td>
                         </tr>
@@ -1341,17 +1179,16 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem", borderTop: "1px solid var(--border)" }}>
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                  <div className="tournament-pagination">
+                    <span className="tournament-pagination-copy">
                       Trang {pageLb} / {totalPages} (Tổng số {filtered.length} thí sinh)
                     </span>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <div className="tournament-pagination-actions">
                       <button
                         type="button"
                         disabled={pageLb <= 1}
                         onClick={() => setPageLb((p) => Math.max(1, p - 1))}
-                        className="button secondary"
-                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                        className="button secondary tournament-pagination-button"
                       >
                         Trang trước
                       </button>
@@ -1359,8 +1196,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                         type="button"
                         disabled={pageLb >= totalPages}
                         onClick={() => setPageLb((p) => Math.min(totalPages, p + 1))}
-                        className="button secondary"
-                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                        className="button secondary tournament-pagination-button"
                       >
                         Trang sau
                       </button>
@@ -1380,46 +1216,26 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-matches"
           data-testid="panel-matches"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
           {/* Header Summary */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "1rem",
-              flexWrap: "wrap",
-              background: "var(--surface)",
-              padding: "1rem 1.25rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border)",
-            }}
-          >
+          <div className="tournament-data-header">
             <div>
-              <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem", color: "var(--system-purple)" }}>
+              <h3 className="tournament-data-title" style={{ color: "var(--system-purple)" }}>
                 Nhật Ký Trận Đấu & Xếp Cặp ({matches.length} Trận Đấu)
               </h3>
-              <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+              <span className="tournament-data-meta">
                 Phương pháp ghép cặp: <strong>{core.pairingMethod}</strong> · Giới hạn tải: {core.maxConcurrentMatches} trận đồng thời
               </span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div>
               <input
                 type="text"
                 placeholder="Tìm mã trận, thí sinh..."
                 value={searchMatches}
                 onChange={(e) => { setSearchMatches(e.target.value); setPageMatches(1); }}
-                style={{
-                  padding: "0.45rem 0.8rem",
-                  borderRadius: "6px",
-                  border: "1px solid var(--border)",
-                  background: "var(--surface-subtle)",
-                  color: "var(--text)",
-                  fontSize: "0.85rem",
-                  minWidth: "240px",
-                }}
+                className="tournament-data-search"
               />
             </div>
           </div>
@@ -1441,30 +1257,23 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             const displayed = filtered.slice((pageMatches - 1) * pageSize, pageMatches * pageSize);
 
             return (
-              <div
-                style={{
-                  background: "var(--surface)",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  overflowX: "auto",
-                }}
-              >
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", textAlign: "left" }}>
+              <div className="tournament-data-table-wrap">
+                <table className="tournament-data-table">
                   <thead>
-                    <tr style={{ background: "var(--surface-subtle)", borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
-                      <th style={{ padding: "0.75rem 1rem", width: "70px" }}>STT</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Mã trận</th>
-                      <th style={{ padding: "0.75rem 1rem", color: "var(--system-blue)" }}>Bên Xanh (Blue)</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Kết quả</th>
-                      <th style={{ padding: "0.75rem 1rem", color: "var(--system-red)" }}>Bên Đỏ (Red)</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Hình thức thắng</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Thời gian</th>
+                    <tr>
+                      <th style={{ width: "70px" }}>STT</th>
+                      <th>Mã trận</th>
+                      <th style={{ color: "var(--system-blue)" }}>Bên Xanh (Blue)</th>
+                      <th className="tournament-align-center">Kết quả</th>
+                      <th style={{ color: "var(--system-red)" }}>Bên Đỏ (Red)</th>
+                      <th>Hình thức thắng</th>
+                      <th className="tournament-align-right">Thời gian</th>
                     </tr>
                   </thead>
                   <tbody>
                     {displayed.length === 0 ? (
                       <tr>
-                        <td colSpan={7} style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>
+                        <td colSpan={7} className="tournament-empty-row">
                           Chưa có trận đấu nào trong nhật ký.
                         </td>
                       </tr>
@@ -1472,28 +1281,25 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                       displayed.map((m) => {
                         const isBlueWinner = m.winnerSide === "BLUE";
                         return (
-                          <tr key={m.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                            <td style={{ padding: "0.75rem 1rem", fontWeight: 700 }}>
+                          <tr key={m.id}>
+                            <td style={{ fontWeight: 700 }}>
                               #{m.finishSequence}
                             </td>
-                            <td style={{ padding: "0.75rem 1rem", fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                            <td className="tournament-secondary-text">
                               <code>{m.matchId}</code>
                             </td>
-                            <td style={{ padding: "0.75rem 1rem" }}>
+                            <td>
                               <div style={{ fontWeight: isBlueWinner ? 700 : 500, color: isBlueWinner ? "var(--system-cyan)" : "var(--text)" }}>
                                 {m.blueParticipantId}
                               </div>
-                              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                              <div className="tournament-secondary-text">
                                 {m.blueScoreBefore}đ (Elo {m.blueEloBefore}) → <strong>{m.blueScoreAfter}đ</strong> (Elo {m.blueEloAfter})
                               </div>
                             </td>
-                            <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
+                            <td className="tournament-align-center">
                               <span
+                                className="tournament-result-badge"
                                 style={{
-                                  padding: "0.2rem 0.55rem",
-                                  borderRadius: "4px",
-                                  fontSize: "0.75rem",
-                                  fontWeight: 700,
                                   background: isBlueWinner ? "color-mix(in srgb, var(--system-blue) 20%, transparent)" : "color-mix(in srgb, var(--system-red) 20%, transparent)",
                                   color: isBlueWinner ? "var(--system-cyan)" : "var(--system-red)",
                                 }}
@@ -1501,20 +1307,20 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                                 {isBlueWinner ? "XANH THẮNG" : "ĐỎ THẮNG"}
                               </span>
                             </td>
-                            <td style={{ padding: "0.75rem 1rem" }}>
+                            <td>
                               <div style={{ fontWeight: !isBlueWinner ? 700 : 500, color: !isBlueWinner ? "var(--system-red)" : "var(--text)" }}>
                                 {m.redParticipantId}
                               </div>
-                              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                              <div className="tournament-secondary-text">
                                 {m.redScoreBefore}đ (Elo {m.redEloBefore}) → <strong>{m.redScoreAfter}đ</strong> (Elo {m.redEloAfter})
                               </div>
                             </td>
-                            <td style={{ padding: "0.75rem 1rem" }}>
-                              <span style={{ fontSize: "0.78rem", background: "var(--surface-subtle)", padding: "0.15rem 0.45rem", borderRadius: "4px" }}>
+                            <td>
+                              <span className="tournament-data-chip">
                                 {m.resolutionSource}
                               </span>
                             </td>
-                            <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                            <td className="tournament-finish-time">
                               {new Date(m.finishedAt).toLocaleTimeString("vi-VN")}
                             </td>
                           </tr>
@@ -1526,17 +1332,16 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem", borderTop: "1px solid var(--border)" }}>
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                  <div className="tournament-pagination">
+                    <span className="tournament-pagination-copy">
                       Trang {pageMatches} / {totalPages} (Tổng số {filtered.length} trận đấu)
                     </span>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <div className="tournament-pagination-actions">
                       <button
                         type="button"
                         disabled={pageMatches <= 1}
                         onClick={() => setPageMatches((p) => Math.max(1, p - 1))}
-                        className="button secondary"
-                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                        className="button secondary tournament-pagination-button"
                       >
                         Trang trước
                       </button>
@@ -1544,8 +1349,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                         type="button"
                         disabled={pageMatches >= totalPages}
                         onClick={() => setPageMatches((p) => Math.min(totalPages, p + 1))}
-                        className="button secondary"
-                        style={{ fontSize: "0.8rem", padding: "0.3rem 0.65rem" }}
+                        className="button secondary tournament-pagination-button"
                       >
                         Trang sau
                       </button>

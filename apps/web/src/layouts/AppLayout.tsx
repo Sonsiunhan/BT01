@@ -109,7 +109,7 @@ export function AppLayout() {
             }}
             title="Chuyển đến Console Quản trị"
           >
-            <span>⚡</span>
+            <UiGlyph name="settings" size={15} />
             <span>Console Quản trị</span>
           </NavLink>
         )}
@@ -129,7 +129,7 @@ export function AppLayout() {
                     paddingBottom: "0.5rem",
                   }}
                 >
-                  ⚡ Console Quản trị
+                  <UiGlyph name="settings" size={15} /> Console Quản trị
                 </NavLink>
               )}
               <NavLink to={routes.profile}>Xem hồ sơ</NavLink>
