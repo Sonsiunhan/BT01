@@ -27,6 +27,12 @@ import {
   type TournamentActorContext,
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
+import {
+  persistChangeRequestToPrisma,
+  persistConfigVersionToPrisma,
+  persistTournamentToPrisma,
+} from "../tournament-foundation/prisma-sync.js";
+import type { PrismaClient } from "@prisma/client";
 
 type IdempotencyRecord = {
   payloadHash: string;
@@ -36,7 +42,10 @@ type IdempotencyRecord = {
 export class TournamentVersioningAdapter implements TournamentVersioningPort {
   private readonly idempotencyRecords = new Map<string, IdempotencyRecord>();
 
-  constructor(private readonly store: TournamentStateStore) {}
+  constructor(
+    private readonly store: TournamentStateStore,
+    private readonly database?: PrismaClient
+  ) {}
 
   private resolveActor(context: AuthContext): TournamentActorContext {
     return this.store.resolveAuthoritativeActor({
@@ -238,7 +247,7 @@ export class TournamentVersioningAdapter implements TournamentVersioningPort {
       );
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw new AppError(
@@ -344,6 +353,9 @@ export class TournamentVersioningAdapter implements TournamentVersioningPort {
           updatedAt: nowIso,
         });
 
+        if (this.database) {
+          await persistChangeRequestToPrisma(this.database, cr);
+        }
         this.store.changeRequests.set(cr.id, cr);
         this.store.audit.append({
           actorUserId: actor.userId,
@@ -384,6 +396,9 @@ export class TournamentVersioningAdapter implements TournamentVersioningPort {
         (publishedVersion as any).profileRef = input.profileRef;
         (publishedVersion as any).profileDigest = input.profileDigest;
 
+        if (this.database) {
+          await persistConfigVersionToPrisma(this.database, publishedVersion);
+        }
         this.store.configVersions.set(tournament.id, [...existingVersions, publishedVersion]);
 
         const updatedTournament = TournamentDtoSchema.parse({
@@ -393,6 +408,9 @@ export class TournamentVersioningAdapter implements TournamentVersioningPort {
           activeConfigVersionNumber: nextVersionNumber,
           updatedAt: nowIso,
         });
+        if (this.database) {
+          await persistTournamentToPrisma(this.database, updatedTournament);
+        }
         this.store.tournaments.set(tournament.id, updatedTournament);
 
         this.store.audit.append({

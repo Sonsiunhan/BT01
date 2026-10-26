@@ -32,6 +32,13 @@ import {
   InMemoryReadinessSourcesAdapter,
   type ReadinessSourcesPort,
 } from "./readiness-sources.port.js";
+import {
+  persistAdjudicationRequestToPrisma,
+  persistChangeRequestToPrisma,
+  persistConfigVersionToPrisma,
+  persistTournamentToPrisma,
+} from "../tournament-foundation/prisma-sync.js";
+import type { PrismaClient } from "@prisma/client";
 
 export class TournamentLifecycleService {
   private readonly readinessSourcesPort: ReadinessSourcesPort;
@@ -42,6 +49,7 @@ export class TournamentLifecycleService {
     readinessSourcesPort?: ReadinessSourcesPort,
     private readonly acknowledgementGuard?: TournamentAcknowledgementGuard,
     private readonly startTransaction?: TournamentStartTransaction,
+    private readonly database?: PrismaClient,
   ) {
     this.readinessSourcesPort =
       readinessSourcesPort ?? new InMemoryReadinessSourcesAdapter(store);
@@ -89,7 +97,7 @@ export class TournamentLifecycleService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -206,6 +214,9 @@ export class TournamentLifecycleService {
         updatedAt: nowIso,
       });
 
+      if (this.database) {
+        await persistChangeRequestToPrisma(this.database, cr);
+      }
       this.store.changeRequests.set(cr.id, cr);
       this.store.audit.append({
         actorUserId: actor.userId,
@@ -247,7 +258,7 @@ export class TournamentLifecycleService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -341,6 +352,9 @@ export class TournamentLifecycleService {
         createdAt: nowIso,
       });
 
+      if (this.database) {
+        await persistConfigVersionToPrisma(this.database, publishedVersion);
+      }
       this.store.configVersions.set(tournament.id, [...existingVersions, publishedVersion]);
 
       const updatedTournament = TournamentDtoSchema.parse({
@@ -351,6 +365,9 @@ export class TournamentLifecycleService {
         activeConfigVersionNumber: nextVersionNumber,
         updatedAt: nowIso,
       });
+      if (this.database) {
+        await persistTournamentToPrisma(this.database, updatedTournament);
+      }
       this.store.tournaments.set(tournament.id, updatedTournament);
 
       this.store.audit.append({
@@ -660,7 +677,7 @@ export class TournamentLifecycleService {
     tournamentId: string,
     expectedRevision?: number
   ): Promise<TournamentDto> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -892,7 +909,7 @@ export class TournamentLifecycleService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -968,7 +985,7 @@ export class TournamentLifecycleService {
     tournamentId: string,
     expectedRevision?: number
   ): Promise<TournamentDto> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -1116,7 +1133,7 @@ export class TournamentLifecycleService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -1161,13 +1178,17 @@ export class TournamentLifecycleService {
       let cancelledAdjudicationsCount = 0;
       for (const [adjId, adj] of this.store.adjudicationRequests.entries()) {
         if (adj.tournamentId === tournamentId && adj.status === "WAITING") {
-          this.store.adjudicationRequests.set(adjId, {
+          const cancelled = {
             ...adj,
             status: "CANCELLED",
             decisionReason: `Giải đấu bị hủy: ${reason.trim()}`,
             decidedAt: nowIso,
             updatedAt: nowIso,
-          });
+          } as typeof adj;
+          if (this.database) {
+            await persistAdjudicationRequestToPrisma(this.database, cancelled);
+          }
+          this.store.adjudicationRequests.set(adjId, cancelled);
           cancelledAdjudicationsCount += 1;
         }
       }
@@ -1194,13 +1215,17 @@ export class TournamentLifecycleService {
       let cancelledChangeRequestsCount = 0;
       for (const [crId, cr] of this.store.changeRequests.entries()) {
         if (cr.tournamentId === tournamentId && cr.status === "PENDING") {
-          this.store.changeRequests.set(crId, {
+          const cancelledCr = {
             ...cr,
             status: "CANCELLED",
             reviewNote: `Giải đấu bị hủy: ${reason.trim()}`,
             reviewedAt: nowIso,
             updatedAt: nowIso,
-          });
+          } as typeof cr;
+          if (this.database) {
+            await persistChangeRequestToPrisma(this.database, cancelledCr);
+          }
+          this.store.changeRequests.set(crId, cancelledCr);
           cancelledChangeRequestsCount += 1;
         }
       }
@@ -1253,7 +1278,7 @@ export class TournamentLifecycleService {
     tournamentId: string,
     expectedRevision?: number
   ): Promise<TournamentDto> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -1335,7 +1360,7 @@ export class TournamentLifecycleService {
     changeRequestId: string,
     reason?: string
   ): Promise<TournamentChangeRequestDto> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const cr = this.store.changeRequests.get(changeRequestId);
       if (!cr || cr.tournamentId !== tournamentId) {
         throw createTournamentError({
@@ -1392,6 +1417,9 @@ export class TournamentLifecycleService {
         reviewedAt: nowIso,
         updatedAt: nowIso,
       });
+      if (this.database) {
+        await persistChangeRequestToPrisma(this.database, updatedCr);
+      }
       this.store.changeRequests.set(changeRequestId, updatedCr);
 
       this.store.audit.append({

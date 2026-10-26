@@ -18,6 +18,11 @@ import {
 } from "@ottv2/contracts";
 import { sanitizeAuditSnapshot } from "../tournament-foundation/audit.port.js";
 import {
+  persistAdjudicationRequestToPrisma,
+  persistScoreLedgerEntryToPrisma,
+} from "../tournament-foundation/prisma-sync.js";
+import type { PrismaClient } from "@prisma/client";
+import {
   assertTaContractOrTournamentAccess,
   createTournamentError,
   type TournamentActorContext,
@@ -194,7 +199,10 @@ export class AdjudicationLedgerService {
     Map<string, ParticipantRunningStats>
   >();
 
-  constructor(private readonly store: TournamentStateStore) {}
+  constructor(
+    private readonly store: TournamentStateStore,
+    private readonly database?: PrismaClient
+  ) {}
 
   private getOrInitTournamentStats(
     tournamentId: string
@@ -318,6 +326,18 @@ export class AdjudicationLedgerService {
 
     this.store.scoreLedger.set(params.tournamentId, [...existingEntries, entry]);
 
+    // The ledger is append-only and upsert-idempotent; a fire-and-forget durable
+    // write keeps the synchronous callers (including the sync expiry sweep)
+    // correct while PostgreSQL receives the entry moments later.
+    if (this.database) {
+      void persistScoreLedgerEntryToPrisma(this.database, entry).catch((err) => {
+        console.warn(
+          "[adjudication-ledger] Không thể ghi sổ điểm vào PostgreSQL:",
+          err instanceof Error ? err.message : String(err)
+        );
+      });
+    }
+
     const match = this.store.matches.get(params.matchId);
     if (match) {
       this.store.matches.set(params.matchId, {
@@ -369,6 +389,14 @@ export class AdjudicationLedgerService {
           finishSequence: ledgerEntry.finishSequence,
           updatedAt: nowIso,
         });
+        if (this.database) {
+          void persistAdjudicationRequestToPrisma(this.database, fallbackResolved).catch((err) => {
+            console.warn(
+              "[adjudication-ledger] Không thể ghi phán quyết dự phòng vào PostgreSQL:",
+              err instanceof Error ? err.message : String(err)
+            );
+          });
+        }
         this.store.adjudicationRequests.set(adjId, fallbackResolved);
         resolved.push(fallbackResolved);
       }
@@ -493,7 +521,7 @@ export class AdjudicationLedgerService {
     frozenSnapshot: Record<string, unknown>;
     deadlineSeconds?: number;
   }): Promise<ManualAdjudicationRequestDto> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(input.tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -557,6 +585,9 @@ export class AdjudicationLedgerService {
         updatedAt: nowIso,
       });
 
+      if (this.database) {
+        await persistAdjudicationRequestToPrisma(this.database, req);
+      }
       this.store.adjudicationRequests.set(req.id, req);
 
       const match = this.store.matches.get(input.matchId);
@@ -595,7 +626,7 @@ export class AdjudicationLedgerService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const req = this.store.adjudicationRequests.get(adjudicationRequestId);
       if (!req) {
         throw createTournamentError({
@@ -682,6 +713,9 @@ export class AdjudicationLedgerService {
           finishSequence: ledgerEntry.finishSequence,
           updatedAt: nowIso,
         });
+        if (this.database) {
+          await persistAdjudicationRequestToPrisma(this.database, fallbackResolved);
+        }
         this.store.adjudicationRequests.set(adjudicationRequestId, fallbackResolved);
 
         throw createTournamentError({
@@ -729,6 +763,9 @@ export class AdjudicationLedgerService {
         updatedAt: nowIso,
       });
 
+      if (this.database) {
+        await persistAdjudicationRequestToPrisma(this.database, decided);
+      }
       this.store.adjudicationRequests.set(adjudicationRequestId, decided);
       this.store.audit.append({
         actorUserId: actor.userId,

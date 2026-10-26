@@ -24,7 +24,13 @@ import {
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
 import type { PrismaClient } from "@prisma/client";
-import { persistTournamentToPrisma, syncPrismaToTournamentStore } from "../tournament-foundation/prisma-sync.js";
+import {
+  persistChangeRequestToPrisma,
+  persistConfigVersionToPrisma,
+  persistContractToPrisma,
+  persistTournamentToPrisma,
+  syncPrismaToTournamentStore,
+} from "../tournament-foundation/prisma-sync.js";
 
 function deepFreeze<T>(obj: T): T {
   if (obj === null || typeof obj !== "object") {
@@ -224,7 +230,7 @@ export class ApprovalService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -348,6 +354,9 @@ export class ApprovalService {
           })
         );
 
+        if (this.database) {
+          await persistConfigVersionToPrisma(this.database, configVersion);
+        }
         this.store.configVersions.set(tournament.id, [...existingVersions, configVersion]);
 
         const approvedSnapshot = deepFreeze(
@@ -367,12 +376,13 @@ export class ApprovalService {
         );
 
         // Mark quota consumed once on initial approval (cannot be refunded even if later CANCELLED — BR-05, T013)
+        let quotaConsumedContract: TournamentContractDto | null = null;
         if (!tournament.everApproved) {
-          this.store.contracts.set(contract.id, {
+          quotaConsumedContract = {
             ...contract,
             quotaConsumedCount: contract.quotaConsumedCount + 1,
             updatedAt: nowIso,
-          });
+          };
         }
 
         const updated = TournamentDtoSchema.parse({
@@ -393,10 +403,16 @@ export class ApprovalService {
           approvedSnapshot,
         };
 
-        this.store.tournaments.set(tournamentId, updatedWithFrozenSnapshot);
         if (this.database) {
-          persistTournamentToPrisma(this.database, updatedWithFrozenSnapshot).catch(() => {});
+          if (quotaConsumedContract) {
+            await persistContractToPrisma(this.database, quotaConsumedContract);
+          }
+          await persistTournamentToPrisma(this.database, updatedWithFrozenSnapshot);
         }
+        if (quotaConsumedContract) {
+          this.store.contracts.set(contract.id, quotaConsumedContract);
+        }
+        this.store.tournaments.set(tournamentId, updatedWithFrozenSnapshot);
         this.store.audit.append({
           actorUserId: actor.userId,
           actorRole: "ADMIN",
@@ -415,14 +431,15 @@ export class ApprovalService {
 
       if (decision === "REJECT") {
         let quotaRefunded = tournament.quotaRefunded;
+        let refundedContract: TournamentContractDto | null = null;
         if (!tournament.everApproved && !tournament.quotaRefunded) {
           const nextReserved = Math.max(0, contract.quotaReservedCount - 1);
-          this.store.contracts.set(contract.id, {
+          refundedContract = {
             ...contract,
             quotaReservedCount: nextReserved,
             quotaRemainingCount: Math.max(0, contract.maxTournamentsTotal - nextReserved),
             updatedAt: nowIso,
-          });
+          };
           quotaRefunded = true;
         }
 
@@ -437,10 +454,16 @@ export class ApprovalService {
           updatedAt: nowIso,
         });
 
-        this.store.tournaments.set(tournamentId, updated);
         if (this.database) {
-          persistTournamentToPrisma(this.database, updated).catch(() => {});
+          if (refundedContract) {
+            await persistContractToPrisma(this.database, refundedContract);
+          }
+          await persistTournamentToPrisma(this.database, updated);
         }
+        if (refundedContract) {
+          this.store.contracts.set(contract.id, refundedContract);
+        }
+        this.store.tournaments.set(tournamentId, updated);
         this.store.audit.append({
           actorUserId: actor.userId,
           actorRole: "ADMIN",
@@ -468,10 +491,10 @@ export class ApprovalService {
         updatedAt: nowIso,
       });
 
-      this.store.tournaments.set(tournamentId, updated);
       if (this.database) {
-        persistTournamentToPrisma(this.database, updated).catch(() => {});
+        await persistTournamentToPrisma(this.database, updated);
       }
+      this.store.tournaments.set(tournamentId, updated);
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "ADMIN",
@@ -510,7 +533,7 @@ export class ApprovalService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const cr = this.store.changeRequests.get(changeRequestId);
       if (!cr) {
         throw createTournamentError({
@@ -604,6 +627,9 @@ export class ApprovalService {
           changeSummary: `ChangeRequest được duyệt: ${cr.reason}`,
           createdAt: nowIso,
         });
+        if (this.database) {
+          await persistConfigVersionToPrisma(this.database, newVersion);
+        }
         this.store.configVersions.set(tournament.id, [...existingVersions, newVersion]);
 
         // Important (BR-07, T024): Tournament status stays APPROVED / SCHEDULED / RUNNING / PAUSED
@@ -625,10 +651,10 @@ export class ApprovalService {
             : null,
           updatedAt: nowIso,
         });
-        this.store.tournaments.set(tournament.id, updatedTournament);
         if (this.database) {
-          persistTournamentToPrisma(this.database, updatedTournament).catch(() => {});
+          await persistTournamentToPrisma(this.database, updatedTournament);
         }
+        this.store.tournaments.set(tournament.id, updatedTournament);
 
         const updatedCr = TournamentChangeRequestSchema.parse({
           ...cr,
@@ -639,6 +665,9 @@ export class ApprovalService {
           appliedConfigVersionId: versionId,
           updatedAt: nowIso,
         });
+        if (this.database) {
+          await persistChangeRequestToPrisma(this.database, updatedCr);
+        }
         this.store.changeRequests.set(changeRequestId, updatedCr);
 
         this.store.audit.append({
@@ -667,6 +696,9 @@ export class ApprovalService {
         reviewedAt: nowIso,
         updatedAt: nowIso,
       });
+      if (this.database) {
+        await persistChangeRequestToPrisma(this.database, updatedCr);
+      }
       this.store.changeRequests.set(changeRequestId, updatedCr);
 
       this.store.audit.append({

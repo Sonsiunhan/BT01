@@ -31,6 +31,7 @@ import { PrismaTournamentStartTransaction, type TournamentStartTransaction } fro
 
 export interface TournamentRuntimeBundle {
   store: TournamentStateStore;
+  database?: PrismaClient | undefined;
   unitContractService: UnitContractService;
   coreDraftService: CoreDraftService;
   approvalService: ApprovalService;
@@ -53,11 +54,12 @@ export function createTournamentRuntimeBundle(options?: {
   startTransaction?: TournamentStartTransaction | undefined;
   botLibrary?: BotLibraryService | undefined;
 }): TournamentRuntimeBundle {
-  const store = options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn });
-  const unitContractService = new UnitContractService(store);
+  const store =
+    options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn, database: options?.database });
+  const unitContractService = new UnitContractService(store, options?.database);
   const coreDraftService = new CoreDraftService(store, options?.database);
   const approvalService = new ApprovalService(store, options?.database);
-  const adjudicationLedgerService = new AdjudicationLedgerService(store);
+  const adjudicationLedgerService = new AdjudicationLedgerService(store, options?.database);
   const readinessSourcesPort =
     options?.readinessSourcesPort ??
     (options?.database
@@ -71,15 +73,17 @@ export function createTournamentRuntimeBundle(options?: {
     readinessSourcesPort,
     options?.acknowledgementGuard,
     startTransaction,
+    options?.database,
   );
   const admissionGateService = new AdmissionGateService(store);
-  const versioningAdapter = new TournamentVersioningAdapter(store);
+  const versioningAdapter = new TournamentVersioningAdapter(store, options?.database);
   const staffService = options?.database ? new TournamentStaffService(options.database) : undefined;
   const botReadinessService = new BotReadinessService(store, options?.botLibrary ?? new BotLibraryService());
   const supportRecoveryService = options?.database ? new SupportRecoveryService(options.database) : undefined;
 
   return {
     store,
+    database: options?.database,
     unitContractService,
     coreDraftService,
     approvalService,
@@ -103,7 +107,8 @@ export async function registerTournamentInitializationRoutes(
     app,
     auth,
     bundle.store,
-    bundle.unitContractService
+    bundle.unitContractService,
+    bundle.database
   );
   await registerTournamentCoreRoutes(app, auth, bundle.store, {
     coreDraftService: bundle.coreDraftService,

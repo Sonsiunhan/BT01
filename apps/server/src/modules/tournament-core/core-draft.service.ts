@@ -29,8 +29,9 @@ import {
 
 import type { PrismaClient } from "@prisma/client";
 import {
-  persistTournamentToPrisma,
   deleteTournamentFromPrisma,
+  persistContractToPrisma,
+  persistTournamentToPrisma,
 } from "../tournament-foundation/prisma-sync.js";
 
 export class CoreDraftService {
@@ -138,7 +139,7 @@ export class CoreDraftService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       let contract = this.store.contracts.get(parsed.data.contractId);
       if (!contract) {
         for (const c of this.store.contracts.values()) {
@@ -217,7 +218,6 @@ export class CoreDraftService {
         quotaRemainingCount: Math.max(0, contract.maxTournamentsTotal - nextReserved),
         updatedAt: nowIso,
       };
-      this.store.contracts.set(contract.id, updatedContract);
 
       const tournament = TournamentDtoSchema.parse({
         id: randomUUID(),
@@ -251,10 +251,12 @@ export class CoreDraftService {
         updatedAt: nowIso,
       });
 
-      this.store.tournaments.set(tournament.id, tournament);
       if (this.database) {
-        persistTournamentToPrisma(this.database, tournament).catch(() => {});
+        await persistContractToPrisma(this.database, updatedContract);
+        await persistTournamentToPrisma(this.database, tournament);
       }
+      this.store.contracts.set(contract.id, updatedContract);
+      this.store.tournaments.set(tournament.id, tournament);
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",
@@ -290,7 +292,7 @@ export class CoreDraftService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.tournaments.get(tournamentId);
       if (!existing) {
         throw createTournamentError({
@@ -369,10 +371,10 @@ export class CoreDraftService {
         updatedAt: nowIso,
       });
 
-      this.store.tournaments.set(tournamentId, updated);
       if (this.database) {
-        persistTournamentToPrisma(this.database, updated).catch(() => {});
+        await persistTournamentToPrisma(this.database, updated);
       }
+      this.store.tournaments.set(tournamentId, updated);
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",
@@ -393,7 +395,7 @@ export class CoreDraftService {
     actor: TournamentActorContext,
     tournamentId: string
   ): Promise<{ deleted: true; quotaRefunded: boolean }> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.tournaments.get(tournamentId);
       if (!existing) {
         throw createTournamentError({
@@ -436,21 +438,28 @@ export class CoreDraftService {
 
       // Refund quota once (T012)
       let quotaRefunded = false;
+      let refundedContract: TournamentContractDto | null = null;
       if (!existing.quotaRefunded && !existing.everApproved) {
         const nextReserved = Math.max(0, contract.quotaReservedCount - 1);
-        this.store.contracts.set(contract.id, {
+        refundedContract = {
           ...contract,
           quotaReservedCount: nextReserved,
           quotaRemainingCount: Math.max(0, contract.maxTournamentsTotal - nextReserved),
           updatedAt: nowIso,
-        });
+        };
         quotaRefunded = true;
       }
 
-      this.store.tournaments.delete(tournamentId);
       if (this.database) {
-        deleteTournamentFromPrisma(this.database, tournamentId).catch(() => {});
+        if (refundedContract) {
+          await persistContractToPrisma(this.database, refundedContract);
+        }
+        await deleteTournamentFromPrisma(this.database, tournamentId);
       }
+      if (refundedContract) {
+        this.store.contracts.set(contract.id, refundedContract);
+      }
+      this.store.tournaments.delete(tournamentId);
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",
@@ -507,15 +516,15 @@ export class CoreDraftService {
       ruleProfile: source.ruleProfile,
     });
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const updated: TournamentDto = {
         ...created,
         copiedFromTournamentId: rejectedTournamentId,
       };
-      this.store.tournaments.set(updated.id, updated);
       if (this.database) {
-        persistTournamentToPrisma(this.database, updated).catch(() => {});
+        await persistTournamentToPrisma(this.database, updated);
       }
+      this.store.tournaments.set(updated.id, updated);
       return updated;
     });
   }
@@ -535,7 +544,7 @@ export class CoreDraftService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.tournaments.get(tournamentId);
       if (!existing) {
         throw createTournamentError({
@@ -617,10 +626,10 @@ export class CoreDraftService {
         updatedAt: nowIso,
       });
 
-      this.store.tournaments.set(tournamentId, updated);
       if (this.database) {
-        persistTournamentToPrisma(this.database, updated).catch(() => {});
+        await persistTournamentToPrisma(this.database, updated);
       }
+      this.store.tournaments.set(tournamentId, updated);
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",

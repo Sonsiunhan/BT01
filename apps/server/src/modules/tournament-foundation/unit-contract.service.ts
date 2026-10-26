@@ -23,9 +23,18 @@ import {
   type TournamentActorContext,
   type TournamentStateStore,
 } from "./tournament-store.js";
+import {
+  deleteUnitFromPrisma,
+  persistContractToPrisma,
+  persistUnitToPrisma,
+} from "./prisma-sync.js";
+import type { PrismaClient } from "@prisma/client";
 
 export class UnitContractService {
-  constructor(private readonly store: TournamentStateStore) {}
+  constructor(
+    private readonly store: TournamentStateStore,
+    private readonly database?: PrismaClient
+  ) {}
 
   private enrichUnit(unit: UnitDto): UnitDto {
     let referencedContractsCount = 0;
@@ -86,7 +95,7 @@ export class UnitContractService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       for (const existing of this.store.units.values()) {
         if (existing.unitCode.toUpperCase() === parsed.data.unitCode.toUpperCase()) {
           throw createTournamentError({
@@ -117,6 +126,9 @@ export class UnitContractService {
         updatedAt: now,
       });
 
+      if (this.database) {
+        await persistUnitToPrisma(this.database, unit);
+      }
       this.store.units.set(unit.id, unit);
       this.store.audit.append({
         actorUserId: actor.userId,
@@ -154,7 +166,7 @@ export class UnitContractService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.units.get(unitId);
       if (!existing) {
         throw createTournamentError({
@@ -172,6 +184,9 @@ export class UnitContractService {
         updatedAt: now,
       });
 
+      if (this.database) {
+        await persistUnitToPrisma(this.database, updated);
+      }
       this.store.units.set(unitId, updated);
       this.store.audit.append({
         actorUserId: actor.userId,
@@ -191,7 +206,7 @@ export class UnitContractService {
 
   async deleteUnit(actor: TournamentActorContext, unitId: string): Promise<{ deleted: true }> {
     assertAdminActor(actor);
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.units.get(unitId);
       if (!existing) {
         throw createTournamentError({
@@ -219,6 +234,9 @@ export class UnitContractService {
         });
       }
 
+      if (this.database) {
+        await deleteUnitFromPrisma(this.database, unitId);
+      }
       this.store.units.delete(unitId);
       this.store.audit.append({
         actorUserId: actor.userId,
@@ -272,7 +290,7 @@ export class UnitContractService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const unit = this.store.units.get(parsed.data.unitId);
       if (!unit) {
         throw createTournamentError({
@@ -344,6 +362,9 @@ export class UnitContractService {
         updatedAt: now,
       });
 
+      if (this.database) {
+        await persistContractToPrisma(this.database, contract);
+      }
       this.store.contracts.set(contract.id, contract);
       this.store.audit.append({
         actorUserId: actor.userId,
@@ -381,7 +402,7 @@ export class UnitContractService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.contracts.get(contractId);
       if (!existing) {
         throw createTournamentError({
@@ -414,6 +435,9 @@ export class UnitContractService {
         updatedAt: now,
       });
 
+      if (this.database) {
+        await persistContractToPrisma(this.database, updated);
+      }
       this.store.contracts.set(contractId, updated);
       this.store.audit.append({
         actorUserId: actor.userId,
@@ -448,7 +472,7 @@ export class UnitContractService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.contracts.get(contractId);
       if (!existing) {
         throw createTournamentError({
@@ -494,6 +518,9 @@ export class UnitContractService {
         taBindings: nextBindings,
         updatedAt: now,
       };
+      if (this.database) {
+        await persistContractToPrisma(this.database, updated);
+      }
       this.store.contracts.set(contractId, updated);
 
       this.store.audit.append({
@@ -529,7 +556,7 @@ export class UnitContractService {
       });
     }
 
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const existing = this.store.contracts.get(contractId);
       if (!existing) {
         throw createTournamentError({
@@ -564,6 +591,9 @@ export class UnitContractService {
         taBindings: nextBindings,
         updatedAt: now,
       };
+      if (this.database) {
+        await persistContractToPrisma(this.database, updated);
+      }
       this.store.contracts.set(contractId, updated);
 
       this.store.audit.append({
@@ -588,7 +618,7 @@ export class UnitContractService {
    * TA operations on already-created tournaments under that contract.
    */
   async expireContractsIfNeeded(serverNowIso?: string): Promise<number> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const nowIso = serverNowIso ?? this.store.nowIso();
       const nowMs = Date.parse(nowIso);
       let expiredCount = 0;
@@ -600,6 +630,9 @@ export class UnitContractService {
             status: "EXPIRED",
             updatedAt: nowIso,
           };
+          if (this.database) {
+            await persistContractToPrisma(this.database, updated);
+          }
           this.store.contracts.set(id, updated);
           expiredCount += 1;
         }

@@ -13,6 +13,7 @@ import type {
 } from "@ottv2/contracts";
 import { AppError, type ErrorCode, type ErrorSeverity } from "../../shared/errors/app-error.js";
 import { SanitizingAuditService, type AuditPort } from "./audit.port.js";
+import type { PrismaClient } from "@prisma/client";
 
 export function createTournamentError(options: {
   code: ErrorCode;
@@ -78,11 +79,11 @@ export class TournamentStateStore {
   private lockChain: Promise<void> = Promise.resolve();
   private clockFn: () => Date = () => new Date();
 
-  constructor(options?: { clockFn?: (() => Date) | undefined }) {
+  constructor(options?: { clockFn?: (() => Date) | undefined; database?: PrismaClient | undefined }) {
     if (options?.clockFn) {
       this.clockFn = options.clockFn;
     }
-    this.audit = new SanitizingAuditService(this.auditRecords);
+    this.audit = new SanitizingAuditService(this.auditRecords, options?.database ?? undefined);
   }
 
   nowIso(): string {

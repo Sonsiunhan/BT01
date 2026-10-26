@@ -4,8 +4,12 @@ import type {
 } from "./tournament-store.js";
 import {
   DEFAULT_TOURNAMENT_RULE_PROFILE,
+  type ManualAdjudicationRequestDto,
+  type TournamentChangeRequestDto,
+  type TournamentConfigVersionDto,
   type TournamentContractDto,
   type TournamentDto,
+  type TournamentScoreLedgerEntryDto,
   type UnitDto,
 } from "@ottv2/contracts";
 
@@ -236,9 +240,73 @@ export async function syncPrismaToTournamentStore(
         });
       }
     }
+
+    // 8. Config versions (published rule/config snapshots must survive restarts)
+    const versions = await prisma.tournamentConfigVersionRecord.findMany({
+      orderBy: [{ tournamentId: "asc" }, { versionNumber: "asc" }],
+    });
+    for (const v of versions) {
+      const list = store.configVersions.get(v.tournamentId) ?? [];
+      if (!list.some((x) => x.id === v.id)) {
+        list.push({
+          id: v.id,
+          tournamentId: v.tournamentId,
+          versionNumber: v.versionNumber,
+          coreConfigSnapshot: v.coreConfigSnapshot as any,
+          ruleProfileSnapshot: v.ruleProfileSnapshot as any,
+          effectiveAt: v.effectiveAt.toISOString(),
+          publishedByUserId: v.publishedByUserId,
+          changeSummary: v.changeSummary,
+          createdAt: v.createdAt.toISOString(),
+        });
+        store.configVersions.set(v.tournamentId, list);
+      }
+    }
+
+    // 9. Change requests (the approval queue must survive restarts)
+    const changeRequests = await prisma.tournamentChangeRequestRecord.findMany({
+      orderBy: { createdAt: "asc" },
+    });
+    for (const cr of changeRequests) {
+      if (store.changeRequests.has(cr.id)) continue;
+      const owner = store.tournaments.get(cr.tournamentId);
+      store.changeRequests.set(cr.id, {
+        id: cr.id,
+        tournamentId: cr.tournamentId,
+        tournamentCode: owner?.coreConfig?.tournamentCode ?? cr.tournamentId,
+        tournamentName: owner?.coreConfig?.tournamentName ?? "Giải đấu",
+        contractId: cr.contractId,
+        requestedByTaUserId: cr.requestedByTaUserId,
+        status: cr.status as any,
+        reason: cr.reason,
+        proposedCoreConfigPatch: (cr.proposedCoreConfigPatch as any) ?? undefined,
+        proposedRuleProfilePatch: (cr.proposedRuleProfilePatch as any) ?? undefined,
+        effectiveAt: cr.effectiveAt.toISOString(),
+        diffs: (cr.diffs as any) ?? [],
+        reviewedByAdminUserId: cr.reviewedByAdminUserId ?? null,
+        reviewNote: cr.reviewNote ?? null,
+        reviewedAt: cr.reviewedAt?.toISOString() ?? null,
+        appliedConfigVersionId: cr.appliedConfigVersionId ?? null,
+        createdAt: cr.createdAt.toISOString(),
+        updatedAt: cr.updatedAt.toISOString(),
+      });
+    }
+
+    // 10. Rebuild finish-sequence counters from the persisted score ledger so a
+    // restart cannot allocate a duplicate finish_sequence for the same tournament.
+    for (const [tournamentId, entries] of store.scoreLedger) {
+      const maxSequence = entries.reduce((max, e) => Math.max(max, e.finishSequence ?? 0), 0);
+      if (maxSequence > 0) {
+        store.finishSequenceCounters.set(tournamentId, maxSequence);
+      }
+    }
   } catch (err) {
-    // If table doesn't exist yet (e.g. before initial migration in test), log and continue safely
-    console.warn("[syncPrismaToTournamentStore] Warning during database hydration:", (err as Error).message);
+    // Fail fast: booting with an empty authoritative store would let referees and
+    // admins operate on data that no longer matches PostgreSQL. app.ts awaits this
+    // inside `if (database instanceof PrismaDatabase)`, so a Prisma-less server is
+    // unaffected and a configured database must be reachable before startup finishes.
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể nạp dữ liệu giải đấu từ PostgreSQL khi khởi động: ${message}`, { cause: err });
   }
 
   return { unitsCount, contractsCount, tournamentsCount };
@@ -310,7 +378,11 @@ export async function persistTournamentToPrisma(
       },
     });
   } catch (err) {
-    console.warn("[persistTournamentToPrisma] Warning persisting tournament:", (err as Error).message);
+    // Fail closed: the in-memory store is only mutated by callers AFTER this
+    // upsert resolves, so a failed persist must abort the whole operation
+    // instead of leaving PostgreSQL silently out of sync until the next restart.
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể lưu giải đấu vào PostgreSQL: ${message}`, { cause: err });
   }
 }
 
@@ -321,7 +393,227 @@ export async function deleteTournamentFromPrisma(
   try {
     await prisma.tournament.delete({ where: { id: tournamentId } });
   } catch (err) {
-    console.warn("[deleteTournamentFromPrisma] Warning deleting tournament:", (err as Error).message);
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể xóa giải đấu khỏi PostgreSQL: ${message}`, { cause: err });
+  }
+}
+
+export async function persistUnitToPrisma(prisma: PrismaClient, u: UnitDto): Promise<void> {
+  try {
+    await prisma.unit.upsert({
+      where: { id: u.id },
+      update: {
+        unitCode: u.unitCode,
+        unitName: u.unitName,
+        unitType: u.unitType,
+        contactName: u.contactName,
+        contactEmail: u.contactEmail,
+        status: u.status,
+      },
+      create: {
+        id: u.id,
+        unitCode: u.unitCode,
+        unitName: u.unitName,
+        unitType: u.unitType,
+        contactName: u.contactName,
+        contactEmail: u.contactEmail,
+        status: u.status,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể lưu đơn vị vào PostgreSQL: ${message}`, { cause: err });
+  }
+}
+
+export async function deleteUnitFromPrisma(prisma: PrismaClient, unitId: string): Promise<void> {
+  try {
+    await prisma.unit.delete({ where: { id: unitId } });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể xóa đơn vị khỏi PostgreSQL: ${message}`, { cause: err });
+  }
+}
+
+/**
+ * Upserts the contract row and mirrors the in-memory TA binding list:
+ * every DTO binding is upserted by id, and DB rows that no longer exist in the
+ * DTO are removed. The service layer only mutates the store after this resolves.
+ */
+export async function persistContractToPrisma(
+  prisma: PrismaClient,
+  c: TournamentContractDto
+): Promise<void> {
+  try {
+    const row = {
+      contractCode: c.contractCode,
+      unitId: c.unitId,
+      status: c.status,
+      validFrom: new Date(c.validFrom),
+      validTo: new Date(c.validTo),
+      maxTournamentsTotal: c.maxTournamentsTotal,
+      quotaReservedCount: c.quotaReservedCount,
+      quotaConsumedCount: c.quotaConsumedCount,
+      maxParticipantsPerTournament: c.maxParticipantsPerTournament,
+      maxParticipantsTotal: c.maxParticipantsTotal,
+      allowedModes: c.allowedModes as any,
+      policyEnvelope: c.policyEnvelope as any,
+      technicalCaps: c.technicalCaps as any,
+    };
+    await prisma.tournamentContract.upsert({
+      where: { id: c.id },
+      update: row,
+      create: { id: c.id, ...row },
+    });
+
+    for (const b of c.taBindings) {
+      const bindingRow = {
+        contractId: c.id,
+        userId: b.userId,
+        username: b.username ?? null,
+        displayName: b.displayName ?? null,
+        status: b.status,
+        grantedByUserId: b.grantedByUserId,
+        grantedAt: new Date(b.grantedAt),
+        revokedAt: b.revokedAt ? new Date(b.revokedAt) : null,
+        revokeReason: b.revokeReason ?? null,
+      };
+      await prisma.tournamentContractTaBinding.upsert({
+        where: { id: b.id },
+        update: bindingRow,
+        create: { id: b.id, ...bindingRow },
+      });
+    }
+
+    const keepIds = c.taBindings.map((b) => b.id);
+    await prisma.tournamentContractTaBinding.deleteMany({
+      where: { contractId: c.id, id: { notIn: keepIds } },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể lưu hợp đồng vào PostgreSQL: ${message}`, { cause: err });
+  }
+}
+
+export async function persistChangeRequestToPrisma(
+  prisma: PrismaClient,
+  cr: TournamentChangeRequestDto
+): Promise<void> {
+  try {
+    const row = {
+      tournamentId: cr.tournamentId,
+      contractId: cr.contractId,
+      requestedByTaUserId: cr.requestedByTaUserId,
+      status: cr.status,
+      reason: cr.reason,
+      proposedCoreConfigPatch: (cr.proposedCoreConfigPatch as any) ?? null,
+      proposedRuleProfilePatch: (cr.proposedRuleProfilePatch as any) ?? null,
+      effectiveAt: new Date(cr.effectiveAt),
+      diffs: cr.diffs as any,
+      reviewedByAdminUserId: cr.reviewedByAdminUserId ?? null,
+      reviewNote: cr.reviewNote ?? null,
+      reviewedAt: cr.reviewedAt ? new Date(cr.reviewedAt) : null,
+      appliedConfigVersionId: cr.appliedConfigVersionId ?? null,
+    };
+    await prisma.tournamentChangeRequestRecord.upsert({
+      where: { id: cr.id },
+      update: row,
+      create: { id: cr.id, ...row },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể lưu yêu cầu thay đổi vào PostgreSQL: ${message}`, { cause: err });
+  }
+}
+
+export async function persistConfigVersionToPrisma(
+  prisma: PrismaClient,
+  v: TournamentConfigVersionDto
+): Promise<void> {
+  try {
+    const row = {
+      tournamentId: v.tournamentId,
+      versionNumber: v.versionNumber,
+      coreConfigSnapshot: v.coreConfigSnapshot as any,
+      ruleProfileSnapshot: v.ruleProfileSnapshot as any,
+      effectiveAt: new Date(v.effectiveAt),
+      publishedByUserId: v.publishedByUserId,
+      changeSummary: v.changeSummary,
+    };
+    await prisma.tournamentConfigVersionRecord.upsert({
+      where: { id: v.id },
+      update: row,
+      create: { id: v.id, ...row },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể lưu phiên bản luật vào PostgreSQL: ${message}`, { cause: err });
+  }
+}
+
+export async function persistAdjudicationRequestToPrisma(
+  prisma: PrismaClient,
+  a: ManualAdjudicationRequestDto
+): Promise<void> {
+  try {
+    const row = {
+      tournamentId: a.tournamentId,
+      matchId: a.matchId,
+      roomId: a.roomId,
+      blueParticipantId: a.blueParticipantId,
+      redParticipantId: a.redParticipantId,
+      status: a.status,
+      frozenSnapshot: a.frozenSnapshot as any,
+      deadlineAt: new Date(a.deadlineAt),
+      fallbackPolicy: a.fallbackPolicy,
+      winnerSide: a.winnerSide ?? null,
+      decidedByUserId: a.decidedByUserId ?? null,
+      decisionReason: a.decisionReason ?? null,
+      decidedAt: a.decidedAt ? new Date(a.decidedAt) : null,
+      finishSequence: a.finishSequence ?? null,
+    };
+    await prisma.manualAdjudicationRequestRecord.upsert({
+      where: { id: a.id },
+      update: row,
+      create: { id: a.id, ...row },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể lưu yêu cầu phán quyết vào PostgreSQL: ${message}`, { cause: err });
+  }
+}
+
+export async function persistScoreLedgerEntryToPrisma(
+  prisma: PrismaClient,
+  e: TournamentScoreLedgerEntryDto
+): Promise<void> {
+  try {
+    const row = {
+      tournamentId: e.tournamentId,
+      matchId: e.matchId,
+      finishSequence: e.finishSequence,
+      blueParticipantId: e.blueParticipantId,
+      redParticipantId: e.redParticipantId,
+      winnerSide: e.winnerSide,
+      resolutionSource: e.resolutionSource,
+      blueEloBefore: e.blueEloBefore,
+      blueEloAfter: e.blueEloAfter,
+      blueScoreBefore: e.blueScoreBefore,
+      blueScoreAfter: e.blueScoreAfter,
+      redEloBefore: e.redEloBefore,
+      redEloAfter: e.redEloAfter,
+      redScoreBefore: e.redScoreBefore,
+      redScoreAfter: e.redScoreAfter,
+      finishedAt: new Date(e.finishedAt),
+    };
+    await prisma.tournamentScoreLedgerRecord.upsert({
+      where: { id: e.id },
+      update: row,
+      create: { id: e.id, ...row },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Không thể lưu sổ điểm vào PostgreSQL: ${message}`, { cause: err });
   }
 }
 
