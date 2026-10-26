@@ -51,6 +51,7 @@
   --surface: var(--surface-1);
   --surface-raised: var(--surface-2);
   --surface-overlay: var(--glass);
+  --surface-subtle: #F2F6FA;
   --text: var(--text-primary);
   --border: color-mix(in srgb, var(--text-secondary) 25%, transparent);
   --primary: var(--system-cyan);
@@ -109,6 +110,7 @@
   --surface: var(--surface-1);
   --surface-raised: var(--surface-2);
   --surface-overlay: var(--glass);
+  --surface-subtle: #1A2B41;
   --text: var(--text-primary);
   --border: color-mix(in srgb, var(--text-secondary) 28%, transparent);
   --primary: var(--system-cyan);

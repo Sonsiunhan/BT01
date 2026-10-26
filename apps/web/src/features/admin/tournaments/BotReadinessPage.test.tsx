@@ -129,6 +129,7 @@ describe("P16 — BotReadinessPage", () => {
     const request = fetchMock.mock.calls[1];
     expect(String(request?.[0])).toContain("/api/tournaments/t-1/bot-readiness/rechecks");
     expect(request?.[1]).toMatchObject({ method: "POST", credentials: "include" });
+    expect((request?.[1] as RequestInit).headers).toMatchObject({ "X-OTT-Request": "1" });
     expect(JSON.parse(String((request?.[1] as RequestInit).body))).toMatchObject({ enrollmentId: "enrollment-1", expectedEnrollmentRevision: 3 });
   });
 

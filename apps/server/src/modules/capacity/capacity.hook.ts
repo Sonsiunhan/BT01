@@ -5,6 +5,8 @@
  */
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { readCookie } from "../auth/auth.http.js";
+import { GUEST_SESSION_COOKIE, SESSION_COOKIE } from "../auth/auth.service.js";
 import type { CapacityController } from "./capacity.controller.js";
 import type { AdmissionPoolType } from "./capacity.types.js";
 
@@ -55,6 +57,24 @@ function classifyRoute(url: string, method: string): { pool?: AdmissionPoolType;
   return null;
 }
 
+/**
+ * Resolves the per-client admission bucket key. This hook runs at preHandler,
+ * before routes resolve their actor (resolveTournamentRequestActor), so the
+ * authenticated user id is not available yet. The server-issued session cookie
+ * (then the guest session cookie) is the most stable per-client identity
+ * available at that point; the constant "1" sent in X-OTT-Request by every
+ * browser client must never be used, or all users would share one bucket.
+ * Only truly anonymous traffic without any session falls back to IP.
+ */
+function resolveAdmissionPrincipalId(request: FastifyRequest): string {
+  return (
+    readCookie(request, SESSION_COOKIE) ||
+    readCookie(request, GUEST_SESSION_COOKIE) ||
+    (request.headers["x-client-id"] as string | undefined) ||
+    request.ip
+  );
+}
+
 export function registerCapacityAdmissionHook(
   app: FastifyInstance,
   controller: CapacityController
@@ -77,10 +97,7 @@ export function registerCapacityAdmissionHook(
       return;
     }
 
-    const principalId =
-      (request.headers["x-client-id"] as string | undefined) ||
-      (request.headers["x-ott-request"] as string | undefined) ||
-      request.ip;
+    const principalId = resolveAdmissionPrincipalId(request);
 
     const acquired = controller.acquire(
       classification.pool,

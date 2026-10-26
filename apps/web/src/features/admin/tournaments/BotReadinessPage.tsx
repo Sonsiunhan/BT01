@@ -159,7 +159,7 @@ export default function BotReadinessPage() {
     try {
       const response = await fetch(api(`/api/tournaments/${encodeURIComponent(tournamentId)}/bot-readiness/rechecks`), {
         method: "POST",
-        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        headers: { Accept: "application/json", "Content-Type": "application/json", "X-OTT-Request": "1" },
         credentials: "include",
         body: JSON.stringify({
           enrollmentId: item.enrollmentId,

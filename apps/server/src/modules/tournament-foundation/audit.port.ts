@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import {
   AuditLogRecordSchema,
   type AuditLogRecordDto,
@@ -9,7 +10,7 @@ const SENSITIVE_KEY_PATTERN =
   /(password|passwordhash|recoverycode|token|tokenhash|secret|apikey|credential|privatekey|sourcetext|sourcecode|pythonsource|pythoncode|botsource|rawsource|memorypayload|botmemory|memorystate|privatediagnostics|diagnostics|stderr|traceback|cookie|authorization)/i;
 
 const SECRET_VALUE_PATTERN =
-  /(Bearer\s+[A-Za-z0-9._~+/-]+=*|\bdef\s+[A-Za-z_][A-Za-z0-9_]*\s*\(|\bclass\s+[A-Za-z_][A-Za-z0-9_]*\s*[:(]|Traceback \(most recent call last\)|scrypt\$|argon2id\$)/i;
+  /(Bearer\s+[A-Za-z0-9._~+/-]+=*|\bdef\s+[A-Za-z_][A-Za-z0-9_]*\s*\(|\bclass\s+[A-Za-z_][A-Za-z0-9_]*\s*[:(]|Traceback \(most recent call last\)|scrypt\$|argon2id\$|\b[0-9a-f]{32,}\b)/i;
 
 function deepFreeze<T>(value: T): T {
   if (value === null || value === undefined || typeof value !== "object") {
@@ -103,12 +104,20 @@ export interface AuditPort {
 /**
  * Append-only, deep-redacting audit log service (BR-41, BR-42, T077).
  * Intentionally exposes NO update or delete methods.
+ *
+ * When a PrismaClient is provided, every appended record is also written
+ * through to the durable `TournamentAuditLogRecord` table (fire-and-forget:
+ * the in-memory array stays the synchronous read path, PostgreSQL is the
+ * durable source that survives restarts). Write failures are logged, never
+ * thrown, so auditing cannot break the business operation it observes.
  */
 export class SanitizingAuditService implements AuditPort {
   private readonly records: AuditLogRecordDto[];
+  private readonly prisma: PrismaClient | null;
 
-  constructor(backingArray: AuditLogRecordDto[] = []) {
+  constructor(backingArray: AuditLogRecordDto[] = [], prisma?: PrismaClient | null) {
     this.records = backingArray;
+    this.prisma = prisma ?? null;
   }
 
   append(input: AppendAuditLogInput): AuditLogRecordDto {
@@ -131,7 +140,43 @@ export class SanitizingAuditService implements AuditPort {
       afterSnapshot: record.afterSnapshot ? { ...record.afterSnapshot } : null,
     });
     this.records.push(frozen);
+    if (this.prisma) {
+      void this.writeThrough(frozen);
+    }
     return frozen;
+  }
+
+  private async writeThrough(record: AuditLogRecordDto): Promise<void> {
+    try {
+      const beforeSnapshot = record.beforeSnapshot
+        ? (record.beforeSnapshot as unknown as Prisma.InputJsonValue)
+        : null;
+      const afterSnapshot = record.afterSnapshot
+        ? (record.afterSnapshot as unknown as Prisma.InputJsonValue)
+        : null;
+      const row = {
+        actorUserId: record.actorUserId,
+        actorRole: record.actorRole,
+        action: record.action,
+        targetType: record.targetType,
+        targetId: record.targetId,
+        beforeSnapshot: beforeSnapshot === null ? Prisma.DbNull : beforeSnapshot,
+        afterSnapshot: afterSnapshot === null ? Prisma.DbNull : afterSnapshot,
+        reason: record.reason ?? null,
+        correlationId: record.correlationId ?? null,
+        createdAt: new Date(record.createdAt),
+      };
+      await this.prisma!.tournamentAuditLogRecord.upsert({
+        where: { id: record.id },
+        update: row,
+        create: { id: record.id, ...row },
+      });
+    } catch (err) {
+      console.warn(
+        "[audit] Không thể ghi bản ghi kiểm tra vào PostgreSQL:",
+        err instanceof Error ? err.message : String(err)
+      );
+    }
   }
 
   list(filter?: {
