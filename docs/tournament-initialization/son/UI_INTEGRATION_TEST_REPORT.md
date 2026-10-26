@@ -106,6 +106,22 @@ Báo cáo người dùng: (1) đã có bản nháp nhưng mở "Tạo giải m�
 
 **Kiểm chứng trình duyệt (TA):** danh sách có 4 thẻ mang khối phản hồi (2 CHANGES_REQUESTED + 2 REJECTED); chi tiết giải REJECTED hiển thị nguyên văn lý do. Suite: web 73 file/366 tests PASS, workspace 368 PASS, typecheck + lint + build PASS.
 
+## Vòng 8 — Module "Giải đấu của tôi" phía người chơi + sửa card admin (demo local, CHƯA PUSH — chờ duyệt)
+
+**Phạm vi người dùng yêu cầu:** module cho người chơi khi được add vào giải; sửa card admin (khối phản hồi chen ngang cùng "Chưa rõ"/nút bấm); quét copy chưa chuẩn để **liệt kê chờ duyệt — chưa xóa**.
+
+**A. Module "Giải đấu của tôi" (mới):**
+- Server: `GET /api/me/tournaments` + `GET /api/me/tournaments/:tournamentId` (file mới `me-tournaments.route.ts`, yêu cầu tài khoản đã kích hoạt — phiên khách bị chặn 403). Nguồn dữ liệu ghép **Prisma-first** (roster D03/D04 ghi thẳng DB) + enrollments in-memory của store; chi tiết trả: tóm tắt giải, trạng thái cá nhân (ghi danh/điểm danh/seed rating/đơn vị/bot ghim), **trận đấu engine đã ghép cho tôi** (đối thủ, bên cầm, kết quả, nút Vào trận khi RUNNING + roomId), **bảng xếp hạng theo chính sách `leaderboardVisibility`** (HIDDEN_UNTIL_END → chỉ mở khi giải kết thúc).
+- Web: trang `/giai-dau-cua-toi` (danh sách + empty state trung thực) và `/giai-dau-cua-toi/:tournamentId` (Tình trạng của bạn, Thể thức & lịch, Trận đấu của bạn, BXH có tô sáng hàng của tôi); nav "Giải đấu" trong shell người chơi.
+- **Demo trọn luồng thật (API + trình duyệt):** TA import roster (1 dòng, person_key `KHOA_CNTT_UITEST:SV_DEMO_001`) → cấp token 64 ký tự → người chơi claim (username `thidat_demo01`) → đặt mật khẩu → đăng nhập → "Giải đấu của tôi" hiện đúng 1 giải với trạng thái "Đã ghi danh — đủ điều kiện thi đấu", chi tiết hiển thị đầy đủ. Ảnh chụp đính kèm cuộc trò chuyện.
+- Lỗi phát hiện & vá trong vòng này: roster import ghi thẳng Prisma trong khi bản nháp đầu của route chỉ đọc store RAM → enrollment mới import không hiện; đã sửa route đọc Prisma-first + merge store.
+
+**B. Card admin:** khối "Phản hồi của Ban quản trị" chuyển xuống **đáy thẻ, full width** — hết tình trạng chen ngang cùng "Chưa rõ" và nút bấm.
+
+**C. Danh sách copy chờ duyệt (chưa xóa — xem mục "Đề nghị chỉnh sửa văn bản" trong báo cáo cuối):** liệt kê tại phần cuối buổi, chờ SA duyệt từng mục.
+
+**Gates:** web 73 file/366 PASS, workspace 368 PASS, server 481 PASS/6 skip, typecheck + lint + build PASS. Đã commit local `91476c6..` — **không push, chờ duyệt.**
+
 ## Cách tái lập môi trường
 
 ```bash

@@ -101,6 +101,7 @@ export function AppLayout() {
       <NavLink className="brand" to={routes.home} aria-label="OTT v2 — Oẳn Tù Tì v2 — Trang chủ"><RobotLabWordmark /></NavLink>
       <nav className="main-nav" aria-label="Điều hướng chính">
         <NavLink to={routes.home}>Sảnh</NavLink>
+        <NavLink to={routes.myTournaments}>Giải đấu</NavLink>
         <NavLink to={routes.botWorkbench}>Xưởng Bot</NavLink>
         <NavLink to={routes.rooms}>Đấu trường</NavLink>
         <NavLink to={routes.friends}>Bạn bè</NavLink>

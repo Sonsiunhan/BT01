@@ -29,6 +29,8 @@ const TournamentWizardPage = lazy(() => import("../features/admin/tournaments/To
 const TournamentDetailPage = lazy(() => import("../features/admin/tournaments/TournamentDetailPage"));
 const TournamentRulesPage = lazy(() => import("../features/admin/tournaments/TournamentRulesPage"));
 const OfflineHubPage = lazy(() => import("../features/admin/offline/OfflineHubPage"));
+const MyTournamentsPage = lazy(() => import("../pages/MyTournamentsPage"));
+const MyTournamentDetailPage = lazy(() => import("../pages/MyTournamentDetailPage"));
 const OfflineBotsPage = lazy(() => import("../features/admin/offline/OfflineBotsPage"));
 const OfflinePracticeHumanBotPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanBotPage"));
 const OfflinePracticeHumanHumanPage = lazy(() => import("../features/admin/offline/OfflinePracticeHumanHumanPage"));
@@ -53,6 +55,8 @@ export function AppRouter() {
     <Routes>
       {/* Client Player Shell */}
       <Route element={<AppLayout />}>
+        <Route path={routes.myTournaments} element={<MyTournamentsPage />} />
+        <Route path={routes.myTournamentDetail} element={<MyTournamentDetailPage />} />
         <Route path={routes.home} element={<HomePage />} />
         <Route path={routes.login} element={<LoginPage />} />
         <Route path={routes.canonicalLogin} element={<LoginPage />} />

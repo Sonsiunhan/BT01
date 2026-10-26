@@ -7,6 +7,8 @@ export const routes = {
   forgotPassword: "/quen-mat-khau",
   gameRoom: "/phong/:roomId",
   history: "/lich-su",
+  myTournaments: "/giai-dau-cua-toi",
+  myTournamentDetail: "/giai-dau-cua-toi/:tournamentId",
   profile: "/ho-so",
   friends: "/ban-be",
   settings: "/cai-dat",

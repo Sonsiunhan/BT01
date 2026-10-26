@@ -13,6 +13,7 @@ import { ApprovalService } from "./approval.service.js";
 import { CoreDraftService } from "./core-draft.service.js";
 import { TournamentLifecycleService } from "./lifecycle.service.js";
 import { registerTournamentCoreRoutes } from "./tournament-core.route.js";
+import { registerMyTournamentRoutes } from "./me-tournaments.route.js";
 import {
   InMemoryReadinessSourcesAdapter,
   PrismaReadinessSourcesAdapter,
@@ -117,6 +118,8 @@ export async function registerTournamentInitializationRoutes(
     admissionGateService: bundle.admissionGateService,
     adjudicationLedgerService: bundle.adjudicationLedgerService,
   });
+  // Player-facing "Giải đấu của tôi" — enrollments of the current account.
+  await registerMyTournamentRoutes(app, auth, bundle.store, bundle.adjudicationLedgerService, bundle.database);
   if (bundle.staffService) registerTournamentStaffRoutes(app, auth, bundle.staffService);
   await registerBotReadinessRoutes(app, auth, bundle.store, bundle.botReadinessService);
   if (bundle.supportRecoveryService) registerSupportRecoveryRoutes(app, auth, bundle.supportRecoveryService);

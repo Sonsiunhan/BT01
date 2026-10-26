@@ -192,27 +192,6 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
           )}
         </div>
 
-        {showReviewFeedback && (
-          <div
-            data-testid={`tournament-review-note-${tournamentId}`}
-            role="note"
-            style={{
-              border: "1px solid var(--warning, #f59e0b)",
-              borderLeftWidth: "3px",
-              borderRadius: "6px",
-              background: "color-mix(in srgb, var(--warning, #f59e0b) 10%, var(--surface))",
-              padding: "0.5rem 0.7rem",
-              fontSize: "0.78rem",
-              color: "var(--text)",
-            }}
-          >
-            <strong style={{ display: "block", marginBottom: "0.15rem" }}>
-              Phản hồi của Ban quản trị:
-            </strong>
-            <span style={{ color: "var(--text-secondary)" }}>{reviewExcerpt}</span>
-          </div>
-        )}
-
         {/* Action Button */}
         <Link
           to={primaryActionUrl}
@@ -231,6 +210,27 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
           {primaryActionLabel} →
         </Link>
       </div>
+
+      {showReviewFeedback && (
+        <div
+          data-testid={`tournament-review-note-${tournamentId}`}
+          role="note"
+          style={{
+            border: "1px solid var(--warning, #f59e0b)",
+            borderLeftWidth: "3px",
+            borderRadius: "6px",
+            background: "color-mix(in srgb, var(--warning, #f59e0b) 10%, var(--surface))",
+            padding: "0.5rem 0.7rem",
+            fontSize: "0.78rem",
+            color: "var(--text)",
+          }}
+        >
+          <strong style={{ display: "block", marginBottom: "0.15rem" }}>
+            Phản hồi của Ban quản trị:
+          </strong>
+          <span style={{ color: "var(--text-secondary)" }}>{reviewExcerpt}</span>
+        </div>
+      )}
     </article>
   );
 };
