@@ -184,6 +184,12 @@ export interface DraftFormData {
   maxParticipants: number;
   checkinRequired: boolean;
   expectedRevision?: number;
+  /**
+   * Transient UI flag (never sent to the server): the schedule dates were
+   * auto-filled by draft-save because TournamentCoreConfigSchema requires
+   * them. Submit stays blocked until the user picks a real schedule.
+   */
+  scheduleProvisional?: boolean;
 
   // S04 Extended Form Groups
   allowedUnitCodes?: string[];

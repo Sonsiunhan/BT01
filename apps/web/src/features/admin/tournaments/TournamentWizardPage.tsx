@@ -217,17 +217,23 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   }, [apiClient, isEditMode, tournamentIdParam]);
 
   // Auto-persist to local buffer on formData change (only after the owning
-  // account identity resolved, so nothing is written under the wrong key).
+  // account identity resolved, and never while the server draft is still
+  // loading — otherwise the defaults would clobber the persisted
+  // provisional-schedule flag before the edit load reads it).
   useEffect(() => {
-    if (!bufferReady) return;
+    if (!bufferReady || loadingInitial) return;
     saveLocalDraftBuffer(draftStorageKey, formData);
-  }, [formData, draftStorageKey, bufferReady]);
+  }, [formData, draftStorageKey, bufferReady, loadingInitial]);
 
   const updateField = <K extends keyof DraftFormData>(field: K, value: DraftFormData[K]) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       if (field === "name" && !prev.slug && typeof value === "string") {
         updated.slug = slugify(value);
+      }
+      // Picking a real schedule date hands control back from the auto-fill
+      if (field === "startAt" || field === "endAt") {
+        updated.scheduleProvisional = false;
       }
       return updated;
     });
@@ -292,6 +298,11 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       scoreFloor: formData.scoreFloor,
     });
 
+    // The server schema requires schedule dates even for drafts; when the user
+    // has not picked any yet, the auto-filled values are marked provisional so
+    // submit stays blocked until real dates are chosen.
+    const usedInventedSchedule = !formData.startAt || !formData.endAt;
+
     try {
       if (formData.tournamentId) {
         // PATCH existing draft
@@ -316,9 +327,47 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           expectedRevision: created.revision,
         }));
         setLastSavedTime(new Date().toLocaleTimeString("vi-VN"));
+        // The draft now lives on the server under its own id — the blank-form
+        // buffer must be cleared so "Tạo giải mới" starts empty next time
+        // instead of restoring this draft's fields.
+        clearLocalDraftBuffer(`new_tournament_draft:${bufferOwnerId}`);
+        if (usedInventedSchedule) {
+          // Navigating to /edit remounts the wizard, so this instance's state
+          // dies here — seed the edit buffer directly with the provisional
+          // flag the remounted instance must restore.
+          saveLocalDraftBuffer(`draft_${created.id}:${bufferOwnerId}`, {
+            ...formData,
+            tournamentId: created.id,
+            expectedRevision: created.revision,
+            scheduleProvisional: true,
+          });
+        }
         // Update URL to edit mode without full reload
         navigate(`/admin/tournaments/${created.id}/edit`, { replace: true });
+        const notice =
+          "Lịch trình đang là giá trị tạm do hệ thống điền khi lưu bản nháp — hãy chọn lại lịch thật ở Bước 2 trước khi nộp duyệt.";
+        // Reachable on BOTH branches (create does not remount: React keeps the
+        // same wizard instance across /new → /edit), so the flag must be set
+        // here and also seeded into the buffer for genuine remounts.
+        setFormData((prev) => ({
+          ...prev,
+          startAt: prev.startAt || effectiveStart,
+          endAt: prev.endAt || effectiveEnd,
+          scheduleProvisional: true,
+        }));
+        setFieldErrors((prev) => ({ ...prev, startAt: notice, endAt: notice }));
         return created.id;
+      }
+      if (usedInventedSchedule) {
+        const notice =
+          "Lịch trình đang là giá trị tạm do hệ thống điền khi lưu bản nháp — hãy chọn lại lịch thật ở Bước 2 trước khi nộp duyệt.";
+        setFormData((prev) => ({
+          ...prev,
+          startAt: prev.startAt || effectiveStart,
+          endAt: prev.endAt || effectiveEnd,
+          scheduleProvisional: true,
+        }));
+        setFieldErrors((prev) => ({ ...prev, startAt: notice, endAt: notice }));
       }
     } catch (err: unknown) {
       const details = errorRecord(err);
@@ -340,7 +389,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     } finally {
       setSaving(false);
     }
-  }, [apiClient, formData, navigate, serverRevision]);
+  }, [apiClient, formData, navigate, serverRevision, bufferOwnerId]);
 
   // Reload draft from server on conflict
   const handleReloadLatest = async () => {
@@ -415,7 +464,10 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       setSubmitSuccessMessage(
         "Giải đấu đã được nộp duyệt thành công và chuyển sang trạng thái ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW). Quản trị viên hệ thống sẽ kiểm tra và phản hồi."
       );
-      clearLocalDraftBuffer(targetId);
+      // The saved buffer key is composed with the account id; the raw id never
+      // matched it, so stale local copies silently survived submission.
+      clearLocalDraftBuffer(`draft_${targetId}:${bufferOwnerId}`);
+      clearLocalDraftBuffer(`new_tournament_draft:${bufferOwnerId}`);
     } catch (err: unknown) {
       const details = errorRecord(err);
       if ((details.details as Record<string, unknown> | undefined)?.reason === "STALE_VERSION") {
@@ -432,7 +484,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     } finally {
       setSubmittingDraft(false);
     }
-  }, [apiClient, formData.tournamentId, serverRevision, submissionNote, handleSaveDraft]);
+  }, [apiClient, formData.tournamentId, serverRevision, submissionNote, handleSaveDraft, bufferOwnerId]);
 
   const handleDiscardLocalBuffer = () => {
     clearLocalDraftBuffer(draftStorageKey);
@@ -1170,7 +1222,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   onChange={(e) => updateField("startAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("startAt") }}
                 />
-                {fieldErrors.startAt && <span style={RED_HINT_STYLE}>{fieldErrors.startAt}</span>}
+                {fieldErrors.startAt ? (
+                  <span style={RED_HINT_STYLE}>{fieldErrors.startAt}</span>
+                ) : (
+                  formData.scheduleProvisional && (
+                    <span style={{ fontSize: "0.75rem", color: "var(--warning, #f59e0b)", fontWeight: 600 }}>
+                      Giá trị tạm do hệ thống điền khi lưu nháp — hãy chọn lịch thật trước khi nộp duyệt.
+                    </span>
+                  )
+                )}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -1186,7 +1246,15 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   onChange={(e) => updateField("endAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("endAt") }}
                 />
-                {fieldErrors.endAt && <span style={RED_HINT_STYLE}>{fieldErrors.endAt}</span>}
+                {fieldErrors.endAt ? (
+                  <span style={RED_HINT_STYLE}>{fieldErrors.endAt}</span>
+                ) : (
+                  formData.scheduleProvisional && (
+                    <span style={{ fontSize: "0.75rem", color: "var(--warning, #f59e0b)", fontWeight: 600 }}>
+                      Giá trị tạm do hệ thống điền khi lưu nháp — hãy chọn lịch thật trước khi nộp duyệt.
+                    </span>
+                  )
+                )}
               </div>
             </div>
 

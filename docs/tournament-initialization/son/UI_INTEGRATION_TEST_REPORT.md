@@ -70,6 +70,21 @@ Kiểm chứng trình duyệt: SA vào `/lich-su` → kết thúc tại `/admin/
 
 Ghi chú thiết kế: chuyển hướng "ép về console ở mọi route" là mẫu phù hợp cho hệ thống tách biệt nghiêm ngặt staff/player (định hướng đã chốt của dự án từ S01/23009fe). Mẫu phổ biến trong thực tế rộng hơn là chỉ chặn landing root và cho admin tự do xem trang người chơi — nếu sau này cần admin xem trải nghiệm người chơi (QA nội dung), dùng tài khoản player/khách riêng.
 
+## Vòng 5 — Bản nháp: "Tạo mới" khởi đầu trắng và lịch tạm không được nộp duyệt (2026-10-27)
+
+Báo cáo người dùng: (1) đã có bản nháp nhưng mở "Tạo giải mới" lại được khôi phục dữ liệu cũ; (2) nộp duyệt bị chặn đòi lịch trình, nhưng sau khi bấm "Lưu bản nháp" (chưa nhập lịch) lại nộp được.
+
+**Nguyên nhân gốc:**
+- Bộ đệm cục bộ của form tạo mới không được dọn sau khi bản nháp đã lưu server; kèm lỗi lệch khóa lịch sử (`clearLocalDraftBuffer(targetId)` không khớp khóa đã lưu `draft_{id}:{uid}`) khiến việc dọn không bao giờ khớp.
+- Schema server bắt buộc `scheduledStartAt/EndAt` kể cả với bản nháp, nên wizard **âm thầm tự điền ngày mai/mốt** khi lưu; sau khi lưu, form mang ngày tự điền đó → cổng kiểm tra nộp duyệt (đã vá ở Vòng 3) bị "qua mặt" bởi dữ liệu người dùng chưa từng nhập.
+
+**Đã vá:**
+- Lưu nháp vẫn tự điền lịch (ràng buộc schema) nhưng đánh dấu `scheduleProvisional` minh bạch: hint vàng "Giá trị tạm do hệ thống điền khi lưu nháp" trên 2 ô lịch, banner chặn nộp duyệt ghi rõ "hãy chọn lại lịch thật ở Bước 2"; người dùng tự chọn lại lịch → gỡ cờ → nộp bình thường.
+- Dọn đúng khóa đệm theo tài khoản sau khi tạo (form "Tạo mới" khởi đầu trắng) và sau khi nộp duyệt (cả khóa bản nháp lẫn khóa tạo mới).
+- Phát hiện thực tế: React giữ nguyên instance wizard khi URL đổi /new → /edit (không remount) — cờ được set trực tiếp trong instance + seed vào đệm cho trường hợp remount thật; auto-persist bị chặn trong lúc tải bản nháp để không ghi đè cờ bằng form mặc định.
+
+**Kiểm chứng trình duyệt (trình tự đúng như người dùng gặp):** Lưu nháp không có lịch ✓ → Nộp duyệt bị chặn "giá trị tạm" ✓ → chọn lịch thật ở Bước 2 → Nộp duyệt mở modal ✓ → xác nhận → UNDER_REVIEW ✓ → mở lại "Tạo giải mới" → form trắng, không khôi phục ✓. Suite: web 73 file/366 tests PASS (thêm `wizardSubmitValidation.test.ts` 6 case), workspace 368 PASS, typecheck + lint + build PASS.
+
 ## Cách tái lập môi trường
 
 ```bash

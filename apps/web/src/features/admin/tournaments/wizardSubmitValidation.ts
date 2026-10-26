@@ -48,6 +48,15 @@ export function validateDraftForSubmit(data: DraftFormData): Record<string, stri
     errors.endAt = "Thời gian kết thúc phải sau thời gian bắt đầu.";
   }
 
+  // Draft-save auto-fills server-required schedule dates; submitting with
+  // those untouched placeholders must stay blocked until the user picks real
+  // dates.
+  if (data.scheduleProvisional && !errors.startAt && !errors.endAt) {
+    errors.startAt =
+      "Lịch trình hiện là giá trị tạm do hệ thống điền khi lưu bản nháp — hãy chọn lại lịch thật ở Bước 2 trước khi nộp duyệt.";
+    errors.endAt = errors.startAt;
+  }
+
   const min = Number(data.minParticipants);
   const max = Number(data.maxParticipants);
   if (!Number.isFinite(min) || min < 2) {
