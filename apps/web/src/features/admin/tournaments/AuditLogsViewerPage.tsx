@@ -4,6 +4,7 @@ import { UiGlyph } from "../../../components/ui/UiGlyph";
 import { routes } from "../../../app/routes";
 import { defaultTournamentApi, type TournamentApiPort } from "./tournamentApi";
 import type { AuditLogRecordDto } from "@ottv2/contracts";
+import "./AuditLogsViewerPage.css";
 
 interface AuditLogsViewerPageProps {
   apiClient?: TournamentApiPort;
@@ -139,72 +140,66 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
+    <div className="audit-logs-page" data-testid="audit-logs-page">
       {/* Navigation Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-zinc-400">
-        <Link to={routes.admin} className="hover:text-cyan-400 transition-colors">
+      <div className="audit-breadcrumb">
+        <Link to={routes.admin}>
           Bảng điều khiển
         </Link>
         <span>/</span>
         {isTournamentScoped ? (
           <>
-            <Link to={routes.adminTournaments} className="hover:text-cyan-400 transition-colors">
+            <Link to={routes.adminTournaments}>
               Giải đấu
             </Link>
             <span>/</span>
-            <Link
-              to={`/admin/tournaments/${effectiveTournamentId}`}
-              className="hover:text-cyan-400 transition-colors"
-            >
+            <Link to={`/admin/tournaments/${effectiveTournamentId}`}>
               {effectiveTournamentId}
             </Link>
             <span>/</span>
-            <span className="text-zinc-200 font-medium">Nhật ký kiểm toán</span>
+            <strong style={{ color: "var(--text)" }}>Nhật ký kiểm toán</strong>
           </>
         ) : (
-          <span className="text-zinc-200 font-medium">Nhật ký kiểm toán hệ thống</span>
+          <strong style={{ color: "var(--text)" }}>Nhật ký kiểm toán hệ thống</strong>
         )}
       </div>
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-              <UiGlyph name="history" className="w-6 h-6" />
-            </span>
-            <h1 data-testid="audit-page-title" className="text-2xl font-bold tracking-tight text-zinc-100">
+      <div className="audit-header">
+        <div className="audit-header-title-group">
+          <div className="audit-header-icon">
+            <UiGlyph name="history" size={24} />
+          </div>
+          <div>
+            <h1 data-testid="audit-page-title" className="audit-title">
               {isTournamentScoped ? "Nhật ký kiểm toán giải đấu" : "Nhật ký kiểm toán hệ thống"}
             </h1>
+            <p className="audit-subtitle">
+              {isTournamentScoped
+                ? `Lịch sử truy vết mọi hành vi thay đổi cấu hình, duyệt và vận hành của giải ${effectiveTournamentId}.`
+                : "Truy vết toàn bộ thao tác quản trị trên nền tảng với dữ liệu bất biến và đã được khử nhạy cảm sâu."}
+            </p>
           </div>
-          <p className="mt-1 text-sm text-zinc-400">
-            {isTournamentScoped
-              ? `Lịch sử truy vết mọi hành vi thay đổi cấu hình, duyệt và vận hành của giải ${effectiveTournamentId}.`
-              : "Truy vết toàn bộ thao tác quản trị trên nền tảng với dữ liệu bất biến và đã được khử nhạy cảm sâu."}
-          </p>
         </div>
 
         {isTournamentScoped && (
-          <div className="flex items-center gap-3">
+          <div>
             <Link
               to={`/admin/tournaments/${effectiveTournamentId}`}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 transition-colors"
+              className="button secondary"
               id="back-to-tournament-detail-btn"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Quay lại giải đấu
+              Quay lại
             </Link>
           </div>
         )}
       </div>
 
       {/* Filter Bar */}
-      <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 backdrop-blur-sm space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="filter-target-type-select" className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+      <div className="audit-filter-bar">
+        <div className="audit-filter-grid">
+          <div className="audit-filter-field">
+            <label htmlFor="filter-target-type-select" className="audit-filter-label">
               Loại mục tiêu
             </label>
             <select
@@ -212,7 +207,6 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
               data-testid="filter-target-type-select"
               value={filter.targetType || ""}
               onChange={(e) => setFilter((prev) => ({ ...prev, targetType: e.target.value }))}
-              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-200 focus:outline-none focus:border-cyan-500 transition-colors"
             >
               {TARGET_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -222,8 +216,8 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
             </select>
           </div>
 
-          <div>
-            <label htmlFor="filter-target-id-input" className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+          <div className="audit-filter-field">
+            <label htmlFor="filter-target-id-input" className="audit-filter-label">
               Mã mục tiêu (Target ID)
             </label>
             <input
@@ -234,12 +228,11 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
               disabled={isTournamentScoped}
               onChange={(e) => setFilter((prev) => ({ ...prev, targetId: e.target.value }))}
               placeholder="VD: tour-001, HD-2026..."
-              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-200 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-cyan-500 transition-colors"
             />
           </div>
 
-          <div>
-            <label htmlFor="filter-actor-id-input" className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+          <div className="audit-filter-field">
+            <label htmlFor="filter-actor-id-input" className="audit-filter-label">
               Người thực hiện (User ID)
             </label>
             <input
@@ -249,31 +242,32 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
               value={filter.actorUserId || ""}
               onChange={(e) => setFilter((prev) => ({ ...prev, actorUserId: e.target.value }))}
               placeholder="VD: user-ta-01..."
-              className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-200 focus:outline-none focus:border-cyan-500 transition-colors"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
-          <span className="text-xs text-zinc-400">
-            Tìm thấy <strong className="text-cyan-400">{allLogs.length}</strong> bản ghi kiểm toán
+        <div className="audit-filter-actions">
+          <span className="audit-count-label">
+            Tìm thấy <strong>{allLogs.length}</strong> bản ghi kiểm toán
           </span>
-          <div className="flex gap-2">
+          <div style={{ display: "flex", gap: "0.5rem" }}>
             <button
               type="button"
               onClick={handleResetFilters}
-              className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+              className="button secondary"
               id="reset-audit-filters-btn"
+              style={{ fontSize: "0.82rem", padding: "0.4rem 0.85rem" }}
             >
               Đặt lại
             </button>
             <button
               type="button"
               onClick={() => fetchLogs(filter)}
-              className="px-4 py-1.5 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm shadow-cyan-900/30"
+              className="button primary"
               id="apply-audit-filters-btn"
+              style={{ fontSize: "0.82rem", padding: "0.4rem 1rem" }}
             >
-              <UiGlyph name="refresh" className="w-3.5 h-3.5" />
+              <UiGlyph name="refresh" size={14} />
               Làm mới
             </button>
           </div>
@@ -282,11 +276,26 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
 
       {/* Error state */}
       {error && (
-        <div className="p-4 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-sm flex items-center justify-between">
+        <div
+          role="alert"
+          style={{
+            padding: "1rem",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--danger)",
+            background: "color-mix(in srgb, var(--danger) 12%, var(--surface))",
+            color: "var(--danger)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: "0.88rem",
+          }}
+        >
           <span>{error}</span>
           <button
+            type="button"
             onClick={() => fetchLogs(filter)}
-            className="px-3 py-1 bg-rose-600 text-white rounded-lg text-xs hover:bg-rose-500 transition-colors"
+            className="button secondary"
+            style={{ fontSize: "0.8rem", padding: "0.25rem 0.6rem" }}
           >
             Thử lại
           </button>
@@ -294,76 +303,99 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
       )}
 
       {/* Table Content */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden shadow-xl shadow-black/20">
+      <div className="audit-table-card">
         {loading ? (
-          <div className="py-20 text-center space-y-3">
-            <div className="inline-block w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-zinc-400">Đang tải nhật ký kiểm toán...</p>
+          <div style={{ padding: "4rem 1rem", textAlign: "center" }}>
+            <div
+              style={{
+                width: "2rem",
+                height: "2rem",
+                border: "3px solid var(--border)",
+                borderTopColor: "var(--system-cyan)",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                margin: "0 auto 1rem",
+              }}
+            />
+            <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>Đang tải nhật ký kiểm toán...</p>
           </div>
         ) : allLogs.length === 0 ? (
-          <div className="py-16 text-center space-y-3" id="audit-empty-state">
-            <div className="w-12 h-12 mx-auto rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-400 border border-zinc-700">
-              <UiGlyph name="history" className="w-6 h-6" />
+          <div style={{ padding: "3.5rem 1rem", textAlign: "center" }} id="audit-empty-state">
+            <div
+              style={{
+                width: "3rem",
+                height: "3rem",
+                borderRadius: "50%",
+                background: "var(--surface-raised)",
+                border: "1px solid var(--border)",
+                display: "grid",
+                placeItems: "center",
+                margin: "0 auto 0.75rem",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <UiGlyph name="history" size={24} />
             </div>
-            <h3 className="text-base font-semibold text-zinc-200">Không tìm thấy bản ghi kiểm toán nào</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+            <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text)", margin: "0 0 0.25rem" }}>
+              Không tìm thấy bản ghi kiểm toán nào
+            </h3>
+            <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", maxWidth: "24rem", margin: "0 auto" }}>
               Chưa có thao tác nào được ghi nhận cho điều kiện lọc đã chọn. Hãy thử điều chỉnh bộ lọc hoặc làm mới dữ liệu.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse" id="audit-logs-table">
+          <div style={{ overflowX: "auto" }}>
+            <table className="audit-table" id="audit-logs-table">
               <thead>
-                <tr className="border-b border-zinc-800 bg-zinc-900/80 text-xs uppercase tracking-wider text-zinc-400">
-                  <th className="py-3 px-4 font-semibold">Thời điểm</th>
-                  <th className="py-3 px-4 font-semibold">Người thực hiện</th>
-                  <th className="py-3 px-4 font-semibold">Hành động</th>
-                  <th className="py-3 px-4 font-semibold">Đối tượng</th>
-                  <th className="py-3 px-4 font-semibold">Lý do / Ghi chú</th>
-                  <th className="py-3 px-4 font-semibold text-right">Thao tác</th>
+                <tr>
+                  <th>Thời điểm</th>
+                  <th>Người thực hiện</th>
+                  <th>Hành động</th>
+                  <th>Đối tượng</th>
+                  <th>Lý do / Ghi chú</th>
+                  <th style={{ textAlign: "right" }}>Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60">
+              <tbody>
                 {paginatedLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-zinc-800/30 transition-colors">
-                    <td className="py-3.5 px-4 font-mono text-xs text-zinc-300 whitespace-nowrap">
+                  <tr key={log.id}>
+                    <td style={{ fontFamily: "var(--font-data)", fontSize: "0.82rem", whiteSpace: "nowrap" }}>
                       {formatTimestamp(log.createdAt)}
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-zinc-200">{log.actorUserId}</span>
+                    <td style={{ whiteSpace: "nowrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span style={{ fontFamily: "var(--font-data)", fontSize: "0.82rem" }}>{log.actorUserId}</span>
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${getRoleBadgeClass(
-                            log.actorRole
-                          )}`}
+                          className={`badge ${getRoleBadgeClass(log.actorRole)}`}
+                          style={{ fontSize: "0.68rem", padding: "0.15rem 0.45rem", borderRadius: "999px" }}
                         >
                           {log.actorRole}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td style={{ whiteSpace: "nowrap" }}>
                       <span
-                        className={`text-xs px-2.5 py-1 rounded-md border font-mono font-medium ${getActionBadgeClass(
-                          log.action
-                        )}`}
+                        className={`badge ${getActionBadgeClass(log.action)}`}
+                        style={{ fontFamily: "var(--font-data)", fontSize: "0.78rem", padding: "0.2rem 0.55rem", borderRadius: "4px" }}
                       >
                         {log.action}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="text-xs">
-                        <span className="text-zinc-400 font-medium">{log.targetType}: </span>
-                        <span className="text-zinc-200 font-mono">{log.targetId}</span>
+                    <td style={{ whiteSpace: "nowrap" }}>
+                      <div style={{ fontSize: "0.82rem" }}>
+                        <span style={{ color: "var(--text-secondary)" }}>{log.targetType}: </span>
+                        <span style={{ fontFamily: "var(--font-data)" }}>{log.targetId}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-zinc-400 max-w-xs truncate" title={log.reason || ""}>
+                    <td style={{ fontSize: "0.82rem", color: "var(--text-secondary)", maxWidth: "260px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={log.reason || ""}>
                       {log.reason || "—"}
                     </td>
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                       <button
                         type="button"
                         onClick={() => setSelectedRecord(log)}
-                        className="px-3 py-1 text-xs font-medium rounded border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 transition-colors"
+                        className="button secondary"
+                        style={{ fontSize: "0.78rem", padding: "0.3rem 0.65rem" }}
                         id={`view-audit-detail-${log.id}`}
                         data-testid={`view-audit-detail-${log.id}`}
                       >
@@ -379,16 +411,17 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
 
         {/* Pagination Footer */}
         {!loading && allLogs.length > pageSize && (
-          <div className="p-4 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400">
+          <div className="audit-pagination-footer">
             <span>
-              Trang <strong className="text-zinc-200">{currentPage}</strong> / {totalPages}
+              Trang <strong style={{ color: "var(--text)" }}>{currentPage}</strong> / {totalPages}
             </span>
-            <div className="flex gap-2">
+            <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
                 type="button"
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded border border-zinc-800 bg-zinc-850 hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200 transition-colors"
+                className="button secondary"
+                style={{ fontSize: "0.8rem", padding: "0.3rem 0.75rem" }}
                 id="audit-prev-page-btn"
               >
                 Trước
@@ -397,7 +430,8 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
                 type="button"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 rounded border border-zinc-800 bg-zinc-850 hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200 transition-colors"
+                className="button secondary"
+                style={{ fontSize: "0.8rem", padding: "0.3rem 0.75rem" }}
                 id="audit-next-page-btn"
               >
                 Sau
@@ -410,103 +444,99 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
       {/* Snapshot Inspector Modal */}
       {selectedRecord && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          className="audit-modal-backdrop"
           role="dialog"
           aria-modal="true"
           id="audit-snapshot-modal"
           data-testid="audit-snapshot-modal"
         >
-          <div className="relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl overflow-hidden">
+          <div className="audit-modal-card">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/60">
-              <div className="flex items-center gap-3">
-                <span className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-                  <UiGlyph name="history" className="w-5 h-5" />
-                </span>
+            <div className="audit-modal-header">
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div className="audit-header-icon" style={{ width: "2.2rem", height: "2.2rem" }}>
+                  <UiGlyph name="history" size={18} />
+                </div>
                 <div>
-                  <h3 data-testid="audit-modal-title" className="text-base font-semibold text-zinc-100">Chi tiết bản ghi kiểm toán</h3>
-                  <p className="text-xs text-zinc-400 font-mono">ID: {selectedRecord.id}</p>
+                  <h3 data-testid="audit-modal-title" style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "var(--text)" }}>
+                    Chi tiết bản ghi kiểm toán
+                  </h3>
+                  <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", fontFamily: "var(--font-data)", color: "var(--text-secondary)" }}>
+                    ID: {selectedRecord.id}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedRecord(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="button secondary"
+                style={{ padding: "0.3rem 0.5rem" }}
                 id="close-audit-modal-btn"
+                aria-label="Đóng cửa sổ"
               >
-                <UiGlyph name="close" className="w-5 h-5" />
+                <UiGlyph name="close" size={16} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6">
+            <div className="audit-modal-body">
               {/* Summary Metadata Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-zinc-800 bg-zinc-950/40 text-xs">
+              <div className="audit-modal-meta-grid">
                 <div>
-                  <span className="text-zinc-500 block">Thời gian:</span>
-                  <span className="text-zinc-200 font-medium">{formatTimestamp(selectedRecord.createdAt)}</span>
+                  <span style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.75rem", marginBottom: "0.2rem" }}>Thời gian:</span>
+                  <strong style={{ fontFamily: "var(--font-data)" }}>{formatTimestamp(selectedRecord.createdAt)}</strong>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block">Người thực hiện:</span>
-                  <span className="text-zinc-200 font-mono">{selectedRecord.actorUserId}</span>
+                  <span style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.75rem", marginBottom: "0.2rem" }}>Người thực hiện:</span>
+                  <strong style={{ fontFamily: "var(--font-data)" }}>{selectedRecord.actorUserId}</strong>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block">Hành động:</span>
-                  <span className="text-cyan-400 font-mono font-medium">{selectedRecord.action}</span>
+                  <span style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.75rem", marginBottom: "0.2rem" }}>Hành động:</span>
+                  <strong style={{ color: "var(--system-cyan)", fontFamily: "var(--font-data)" }}>{selectedRecord.action}</strong>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block">Mục tiêu:</span>
-                  <span className="text-zinc-200 font-mono">
-                    {selectedRecord.targetType} / {selectedRecord.targetId}
-                  </span>
+                  <span style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.75rem", marginBottom: "0.2rem" }}>Mục tiêu:</span>
+                  <strong style={{ fontFamily: "var(--font-data)" }}>{selectedRecord.targetType} / {selectedRecord.targetId}</strong>
                 </div>
               </div>
 
               {selectedRecord.reason && (
-                <div className="p-3 rounded-lg border border-zinc-800 bg-zinc-950/30 text-xs">
-                  <span className="text-zinc-400 font-semibold block mb-1">Lý do / Căn cứ phê duyệt:</span>
-                  <p className="text-zinc-200">{selectedRecord.reason}</p>
+                <div style={{ padding: "0.85rem 1rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--surface-raised)", fontSize: "0.85rem" }}>
+                  <span style={{ fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: "0.25rem" }}>Lý do / Căn cứ phê duyệt:</span>
+                  <p style={{ margin: 0, color: "var(--text)" }}>{selectedRecord.reason}</p>
                 </div>
               )}
 
               {/* Snapshots Comparison */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Before Snapshot */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold text-zinc-400">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
                     <span>Trước thay đổi (Before)</span>
-                    {!selectedRecord.beforeSnapshot && (
-                      <span className="text-[10px] text-zinc-500 italic">Không có dữ liệu gốc</span>
-                    )}
+                    {!selectedRecord.beforeSnapshot && <span style={{ fontStyle: "italic", fontSize: "0.72rem" }}>Không có dữ liệu gốc</span>}
                   </div>
-                  <pre className="p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-xs font-mono text-zinc-300 max-h-64 overflow-auto">
-                    {selectedRecord.beforeSnapshot
-                      ? JSON.stringify(selectedRecord.beforeSnapshot, null, 2)
-                      : "null"}
+                  <pre className="audit-modal-pre">
+                    {selectedRecord.beforeSnapshot ? JSON.stringify(selectedRecord.beforeSnapshot, null, 2) : "null"}
                   </pre>
                 </div>
 
-                {/* After Snapshot */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold text-zinc-400">
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
                     <span>Sau thay đổi (After)</span>
-                    <span className="text-[10px] text-emerald-400/80">Khử nhạy cảm sâu (T077)</span>
+                    <span style={{ color: "var(--system-green)", fontSize: "0.72rem" }}>Khử nhạy cảm sâu</span>
                   </div>
-                  <pre className="p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-xs font-mono text-zinc-300 max-h-64 overflow-auto">
-                    {selectedRecord.afterSnapshot
-                      ? JSON.stringify(selectedRecord.afterSnapshot, null, 2)
-                      : "null"}
+                  <pre className="audit-modal-pre">
+                    {selectedRecord.afterSnapshot ? JSON.stringify(selectedRecord.afterSnapshot, null, 2) : "null"}
                   </pre>
                 </div>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end px-6 py-3 border-t border-zinc-800 bg-zinc-950/60">
+            <div className="audit-modal-footer">
               <button
                 type="button"
                 onClick={() => setSelectedRecord(null)}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors"
+                className="button secondary"
               >
                 Đóng
               </button>

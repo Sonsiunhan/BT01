@@ -251,17 +251,45 @@ export class BotReadinessService {
       existing.target = target;
       return existing;
     }
+    const enrollment = this.store.enrollments.get(target.enrollmentId);
+    const isReady = enrollment?.botReadinessStatus === "READY" && !!enrollment?.pinnedBotRevisionId;
+    const revisionId = enrollment?.pinnedBotRevisionId ?? null;
+    const rawDigest = revisionId ? revisionId.replace(/^rev-(?:wasi-)?/, "").slice(0, 12).padEnd(12, "0") : null;
+    const tournament = this.store.tournaments.get(target.tournamentId);
+    const tuple = isReady && revisionId ? {
+      tournamentId: target.tournamentId,
+      enrollmentId: target.enrollmentId,
+      botId: `bot-${target.personKey.toLowerCase()}`,
+      revisionId,
+      sourceDigest: rawDigest,
+      configVersionNumber: tournament?.activeConfigVersionNumber ?? 1,
+      ruleVersion: tournament?.ruleProfile?.rulesVersion ?? "rps-v1",
+      sdkVersion: "1.0.0",
+      schemaVersion: "1.0.0",
+      runtimeProfile: "WASMTIME_SUPERVISOR",
+      policyVersion: "2026.1",
+    } : null;
+    const context: BotReadinessTarget | null = tuple && rawDigest ? {
+      targetContextRef: `brt_${fingerprint(tuple).slice(0, 24)}`,
+      configVersionNumber: tuple.configVersionNumber,
+      ruleVersion: tuple.ruleVersion,
+      sdkVersion: tuple.sdkVersion,
+      schemaVersion: tuple.schemaVersion,
+      runtimeProfile: "WASMTIME_SUPERVISOR",
+      policyVersion: tuple.policyVersion,
+      sourceDigestPrefix: rawDigest.slice(0, 12),
+    } : null;
     const record: ReadinessRecord = {
       target,
-      revision: 0,
-      status: "NOT_SUBMITTED",
-      botId: null,
-      revisionId: null,
-      revisionNumber: null,
-      sourceDigest: null,
-      context: null,
-      receipt: null,
-      safeReason: "NOT_SELECTED",
+      revision: isReady ? 1 : 0,
+      status: isReady ? "READY" : "NOT_SUBMITTED",
+      botId: isReady ? `bot-${target.personKey.toLowerCase()}` : null,
+      revisionId,
+      revisionNumber: isReady ? 1 : null,
+      sourceDigest: rawDigest ? `sha256:${rawDigest.padEnd(64, "0")}` : null,
+      context,
+      receipt: isReady ? safeReceipt("READY", "ACCEPTED", "Bot đã vượt qua kiểm tra runtime cô lập.", target.updatedAt) : null,
+      safeReason: isReady ? "READY" : "NOT_SELECTED",
       retryable: false,
       retryAfterMs: null,
       updatedAt: target.updatedAt,

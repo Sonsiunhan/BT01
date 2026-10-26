@@ -27,8 +27,17 @@ import {
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
 
+import type { PrismaClient } from "@prisma/client";
+import {
+  persistTournamentToPrisma,
+  deleteTournamentFromPrisma,
+} from "../tournament-foundation/prisma-sync.js";
+
 export class CoreDraftService {
-  constructor(private readonly store: TournamentStateStore) {}
+  constructor(
+    private readonly store: TournamentStateStore,
+    private readonly database?: PrismaClient
+  ) {}
 
   private validateAgainstContract(
     contract: TournamentContractDto,
@@ -130,7 +139,18 @@ export class CoreDraftService {
     }
 
     return this.store.withLock(() => {
-      const contract = this.store.contracts.get(parsed.data.contractId);
+      let contract = this.store.contracts.get(parsed.data.contractId);
+      if (!contract) {
+        for (const c of this.store.contracts.values()) {
+          if (
+            c.contractCode.toUpperCase() === parsed.data.contractId.toUpperCase() ||
+            c.id === parsed.data.contractId
+          ) {
+            contract = c;
+            break;
+          }
+        }
+      }
       if (!contract) {
         throw createTournamentError({
           code: "NOT_FOUND",
@@ -232,6 +252,9 @@ export class CoreDraftService {
       });
 
       this.store.tournaments.set(tournament.id, tournament);
+      if (this.database) {
+        persistTournamentToPrisma(this.database, tournament).catch(() => {});
+      }
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",
@@ -347,6 +370,9 @@ export class CoreDraftService {
       });
 
       this.store.tournaments.set(tournamentId, updated);
+      if (this.database) {
+        persistTournamentToPrisma(this.database, updated).catch(() => {});
+      }
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",
@@ -422,6 +448,9 @@ export class CoreDraftService {
       }
 
       this.store.tournaments.delete(tournamentId);
+      if (this.database) {
+        deleteTournamentFromPrisma(this.database, tournamentId).catch(() => {});
+      }
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",
@@ -484,6 +513,9 @@ export class CoreDraftService {
         copiedFromTournamentId: rejectedTournamentId,
       };
       this.store.tournaments.set(updated.id, updated);
+      if (this.database) {
+        persistTournamentToPrisma(this.database, updated).catch(() => {});
+      }
       return updated;
     });
   }
@@ -531,11 +563,11 @@ export class CoreDraftService {
         serverNowIso: nowIso,
       });
 
-      if (existing.ownerTaUserId !== actor.userId) {
+      if (existing.ownerTaUserId !== actor.userId && !actor.roles.includes("ADMIN")) {
         throw createTournamentError({
           code: "UNAUTHORIZED",
           statusCode: 403,
-          message: "Chỉ Quản trị giải (TA) sở hữu giải đấu mới được gửi duyệt.",
+          message: "Chỉ Quản trị giải (TA) sở hữu giải đấu hoặc Quản trị viên mới được gửi duyệt.",
           details: { reason: "FORBIDDEN_ROLE", tournamentId },
         });
       }
@@ -586,6 +618,9 @@ export class CoreDraftService {
       });
 
       this.store.tournaments.set(tournamentId, updated);
+      if (this.database) {
+        persistTournamentToPrisma(this.database, updated).catch(() => {});
+      }
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "TOURNAMENT_ADMIN",

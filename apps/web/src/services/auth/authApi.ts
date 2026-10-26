@@ -12,6 +12,7 @@ export type UserProfile = {
   privacy: { presenceVisibility: "FRIENDS" | "NOBODY"; friendListVisibility: "PRIVATE"; fullNameVisibility: "PRIVATE" };
   stats: { elo: number; rankedWins: number; rankedLosses: number; quickWins: number; quickLosses: number };
   botStats?: BotStats;
+  role?: string;
 };
 
 export type PublicProfile = { userId: string; username: string; displayName: string; avatarPreset: AvatarPreset; stats: UserProfile["stats"]; botStats?: BotStats; friendCount: number; recentForm: Array<"WIN" | "LOSS">; isSelf?: boolean; isFriend: boolean; requestStatus: "PENDING" | null; presence?: "OFFLINE" | "ONLINE" | "IN_GAME" };

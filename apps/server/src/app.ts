@@ -45,6 +45,7 @@ import type { TournamentVersioningPort } from "./modules/tournament-versioning/v
 import { registerTournamentAcknowledgementRoutes } from "./modules/tournament-acknowledgement/acknowledgement.route.js";
 import { TournamentAcknowledgementService } from "./modules/tournament-acknowledgement/acknowledgement.service.js";
 import { PrismaTournamentAcknowledgementGuard } from "./modules/tournament-core/acknowledgement-guard.js";
+import { syncPrismaToTournamentStore } from "./modules/tournament-foundation/prisma-sync.js";
 import { registerCors } from "./plugins/cors.js";
 import { csrfMiddleware } from "./modules/auth/csrf.middleware.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
@@ -142,6 +143,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     botLibrary,
     ...(acknowledgementService ? { acknowledgementGuard: new PrismaTournamentAcknowledgementGuard((database as PrismaDatabase).client, acknowledgementService) } : {}),
   });
+  if (database instanceof PrismaDatabase) {
+    await syncPrismaToTournamentStore(database.client, tournamentBundle.store);
+  }
   await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   // Register API diagnostics before the SPA catch-all so provider evidence
   // remains reachable even on Fastify/router versions that prefer insertion

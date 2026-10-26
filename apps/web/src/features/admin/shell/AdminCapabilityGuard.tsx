@@ -148,6 +148,86 @@ export const AdminCapabilityGuard: React.FC<AdminCapabilityGuardProps> = ({
     );
   }
 
+  // Kiểm tra vai trò quản trị (chặn người dùng thường USER truy cập Console Quản trị)
+  const userRoles = (user as UserProfile & { roles?: string[] }).roles;
+  const isAdmin =
+    user.role === "SYSTEM_ADMIN" ||
+    user.role === "TOURNAMENT_ADMIN" ||
+    Boolean(userRoles?.includes("ADMIN")) ||
+    Boolean(userRoles?.includes("SYSTEM_ADMIN")) ||
+    Boolean(userRoles?.includes("TOURNAMENT_ADMIN"));
+
+  if (!isAdmin) {
+    return (
+      <div
+        style={{
+          padding: "3rem 1.5rem",
+          maxWidth: "600px",
+          margin: "0 auto",
+          textAlign: "center",
+        }}
+        data-testid="admin-guard-forbidden"
+      >
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "1rem",
+            padding: "2.5rem 2rem",
+            boxShadow: "var(--elevation-card)",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              placeItems: "center",
+              minHeight: "2.5rem",
+              marginBottom: "1rem",
+            }}
+          >
+            <UiGlyph name="lock" size={40} />
+          </div>
+          <h2
+            style={{
+              fontSize: "1.35rem",
+              fontWeight: 700,
+              color: "var(--system-red, #ef4444)",
+              marginBottom: "0.75rem",
+            }}
+          >
+            Từ chối quyền truy cập
+          </h2>
+          <p
+            style={{
+              fontSize: "0.95rem",
+              color: "var(--text-secondary)",
+              lineHeight: 1.6,
+              marginBottom: "1.5rem",
+            }}
+          >
+            Tài khoản hiện tại ({user.username}) không có thẩm quyền Quản trị viên (System Admin hoặc Tournament Admin) để truy cập Console Quản trị. Vui lòng liên hệ ban tổ chức giải đấu.
+          </p>
+          <Link
+            to="/"
+            style={{
+              display: "inline-block",
+              padding: "0.6rem 1.5rem",
+              borderRadius: "0.5rem",
+              background: "var(--surface-raised)",
+              color: "var(--text)",
+              border: "1px solid var(--border)",
+              textDecoration: "none",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+            }}
+          >
+            Quay về trang chủ
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 };
 

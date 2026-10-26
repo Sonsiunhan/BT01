@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import FocusTrap from "focus-trap-react";
+import { useFocusTrap } from "./useFocusTrap";
 
 export interface ModalProps { open: boolean; title: string; description?: string; children: ReactNode; onClose: () => void; dismissible?: boolean }
 
@@ -8,6 +8,7 @@ export function Modal({ open, title, description, children, onClose, dismissible
   const titleId = useId();
   const descriptionId = useId();
   const previousFocus = useRef<HTMLElement | null>(null);
+  const dialogRef = useFocusTrap(open);
   useEffect(() => {
     if (!open) return;
     previousFocus.current = document.activeElement as HTMLElement | null;
@@ -23,5 +24,5 @@ export function Modal({ open, title, description, children, onClose, dismissible
   }, [dismissible, onClose, open]);
   if (!open) return null;
   const root = document.getElementById("modal-root") ?? document.body;
-  return createPortal(<div className="modal-backdrop" onMouseDown={(event) => { if (dismissible && event.target === event.currentTarget) onClose(); }}><FocusTrap focusTrapOptions={{ escapeDeactivates: false, clickOutsideDeactivates: false, fallbackFocus: ".modal" }}><section className="modal" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}><header><div><p className="eyebrow">YÊU CẦU THAO TÁC</p><h2 id={titleId}>{title}</h2></div>{dismissible && <button className="icon-button" type="button" onClick={onClose} aria-label="Đóng hộp thoại">×</button>}</header>{description && <p id={descriptionId}>{description}</p>}<div className="modal-content">{children}</div></section></FocusTrap></div>, root);
+  return createPortal(<div className="modal-backdrop" onMouseDown={(event) => { if (dismissible && event.target === event.currentTarget) onClose(); }}><section ref={dialogRef} className="modal" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}><header><div><p className="eyebrow">YÊU CẦU THAO TÁC</p><h2 id={titleId}>{title}</h2></div>{dismissible && <button className="icon-button" type="button" onClick={onClose} aria-label="Đóng hộp thoại">×</button>}</header>{description && <p id={descriptionId}>{description}</p>}<div className="modal-content">{children}</div></section></div>, root);
 }

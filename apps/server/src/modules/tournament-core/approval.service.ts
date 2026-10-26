@@ -23,6 +23,8 @@ import {
   type TournamentActorContext,
   type TournamentStateStore,
 } from "../tournament-foundation/tournament-store.js";
+import type { PrismaClient } from "@prisma/client";
+import { persistTournamentToPrisma, syncPrismaToTournamentStore } from "../tournament-foundation/prisma-sync.js";
 
 function deepFreeze<T>(obj: T): T {
   if (obj === null || typeof obj !== "object") {
@@ -68,7 +70,10 @@ export interface ApprovalDetailView {
 }
 
 export class ApprovalService {
-  constructor(private readonly store: TournamentStateStore) {}
+  constructor(
+    private readonly store: TournamentStateStore,
+    private readonly database?: PrismaClient
+  ) {}
 
   getApprovalDetail(
     actor: TournamentActorContext,
@@ -166,10 +171,17 @@ export class ApprovalService {
     };
   }
 
-  listApprovalQueue(filter?: { status?: string }): {
+  async listApprovalQueue(filter?: { status?: string }): Promise<{
     initialSubmissions: TournamentDto[];
     changeRequests: TournamentChangeRequestDto[];
-  } {
+  }> {
+    if (this.database) {
+      try {
+        await syncPrismaToTournamentStore(this.database, this.store);
+      } catch {
+        // Safe fallback to store
+      }
+    }
     const initialSubmissions = Array.from(this.store.tournaments.values()).filter(
       (t) => {
         if (filter?.status) return t.status === filter.status;
@@ -382,6 +394,9 @@ export class ApprovalService {
         };
 
         this.store.tournaments.set(tournamentId, updatedWithFrozenSnapshot);
+        if (this.database) {
+          persistTournamentToPrisma(this.database, updatedWithFrozenSnapshot).catch(() => {});
+        }
         this.store.audit.append({
           actorUserId: actor.userId,
           actorRole: "ADMIN",
@@ -423,6 +438,9 @@ export class ApprovalService {
         });
 
         this.store.tournaments.set(tournamentId, updated);
+        if (this.database) {
+          persistTournamentToPrisma(this.database, updated).catch(() => {});
+        }
         this.store.audit.append({
           actorUserId: actor.userId,
           actorRole: "ADMIN",
@@ -451,6 +469,9 @@ export class ApprovalService {
       });
 
       this.store.tournaments.set(tournamentId, updated);
+      if (this.database) {
+        persistTournamentToPrisma(this.database, updated).catch(() => {});
+      }
       this.store.audit.append({
         actorUserId: actor.userId,
         actorRole: "ADMIN",
@@ -605,6 +626,9 @@ export class ApprovalService {
           updatedAt: nowIso,
         });
         this.store.tournaments.set(tournament.id, updatedTournament);
+        if (this.database) {
+          persistTournamentToPrisma(this.database, updatedTournament).catch(() => {});
+        }
 
         const updatedCr = TournamentChangeRequestSchema.parse({
           ...cr,

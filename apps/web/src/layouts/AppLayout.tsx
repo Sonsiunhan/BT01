@@ -18,6 +18,15 @@ export function AppLayout() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const profileDetailsRef = useRef<HTMLDetailsElement | null>(null);
 
+  const userRoles = (user as (UserProfile & { roles?: string[] }) | null)?.roles;
+  const isAdmin =
+    user?.role === "SYSTEM_ADMIN" ||
+    user?.role === "TOURNAMENT_ADMIN" ||
+    user?.role === "ADMIN" ||
+    Boolean(userRoles?.includes("ADMIN")) ||
+    Boolean(userRoles?.includes("SYSTEM_ADMIN")) ||
+    Boolean(userRoles?.includes("TOURNAMENT_ADMIN"));
+
   useEffect(() => {
     const onPointerDown = (event: Event) => {
       if (profileDetailsRef.current?.open && !profileDetailsRef.current.contains(event.target as Node)) {
@@ -80,7 +89,58 @@ export function AppLayout() {
         <NavLink to={routes.history}>Lịch sử</NavLink>
         <NavLink to={routes.profile}>Hồ sơ</NavLink>
       </nav>
-      <div className="header-actions"><ThemeSwitcher />{user ? <details ref={profileDetailsRef} className="profile-menu"><summary aria-label="Mở menu hồ sơ">{user.displayName}</summary><div><NavLink to={routes.profile}>Xem hồ sơ</NavLink><NavLink to={routes.settings}>Cài đặt</NavLink><button type="button" onClick={signOut}>Đăng xuất</button></div></details> : <NavLink className="header-login" to={routes.login}>Đăng nhập</NavLink>}</div>
+      <div className="header-actions">
+        {isAdmin && (
+          <NavLink
+            to={routes.adminTournaments}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.3rem 0.65rem",
+              borderRadius: "0.375rem",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              textDecoration: "none",
+              background: "rgba(6, 182, 212, 0.12)",
+              color: "var(--system-cyan, #06b6d4)",
+              border: "1px solid rgba(6, 182, 212, 0.3)",
+              transition: "all 0.15s ease",
+            }}
+            title="Chuyển đến Console Quản trị"
+          >
+            <UiGlyph name="settings" size={15} />
+            <span>Console Quản trị</span>
+          </NavLink>
+        )}
+        <ThemeSwitcher />
+        {user ? (
+          <details ref={profileDetailsRef} className="profile-menu">
+            <summary aria-label="Mở menu hồ sơ">{user.displayName}</summary>
+            <div>
+              {isAdmin && (
+                <NavLink
+                  to={routes.adminTournaments}
+                  style={{
+                    color: "var(--system-cyan, #06b6d4)",
+                    fontWeight: 700,
+                    borderBottom: "1px solid var(--border)",
+                    marginBottom: "0.25rem",
+                    paddingBottom: "0.5rem",
+                  }}
+                >
+                  <UiGlyph name="settings" size={15} /> Console Quản trị
+                </NavLink>
+              )}
+              <NavLink to={routes.profile}>Xem hồ sơ</NavLink>
+              <NavLink to={routes.settings}>Cài đặt</NavLink>
+              <button type="button" onClick={signOut}>Đăng xuất</button>
+            </div>
+          </details>
+        ) : (
+          <NavLink className="header-login" to={routes.login}>Đăng nhập</NavLink>
+        )}
+      </div>
     </header>}
     {!isGame && !isHome && network !== "online" && network !== "checking" && <div className={`network-banner ${network}`} role="status" aria-live="polite"><strong>{network === "offline" ? "Mất kết nối mạng" : network === "degraded" ? "Dịch vụ đang suy giảm" : "Đang kết nối lại"}</strong><span>{network === "offline" ? "Các thao tác online đang tạm khoá; dữ liệu sẽ được đồng bộ khi kết nối trở lại." : network === "degraded" ? "Một số thao tác có thể chậm hoặc cần thử lại." : "Đang thử khôi phục kết nối realtime…"}</span></div>}
     <main className="page-container"><Outlet /></main>

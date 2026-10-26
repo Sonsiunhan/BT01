@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import type { ManualAdjudicationViewDto } from "@ottv2/contracts";
 import {
   listManualAdjudications,
@@ -121,8 +121,11 @@ export default function ManualAdjudicationPage() {
   return (
     <main className="manual-adjudication-page">
       <header className="manual-adjudication-page__header">
-        <div><p className="manual-adjudication-page__eyebrow">P05 · Exact-tie</p><h1 className="manual-adjudication-page__title" tabIndex={-1} ref={headingRef}>Phân xử trận hòa tuyệt đối</h1></div>
-        <button className="manual-adjudication-card__button" type="button" onClick={() => void load(true)}>Tải lại</button>
+        <div><p className="manual-adjudication-page__eyebrow">P05 · EXACT-TIE</p><h1 className="manual-adjudication-page__title" tabIndex={-1} ref={headingRef}>Phân xử trận hòa tuyệt đối</h1></div>
+        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+          <button className="button secondary" type="button" onClick={() => void load(true)}>Tải lại</button>
+          <Link className="button secondary" to={`/admin/tournaments/${tournamentId}`}>Quay lại</Link>
+        </div>
       </header>
       <p className="manual-adjudication-page__notice" role="note">Chỉ quản trị giải sở hữu giải có thể quyết định. Hệ thống dùng thời gian máy chủ và fallback đã công bố.</p>
       {state.kind === "loading" ? <p className="manual-adjudication-page__state" role="status">Đang tải danh sách phán quyết…</p> : null}

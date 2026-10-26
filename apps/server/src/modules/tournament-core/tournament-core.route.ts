@@ -179,7 +179,7 @@ export async function registerTournamentCoreRoutes(
     async (request, reply) => {
       const actor = await resolveTournamentRequestActor(request, auth, store);
       assertAdminActor(actor);
-      const queue = approvalService.listApprovalQueue(request.query);
+      const queue = await approvalService.listApprovalQueue(request.query);
       return reply.status(200).send(queue);
     }
   );
@@ -460,6 +460,16 @@ export async function registerTournamentCoreRoutes(
         request.params.tournamentId
       );
       return reply.status(200).send({ leaderboard });
+    }
+  );
+
+  app.get<{ Params: { tournamentId: string } }>(
+    "/api/tournaments/:tournamentId/matches",
+    async (request, reply) => {
+      const matches = adjudicationLedgerService.getLedgerEntries(
+        request.params.tournamentId
+      );
+      return reply.status(200).send({ matches });
     }
   );
 }

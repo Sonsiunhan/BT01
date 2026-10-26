@@ -268,7 +268,8 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         }));
         setLastSavedTime(new Date().toLocaleTimeString("vi-VN"));
         // Update URL to edit mode without full reload
-        navigate(`/admin/tournaments/${created.id}`, { replace: true });
+        navigate(`/admin/tournaments/${created.id}/edit`, { replace: true });
+        return created.id;
       }
     } catch (err: unknown) {
       const details = errorRecord(err);
@@ -283,6 +284,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
             : "Lỗi kết nối máy chủ khi lưu nháp. Dữ liệu đã được lưu trữ an toàn trong bộ nhớ đệm cục bộ của trình duyệt."
         );
       }
+      return null;
     } finally {
       setSaving(false);
     }
@@ -309,18 +311,34 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     }
   };
 
+  // Open submit modal (auto-saving draft first if needed)
+  const handleOpenSubmitModal = useCallback(async () => {
+    let currentId = formData.tournamentId;
+    if (!currentId) {
+      const savedId = await handleSaveDraft();
+      if (!savedId) return;
+      currentId = savedId;
+    }
+    setShowSubmitModal(true);
+  }, [formData.tournamentId, handleSaveDraft]);
+
   // S07: Submit draft for review
   const handleSubmitDraft = useCallback(async () => {
-    if (!formData.tournamentId) {
-      setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
-      return;
+    let targetId = formData.tournamentId;
+    if (!targetId) {
+      const savedId = await handleSaveDraft();
+      if (!savedId) {
+        setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
+        return;
+      }
+      targetId = savedId;
     }
     setSubmittingDraft(true);
     setErrorMessage(null);
     setConflictWarning(null);
 
     try {
-      const res = await apiClient.submitDraft(formData.tournamentId, {
+      const res = await apiClient.submitDraft(targetId, {
         expectedRevision: serverRevision,
         submissionNote: submissionNote.trim() || undefined,
       });
@@ -330,7 +348,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       setSubmitSuccessMessage(
         "Giải đấu đã được nộp duyệt thành công và chuyển sang trạng thái ĐANG CHỜ PHÊ DUYỆT (UNDER_REVIEW). Quản trị viên hệ thống sẽ kiểm tra và phản hồi."
       );
-      clearLocalDraftBuffer(formData.tournamentId);
+      clearLocalDraftBuffer(targetId);
     } catch (err: unknown) {
       const details = errorRecord(err);
       if (details.code === "CONFLICT" || details.statusCode === 409) {
@@ -347,7 +365,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     } finally {
       setSubmittingDraft(false);
     }
-  }, [apiClient, formData.tournamentId, serverRevision, submissionNote]);
+  }, [apiClient, formData.tournamentId, handleSaveDraft, serverRevision, submissionNote]);
 
   const handleDiscardLocalBuffer = () => {
     clearLocalDraftBuffer(draftStorageKey);
@@ -471,11 +489,11 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           )}
 
           {/* Submit Draft Button */}
-          {formData.tournamentId && !isUnderReview && (
+          {!isUnderReview && (
             <button
               type="button"
               data-testid="wizard-top-submit-draft-btn"
-              onClick={() => setShowSubmitModal(true)}
+              onClick={handleOpenSubmitModal}
               disabled={saving || submittingDraft}
               className="button primary"
               style={{
@@ -485,7 +503,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 fontSize: "0.85rem",
                 padding: "0.45rem 0.9rem",
                 background: "var(--system-cyan)",
-                color: "#0B1421",
+                color: "var(--text-on-cyan, #ffffff)",
                 fontWeight: 700,
               }}
             >
@@ -762,7 +780,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 placeholder="VLD_ROBOT_LAB_2026"
                 value={formData.slug}
                 onChange={(e) => updateField("slug", slugify(e.target.value))}
-                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", fontFamily: "monospace" }}
+                style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", fontFamily: "var(--font-data)" }}
               />
               <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                 Mã duy nhất viết hoa gồm chữ cái, số và dấu gạch dưới (_). Tự động gợi ý từ tên giải.
@@ -1096,7 +1114,14 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                   id={compModeInputId}
                   className="select"
                   value={formData.competitionMode}
-                  onChange={(e) => updateField("competitionMode", e.target.value as DraftFormData["competitionMode"])}
+                  onChange={(e) => {
+                    const newMode = e.target.value as DraftFormData["competitionMode"];
+                    setFormData((prev) => ({
+                      ...prev,
+                      competitionMode: newMode,
+                      botDeadlineAt: newMode === "BOT_VS_BOT" ? prev.botDeadlineAt : null,
+                    }));
+                  }}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
                 >
                   <option value="HUMAN_ONLINE">HUMAN_ONLINE — Đấu thủ người trực tuyến</option>
@@ -1695,20 +1720,20 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                     className="button secondary"
                     style={{ fontSize: "0.85rem" }}
                   >
-                    {saving ? "Đang lưu..." : "Hoàn tất lưu nháp"}
+                    {saving ? "Đang lưu..." : "Lưu bản nháp"}
                   </button>
                 )}
-                {formData.tournamentId && !isUnderReview && (
+                {!isUnderReview && (
                   <button
                     type="button"
                     data-testid="wizard-submit-draft-btn"
-                    onClick={() => setShowSubmitModal(true)}
+                    onClick={handleOpenSubmitModal}
                     disabled={saving || submittingDraft}
                     className="button primary"
                     style={{
                       fontSize: "0.85rem",
                       background: "var(--system-cyan)",
-                      color: "#0B1421",
+                      color: "var(--text-on-cyan, #ffffff)",
                       fontWeight: 700,
                     }}
                   >
@@ -1830,7 +1855,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 style={{
                   fontSize: "0.85rem",
                   background: "var(--system-cyan)",
-                  color: "#0B1421",
+                  color: "var(--text-on-cyan, #ffffff)",
                   fontWeight: 700,
                 }}
               >

@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type FC, type ReactNode } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { UiGlyph } from "../../../components/ui/UiGlyph";
+import "./TournamentDetailPage.css";
 import { routes } from "../../../app/routes";
 import { defaultTournamentApi, type TournamentApiPort } from "./tournamentApi";
 import type {
   TournamentDto,
   TournamentReadinessSnapshot,
   ReadinessChecklistItem,
+  TournamentLeaderboardSnapshotDto,
+  TournamentScoreLedgerEntryDto,
 } from "@ottv2/contracts";
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -18,7 +21,11 @@ interface TournamentDetailPageProps {
   tournamentId?: string;
 }
 
-export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
+function ConfigurationValue({ label, value }: { label: string; value: ReactNode }) {
+  return <div><span>{label}</span><strong>{value}</strong></div>;
+}
+
+export const TournamentDetailPage: FC<TournamentDetailPageProps> = ({
   apiClient = defaultTournamentApi,
   tournamentId: propTournamentId,
 }) => {
@@ -26,11 +33,17 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
   const tournamentId = propTournamentId || paramTournamentId || "tour-001";
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "config" | "readiness">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "config" | "readiness" | "leaderboard" | "matches">("overview");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tournament, setTournament] = useState<TournamentDto | null>(null);
   const [readiness, setReadiness] = useState<TournamentReadinessSnapshot | null>(null);
+  const [leaderboard, setLeaderboard] = useState<TournamentLeaderboardSnapshotDto | null>(null);
+  const [matches, setMatches] = useState<TournamentScoreLedgerEntryDto[]>([]);
+  const [searchLb, setSearchLb] = useState<string>("");
+  const [searchMatches, setSearchMatches] = useState<string>("");
+  const [pageLb, setPageLb] = useState<number>(1);
+  const [pageMatches, setPageMatches] = useState<number>(1);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -43,9 +56,11 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const [detailRes, readinessRes] = await Promise.allSettled([
+      const [detailRes, readinessRes, lbRes, matchesRes] = await Promise.allSettled([
         apiClient.getTournamentDetail(tournamentId),
         apiClient.getTournamentReadiness(tournamentId),
+        apiClient.getLeaderboard ? apiClient.getLeaderboard(tournamentId) : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/leaderboard`).then(r => r.json()),
+        apiClient.getMatches ? apiClient.getMatches(tournamentId) : fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches`).then(r => r.json()),
       ]);
 
       if (detailRes.status === "fulfilled") {
@@ -56,6 +71,12 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
 
       if (readinessRes.status === "fulfilled") {
         setReadiness(readinessRes.value.readiness);
+      }
+      if (lbRes.status === "fulfilled" && lbRes.value?.leaderboard) {
+        setLeaderboard(lbRes.value.leaderboard);
+      }
+      if (matchesRes.status === "fulfilled" && matchesRes.value?.matches) {
+        setMatches(matchesRes.value.matches);
       }
     } catch (error: unknown) {
       setError(errorMessage(error, "Đã xảy ra lỗi khi tải dữ liệu giải đấu."));
@@ -311,19 +332,22 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "1.2rem",
-              marginTop: "0.4rem",
-              fontSize: "0.82rem",
-              color: "var(--text-muted)",
-              flexWrap: "wrap",
+              flexDirection: "column",
+              gap: "0.35rem",
+              marginTop: "0.6rem",
+              fontSize: "0.85rem",
+              color: "var(--text-secondary)",
             }}
           >
-            <span>
-              Mã: <code style={{ color: "var(--system-cyan)" }}>{core.tournamentCode}</code>
-            </span>
-            <span>Đơn vị: <strong style={{ color: "var(--text)" }}>{core.organizersText}</strong></span>
-            <span>Múi giờ: <strong style={{ color: "var(--text)" }}>{core.timezone}</strong></span>
+            <div>
+              Mã: <code style={{ color: "var(--system-cyan)", padding: "0.15rem 0.4rem", background: "rgba(6, 182, 212, 0.1)", borderRadius: "4px" }}>{core.tournamentCode}</code>
+            </div>
+            <div>
+              Đơn vị: <strong style={{ color: "var(--text)" }}>{core.organizersText}</strong>
+            </div>
+            <div>
+              Múi giờ: <strong style={{ color: "var(--text)" }}>{core.timezone}</strong>
+            </div>
           </div>
         </div>
 
@@ -350,7 +374,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                   fontSize: "0.85rem",
                   padding: "0.45rem 0.9rem",
                   background: "var(--system-cyan)",
-                  color: "#0B1421",
+                  color: "var(--text-on-cyan, #ffffff)",
                   fontWeight: 700,
                 }}
               >
@@ -447,6 +471,22 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
             style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
           >
             Trạng thái Bot
+          </Link>
+          <Link
+            to={routes.adminTournamentOperations.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-operations-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Điều hành sự cố
+          </Link>
+          <Link
+            to={routes.adminTournamentAdjudications.replace(":tournamentId", tournament.id)}
+            className="button secondary"
+            data-testid="action-adjudications-btn"
+            style={{ fontSize: "0.85rem", padding: "0.45rem 0.9rem" }}
+          >
+            Phán quyết hòa
           </Link>
           <Link
             to={routes.adminTournamentAudit.replace(":tournamentId", tournament.id)}
@@ -564,14 +604,106 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                 fontSize: "0.72rem",
                 padding: "0.15rem 0.45rem",
                 borderRadius: "10px",
-                background: readiness.canStartRunning
+                background: tournament.status === "RUNNING"
+                  ? "color-mix(in srgb, var(--system-green) 20%, transparent)"
+                  : tournament.status === "PAUSED"
+                  ? "color-mix(in srgb, var(--system-amber) 20%, transparent)"
+                  : readiness.canStartRunning
                   ? "color-mix(in srgb, var(--system-green) 20%, transparent)"
                   : "color-mix(in srgb, var(--system-red) 20%, transparent)",
-                color: readiness.canStartRunning ? "var(--system-green)" : "var(--system-red)",
+                color: tournament.status === "RUNNING" || (tournament.status !== "PAUSED" && readiness.canStartRunning)
+                  ? "var(--system-green)"
+                  : tournament.status === "PAUSED"
+                  ? "var(--system-amber)"
+                  : "var(--system-red)",
                 fontWeight: 700,
               }}
             >
-              {readiness.canStartRunning ? "SẴN SÀNG" : `${readiness.blockers.length} CHẶN`}
+              {tournament.status === "RUNNING"
+                ? "ĐANG CHẠY"
+                : tournament.status === "PAUSED"
+                ? "TẠM DỪNG"
+                : readiness.canStartRunning
+                ? "SẴN SÀNG"
+                : `${readiness.blockers.length} CHẶN`}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          id="tab-leaderboard"
+          aria-selected={activeTab === "leaderboard"}
+          aria-controls="panel-leaderboard"
+          data-testid="tab-leaderboard-btn"
+          onClick={() => setActiveTab("leaderboard")}
+          style={{
+            padding: "0.55rem 1rem",
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            fontWeight: activeTab === "leaderboard" ? 700 : 500,
+            color: activeTab === "leaderboard" ? "var(--system-cyan)" : "var(--text-muted)",
+            borderBottom: activeTab === "leaderboard" ? "2px solid var(--system-cyan)" : "2px solid transparent",
+            fontSize: "0.9rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+          }}
+        >
+          <span>Bảng xếp hạng</span>
+          {leaderboard?.standings && (
+            <span
+              style={{
+                fontSize: "0.72rem",
+                padding: "0.15rem 0.45rem",
+                borderRadius: "10px",
+                background: "color-mix(in srgb, var(--system-cyan) 20%, transparent)",
+                color: "var(--system-cyan)",
+                fontWeight: 700,
+              }}
+            >
+              {leaderboard.standings.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          id="tab-matches"
+          aria-selected={activeTab === "matches"}
+          aria-controls="panel-matches"
+          data-testid="tab-matches-btn"
+          onClick={() => setActiveTab("matches")}
+          style={{
+            padding: "0.55rem 1rem",
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            fontWeight: activeTab === "matches" ? 700 : 500,
+            color: activeTab === "matches" ? "var(--system-cyan)" : "var(--text-muted)",
+            borderBottom: activeTab === "matches" ? "2px solid var(--system-cyan)" : "2px solid transparent",
+            fontSize: "0.9rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+          }}
+        >
+          <span>Nhật ký trận đấu</span>
+          {matches.length > 0 && (
+            <span
+              style={{
+                fontSize: "0.72rem",
+                padding: "0.15rem 0.45rem",
+                borderRadius: "10px",
+                background: "color-mix(in srgb, var(--system-purple) 20%, transparent)",
+                color: "var(--system-purple)",
+                fontWeight: 700,
+              }}
+            >
+              {matches.length}
             </span>
           )}
         </button>
@@ -584,42 +716,93 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-overview"
           data-testid="panel-overview"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            <div
-              style={{
-                padding: "1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>
-                TIẾN ĐỘ THỜI GIAN
-              </span>
-              <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "var(--text)" }}>
-                {core.scheduledStartAt ? new Date(core.scheduledStartAt).toLocaleString("vi-VN") : "Chưa ấn định"}
+          <div className="tournament-summary-grid">
+            <div className="tournament-summary-card">
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.05em", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    TIẾN ĐỘ THỜI GIAN
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      padding: "0.15rem 0.5rem",
+                      borderRadius: "10px",
+                      fontWeight: 700,
+                      background: tournament.status === "RUNNING"
+                        ? "color-mix(in srgb, var(--system-green) 18%, transparent)"
+                        : tournament.status === "PAUSED"
+                        ? "color-mix(in srgb, var(--system-amber) 18%, transparent)"
+                        : "color-mix(in srgb, var(--text-muted) 15%, transparent)",
+                      color: tournament.status === "RUNNING"
+                        ? "var(--system-green)"
+                        : tournament.status === "PAUSED"
+                        ? "var(--system-amber)"
+                        : "var(--text-secondary)",
+                    }}
+                  >
+                    {tournament.status === "RUNNING" ? "ĐANG DIỄN RA" : tournament.status === "PAUSED" ? "TẠM DỪNG" : tournament.status === "ENDED" ? "ĐÃ KẾT THÚC" : "SẮP DIỄN RA"}
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", margin: "0.4rem 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                    <span style={{ color: "var(--text-muted)" }}>Bắt đầu:</span>
+                    <strong style={{ color: "var(--text)", fontFamily: "var(--font-data)" }}>
+                      {core.scheduledStartAt ? new Date(core.scheduledStartAt).toLocaleString("vi-VN") : "Chưa ấn định"}
+                    </strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                    <span style={{ color: "var(--text-muted)" }}>Kết thúc:</span>
+                    <strong style={{ color: "var(--text)", fontFamily: "var(--font-data)" }}>
+                      {core.scheduledEndAt ? new Date(core.scheduledEndAt).toLocaleString("vi-VN") : "Chưa ấn định"}
+                    </strong>
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
-                đến {core.scheduledEndAt ? new Date(core.scheduledEndAt).toLocaleString("vi-VN") : "Chưa ấn định"}
-              </div>
+
+              {(() => {
+                const startMs = core.scheduledStartAt ? new Date(core.scheduledStartAt).getTime() : 0;
+                const endMs = core.scheduledEndAt ? new Date(core.scheduledEndAt).getTime() : 0;
+                const nowMs = Date.now();
+                let progressPercent = 0;
+                if (startMs && endMs && endMs > startMs) {
+                  if (nowMs >= endMs || tournament.status === "ENDED") {
+                    progressPercent = 100;
+                  } else if (nowMs <= startMs) {
+                    progressPercent = 0;
+                  } else {
+                    progressPercent = Math.min(100, Math.max(0, Math.round(((nowMs - startMs) / (endMs - startMs)) * 100)));
+                  }
+                }
+                return (
+                  <div style={{ marginTop: "0.6rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.25rem" }}>
+                      <span>Tiến trình giải</span>
+                      <span style={{ fontWeight: 600, color: "var(--system-cyan)" }}>{progressPercent}%</span>
+                    </div>
+                    <div style={{ height: "6px", width: "100%", background: "var(--border)", borderRadius: "3px", overflow: "hidden" }}>
+                      <div
+                        style={{
+                          width: `${progressPercent}%`,
+                          height: "100%",
+                          background: "linear-gradient(90deg, var(--system-cyan), var(--system-green))",
+                          transition: "width 0.3s ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
-            <div
-              style={{
-                padding: "1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-              }}
-            >
+            <div className="tournament-summary-card">
               <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>
                 QUY MÔ THÍ SINH
               </span>
@@ -631,14 +814,7 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
               </div>
             </div>
 
-            <div
-              style={{
-                padding: "1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-              }}
-            >
+            <div className="tournament-summary-card">
               <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>
                 CHẾ ĐỘ THI ĐẤU
               </span>
@@ -652,18 +828,11 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           </div>
 
           {/* Description Card */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", color: "var(--text)" }}>
+          <div className="tournament-summary-card">
+            <h4>
               Mô tả điều lệ giải đấu
             </h4>
-            <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+            <p>
               {core.shortDescription || "Chưa có mô tả chi tiết cho giải đấu này."}
             </p>
           </div>
@@ -677,101 +846,44 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-config"
           data-testid="panel-config"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
           {/* Operational Controls */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "var(--system-cyan)" }}>
+          <div className="tournament-config-card">
+            <h4>
               Kiểm soát vận hành (Operational Controls)
             </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Số trận tối đa mỗi người:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.maxMatchesPerPlayer ?? "Không giới hạn"}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Số lần gặp nhau tối đa:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.maxPairMeetings} lần</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Thời gian chờ tái đấu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.rematchCooldownMinutes} phút</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Số trận đồng thời tối đa:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.maxConcurrentMatches} trận</strong>
-              </div>
+            <div className="tournament-config-grid">
+              <ConfigurationValue label="Số trận tối đa mỗi người:" value={core.maxMatchesPerPlayer ?? "Không giới hạn"} />
+              <ConfigurationValue label="Số lần gặp nhau tối đa:" value={`${core.maxPairMeetings} lần`} />
+              <ConfigurationValue label="Thời gian chờ tái đấu:" value={`${core.rematchCooldownMinutes} phút`} />
+              <ConfigurationValue label="Số trận đồng thời tối đa:" value={`${core.maxConcurrentMatches} trận`} />
             </div>
           </div>
 
           {/* Privacy & Spectator Policy */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "var(--system-cyan)" }}>
+          <div className="tournament-config-card">
+            <h4>
               Quyền riêng tư & Khán giả (Privacy & Spectators)
             </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Chính sách khán giả:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.spectatorPolicy}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Chính sách phòng trò chuyện:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.chatPolicy}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Hiển thị bảng xếp hạng:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.leaderboardVisibility}</strong>
-              </div>
+            <div className="tournament-config-grid">
+              <ConfigurationValue label="Chính sách khán giả:" value={core.spectatorPolicy} />
+              <ConfigurationValue label="Chính sách phòng trò chuyện:" value={core.chatPolicy} />
+              <ConfigurationValue label="Hiển thị bảng xếp hạng:" value={core.leaderboardVisibility} />
             </div>
           </div>
 
           {/* Scoring & Elo */}
-          <div
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            <h4 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "var(--system-cyan)" }}>
+          <div className="tournament-config-card">
+            <h4>
               Hệ thống tính điểm & Elo
             </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Điểm giải ban đầu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.initialScore}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Elo ban đầu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.initialElo}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Hệ số K-Factor:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.kFactor}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Điểm sàn tối thiểu:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.scoreFloor}</strong>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", display: "block" }}>Điểm khi Bye:</span>
-                <strong style={{ fontSize: "0.9rem" }}>{core.byeScorePoints}</strong>
-              </div>
+            <div className="tournament-config-grid score">
+              <ConfigurationValue label="Điểm giải ban đầu:" value={core.initialScore} />
+              <ConfigurationValue label="Elo ban đầu:" value={core.initialElo} />
+              <ConfigurationValue label="Hệ số K-Factor:" value={core.kFactor} />
+              <ConfigurationValue label="Điểm sàn tối thiểu:" value={core.scoreFloor} />
+              <ConfigurationValue label="Điểm khi Bye:" value={core.byeScorePoints} />
             </div>
           </div>
         </section>
@@ -784,75 +896,88 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           role="tabpanel"
           aria-labelledby="tab-readiness"
           data-testid="panel-readiness"
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          className="tournament-data-panel"
         >
           {/* Readiness Status Banner */}
-          <div
-            data-testid="readiness-banner"
-            style={{
-              padding: "1.25rem",
-              borderRadius: "8px",
-              background: readiness?.canStartRunning
-                ? "color-mix(in srgb, var(--system-green) 12%, var(--surface))"
-                : "color-mix(in srgb, var(--system-red) 12%, var(--surface))",
-              border: `1px solid ${readiness?.canStartRunning ? "var(--system-green)" : "var(--system-red)"}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "1rem",
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                {readiness?.canStartRunning ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--system-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : (
-                  <UiGlyph name="warning" size={20} style={{ color: "var(--system-red)" }} />
-                )}
-                <strong
-                  data-testid="readiness-overall-status"
-                  style={{
-                    fontSize: "1.05rem",
-                    color: readiness?.canStartRunning ? "var(--system-green)" : "var(--system-red)",
-                  }}
-                >
-                  {readiness?.canStartRunning
-                    ? "ĐỦ ĐIỀU KIỆN SẴN SÀNG KHỞI CHẠY (READY)"
-                    : "CHƯA ĐỦ ĐIỀU KIỆN KHỞI CHẠY (BLOCKED)"}
-                </strong>
-              </div>
-              <p style={{ margin: "0.3rem 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                {readiness?.canStartRunning
-                  ? "Tất cả các điều kiện tiên quyết từ máy chủ đã hoàn tất. Có thể bắt đầu giải đấu bất cứ lúc nào."
-                  : `Hệ thống ghi nhận ${readiness?.blockers.length ?? 0} lý do chặn giải đấu khởi chạy. Vui lòng hoàn thành các yêu cầu bên dưới.`}
-              </p>
-            </div>
+          {(() => {
+            const isTournamentRunning = tournament.status === "RUNNING";
+            const isTournamentPaused = tournament.status === "PAUSED";
+            const isTournamentEnded = tournament.status === "ENDED";
+            const isReadyToStart = readiness?.canStartRunning;
 
-            <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-              Kiểm tra lúc: {readiness ? new Date(readiness.evaluatedAt).toLocaleTimeString("vi-VN") : "--"}
-            </div>
-          </div>
+            let bannerColor = "var(--system-red)";
+            let bannerTitle = "CHƯA ĐỦ ĐIỀU KIỆN KHỞI CHẠY (BLOCKED)";
+            let bannerDesc = `Hệ thống ghi nhận ${readiness?.blockers.length ?? 0} lý do chặn giải đấu khởi chạy. Vui lòng hoàn thành các yêu cầu bên dưới.`;
+            let showSuccessIcon = false;
+
+            if (isTournamentRunning) {
+              bannerColor = "var(--system-green)";
+              bannerTitle = "GIẢI ĐẤU ĐANG DIỄN RA (RUNNING)";
+              bannerDesc = "Giải đấu đã hoàn tất toàn bộ điều kiện khởi chạy và đang trong giai đoạn thi đấu chính thức.";
+              showSuccessIcon = true;
+            } else if (isTournamentPaused) {
+              bannerColor = "var(--system-amber)";
+              bannerTitle = "GIẢI ĐẤU ĐANG TẠM DỪNG (PAUSED)";
+              bannerDesc = "Giải đấu đang tạm dừng. Các đồng hồ thi đấu và tiến trình trận đấu tạm thời đóng băng.";
+            } else if (isTournamentEnded) {
+              bannerColor = "var(--text-secondary)";
+              bannerTitle = "GIẢI ĐẤU ĐÃ KẾT THÚC (ENDED)";
+              bannerDesc = "Giải đấu đã hoàn tất mọi trận đấu và công bố kết quả xếp hạng chung cuộc.";
+              showSuccessIcon = true;
+            } else if (isReadyToStart) {
+              bannerColor = "var(--system-green)";
+              bannerTitle = "ĐỦ ĐIỀU KIỆN SẴN SÀNG KHỞI CHẠY (READY)";
+              bannerDesc = "Tất cả các điều kiện tiên quyết từ máy chủ đã hoàn tất. Có thể bắt đầu giải đấu bất cứ lúc nào.";
+              showSuccessIcon = true;
+            }
+
+            return (
+              <div
+                data-testid="readiness-banner"
+                className="tournament-readiness-banner"
+                style={{
+                  background: `color-mix(in srgb, ${bannerColor} 12%, var(--surface))`,
+                  border: `1px solid ${bannerColor}`,
+                }}
+              >
+                <div>
+                  <div className="tournament-readiness-title-row">
+                    {showSuccessIcon ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={bannerColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <UiGlyph name="warning" size={20} style={{ color: bannerColor }} />
+                    )}
+                    <strong
+                      data-testid="readiness-overall-status"
+                      className="tournament-readiness-title"
+                      style={{ color: bannerColor }}
+                    >
+                      {bannerTitle}
+                    </strong>
+                  </div>
+                  <p className="tournament-readiness-description">
+                    {bannerDesc}
+                  </p>
+                </div>
+
+                <div className="tournament-readiness-time">
+                  Kiểm tra lúc: {readiness ? new Date(readiness.evaluatedAt).toLocaleTimeString("vi-VN") : "--"}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Blockers list if any */}
           {isBlocked && (
-            <div
-              data-testid="readiness-blockers-list"
-              style={{
-                padding: "1rem 1.25rem",
-                borderRadius: "8px",
-                background: "var(--surface)",
-                border: "1px solid var(--system-red)",
-              }}
-            >
-              <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.95rem", color: "var(--system-red)" }}>
+            <div data-testid="readiness-blockers-list" className="tournament-readiness-blockers">
+              <h4>
                 Các điều kiện còn thiếu cần khắc phục:
               </h4>
-              <ul style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "0.88rem", color: "var(--text)" }}>
+              <ul>
                 {readiness?.blockers.map((b) => (
-                  <li key={b} style={{ marginBottom: "0.3rem" }}>
+                  <li key={b}>
                     <code style={{ color: "var(--system-red)", fontWeight: 700 }}>{b}</code>
                   </li>
                 ))}
@@ -861,8 +986,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           )}
 
           {/* Checklist Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <h4 style={{ margin: "0.5rem 0 0 0", fontSize: "1rem", color: "var(--text)" }}>
+          <div className="tournament-readiness-list">
+            <h4>
               Hạng mục kiểm tra thẩm quyền (Authoritative Checklist)
             </h4>
 
@@ -873,13 +998,8 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                 <div
                   key={item.code}
                   data-testid={`readiness-check-${item.code}`}
+                  className="tournament-readiness-card"
                   style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    justifyContent: "space-between",
-                    padding: "1rem 1.25rem",
-                    borderRadius: "8px",
-                    background: "var(--surface)",
                     border: `1px solid ${
                       isPass
                         ? "color-mix(in srgb, var(--system-green) 40%, var(--border))"
@@ -887,25 +1007,20 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                         ? "color-mix(in srgb, var(--system-amber) 40%, var(--border))"
                         : "color-mix(in srgb, var(--system-red) 40%, var(--border))"
                     }`,
-                    gap: "1rem",
                   }}
                 >
                   <div>
-                    <strong style={{ fontSize: "0.92rem", color: "var(--text)", display: "block" }}>
+                    <strong>
                       {item.title}
                     </strong>
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginTop: "0.2rem", display: "block" }}>
+                    <span>
                       {item.detail}
                     </span>
                   </div>
 
                   <span
-                    className="badge"
+                    className="badge tournament-readiness-badge"
                     style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      padding: "0.2rem 0.55rem",
-                      borderRadius: "4px",
                       background: isPass
                         ? "color-mix(in srgb, var(--system-green) 15%, transparent)"
                         : isWarn
@@ -916,8 +1031,6 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
                         : isWarn
                         ? "var(--system-amber)"
                         : "var(--system-red)",
-                      border: "1px solid currentColor",
-                      flexShrink: 0,
                     }}
                   >
                     {item.status}
@@ -926,6 +1039,326 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
               );
             })}
           </div>
+        </section>
+      )}
+
+      {/* Tab 4: Leaderboard */}
+      {activeTab === "leaderboard" && (
+        <section
+          id="panel-leaderboard"
+          role="tabpanel"
+          aria-labelledby="tab-leaderboard"
+          data-testid="panel-leaderboard"
+          className="tournament-data-panel"
+        >
+          {/* Header Summary & Search */}
+          <div className="tournament-data-header">
+            <div>
+              <h3 className="tournament-data-title" style={{ color: "var(--system-cyan)" }}>
+                Bảng Xếp Hạng Giải Đấu ({leaderboard?.standings?.length ?? 0} Thí Sinh)
+              </h3>
+              <span className="tournament-data-meta">
+                Công thức: <strong>{leaderboard?.formulaPreset ?? core.scoringFormulaPreset}</strong> · Thứ tự hoàn tất gần nhất: #{leaderboard?.lastFinishSequence ?? 0}
+              </span>
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Tìm Bot, thí sinh, mã trường..."
+                value={searchLb}
+                onChange={(e) => { setSearchLb(e.target.value); setPageLb(1); }}
+                className="tournament-data-search"
+              />
+            </div>
+          </div>
+
+          {/* Top 3 Podium Cards */}
+          {leaderboard?.standings && leaderboard.standings.length >= 3 && !searchLb && (
+            <div className="tournament-podium-grid">
+              {leaderboard.standings.slice(0, 3).map((st, i) => {
+                const medals = ["Hạng 1 · Quán quân", "Hạng 2 · Á quân", "Hạng 3 · Hạng ba"];
+                const colors = ["#ffd700", "#c0c0c0", "#cd7f32"];
+                return (
+                  <div
+                    key={st.participantId}
+                    className="tournament-podium-card"
+                    style={{ border: `1px solid ${colors[i]}`, boxShadow: `0 0 12px ${colors[i]}22` }}
+                  >
+                    <div className="tournament-podium-top">
+                      <span className="tournament-podium-rank" style={{ color: colors[i] }}>
+                        {medals[i]}
+                      </span>
+                      <span className="tournament-podium-unit">
+                        {st.unitCode}
+                      </span>
+                    </div>
+                    <div className="tournament-podium-name">
+                      {st.displayName}
+                    </div>
+                    <div className="tournament-podium-id">
+                      Mã: {st.personKey}
+                    </div>
+                    <div className="tournament-podium-stats">
+                      <span>Điểm: <strong style={{ color: "var(--system-cyan)" }}>{st.tournamentScore}</strong></span>
+                      <span>Elo: <strong style={{ color: "var(--system-green)" }}>{st.tournamentElo}</strong></span>
+                      <span>Thắng: <strong>{st.wins}/{st.matchesPlayed}</strong></span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Standings Table */}
+          {(() => {
+            const all = leaderboard?.standings ?? [];
+            const filtered = all.filter((s) => {
+              if (!searchLb) return true;
+              const q = searchLb.toLowerCase();
+              return (
+                s.displayName.toLowerCase().includes(q) ||
+                s.personKey.toLowerCase().includes(q) ||
+                s.unitCode.toLowerCase().includes(q)
+              );
+            });
+            const pageSize = 50;
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            const displayed = filtered.slice((pageLb - 1) * pageSize, pageLb * pageSize);
+
+            return (
+              <div className="tournament-data-table-wrap">
+                <table className="tournament-data-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "60px" }}>Hạng</th><th>Thí sinh / Bot</th><th>Đơn vị</th><th className="tournament-align-right">Điểm giải</th><th className="tournament-align-right">Elo</th><th className="tournament-align-center">Thắng</th><th className="tournament-align-center">Thua</th><th className="tournament-align-center">Số trận</th><th className="tournament-align-right">Trận cuối</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayed.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="tournament-empty-row">
+                          Không tìm thấy thí sinh nào phù hợp.
+                        </td>
+                      </tr>
+                    ) : (
+                      displayed.map((row) => (
+                        <tr key={row.participantId}>
+                          <td style={{ fontWeight: row.rank <= 3 ? 800 : 500 }}>
+                            {row.rank <= 3 ? `Hạng ${row.rank}` : `#${row.rank}`}
+                          </td>
+                          <td><div className="tournament-person-name">{row.displayName}</div><div className="tournament-secondary-text">{row.personKey}</div>
+                          </td>
+                          <td><span className="tournament-data-chip">
+                              {row.unitCode}
+                            </span>
+                          </td>
+                          <td className="tournament-align-right" style={{ fontWeight: 700, color: "var(--system-cyan)" }}>
+                            {row.tournamentScore}
+                          </td>
+                          <td className="tournament-align-right" style={{ fontWeight: 600, color: "var(--system-green)" }}>
+                            {row.tournamentElo}
+                          </td>
+                          <td className="tournament-align-center" style={{ color: "var(--system-green)", fontWeight: 600 }}>
+                            {row.wins}
+                          </td>
+                          <td className="tournament-align-center" style={{ color: "var(--system-red)" }}>
+                            {row.losses}
+                          </td>
+                          <td className="tournament-align-center">
+                            {row.matchesPlayed}
+                          </td>
+                          <td className="tournament-finish-time">
+                            #{row.lastFinishedSequence || "-"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="tournament-pagination">
+                    <span className="tournament-pagination-copy">
+                      Trang {pageLb} / {totalPages} (Tổng số {filtered.length} thí sinh)
+                    </span>
+                    <div className="tournament-pagination-actions">
+                      <button
+                        type="button"
+                        disabled={pageLb <= 1}
+                        onClick={() => setPageLb((p) => Math.max(1, p - 1))}
+                        className="button secondary tournament-pagination-button"
+                      >
+                        Trang trước
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pageLb >= totalPages}
+                        onClick={() => setPageLb((p) => Math.min(totalPages, p + 1))}
+                        className="button secondary tournament-pagination-button"
+                      >
+                        Trang sau
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </section>
+      )}
+
+      {/* Tab 5: Matches & Pairings */}
+      {activeTab === "matches" && (
+        <section
+          id="panel-matches"
+          role="tabpanel"
+          aria-labelledby="tab-matches"
+          data-testid="panel-matches"
+          className="tournament-data-panel"
+        >
+          {/* Header Summary */}
+          <div className="tournament-data-header">
+            <div>
+              <h3 className="tournament-data-title" style={{ color: "var(--system-purple)" }}>
+                Nhật Ký Trận Đấu & Xếp Cặp ({matches.length} Trận Đấu)
+              </h3>
+              <span className="tournament-data-meta">
+                Phương pháp ghép cặp: <strong>{core.pairingMethod}</strong> · Giới hạn tải: {core.maxConcurrentMatches} trận đồng thời
+              </span>
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Tìm mã trận, thí sinh..."
+                value={searchMatches}
+                onChange={(e) => { setSearchMatches(e.target.value); setPageMatches(1); }}
+                className="tournament-data-search"
+              />
+            </div>
+          </div>
+
+          {/* Matches Table */}
+          {(() => {
+            const filtered = matches.filter((m) => {
+              if (!searchMatches) return true;
+              const q = searchMatches.toLowerCase();
+              return (
+                m.matchId.toLowerCase().includes(q) ||
+                m.blueParticipantId.toLowerCase().includes(q) ||
+                m.redParticipantId.toLowerCase().includes(q) ||
+                m.resolutionSource.toLowerCase().includes(q)
+              );
+            });
+            const pageSize = 50;
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            const displayed = filtered.slice((pageMatches - 1) * pageSize, pageMatches * pageSize);
+
+            return (
+              <div className="tournament-data-table-wrap">
+                <table className="tournament-data-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "70px" }}>STT</th>
+                      <th>Mã trận</th>
+                      <th style={{ color: "var(--system-blue)" }}>Bên Xanh (Blue)</th>
+                      <th className="tournament-align-center">Kết quả</th>
+                      <th style={{ color: "var(--system-red)" }}>Bên Đỏ (Red)</th>
+                      <th>Hình thức thắng</th>
+                      <th className="tournament-align-right">Thời gian</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayed.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="tournament-empty-row">
+                          Chưa có trận đấu nào trong nhật ký.
+                        </td>
+                      </tr>
+                    ) : (
+                      displayed.map((m) => {
+                        const isBlueWinner = m.winnerSide === "BLUE";
+                        return (
+                          <tr key={m.id}>
+                            <td style={{ fontWeight: 700 }}>
+                              #{m.finishSequence}
+                            </td>
+                            <td className="tournament-secondary-text">
+                              <code>{m.matchId}</code>
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: isBlueWinner ? 700 : 500, color: isBlueWinner ? "var(--system-cyan)" : "var(--text)" }}>
+                                {m.blueParticipantId}
+                              </div>
+                              <div className="tournament-secondary-text">
+                                {m.blueScoreBefore}đ (Elo {m.blueEloBefore}) → <strong>{m.blueScoreAfter}đ</strong> (Elo {m.blueEloAfter})
+                              </div>
+                            </td>
+                            <td className="tournament-align-center">
+                              <span
+                                className="tournament-result-badge"
+                                style={{
+                                  background: isBlueWinner ? "color-mix(in srgb, var(--system-blue) 20%, transparent)" : "color-mix(in srgb, var(--system-red) 20%, transparent)",
+                                  color: isBlueWinner ? "var(--system-cyan)" : "var(--system-red)",
+                                }}
+                              >
+                                {isBlueWinner ? "XANH THẮNG" : "ĐỎ THẮNG"}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: !isBlueWinner ? 700 : 500, color: !isBlueWinner ? "var(--system-red)" : "var(--text)" }}>
+                                {m.redParticipantId}
+                              </div>
+                              <div className="tournament-secondary-text">
+                                {m.redScoreBefore}đ (Elo {m.redEloBefore}) → <strong>{m.redScoreAfter}đ</strong> (Elo {m.redEloAfter})
+                              </div>
+                            </td>
+                            <td>
+                              <span className="tournament-data-chip">
+                                {m.resolutionSource}
+                              </span>
+                            </td>
+                            <td className="tournament-finish-time">
+                              {new Date(m.finishedAt).toLocaleTimeString("vi-VN")}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="tournament-pagination">
+                    <span className="tournament-pagination-copy">
+                      Trang {pageMatches} / {totalPages} (Tổng số {filtered.length} trận đấu)
+                    </span>
+                    <div className="tournament-pagination-actions">
+                      <button
+                        type="button"
+                        disabled={pageMatches <= 1}
+                        onClick={() => setPageMatches((p) => Math.max(1, p - 1))}
+                        className="button secondary tournament-pagination-button"
+                      >
+                        Trang trước
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pageMatches >= totalPages}
+                        onClick={() => setPageMatches((p) => Math.min(totalPages, p + 1))}
+                        className="button secondary tournament-pagination-button"
+                      >
+                        Trang sau
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </section>
       )}
 

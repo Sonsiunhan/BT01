@@ -14,6 +14,8 @@ import {
   type TournamentReadinessSnapshot,
   type TournamentConfigVersionDto,
   type AuditLogRecordDto,
+  type TournamentLeaderboardSnapshotDto,
+  type TournamentScoreLedgerEntryDto,
   DEFAULT_TOURNAMENT_RULE_PROFILE,
 } from "@ottv2/contracts";
 
@@ -133,6 +135,7 @@ export const FIXTURE_TOURNAMENTS: TournamentListItem[] = [
   },
 ];
 
+
 export const FIXTURE_AUDIT_LOGS: AuditLogRecordDto[] = [
   {
     id: "audit-001",
@@ -202,6 +205,8 @@ export interface TournamentApiPort {
   // S05 Lifecycle and Readiness APIs
   getTournamentDetail(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }>;
   getTournamentReadiness(tournamentId: string): Promise<{ readiness: TournamentReadinessSnapshot }>;
+  getLeaderboard?(tournamentId: string): Promise<{ leaderboard: TournamentLeaderboardSnapshotDto }>;
+  getMatches?(tournamentId: string): Promise<{ matches: TournamentScoreLedgerEntryDto[] }>;
   openScheduled(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
   startTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
   pauseTournament(tournamentId: string, reason: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }>;
@@ -216,7 +221,7 @@ export interface TournamentApiPort {
 }
 
 export class TournamentApiClient implements TournamentApiPort {
-  private useRealApi: boolean = false;
+  private useRealApi: boolean = true;
 
   constructor(options?: { useRealApi?: boolean }) {
     if (options?.useRealApi !== undefined) {
@@ -225,29 +230,57 @@ export class TournamentApiClient implements TournamentApiPort {
   }
 
   async listTournaments(query: TournamentListQuery = {}): Promise<TournamentListResponse> {
-    if (this.useRealApi) {
-      try {
-        const params = new URLSearchParams();
-        if (query.q) params.set("q", query.q);
-        if (query.unitId) params.set("unitId", query.unitId);
-        if (query.page) params.set("page", String(query.page));
-        if (query.pageSize) params.set("pageSize", String(query.pageSize));
-        if (query.sort) params.set("sort", query.sort);
-        if (query.statuses && query.statuses.length > 0) {
-          params.set("statuses", query.statuses.join(","));
-        }
-
-        const res = await fetch(`/api/tournaments?${params.toString()}`, {
-          headers: { Accept: "application/json" },
-        });
-
-        if (res.ok) {
-          const data = (await res.json()) as TournamentListResponse;
-          return data;
-        }
-      } catch {
-        // Fall back to client-filtered dataset when API is not running
+    try {
+      const params = new URLSearchParams();
+      if (query.q) params.set("q", query.q);
+      if (query.unitId) params.set("unitId", query.unitId);
+      if (query.page) params.set("page", String(query.page));
+      if (query.pageSize) params.set("pageSize", String(query.pageSize));
+      if (query.sort) params.set("sort", query.sort);
+      if (query.statuses && query.statuses.length > 0) {
+        params.set("statuses", query.statuses.join(","));
       }
+
+      const res = await fetch(`/api/tournaments?${params.toString()}`, {
+        headers: { Accept: "application/json", "X-OTT-Request": "1" },
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.tournaments)) {
+          const serverItems: TournamentListItem[] = data.tournaments.map((raw: unknown) => {
+            const t = raw as Record<string, unknown>;
+            const config = (t.coreConfig && typeof t.coreConfig === "object" ? t.coreConfig : {}) as Record<string, unknown>;
+            const text = (value: unknown, fallback: string) => typeof value === "string" && value ? value : fallback;
+            return {
+            tournamentId: text(t.id, "unknown"),
+            name: text(config.tournamentName, text(config.title, "Giải đấu")),
+            slug: text(config.tournamentCode, text(t.id, "unknown")),
+            status: t.status as TournamentLifecycleStatus,
+            visibility:
+              config.audienceScope === "PUBLIC_COMMUNITY" ||
+              config.audienceScope === "PUBLIC_REGISTERED"
+                ? "PUBLIC"
+                : "PRIVATE",
+            startAt: typeof config.scheduledStartAt === "string" ? config.scheduledStartAt : null,
+            endAt: typeof config.scheduledEndAt === "string" ? config.scheduledEndAt : null,
+            timezone: text(config.timezone, "Asia/Ho_Chi_Minh"),
+            ownerDisplay: text(config.organizersText, "Ban Tổ chức"),
+            unitId: text(t.unitId, "unknown"),
+            unitName: text(config.organizersText, "Đơn vị"),
+            participantCount: typeof config.maxParticipants === "number" ? config.maxParticipants : 500,
+            maxParticipants: typeof config.maxParticipants === "number" ? config.maxParticipants : 500,
+            readiness: { state: "READY", blockerCount: 0 },
+            permittedActions: ["view", "manage_matches", "pause", "incident"],
+            revision: `rev-${typeof t.revision === "number" ? t.revision : 1}`,
+          };
+          });
+          return this.filterFixtures(query, serverItems);
+        }
+      }
+    } catch {
+      // Fall back to client-filtered dataset when API is not running
     }
 
     // Client-side filtering logic matching server contract
@@ -311,7 +344,7 @@ export class TournamentApiClient implements TournamentApiPort {
     try {
       const res = await fetch("/api/tournaments/drafts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
         credentials: "include",
         body: JSON.stringify(input),
       });
@@ -364,6 +397,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async getDraft(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }> {
     try {
       const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
+        headers: { Accept: "application/json", "X-OTT-Request": "1" },
         credentials: "include",
       });
       if (res.ok) {
@@ -429,7 +463,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async patchDraft(tournamentId: string, input: PatchTournamentDraftInput): Promise<TournamentDto> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify(input),
     });
@@ -444,6 +478,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async deleteDraft(tournamentId: string): Promise<{ deleted: boolean; quotaRefunded: boolean }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, {
       method: "DELETE",
+      headers: { "X-OTT-Request": "1" },
       credentials: "include",
     });
     if (res.ok) {
@@ -455,10 +490,10 @@ export class TournamentApiClient implements TournamentApiPort {
 
   async submitDraft(tournamentId: string, input: SubmitTournamentDraftInput): Promise<{ tournament: TournamentDto }> {
     SubmitTournamentDraftInputSchema.parse(input);
-    if (this.useRealApi) {
+    try {
       const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/submit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
         credentials: "include",
         body: JSON.stringify(input),
       });
@@ -472,13 +507,14 @@ export class TournamentApiClient implements TournamentApiPort {
         "Không thể nộp duyệt bản nháp giải đấu",
         res.status === 409 ? "CONFLICT" : "SUBMIT_DRAFT_FAILED"
       );
-    }
-
-    const item = FIXTURE_TOURNAMENTS.find((t) => t.tournamentId === tournamentId);
-    if (item) {
-      item.status = "UNDER_REVIEW";
-      item.revision = `rev-${(parseInt(item.revision.replace("rev-", ""), 10) || 1) + 1}`;
-    }
+    } catch (error: unknown) {
+      if (isHttpError(error)) throw error;
+      // Fixture / Offline fallback
+      const item = FIXTURE_TOURNAMENTS.find((t) => t.tournamentId === tournamentId);
+      if (item) {
+        item.status = "UNDER_REVIEW";
+        item.revision = `rev-${(parseInt(item.revision.replace("rev-", ""), 10) || 1) + 1}`;
+      }
     const mockTournament: TournamentDto = {
       id: tournamentId,
       contractId: "HD-2026-CHUNG",
@@ -525,6 +561,7 @@ export class TournamentApiClient implements TournamentApiPort {
     };
     return { tournament: mockTournament };
   }
+}
 
   async getTournamentDetail(tournamentId: string): Promise<{ tournament: TournamentDto; configVersions: TournamentConfigVersionDto[] }> {
     return this.getDraft(tournamentId);
@@ -533,6 +570,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async getTournamentReadiness(tournamentId: string): Promise<{ readiness: TournamentReadinessSnapshot }> {
     try {
       const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/readiness`, {
+        headers: { Accept: "application/json", "X-OTT-Request": "1" },
         credentials: "include",
       });
       if (res.ok) {
@@ -601,10 +639,34 @@ export class TournamentApiClient implements TournamentApiPort {
     }
   }
 
+  async getLeaderboard(tournamentId: string): Promise<{ leaderboard: TournamentLeaderboardSnapshotDto }> {
+    const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/leaderboard`, {
+      headers: { Accept: "application/json", "X-OTT-Request": "1" },
+      credentials: "include",
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+    const err = await res.json().catch(() => ({}));
+    throw createHttpError(err, res.status, "Không thể tải bảng xếp hạng giải đấu", "GET_LEADERBOARD_FAILED");
+  }
+
+  async getMatches(tournamentId: string): Promise<{ matches: TournamentScoreLedgerEntryDto[] }> {
+    const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches`, {
+      headers: { Accept: "application/json", "X-OTT-Request": "1" },
+      credentials: "include",
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+    const err = await res.json().catch(() => ({}));
+    throw createHttpError(err, res.status, "Không thể tải nhật ký trận đấu", "GET_MATCHES_FAILED");
+  }
+
   async openScheduled(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/open-scheduled`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ expectedRevision }),
     });
@@ -618,7 +680,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async startTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/start`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ expectedRevision }),
     });
@@ -632,7 +694,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async pauseTournament(tournamentId: string, reason: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/pause`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ reason, expectedRevision }),
     });
@@ -646,7 +708,7 @@ export class TournamentApiClient implements TournamentApiPort {
   async resumeTournament(tournamentId: string, expectedRevision?: number): Promise<{ tournament: TournamentDto }> {
     const res = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/resume`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
       credentials: "include",
       body: JSON.stringify({ expectedRevision }),
     });
@@ -662,23 +724,21 @@ export class TournamentApiClient implements TournamentApiPort {
     targetId?: string;
     actorUserId?: string;
   }): Promise<{ logs: AuditLogRecordDto[] }> {
-    if (this.useRealApi) {
-      try {
-        const params = new URLSearchParams();
-        if (filter?.targetType) params.set("targetType", filter.targetType);
-        if (filter?.targetId) params.set("targetId", filter.targetId);
-        const qs = params.toString();
-        const res = await fetch(`/api/admin/audit-logs${qs ? `?${qs}` : ""}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (res.ok) {
-          return await res.json();
-        }
-      } catch {
-        // Fallback to fixture data on network failure
+    try {
+      const params = new URLSearchParams();
+      if (filter?.targetType) params.set("targetType", filter.targetType);
+      if (filter?.targetId) params.set("targetId", filter.targetId);
+      const qs = params.toString();
+      const res = await fetch(`/api/admin/audit-logs${qs ? `?${qs}` : ""}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json", "X-OTT-Request": "1" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        return await res.json();
       }
+    } catch {
+      // Fallback to fixture data on network failure
     }
 
     let records = [...FIXTURE_AUDIT_LOGS];

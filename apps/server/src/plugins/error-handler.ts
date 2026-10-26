@@ -93,6 +93,8 @@ export function registerErrorHandler(app: FastifyInstance): void {
       publicCode: response.body.code,
       statusCode: response.statusCode,
       errorType: error instanceof Error ? error.name : typeof error,
+      zodIssues: (error as any).issues,
+      errMessage: error instanceof Error ? error.message : String(error),
     }, "request failed");
     return reply.status(response.statusCode).send(response.body);
   });

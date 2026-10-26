@@ -92,7 +92,7 @@ describe("S06 — AuditLogsViewerPage Component Tests", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("audit-page-title")).toHaveTextContent("Nhật ký kiểm toán giải đấu");
-      expect(screen.getByText("Quay lại giải đấu")).toBeInTheDocument();
+      expect(screen.getByText("Quay lại")).toBeInTheDocument();
     });
 
     expect(mockApiClient.listAuditLogs).toHaveBeenCalledWith(

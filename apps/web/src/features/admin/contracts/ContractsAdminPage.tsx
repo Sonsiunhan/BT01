@@ -12,6 +12,7 @@ import {
   defaultTournamentAdminApi,
   type TournamentAdminApiPort,
 } from "../services/tournamentAdminApi";
+import { AdminForbiddenState } from "../shell/AdminForbiddenState";
 
 const DEFAULT_ENVELOPE: ContractPolicyEnvelope = {
   allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
@@ -200,14 +201,29 @@ export function ContractsAdminPage({
 
   if (forbiddenError) {
     return (
-      <section aria-labelledby="p07-forbidden-heading" className="p-6">
-        <div role="alert" className="rounded border border-red-500/40 bg-red-950/30 p-4">
-          <h1 id="p07-forbidden-heading" className="text-lg font-bold text-red-200">
-            Truy cập bị từ chối (403)
-          </h1>
-          <p className="mt-1 text-sm text-red-100">{forbiddenError}</p>
-        </div>
-      </section>
+      <AdminForbiddenState
+        featureName="Quản lý Hợp đồng giải đấu"
+        message={forbiddenError}
+      />
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{ padding: "3rem", textAlign: "center" }}>
+        <div
+          style={{
+            width: "2rem",
+            height: "2rem",
+            border: "3px solid var(--border)",
+            borderTopColor: "var(--system-cyan)",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 1rem",
+          }}
+        />
+        <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>Đang tải danh sách hợp đồng...</p>
+      </div>
     );
   }
 
