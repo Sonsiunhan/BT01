@@ -360,6 +360,34 @@ export const TournamentDetailPage: React.FC<TournamentDetailPageProps> = ({
           </div>
         </div>
 
+        {/* SA review feedback — the rejection / changes-requested reason must be
+            readable here too: REJECTED tournaments have no draft-edit entry. */}
+        {tournament.lastReviewNote &&
+          (tournament.status === "CHANGES_REQUESTED" || tournament.status === "REJECTED") && (
+            <div
+              data-testid="tournament-review-feedback"
+              role="note"
+              style={{
+                padding: "0.85rem 1rem",
+                border: "1px solid var(--warning, #f59e0b)",
+                borderLeftWidth: "3px",
+                borderRadius: "8px",
+                background: "color-mix(in srgb, var(--warning, #f59e0b) 10%, var(--surface))",
+                fontSize: "0.85rem",
+                color: "var(--text)",
+              }}
+            >
+              <strong style={{ display: "block" }}>
+                {tournament.status === "REJECTED"
+                  ? "Lý do Ban quản trị từ chối hồ sơ này:"
+                  : "Phản hồi của Ban quản trị khi yêu cầu chỉnh sửa:"}
+              </strong>
+              <p style={{ margin: "0.2rem 0 0 0", color: "var(--text-secondary)" }}>
+                {tournament.lastReviewNote}
+              </p>
+            </div>
+          )}
+
         {/* Action Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           {isDraftLike && (

@@ -51,6 +51,8 @@ export interface TournamentListItem {
   readiness: TournamentReadinessSummary;
   permittedActions: string[];
   revision: string;
+  /** Ghi chú thẩm định gần nhất của SA — chỉ khác null với CHANGES_REQUESTED/REJECTED. */
+  lastReviewNote?: string | null;
 }
 
 export interface TournamentListQuery {

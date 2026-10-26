@@ -19,10 +19,19 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
     participantCount,
     maxParticipants,
     readiness,
+    lastReviewNote,
   } = tournament;
 
   const statusBadge = getStatusBadgeConfig(status);
   const isDraftLike = status === "DRAFT" || status === "CHANGES_REQUESTED";
+  // SA review feedback must be visible on the card itself: REJECTED cards have
+  // no edit entry point, so the reason would otherwise be invisible.
+  const showReviewFeedback =
+    (status === "CHANGES_REQUESTED" || status === "REJECTED") && Boolean(lastReviewNote);
+  const reviewExcerpt =
+    lastReviewNote && lastReviewNote.length > 140
+      ? `${lastReviewNote.slice(0, 140)}…`
+      : lastReviewNote ?? null;
   const primaryActionUrl = isDraftLike
     ? `/admin/tournaments/${tournamentId}/edit`
     : `/admin/tournaments/${tournamentId}`;
@@ -182,6 +191,27 @@ export const TournamentCard: React.FC<TournamentCardProps> = ({ tournament }) =>
             <span style={{ color: "var(--text-muted)" }}>◌ Đang đối soát</span>
           )}
         </div>
+
+        {showReviewFeedback && (
+          <div
+            data-testid={`tournament-review-note-${tournamentId}`}
+            role="note"
+            style={{
+              border: "1px solid var(--warning, #f59e0b)",
+              borderLeftWidth: "3px",
+              borderRadius: "6px",
+              background: "color-mix(in srgb, var(--warning, #f59e0b) 10%, var(--surface))",
+              padding: "0.5rem 0.7rem",
+              fontSize: "0.78rem",
+              color: "var(--text)",
+            }}
+          >
+            <strong style={{ display: "block", marginBottom: "0.15rem" }}>
+              Phản hồi của Ban quản trị:
+            </strong>
+            <span style={{ color: "var(--text-secondary)" }}>{reviewExcerpt}</span>
+          </div>
+        )}
 
         {/* Action Button */}
         <Link

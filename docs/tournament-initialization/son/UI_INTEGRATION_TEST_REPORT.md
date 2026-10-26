@@ -95,6 +95,17 @@ Báo cáo người dùng: (1) đã có bản nháp nhưng mở "Tạo giải m�
 
 **Kiểm chứng trình duyệt:** thiếu lý do → đỏ + focus + alert ✓; gõ → gỡ ✓; có lý do → CHANGES_REQUESTED ✓ và REJECTED ✓. Suite: web 73 file/366 tests PASS, typecheck + lint PASS.
 
+## Vòng 7 — Lý do từ chối hiển thị tại danh sách và chi tiết giải (2026-10-27)
+
+**Báo cáo:** banner ghi chú của SA chỉ nằm ở trang "Sửa bản nháp" — giải REJECTED không có lối vào trang sửa nên TA không bao giờ thấy được lý do từ chối.
+
+**Đã vá:** đưa phản hồi của SA ra 2 bề mặt luôn tới được:
+- **Thẻ giải trong danh sách** (`TournamentCard`): khối "Phản hồi của Ban quản trị" (viền vàng) với trích đoạn ghi chú — hiển thị với CHANGES_REQUESTED và REJECTED khi có ghi chú; lastReviewNote được thêm vào `TournamentListItem` + mapping API (giá trị thật từ server, không bịa).
+- **Trang chi tiết (P03)**: banner "Lý do Ban quản trị từ chối hồ sơ này" / "Phản hồi của Ban quản trị khi yêu cầu chỉnh sửa" với ghi chú đầy đủ, đặt ngay dưới header.
+- Nút "Sửa bản nháp" vẫn chỉ dành cho DRAFT/CHANGES_REQUESTED; thẻ REJECTED giữ "Xem chi tiết" (nay đã chứa lý do).
+
+**Kiểm chứng trình duyệt (TA):** danh sách có 4 thẻ mang khối phản hồi (2 CHANGES_REQUESTED + 2 REJECTED); chi tiết giải REJECTED hiển thị nguyên văn lý do. Suite: web 73 file/366 tests PASS, workspace 368 PASS, typecheck + lint + build PASS.
+
 ## Cách tái lập môi trường
 
 ```bash

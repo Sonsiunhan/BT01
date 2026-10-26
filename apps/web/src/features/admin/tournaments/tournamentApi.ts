@@ -141,6 +141,7 @@ export function mapServerTournamentListItem(t: unknown): TournamentListItem {
     readiness: { state: "UNKNOWN", blockerCount: null },
     permittedActions: ["view"],
     revision: `rev-${raw.revision ?? 1}`,
+    lastReviewNote: typeof raw.lastReviewNote === "string" ? raw.lastReviewNote : null,
   };
 }
 

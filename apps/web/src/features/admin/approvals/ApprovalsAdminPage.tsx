@@ -114,7 +114,8 @@ export function ApprovalsAdminPage({
     const el = noteInputRef.current;
     if (el) {
       el.focus();
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // jsdom (test environment) does not implement scrollIntoView.
+      el.scrollIntoView?.({ behavior: "smooth", block: "center" });
     }
   };
 
