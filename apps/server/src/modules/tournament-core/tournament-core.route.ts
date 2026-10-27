@@ -506,4 +506,55 @@ export async function registerTournamentCoreRoutes(
       return reply.status(200).send({ matches });
     }
   );
+
+  app.post<{
+    Params: { tournamentId: string };
+    Body: { roomId: string; blueParticipantId: string; redParticipantId: string; matchId?: string };
+  }>(
+    "/api/tournaments/:tournamentId/pair",
+    async (request, reply) => {
+      const { tournamentId } = request.params;
+      const { roomId, blueParticipantId, redParticipantId, matchId } = request.body;
+      const result = await admissionGateService.createMatchWithPinnedVersion({
+        tournamentId,
+        roomId,
+        blueParticipantId,
+        redParticipantId,
+        ...(matchId ? { matchId } : {}),
+      });
+      return reply.status(201).send(result);
+    }
+  );
+
+  app.post<{
+    Params: { tournamentId: string };
+    Body: { matchId: string; winnerSide: "BLUE" | "RED" };
+  }>(
+    "/api/tournaments/:tournamentId/finish-match",
+    async (request, reply) => {
+      const { tournamentId } = request.params;
+      const { matchId, winnerSide } = request.body;
+      const match = store.matches.get(matchId);
+      if (!match) {
+        throw createTournamentError({
+          code: "NOT_FOUND",
+          statusCode: 404,
+          message: "Không tìm thấy trận đấu.",
+          details: { reason: "RESOURCE_NOT_FOUND", matchId },
+        });
+      }
+      match.status = "FINISHED";
+      match.winnerSide = winnerSide;
+      match.endedAt = store.nowIso();
+      const ledgerEntry = await adjudicationLedgerService.recordNormalMatchFinish({
+        tournamentId,
+        matchId,
+        blueParticipantId: match.blueParticipantId,
+        redParticipantId: match.redParticipantId,
+        winnerSide,
+      });
+      const leaderboard = adjudicationLedgerService.computeLeaderboardSnapshot(tournamentId);
+      return reply.status(200).send({ ledgerEntry, leaderboard });
+    }
+  );
 }

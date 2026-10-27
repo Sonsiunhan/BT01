@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { applyMove, createInitialState, evaluateTurnStart, getLegalDestinations, type Coordinate, type RuleState, type Side } from "@ottv2/game-rules";
 import { Button, LoadingState } from "../components/ui";
+import { chooseBestMove } from "../services/ai/heuristicBot";
 import { GameBoard } from "../components/board";
 import { routes } from "../app/routes";
 import { addLocalHistory, clearLocalSession, getLocalSession, migrateLegacyGuestSessionToOffline, setLocalSession, type LocalMode, type LocalResult, type LocalSessionSnapshot, type LocalSessionStats } from "../services/local/localGameStorage";
@@ -83,13 +84,7 @@ export default function LocalGamePage({ mode }: LocalGamePageProps) {
   useEffect(() => {
     if (!started || mode !== "AI" || state.status !== "PLAYING" || state.currentTurn !== "RED") return;
     const timer = window.setTimeout(() => {
-      const moves: Array<{ from: Coordinate; to: Coordinate }> = [];
-      for (const [from, piece] of Object.entries(state.board) as Array<[Coordinate, RuleState["board"][Coordinate]]>) {
-        if (piece?.side !== "RED") continue;
-        const to = getLegalDestinations(state, "RED", from)[0];
-        if (to) { moves.push({ from, to }); break; }
-      }
-      const move = moves[0];
+      const move = chooseBestMove(state, "RED");
       if (move) {
         const elapsed = Math.floor((Date.now() - turnStartedAt.current) / 1000);
         const nextClock = Math.max(0, clocks.RED - elapsed);
@@ -101,7 +96,7 @@ export default function LocalGamePage({ mode }: LocalGamePageProps) {
         setClocks((current) => ({ ...current, RED: nextClock }));
         turnStartedAt.current = Date.now();
         const defender = state.board[move.to];
-        const result = applyMove(state, { side: "RED", ...move });
+        const result = applyMove(state, move);
         if (result.kind === "accepted") {
           setMoveStats((current) => ({ moves: current.moves + 1, captures: current.captures, piecesLost: current.piecesLost + (defender && defender.side === "BLUE" ? 1 : 0) }));
           setState(result.state);

@@ -13,7 +13,7 @@ export type RoomActor = { userId: string; username: string; displayName: string;
 type RoomMember = RoomActor & { joinedAt: number; isHost: boolean; ready: boolean };
 type Referee = RoomActor & { connected: boolean; joinedAt: number };
 export type RefereeInvite = { inviteId: string; roomId: string; targetUserId: string; from: { userId: string; username: string; displayName: string }; role: "REFEREE"; expiresAt: number; status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" };
-type RoomState = {
+export type RoomState = {
   roomId: string;
   roomGeneration: string;
   roomVersion: number;
@@ -50,6 +50,25 @@ export class RoomManager {
   private readonly joinIdempotency = new Map<string, IdempotencyRecord>();
   private readonly refereeInvites = new Map<string, RefereeInvite>();
   private readonly roomLocks = new Map<string, Promise<void>>();
+  private fallbackRoomResolver?: (roomId: string) => RoomState | null;
+
+  setFallbackRoomResolver(resolver: (roomId: string) => RoomState | null): void {
+    this.fallbackRoomResolver = resolver;
+  }
+
+  getRoomState(roomId: string): RoomState | undefined {
+    const key = roomId.trim().toUpperCase();
+    let room = this.rooms.get(key);
+    if (!room && this.fallbackRoomResolver) {
+      const fallback = this.fallbackRoomResolver(key);
+      if (fallback) {
+        this.rooms.set(fallback.roomId, fallback);
+        this.publish();
+        room = fallback;
+      }
+    }
+    return room;
+  }
 
   subscribe(listener: (rooms: RoomSummary[]) => void): () => void { this.listeners.add(listener); return () => this.listeners.delete(listener); }
 
@@ -80,7 +99,7 @@ export class RoomManager {
       const previous = this.createIdempotency.get(key);
       if (previous) {
         if (previous.fingerprint !== fingerprint) throw new AppError("CONFLICT", "Idempotency-Key đã được dùng cho yêu cầu khác.", 409, false, "INVALID");
-        const existing = this.rooms.get(previous.roomId);
+        const existing = this.getRoomState(previous.roomId);
         if (existing) return this.serialize(existing, actor.userId);
       }
     }
@@ -186,7 +205,7 @@ export class RoomManager {
   }
 
   search(roomId: string, viewerId?: string): RoomDetail {
-    const room = this.rooms.get(roomId.trim().toUpperCase());
+    const room = this.getRoomState(roomId);
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     return this.serialize(room, viewerId);
   }
@@ -252,7 +271,7 @@ export class RoomManager {
   }
 
   isReferee(roomId: string, userId: string): boolean {
-    const room = this.rooms.get(roomId.trim().toUpperCase());
+    const room = this.getRoomState(roomId);
     return room?.referee?.userId === userId;
   }
 
@@ -289,7 +308,7 @@ export class RoomManager {
 
   async spectate(actor: RoomActor, roomId: string, input: SpectateRoomRequest): Promise<RoomDetail> {
     const normalizedRoomId = roomId.trim().toUpperCase();
-    const room = this.rooms.get(normalizedRoomId);
+    const room = this.getRoomState(normalizedRoomId);
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     if (room.referee?.userId === actor.userId) throw new AppError("CONFLICT", "Trọng tài không thể tham gia cùng trận với vai trò spectator.", 409, false, "INVALID", { reason: "SPECTATOR_REFEREE_CONFLICT" });
     if (room.members.some((member) => member.userId === actor.userId)) {
@@ -309,14 +328,14 @@ export class RoomManager {
 
   leaveSpectator(roomId: string, userId: string): void {
     const normalizedRoomId = roomId.trim().toUpperCase();
-    const room = this.rooms.get(normalizedRoomId);
+    const room = this.getRoomState(normalizedRoomId);
     const removed = room?.spectatorIds.delete(userId) ?? false;
     this.revokeSpectatorStreams(normalizedRoomId, userId);
     if (removed) this.publish();
   }
 
   isSpectator(roomId: string, userId: string): boolean {
-    const room = this.rooms.get(roomId.trim().toUpperCase());
+    const room = this.getRoomState(roomId.trim().toUpperCase());
     return room !== undefined && room.spectatorsEnabled && room.spectatorIds.has(userId) && !room.members.some((member) => member.userId === userId);
   }
 
@@ -342,7 +361,7 @@ export class RoomManager {
   }
 
   spectatorView(roomId: string, userId: string): RoomDetail {
-    const room = this.rooms.get(roomId.trim().toUpperCase());
+    const room = this.getRoomState(roomId);
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     if (!this.isSpectator(room.roomId, userId)) throw new AppError("UNAUTHORIZED", "Bạn chưa được cấp quyền spectator cho phòng này.", 403, false, "INVALID", { reason: "SPECTATOR_ACCESS_REQUIRED" });
     return this.serialize(room, undefined, true);
@@ -351,7 +370,7 @@ export class RoomManager {
   private async joinInternal(actor: RoomActor, roomId: string, input: JoinRoomRequest, idempotencyKey: string | undefined, bypassPassword: boolean): Promise<RoomDetail> {
     const normalizedRoomId = roomId.trim().toUpperCase();
     return this.runWithRoomLock(normalizedRoomId, async () => {
-      const room = this.rooms.get(normalizedRoomId);
+      const room = this.getRoomState(normalizedRoomId);
       if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
 
       if (input.expectedGeneration && input.expectedGeneration !== room.roomGeneration) {
@@ -375,7 +394,7 @@ export class RoomManager {
         const previous = this.joinIdempotency.get(key);
         if (previous) {
           if (previous.fingerprint !== fingerprint) throw new AppError("CONFLICT", "Idempotency-Key đã được dùng cho yêu cầu khác.", 409, false, "INVALID");
-          const existing = this.rooms.get(previous.roomId);
+          const existing = this.getRoomState(previous.roomId);
           if (existing) return this.serialize(existing, actor.userId);
         }
       }
@@ -396,8 +415,8 @@ export class RoomManager {
     });
   }
 
-  private getRoom(roomId: string): RoomState {
-    const room = this.rooms.get(roomId.trim().toUpperCase());
+  getRoom(roomId: string): RoomState {
+    const room = this.getRoomState(roomId.trim().toUpperCase());
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     return room;
   }
@@ -427,7 +446,7 @@ export class RoomManager {
 
   leave(actor: RoomActor, roomId: string): RoomDetail | null {
     const normalizedRoomId = roomId.trim().toUpperCase();
-    const room = this.rooms.get(normalizedRoomId);
+    const room = this.getRoomState(normalizedRoomId);
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     const index = room.members.findIndex((member) => member.userId === actor.userId);
     if (index === -1) throw new AppError("CONFLICT", "Bạn không ở trong phòng này.", 409, false, "INVALID");
@@ -449,7 +468,7 @@ export class RoomManager {
 
   /** Test/W4 seam: the Room Manager remains the only authority for lifecycle state. */
   markPlaying(roomId: string): void {
-    const room = this.rooms.get(roomId.trim().toUpperCase());
+    const room = this.getRoomState(roomId.trim().toUpperCase());
     if (!room) throw new AppError("NOT_FOUND", "Phòng đấu không tồn tại.", 404, false, "INVALID");
     room.status = "PLAYING";
     room.roomVersion += 1;

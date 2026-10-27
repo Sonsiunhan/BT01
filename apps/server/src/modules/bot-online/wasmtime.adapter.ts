@@ -194,7 +194,7 @@ export function createWasmtimeCpythonAdapter(options: WasmtimeCpythonAdapterOpti
           "-C", "compiler=winch",
           "--dir", `${cpythonDir}::/runtime`,
           "--dir", `${turnDir}::/turn`,
-          "-W", `fuel=${limits.wasmStartupFuel}`,
+          "-W", `fuel=${Math.max(limits.wasmStartupFuel, 4_000_000_000)}`,
           "-W", `timeout=${bootstrapWatchdogMs}ms`,
           "-W", `max-memory-size=${limits.wasmMemoryPages * 64 * 1024}`,
           "-W", "trap-on-grow-failure=y",

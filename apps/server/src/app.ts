@@ -1,3 +1,4 @@
+import { randomInt, randomUUID } from "node:crypto";
 import Fastify, { type FastifyInstance } from "fastify";
 
 import { loadEnv, type AppEnv } from "./config/env.js";
@@ -8,7 +9,7 @@ import { registerAuthRoutes } from "./modules/auth/auth.route.js";
 import { AuthService } from "./modules/auth/auth.service.js";
 import { registerProfileRoutes } from "./modules/profile/profile.route.js";
 import { registerRoomRoutes } from "./modules/room/room.route.js";
-import { RoomManager } from "./modules/room/room.manager.js";
+import { RoomManager, type RoomState } from "./modules/room/room.manager.js";
 import { registerMatchRoutes } from "./modules/match/match.route.js";
 import { MatchManager } from "./modules/match/match.manager.js";
 import { FileMatchPersistence, type MatchPersistence } from "./modules/match/match.persistence.js";
@@ -147,6 +148,103 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   if (database instanceof PrismaDatabase) {
     await syncPrismaToTournamentStore(database.client, tournamentBundle.store);
   }
+
+  rooms.setFallbackRoomResolver((roomId: string) => {
+    const normalized = roomId.trim().toUpperCase();
+    const match = Array.from(tournamentBundle.store.matches.values()).find(
+      (m) => m.roomId.trim().toUpperCase() === normalized
+    );
+    if (!match) return null;
+
+    const tournament = tournamentBundle.store.tournaments.get(match.tournamentId);
+    const blueEnrollment = tournamentBundle.store.enrollments.get(match.blueParticipantId);
+    const redEnrollment = tournamentBundle.store.enrollments.get(match.redParticipantId);
+
+    const blueUserId = blueEnrollment?.userId ?? match.blueParticipantId;
+    const redUserId = redEnrollment?.userId ?? match.redParticipantId;
+    const blueName = blueEnrollment?.displayName ?? "Người chơi Xanh";
+    const redName = redEnrollment?.displayName ?? "Người chơi Đỏ";
+
+    const seed = randomInt(2_822_400);
+    const now = Date.now();
+    const isBot = tournament?.coreConfig?.competitionMode === "BOT_VS_BOT";
+
+    const fallbackRoom: RoomState = {
+      roomId: normalized,
+      roomGeneration: randomUUID(),
+      roomVersion: 1,
+      name: tournament ? `${tournament.coreConfig.tournamentName} - ${normalized}` : `Phòng thi đấu ${normalized}`,
+      mode: "UNRANKED",
+      playMode: isBot ? "BOT" : "MANUAL",
+      visibility: "PUBLIC",
+      timerSeconds: 300,
+      spectatorsEnabled: true,
+      refereeEnabled: false,
+      status: "WAITING",
+      members: [
+        {
+          userId: blueUserId,
+          username: blueName,
+          displayName: blueName,
+          rating: blueEnrollment?.seedRating ?? 1000,
+          principal: "ACCOUNT",
+          joinedAt: now,
+          isHost: true,
+          ready: false,
+        },
+        {
+          userId: redUserId,
+          username: redName,
+          displayName: redName,
+          rating: redEnrollment?.seedRating ?? 1000,
+          principal: "ACCOUNT",
+          joinedAt: now,
+          isHost: false,
+          ready: false,
+        },
+      ],
+      spectatorIds: new Set(),
+      createdAt: now,
+      setupContext: {
+        setupDescriptor: { version: "rps-v2", seed },
+        setupSignature: `seed-${seed}`,
+      },
+    };
+
+    if (isBot) {
+      queueMicrotask(async () => {
+        try {
+          const blueLib = await botLibrary.list(blueUserId);
+          const blueBot = blueLib.bots.find((b) => b.revisions.some((r) => r.status === "PASSED"));
+          const blueRev = blueBot?.revisions.find((r) => r.status === "PASSED");
+          if (blueBot && blueRev) {
+            await botOnline.select(
+              rooms.search(normalized, blueUserId),
+              { userId: blueUserId, username: blueName, displayName: blueName, principal: "ACCOUNT" },
+              blueBot.id,
+              blueRev.id
+            );
+          }
+          const redLib = await botLibrary.list(redUserId);
+          const redBot = redLib.bots.find((b) => b.revisions.some((r) => r.status === "PASSED"));
+          const redRev = redBot?.revisions.find((r) => r.status === "PASSED");
+          if (redBot && redRev) {
+            await botOnline.select(
+              rooms.search(normalized, redUserId),
+              { userId: redUserId, username: redName, displayName: redName, principal: "ACCOUNT" },
+              redBot.id,
+              redRev.id
+            );
+          }
+        } catch {
+          // ignore error if bot cannot be selected
+        }
+      });
+    }
+
+    return fallbackRoom;
+  });
+
   await registerTournamentInitializationRoutes(app, auth, tournamentBundle);
   // Register API diagnostics before the SPA catch-all so provider evidence
   // remains reachable even on Fastify/router versions that prefer insertion
