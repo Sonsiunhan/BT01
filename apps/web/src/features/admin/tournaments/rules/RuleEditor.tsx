@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import type {
   TournamentRuleGoalProfile,
   TournamentRuleMovementPattern,
@@ -86,6 +86,32 @@ export function RuleEditor({
   onPreviewRequestChange,
   disabled = false,
 }: RuleEditorProps) {
+  // Keep the text being edited separate from the normalized profile. A user must
+  // be able to clear "a5" and type a replacement; validation belongs at blur/
+  // preview time, not in an onChange handler that restores the old value.
+  const [goalDraftValues, setGoalDraftValues] = useState<Partial<Record<RuleEditorSide, string>>>({});
+
+  const goalText = (side: RuleEditorSide, goal: TournamentRuleGoalProfile | undefined): string => {
+    const draft = goalDraftValues[side];
+    if (draft !== undefined) return draft;
+    if (!goal) return "";
+    return goal.mode === "STATIC"
+      ? goal.cell
+      : goal.mode === "CYCLE"
+        ? goal.cells.join(", ")
+        : goal.mode === "SEEDED"
+          ? goal.candidateCells.join(", ")
+          : "";
+  };
+
+  const restoreGoalDraft = (side: RuleEditorSide, goal: TournamentRuleGoalProfile | undefined) => {
+    setGoalDraftValues((current) => {
+      const next = { ...current };
+      delete next[side];
+      return next;
+    });
+    void goal;
+  };
   const updateProfile = (patch: Partial<RuleEditorProps["value"]["profile"]>) => {
     onChange({ ...copyValue(value), profile: { ...copyValue(value.profile), ...patch } });
   };
@@ -112,20 +138,24 @@ export function RuleEditor({
         policyVersion: "goal-prng-v1",
       };
     }
+    setGoalDraftValues((current) => ({ ...current, [side]: nextMode === "STATIC" ? goalFallback(side) : nextMode === "NONE" ? "" : `${goalFallback(side)}` }));
     updateProfile({ goalProfiles });
   };
 
   const updateGoalCoordinate = (side: RuleEditorSide, coordinate: string) => {
-    if (!validCoordinate(coordinate)) return;
+    setGoalDraftValues((current) => ({ ...current, [side]: coordinate }));
     const goal = value.profile.goalProfiles?.[side];
     if (!goal || goal.mode !== "STATIC") return;
+    if (coordinate !== "" && !validCoordinate(coordinate)) return;
     updateProfile({ goalProfiles: { ...value.profile.goalProfiles, [side]: { ...goal, cell: coordinate } } });
   };
 
   const updateGoalCells = (side: RuleEditorSide, raw: string) => {
-    const cells = raw.split(",").map((cell) => cell.trim()).filter(validCoordinate);
+    setGoalDraftValues((current) => ({ ...current, [side]: raw }));
+    const parts = raw.split(",").map((cell) => cell.trim());
+    const cells = parts.filter(Boolean);
     const goal = value.profile.goalProfiles?.[side];
-    if (!goal || (goal.mode !== "CYCLE" && goal.mode !== "SEEDED") || cells.length === 0) return;
+    if (!goal || (goal.mode !== "CYCLE" && goal.mode !== "SEEDED") || parts.some((cell) => cell !== "" && !validCoordinate(cell)) || cells.length === 0) return;
     const nextGoal = goal.mode === "CYCLE" ? { ...goal, cells } : { ...goal, candidateCells: cells };
     updateProfile({ goalProfiles: { ...value.profile.goalProfiles, [side]: nextGoal } });
   };
@@ -250,7 +280,7 @@ export function RuleEditor({
               {mode === "STATIC" && goal?.mode === "STATIC" && (
                 <label style={fieldStyle}>
                   <span style={labelStyle}>Ô đích</span>
-                  <input aria-label={`Ô đích ${SIDE_LABELS[side]}`} style={inputStyle} value={goal.cell} disabled={disabled || !isGoalEnabled(value)} onChange={(event) => updateGoalCoordinate(side, event.target.value.trim().toLowerCase())} />
+                  <input aria-label={`Ô đích ${SIDE_LABELS[side]}`} style={inputStyle} value={goalText(side, goal)} disabled={disabled || !isGoalEnabled(value)} onChange={(event) => updateGoalCoordinate(side, event.target.value.trim().toLowerCase())} onBlur={() => restoreGoalDraft(side, goal)} />
                   {fieldError(errors, [`profile.goalProfiles.${side}`, `goalProfiles.${side}`])}
                 </label>
               )}
@@ -258,7 +288,7 @@ export function RuleEditor({
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 130px", gap: "0.65rem" }}>
                   <label style={fieldStyle}>
                     <span style={labelStyle}>{mode === "CYCLE" ? "Các ô đích" : "Các ô ứng viên"}</span>
-                    <input aria-label={`Danh sách goal ${SIDE_LABELS[side]}`} style={inputStyle} value={(goal.mode === "CYCLE" ? goal.cells : goal.candidateCells).join(", ")} disabled={disabled || !isGoalEnabled(value)} onChange={(event) => updateGoalCells(side, event.target.value)} />
+                    <input aria-label={`Danh sách goal ${SIDE_LABELS[side]}`} style={inputStyle} value={goalText(side, goal)} disabled={disabled || !isGoalEnabled(value)} onChange={(event) => updateGoalCells(side, event.target.value)} onBlur={() => restoreGoalDraft(side, goal)} />
                   </label>
                   <label style={fieldStyle}>
                     <span style={labelStyle}>Mỗi số round</span>

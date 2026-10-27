@@ -204,7 +204,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   }, []);
 
   // Save draft to server
-  const handleSaveDraft = useCallback(async () => {
+  const handleSaveDraft = useCallback(async (): Promise<{ id: string; revision: number } | null> => {
     setSaving(true);
     setErrorMessage(null);
     setConflictWarning(null);
@@ -217,6 +217,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       tournamentName: formData.name || "Bản nháp giải đấu chưa đặt tên",
       description: formData.description,
       organizersText: formData.organizersText || "Ban Tổ chức Giải đấu",
+      registrationOpenAt: formData.rosterOpenAt || null,
+      registrationCloseAt: formData.rosterCloseAt || null,
+      regulationsFull: formData.regulationsText || undefined,
       competitionMode: formData.competitionMode,
       audienceScope: formData.visibility === "PUBLIC" ? "PUBLIC_REGISTERED" : "INTERNAL_UNIT",
       allowedUnitCodes: formData.allowedUnitCodes,
@@ -253,6 +256,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         setServerRevision(patched.revision);
         setFormData((prev) => ({ ...prev, expectedRevision: patched.revision }));
         setLastSavedTime(new Date().toLocaleTimeString("vi-VN"));
+        return { id: formData.tournamentId, revision: patched.revision };
       } else {
         // CREATE new draft
         const created = await apiClient.createDraft({
@@ -269,7 +273,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         setLastSavedTime(new Date().toLocaleTimeString("vi-VN"));
         // Update URL to edit mode without full reload
         navigate(`/admin/tournaments/${created.id}/edit`, { replace: true });
-        return created.id;
+        return { id: created.id, revision: created.revision };
       }
     } catch (err: unknown) {
       const details = errorRecord(err);
@@ -314,24 +318,25 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   // Open submit modal (auto-saving draft first if needed)
   const handleOpenSubmitModal = useCallback(async () => {
     let currentId = formData.tournamentId;
+    // New drafts need an id before the modal can be opened. Existing drafts
+    // are saved once, on confirmation, so opening the modal does not create an
+    // unnecessary revision and submit always uses the latest form state.
     if (!currentId) {
-      const savedId = await handleSaveDraft();
-      if (!savedId) return;
-      currentId = savedId;
+      const saved = await handleSaveDraft();
+      if (saved) currentId = saved.id;
     }
+    if (!currentId) return;
     setShowSubmitModal(true);
   }, [formData.tournamentId, handleSaveDraft]);
 
   // S07: Submit draft for review
   const handleSubmitDraft = useCallback(async () => {
-    let targetId = formData.tournamentId;
+    const saved = await handleSaveDraft();
+    let targetId = saved?.id ?? formData.tournamentId;
+    const expectedRevision = saved?.revision ?? serverRevision;
     if (!targetId) {
-      const savedId = await handleSaveDraft();
-      if (!savedId) {
-        setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
-        return;
-      }
-      targetId = savedId;
+      setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
+      return;
     }
     setSubmittingDraft(true);
     setErrorMessage(null);
@@ -339,7 +344,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
 
     try {
       const res = await apiClient.submitDraft(targetId, {
-        expectedRevision: serverRevision,
+        expectedRevision,
         submissionNote: submissionNote.trim() || undefined,
       });
       setServerRevision(res.tournament.revision);

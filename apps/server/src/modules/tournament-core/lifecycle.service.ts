@@ -625,7 +625,7 @@ export class TournamentLifecycleService {
   evaluateReadiness(
     tournamentId: string,
     transactionClient?: Prisma.TransactionClient,
-  ): TournamentReadinessSnapshot {
+  ): TournamentReadinessSnapshot | Promise<TournamentReadinessSnapshot> {
     const tournament = this.store.tournaments.get(tournamentId);
     if (!tournament) {
       throw createTournamentError({
@@ -638,21 +638,12 @@ export class TournamentLifecycleService {
 
     const countsOrPromise = this.readinessSourcesPort.countParticipants(tournament, transactionClient);
     const staffOrPromise = this.readinessSourcesPort.countStaff(tournamentId, transactionClient);
-
     if (countsOrPromise instanceof Promise || staffOrPromise instanceof Promise) {
-      const asyncPromise = (async () => {
-        const counts = await countsOrPromise;
-        const staff = await staffOrPromise;
-        return this.buildReadinessSnapshot(tournament, counts, staff);
-      })();
-      return asyncPromise as any;
+      return Promise.all([countsOrPromise, staffOrPromise]).then(([counts, staff]) =>
+        this.buildReadinessSnapshot(tournament, counts, staff)
+      );
     }
-
-    return this.buildReadinessSnapshot(
-      tournament,
-      countsOrPromise,
-      staffOrPromise
-    );
+    return this.buildReadinessSnapshot(tournament, countsOrPromise, staffOrPromise);
   }
 
   async openScheduled(
@@ -660,7 +651,7 @@ export class TournamentLifecycleService {
     tournamentId: string,
     expectedRevision?: number
   ): Promise<TournamentDto> {
-    return this.store.withLock(() => {
+    return this.store.withLock(async () => {
       const tournament = this.store.tournaments.get(tournamentId);
       if (!tournament) {
         throw createTournamentError({
@@ -679,7 +670,7 @@ export class TournamentLifecycleService {
       });
       this.assertExpectedRevision(tournament, expectedRevision);
 
-      const readiness = this.evaluateReadiness(tournamentId);
+      const readiness = await this.evaluateReadiness(tournamentId);
       if (!readiness.canOpenScheduled) {
         throw createTournamentError({
           code: "CONFLICT",
@@ -1430,7 +1421,7 @@ export class TournamentLifecycleService {
         if (tournament.status !== "SCHEDULED") continue;
         const startMs = Date.parse(tournament.coreConfig.scheduledStartAt);
         if (nowMs >= startMs) {
-          const readiness = this.evaluateReadiness(id);
+          const readiness = await this.evaluateReadiness(id);
           if (readiness.canStartRunning) {
             const updated = TournamentDtoSchema.parse({
               ...tournament,
