@@ -841,7 +841,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                       {c.contractCode} ({c.unitName || "Hợp đồng"})
                     </option>
                   ))}
-                  <option value="HD-2026-CHUNG">HD-2026-CHUNG (Hợp đồng bảo trợ chuẩn 2026)</option>
+                  {!availableContracts.some((c) => (c.contractCode || c.id) === "HD-2026-CHUNG") && (
+                    <option value="HD-2026-CHUNG">HD-2026-CHUNG (Hợp đồng bảo trợ chuẩn 2026)</option>
+                  )}
                 </datalist>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                   Hợp đồng xác định hạn mức số giải đấu và trần thí sinh được phép tổ chức.
@@ -868,7 +870,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                       {u.unitName} ({u.unitCode})
                     </option>
                   ))}
-                  <option value="unit-fit-vnu">Khoa Công nghệ Thông tin - Trường ĐH Công nghệ, ĐHQGHN</option>
+                  {!availableUnits.some((u) => (u.unitCode || u.id).toLowerCase() === "unit-fit-vnu") && (
+                    <option value="unit-fit-vnu">Khoa Công nghệ Thông tin - Trường ĐH Công nghệ, ĐHQGHN</option>
+                  )}
                 </datalist>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                   Khoa, Viện, hoặc CLB bảo trợ đứng tên tổ chức giải đấu.
