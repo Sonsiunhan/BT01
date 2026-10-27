@@ -41,6 +41,7 @@
     "db:generate": "corepack pnpm --filter @ottv2/server db:generate",
     "db:migrate": "corepack pnpm --filter @ottv2/server db:migrate",
     "db:deploy": "corepack pnpm --filter @ottv2/server db:deploy",
+    "db:seed": "corepack pnpm --filter @ottv2/server exec tsx ../../scripts/seed-sa.ts",
     "simulate:tournament": "corepack pnpm --filter @ottv2/server exec tsx ../../scripts/simulate-tournament-matches.ts",
     "simulate:500-bots": "corepack pnpm --filter @ottv2/server exec tsx ../../scripts/simulate-500-bots.ts"
   },
