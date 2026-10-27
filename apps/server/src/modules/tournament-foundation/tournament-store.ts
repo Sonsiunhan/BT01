@@ -93,6 +93,77 @@ export class TournamentStateStore {
     this.clockFn = clockFn;
   }
 
+  ensureDefaultSeed(): void {
+    if (this.units.size === 0) {
+      const nowIso = this.nowIso();
+      const defaultUnit: UnitDto = {
+        id: "unit-fit-vnu",
+        unitCode: "UNIT-FIT-VNU",
+        unitName: "Khoa Công nghệ Thông tin - Trường ĐH Công nghệ, ĐHQGHN",
+        unitType: "KHOA",
+        contactName: "Ban Quản trị FIT",
+        contactEmail: "contact@fit.vnu.edu.vn",
+        status: "ACTIVE",
+        referencedContractsCount: 0,
+        referencedTournamentsCount: 0,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+      this.units.set(defaultUnit.id, defaultUnit);
+    }
+
+    if (this.contracts.size === 0) {
+      const nowIso = this.nowIso();
+      const defaultContract: TournamentContractDto = {
+        id: "HD-2026-CHUNG",
+        contractCode: "HD-2026-CHUNG",
+        unitId: "unit-fit-vnu",
+        unitCode: "UNIT-FIT-VNU",
+        unitName: "Khoa Công nghệ Thông tin - Trường ĐH Công nghệ, ĐHQGHN",
+        status: "ACTIVE",
+        validFrom: "2026-01-01T00:00:00.000Z",
+        validTo: "2030-12-31T23:59:59.000Z",
+        maxTournamentsTotal: 100,
+        quotaReservedCount: 0,
+        quotaConsumedCount: 0,
+        quotaRemainingCount: 100,
+        maxParticipantsPerTournament: 256,
+        maxParticipantsTotal: 1000,
+        currentParticipantsTotal: 0,
+        allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
+        policyEnvelope: {
+          allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
+          turnSecondsMin: 5,
+          turnSecondsMax: 300,
+          totalMatchSecondsMin: 30,
+          totalMatchSecondsMax: 3600,
+          turnLimitMin: 10,
+          turnLimitMax: 500,
+          allowedNoProgressPlies: [10, 20, 30, 40, 50, 60, 80, 100],
+          allowedRepetitionThresholds: [2, 3, 4, 5, 6],
+          allowedTieBreakPolicies: [
+            "RANDOM_SEEDED",
+            "BLUE_ADVANTAGE",
+            "RED_ADVANTAGE",
+            "REPLAY_ONCE_THEN_SEEDED",
+            "MANUAL_REFEREE",
+          ],
+        },
+        technicalCaps: {
+          botSourceMaxBytes: 65536,
+          botRuntimeTimeoutMs: 1000,
+          botMemoryLimitMb: 64,
+          maxConcurrentMatchesPerTournament: 16,
+          rosterImportMaxRows: 2000,
+        },
+        taBindings: [],
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+      this.contracts.set(defaultContract.id, defaultContract);
+    }
+  }
+
   async withLock<T>(fn: () => Promise<T> | T): Promise<T> {
     let release!: () => void;
     const nextLock = new Promise<void>((resolve) => {
@@ -159,6 +230,9 @@ export class TournamentStateStore {
       for (const r of params.roles) {
         if (r === "ADMIN" || r === "SYSTEM_ADMIN") {
           roles.add("ADMIN");
+        }
+        if (r === "TOURNAMENT_ADMIN") {
+          roles.add("TOURNAMENT_ADMIN");
         }
       }
     }
@@ -248,8 +322,9 @@ export function assertTaContractOrTournamentAccess(
     return;
   }
 
+  const isAdmin = actor.roles.includes("ADMIN");
   const binding = contract.taBindings.find((b) => b.userId === actor.userId);
-  if (!binding || binding.status !== "ACTIVE") {
+  if (!isAdmin && (!binding || binding.status !== "ACTIVE")) {
     throw createTournamentError({
       code: "UNAUTHORIZED",
       statusCode: 403,
@@ -286,8 +361,8 @@ export function assertTaContractOrTournamentAccess(
     return;
   }
 
-  // OPERATE_EXISTING: must own the tournament
-  if (options.tournament && options.tournament.ownerTaUserId !== actor.userId) {
+  // OPERATE_EXISTING: must own the tournament or have ADMIN role
+  if (options.tournament && options.tournament.ownerTaUserId !== actor.userId && !isAdmin) {
     throw createTournamentError({
       code: "UNAUTHORIZED",
       statusCode: 403,

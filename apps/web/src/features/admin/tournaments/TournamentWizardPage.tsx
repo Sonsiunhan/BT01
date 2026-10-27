@@ -142,6 +142,34 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
 
   const isUnderReview = tournamentStatus === "UNDER_REVIEW" || tournamentStatus === "SUBMITTED";
 
+  const [availableContracts, setAvailableContracts] = useState<Array<{ id: string; contractCode: string; unitName?: string }>>([]);
+  const [availableUnits, setAvailableUnits] = useState<Array<{ id: string; unitCode: string; unitName: string }>>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/contracts", { headers: { "X-OTT-Request": "1" }, credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data && Array.isArray(data.contracts)) {
+          setAvailableContracts(data.contracts);
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/admin/units", { headers: { "X-OTT-Request": "1" }, credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data && Array.isArray(data.units)) {
+          setAvailableUnits(data.units);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Check if buffer existed on mount
   useEffect(() => {
     const buffered = getLocalDraftBuffer<DraftFormData>(draftStorageKey);
@@ -800,12 +828,21 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 <input
                   id={contractInputId}
                   type="text"
+                  list="contract-list-options"
                   data-testid="wizard-contract-input"
                   className="input"
                   value={formData.contractId}
                   onChange={(e) => updateField("contractId", e.target.value)}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
                 />
+                <datalist id="contract-list-options">
+                  {availableContracts.map((c) => (
+                    <option key={c.id} value={c.contractCode || c.id}>
+                      {c.contractCode} ({c.unitName || "Hợp đồng"})
+                    </option>
+                  ))}
+                  <option value="HD-2026-CHUNG">HD-2026-CHUNG (Hợp đồng bảo trợ chuẩn 2026)</option>
+                </datalist>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                   Hợp đồng xác định hạn mức số giải đấu và trần thí sinh được phép tổ chức.
                 </span>
@@ -818,12 +855,21 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 <input
                   id={unitInputId}
                   type="text"
+                  list="unit-list-options"
                   data-testid="wizard-unit-input"
                   className="input"
                   value={formData.organizerUnitId}
                   onChange={(e) => updateField("organizerUnitId", e.target.value)}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem" }}
                 />
+                <datalist id="unit-list-options">
+                  {availableUnits.map((u) => (
+                    <option key={u.id} value={u.unitCode || u.id}>
+                      {u.unitName} ({u.unitCode})
+                    </option>
+                  ))}
+                  <option value="unit-fit-vnu">Khoa Công nghệ Thông tin - Trường ĐH Công nghệ, ĐHQGHN</option>
+                </datalist>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                   Khoa, Viện, hoặc CLB bảo trợ đứng tên tổ chức giải đấu.
                 </span>

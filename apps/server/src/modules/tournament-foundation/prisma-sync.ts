@@ -93,6 +93,10 @@ export async function syncPrismaToTournamentStore(
       }
     }
 
+    if (store.units.size === 0 || store.contracts.size === 0) {
+      store.ensureDefaultSeed();
+    }
+
     // 3. Tournaments
     const tournaments = await prisma.tournament.findMany({
       include: {

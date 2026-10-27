@@ -54,6 +54,7 @@ export function createTournamentRuntimeBundle(options?: {
   botLibrary?: BotLibraryService | undefined;
 }): TournamentRuntimeBundle {
   const store = options?.store ?? new TournamentStateStore({ clockFn: options?.clockFn });
+  store.ensureDefaultSeed();
   const unitContractService = new UnitContractService(store);
   const coreDraftService = new CoreDraftService(store, options?.database);
   const approvalService = new ApprovalService(store, options?.database);

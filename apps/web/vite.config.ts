@@ -24,9 +24,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          const normalized = id.replaceAll("\\\\", "/");
-          if (normalized.includes("/apps/web/src/features/admin/tournaments/")) return "admin-tournaments";
-          if (normalized.includes("/apps/web/src/features/admin/")) return "admin-pages";
+          const normalized = id.replaceAll("\\", "/");
+          if (normalized.includes("node_modules")) {
+            if (normalized.includes("react-dom") || normalized.includes("/react/")) {
+              return "vendor-react";
+            }
+            if (normalized.includes("lucide-react")) {
+              return "vendor-icons";
+            }
+          }
         },
       },
     },

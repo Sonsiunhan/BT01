@@ -25,16 +25,36 @@ export function login(input: { username: string; password: string; remember: boo
   return requestJson<{ user: UserProfile }>("/auth/login", { method: "POST", body: input });
 }
 
-export function logout() { return requestJson<void>("/auth/logout", { method: "POST" }); }
+let inFlightMe: Promise<{ user: UserProfile }> | null = null;
+let cachedMe: { user: UserProfile; timestamp: number } | null = null;
+const CACHE_TTL_MS = 5000;
+
+export function clearAuthCache(): void {
+  cachedMe = null;
+  inFlightMe = null;
+}
+
+export function logout() {
+  clearAuthCache();
+  return requestJson<void>("/auth/logout", { method: "POST" });
+}
 export function recover(input: { username: string; recoveryCode: string; newPassword: string }) { return requestJson<{ user: UserProfile }>("/auth/recover", { method: "POST", body: input }); }
 export function changePassword(input: { currentPassword: string; newPassword: string }) { return requestJson<void>("/auth/password", { method: "POST", body: input }); }
-let inFlightMe: Promise<{ user: UserProfile }> | null = null;
 
-export function getMe() {
+export function getMe(options?: { force?: boolean }) {
+  const now = Date.now();
+  if (!options?.force && cachedMe && now - cachedMe.timestamp < CACHE_TTL_MS) {
+    return Promise.resolve({ user: cachedMe.user });
+  }
   if (inFlightMe) return inFlightMe;
-  inFlightMe = (getJson("/auth/me") as Promise<{ user: UserProfile }>).finally(() => {
-    inFlightMe = null;
-  });
+  inFlightMe = (getJson("/auth/me") as Promise<{ user: UserProfile }>)
+    .then((res) => {
+      cachedMe = { user: res.user, timestamp: Date.now() };
+      return res;
+    })
+    .finally(() => {
+      inFlightMe = null;
+    });
   return inFlightMe;
 }
 export function getPublicProfile(username: string) { return getJson(`/profiles/${encodeURIComponent(username)}`) as Promise<{ profile: PublicProfile }>; }

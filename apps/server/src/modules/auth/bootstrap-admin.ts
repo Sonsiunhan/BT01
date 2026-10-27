@@ -134,4 +134,89 @@ export async function bootstrapDatabaseAndAdmin(
   } catch (err: any) {
     log?.warn({ err: err?.message }, "Could not ensure default SA account (database might be initializing or unreachable).");
   }
+
+  // 3. Ensure default unit (unit-fit-vnu) and contract (HD-2026-CHUNG) exist
+  try {
+    const existingUnit = await prisma.unit.findFirst({
+      where: {
+        OR: [
+          { id: "unit-fit-vnu" },
+          { unitCode: "UNIT-FIT-VNU" },
+        ],
+      },
+    });
+
+    let unitId = existingUnit?.id;
+    if (!existingUnit) {
+      const createdUnit = await prisma.unit.create({
+        data: {
+          id: "unit-fit-vnu",
+          unitCode: "UNIT-FIT-VNU",
+          unitName: "Khoa Công nghệ Thông tin - Trường ĐH Công nghệ, ĐHQGHN",
+          unitType: "KHOA",
+          contactName: "Ban Quản trị FIT",
+          contactEmail: "contact@fit.vnu.edu.vn",
+          status: "ACTIVE",
+        },
+      });
+      unitId = createdUnit.id;
+      log?.info("Default Unit (unit-fit-vnu) bootstrapped successfully.");
+    }
+
+    const existingContract = await prisma.tournamentContract.findFirst({
+      where: {
+        OR: [
+          { id: "HD-2026-CHUNG" },
+          { contractCode: "HD-2026-CHUNG" },
+        ],
+      },
+    });
+
+    if (!existingContract && unitId) {
+      await prisma.tournamentContract.create({
+        data: {
+          id: "HD-2026-CHUNG",
+          contractCode: "HD-2026-CHUNG",
+          unitId,
+          status: "ACTIVE",
+          validFrom: new Date("2026-01-01T00:00:00.000Z"),
+          validTo: new Date("2030-12-31T23:59:59.000Z"),
+          maxTournamentsTotal: 100,
+          quotaReservedCount: 0,
+          quotaConsumedCount: 0,
+          maxParticipantsPerTournament: 256,
+          maxParticipantsTotal: 1000,
+          allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
+          policyEnvelope: {
+            allowedModes: ["HUMAN_ONLINE", "BOT_VS_BOT"],
+            turnSecondsMin: 5,
+            turnSecondsMax: 300,
+            totalMatchSecondsMin: 30,
+            totalMatchSecondsMax: 3600,
+            turnLimitMin: 10,
+            turnLimitMax: 500,
+            allowedNoProgressPlies: [10, 20, 30, 40, 50, 60, 80, 100],
+            allowedRepetitionThresholds: [2, 3, 4, 5, 6],
+            allowedTieBreakPolicies: [
+              "RANDOM_SEEDED",
+              "BLUE_ADVANTAGE",
+              "RED_ADVANTAGE",
+              "REPLAY_ONCE_THEN_SEEDED",
+              "MANUAL_REFEREE",
+            ],
+          },
+          technicalCaps: {
+            botSourceMaxBytes: 65536,
+            botRuntimeTimeoutMs: 1000,
+            botMemoryLimitMb: 64,
+            maxConcurrentMatchesPerTournament: 16,
+            rosterImportMaxRows: 2000,
+          },
+        },
+      });
+      log?.info("Default Contract (HD-2026-CHUNG) bootstrapped successfully.");
+    }
+  } catch (contractErr: any) {
+    log?.warn({ err: contractErr?.message }, "Could not ensure default unit or contract (schema may not be ready).");
+  }
 }

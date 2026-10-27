@@ -1043,9 +1043,25 @@ export class TournamentLifecycleService {
    * serverNow >= scheduledEndAt, without auto-extending scheduledEndAt.
    */
   async evaluateAutoEndAtWindow(serverNowIso?: string): Promise<TournamentDto[]> {
+    const nowIso = serverNowIso ?? this.store.nowIso();
+    const nowMs = Date.parse(nowIso);
+
+    // Fast-path: Check without lock if any RUNNING or PAUSED tournament has reached scheduled end time
+    let anyNeedEnd = false;
+    for (const t of this.store.tournaments.values()) {
+      if (
+        (t.status === "RUNNING" || t.status === "PAUSED") &&
+        nowMs >= Date.parse(t.coreConfig.scheduledEndAt)
+      ) {
+        anyNeedEnd = true;
+        break;
+      }
+    }
+    if (!anyNeedEnd) {
+      return [];
+    }
+
     return this.store.withLock(() => {
-      const nowIso = serverNowIso ?? this.store.nowIso();
-      const nowMs = Date.parse(nowIso);
       const endedTournaments: TournamentDto[] = [];
 
       for (const [id, tournament] of this.store.tournaments.entries()) {
@@ -1411,9 +1427,22 @@ export class TournamentLifecycleService {
     startedTournaments: TournamentDto[];
     blockedTournaments: TournamentDto[];
   }> {
+    const nowIso = serverNowIso ?? this.store.nowIso();
+    const nowMs = Date.parse(nowIso);
+
+    // Fast-path: Check without lock if any SCHEDULED tournament has reached scheduled start time
+    let anyNeedStart = false;
+    for (const t of this.store.tournaments.values()) {
+      if (t.status === "SCHEDULED" && nowMs >= Date.parse(t.coreConfig.scheduledStartAt)) {
+        anyNeedStart = true;
+        break;
+      }
+    }
+    if (!anyNeedStart) {
+      return { startedTournaments: [], blockedTournaments: [] };
+    }
+
     return this.store.withLock(async () => {
-      const nowIso = serverNowIso ?? this.store.nowIso();
-      const nowMs = Date.parse(nowIso);
       const startedTournaments: TournamentDto[] = [];
       const blockedTournaments: TournamentDto[] = [];
 

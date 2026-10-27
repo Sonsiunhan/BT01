@@ -550,9 +550,27 @@ export type TournamentRuleProfile = z.infer<typeof TournamentRuleProfileSchema>;
  */
 export function evaluateRuleProfileEnvelope(
   ruleProfile: TournamentRuleProfile,
-  envelope: ContractPolicyEnvelope
+  rawEnvelope?: Partial<ContractPolicyEnvelope>
 ): { withinEnvelope: boolean; violations: Array<{ field: string; message: string }> } {
   const violations: Array<{ field: string; message: string }> = [];
+  const envelope = {
+    turnSecondsMin: 5,
+    turnSecondsMax: 600,
+    totalMatchSecondsMin: 30,
+    totalMatchSecondsMax: 7200,
+    turnLimitMin: 10,
+    turnLimitMax: 1000,
+    allowedNoProgressPlies: [10, 20, 30, 40, 50, 60, 80, 100],
+    allowedRepetitionThresholds: [2, 3, 4, 5, 6],
+    allowedTieBreakPolicies: [
+      "RANDOM_SEEDED",
+      "BLUE_ADVANTAGE",
+      "RED_ADVANTAGE",
+      "REPLAY_ONCE_THEN_SEEDED",
+      "MANUAL_REFEREE",
+    ],
+    ...(rawEnvelope ?? {}),
+  };
 
   if (
     ruleProfile.turnSeconds < envelope.turnSecondsMin ||
@@ -584,21 +602,30 @@ export function evaluateRuleProfileEnvelope(
     });
   }
 
-  if (!envelope.allowedNoProgressPlies.includes(ruleProfile.noProgressPlies)) {
+  if (
+    Array.isArray(envelope.allowedNoProgressPlies) &&
+    !envelope.allowedNoProgressPlies.includes(ruleProfile.noProgressPlies)
+  ) {
     violations.push({
       field: "noProgressPlies",
       message: `Ngưỡng không tiến triển (${ruleProfile.noProgressPlies}) không nằm trong tập cho phép [${envelope.allowedNoProgressPlies.join(", ")}].`,
     });
   }
 
-  if (!envelope.allowedRepetitionThresholds.includes(ruleProfile.repetitionThreshold)) {
+  if (
+    Array.isArray(envelope.allowedRepetitionThresholds) &&
+    !envelope.allowedRepetitionThresholds.includes(ruleProfile.repetitionThreshold)
+  ) {
     violations.push({
       field: "repetitionThreshold",
       message: `Ngưỡng lặp nước đi (${ruleProfile.repetitionThreshold}) không nằm trong tập cho phép [${envelope.allowedRepetitionThresholds.join(", ")}].`,
     });
   }
 
-  if (!envelope.allowedTieBreakPolicies.includes(ruleProfile.tieBreakPolicy)) {
+  if (
+    Array.isArray(envelope.allowedTieBreakPolicies) &&
+    !envelope.allowedTieBreakPolicies.includes(ruleProfile.tieBreakPolicy)
+  ) {
     violations.push({
       field: "tieBreakPolicy",
       message: `Chính sách xử lý hòa (${ruleProfile.tieBreakPolicy}) không nằm trong tập cho phép [${envelope.allowedTieBreakPolicies.join(", ")}].`,

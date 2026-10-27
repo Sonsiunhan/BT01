@@ -190,7 +190,7 @@ export class BotReadinessService {
   }
 
   private isOwnerTa(actor: TournamentActorContext, tournamentId: string): boolean {
-    if (!actor.roles.includes("TOURNAMENT_ADMIN")) return false;
+    if (!actor.roles.includes("TOURNAMENT_ADMIN") && !actor.roles.includes("ADMIN")) return false;
     const tournament = this.store.tournaments.get(tournamentId);
     const contract = tournament ? this.store.contracts.get(tournament.contractId) : undefined;
     if (!tournament) return true; // isolated service harness only
@@ -205,7 +205,7 @@ export class BotReadinessService {
 
   private assertOwnerTa(actor: TournamentActorContext, tournamentId: string): void {
     if (!this.store.tournaments.has(tournamentId)) {
-      if (actor.roles.includes("TOURNAMENT_ADMIN")) return; // isolated service harness only
+      if (actor.roles.includes("TOURNAMENT_ADMIN") || actor.roles.includes("ADMIN")) return; // isolated service harness only
       throw serviceError("UNAUTHORIZED", 403, "Chỉ Tournament Admin sở hữu giải được thực hiện thao tác này.");
     }
     this.assertDashboardAccess(actor, tournamentId);

@@ -276,7 +276,14 @@ export class TournamentApiClient implements TournamentApiPort {
             revision: `rev-${typeof t.revision === "number" ? t.revision : 1}`,
           };
           });
-          return this.filterFixtures(query, serverItems);
+          const result = this.filterFixtures(query, serverItems);
+          if (data.capabilities && typeof data.capabilities === "object") {
+            result.capabilities = {
+              ...result.capabilities,
+              ...data.capabilities,
+            };
+          }
+          return result;
         }
       }
     } catch {
