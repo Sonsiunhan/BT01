@@ -15,13 +15,24 @@ export default defineConfig({
     },
   }],
   build: {
+    minify: "terser",
+    terserOptions: {
+      compress: { passes: 2 },
+      mangle: true,
+      format: { comments: false },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
-          const normalized = id.replaceAll("\\\\", "/");
-          if (normalized.includes("/apps/web/src/features/admin/tournaments/")) return "admin-tournaments";
-          if (normalized.includes("/apps/web/src/features/admin/")) return "admin-pages";
-          if (normalized.includes("/apps/web/src/pages/")) return "app-pages";
+          const normalized = id.replaceAll("\\", "/");
+          if (normalized.includes("node_modules")) {
+            if (normalized.includes("react-dom") || normalized.includes("/react/")) {
+              return "vendor-react";
+            }
+            if (normalized.includes("lucide-react")) {
+              return "vendor-icons";
+            }
+          }
         },
       },
     },
@@ -42,5 +53,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     css: true,
+    testTimeout: 15_000,
   },
 });

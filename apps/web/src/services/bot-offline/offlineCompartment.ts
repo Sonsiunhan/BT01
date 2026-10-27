@@ -3,12 +3,16 @@ import workerSource from "./offlineCompartment.worker.js?raw";
 import { OFFLINE_KIT_ASSETS, OFFLINE_KIT_CACHE } from "../local/offlineKit";
 
 const PINS: Record<string, string> = {
-  "pyodide.mjs": "9f54a615c20b2aeb0514d25adbd5ae4c098f8604be1291959e760b6e85e8bc36",
-  "pyodide.asm.js": "0ea527c5d589df084d79f306ddc9f99f1f67bb7d6529008c10d1a324a1a6dc22",
+  "pyodide.mjs": "bf1ab3c7efb8013a3c57e79a0e6eeead2b6f97c02a1888418a5fb22b5a865660",
+  "pyodide.asm.js": "5db0946f523ff5216674e196335fda35f7b2292c8222a8f60a6922d2e76bfa1a",
   "pyodide.asm.wasm": "abf462b9236af720a276be5a9db980aa31871972a323525abd33c1978cf844ce",
   "python_stdlib.zip": "cad21b7df47ac3d6efe8d97f0654feec8a51b089046100e9d21fba5954700a21",
   "pyodide-lock.json": "bb75898cd30da9530e25a9cb7336755db7c3cc85ddd0e3da20ae794a589b3972",
 };
+// Pyodide cold bootstrap is runtime overhead, not player compute. Keep it
+// separate from the equal preflight/turn budgets so a slow first launch does
+// not make an otherwise bounded Bot invocation look like an author timeout.
+const RUNTIME_BOOT_TIMEOUT_MS = 60_000;
 export class OfflineCompartmentError extends Error {
   constructor(public readonly code: string) { super(code); }
 }
@@ -80,7 +84,7 @@ export async function executeOfflineIsolated(request: BotInvocationRequest, sign
     };
     const fail = (code: string) => { if (settled) return; settled = true; cleanup(); reject(new OfflineCompartmentError(code)); };
     const abort = () => fail("ABORTED");
-    const bootTimer = window.setTimeout(() => fail(`BOOT_TIMEOUT_${phase}`), 20000);
+    const bootTimer = window.setTimeout(() => fail(`BOOT_TIMEOUT_${phase}`), RUNTIME_BOOT_TIMEOUT_MS);
     signal?.addEventListener("abort", abort, { once: true });
     channel.port1.onmessage = (event: MessageEvent) => {
       if (settled) return;

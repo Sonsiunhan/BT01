@@ -17,17 +17,65 @@ export type UserProfile = {
 
 export type PublicProfile = { userId: string; username: string; displayName: string; avatarPreset: AvatarPreset; stats: UserProfile["stats"]; botStats?: BotStats; friendCount: number; recentForm: Array<"WIN" | "LOSS">; isSelf?: boolean; isFriend: boolean; requestStatus: "PENDING" | null; presence?: "OFFLINE" | "ONLINE" | "IN_GAME" };
 
+let inFlightMe: Promise<{ user: UserProfile }> | null = null;
+let cachedMe: { user: UserProfile; timestamp: number } | null = null;
+const CACHE_TTL_MS = 5000;
+
+export function clearAuthCache(): void {
+  cachedMe = null;
+  inFlightMe = null;
+}
+
 export function register(input: { fullName: string; displayName: string; username: string; password: string }) {
-  return requestJson<{ user: UserProfile; recoveryCode: string }>("/auth/register", { method: "POST", body: input });
+  return requestJson<{ user: UserProfile; recoveryCode: string }>("/auth/register", { method: "POST", body: input })
+    .then((res) => {
+      cachedMe = { user: res.user, timestamp: Date.now() };
+      return res;
+    });
 }
 
 export function login(input: { username: string; password: string; remember: boolean }) {
-  return requestJson<{ user: UserProfile }>("/auth/login", { method: "POST", body: input });
+  return requestJson<{ user: UserProfile }>("/auth/login", { method: "POST", body: input })
+    .then((res) => {
+      cachedMe = { user: res.user, timestamp: Date.now() };
+      return res;
+    });
 }
 
-export function logout() { return requestJson<void>("/auth/logout", { method: "POST" }); }
-export function recover(input: { username: string; recoveryCode: string; newPassword: string }) { return requestJson<{ user: UserProfile }>("/auth/recover", { method: "POST", body: input }); }
+export function logout() {
+  clearAuthCache();
+  return requestJson<void>("/auth/logout", { method: "POST" });
+}
+export function recover(input: { username: string; recoveryCode: string; newPassword: string }) {
+  return requestJson<{ user: UserProfile }>("/auth/recover", { method: "POST", body: input })
+    .then((res) => {
+      cachedMe = { user: res.user, timestamp: Date.now() };
+      return res;
+    });
+}
 export function changePassword(input: { currentPassword: string; newPassword: string }) { return requestJson<void>("/auth/password", { method: "POST", body: input }); }
-export function getMe() { return getJson("/auth/me") as Promise<{ user: UserProfile }>; }
+
+export function getMe(options?: { force?: boolean }) {
+  const now = Date.now();
+  if (!options?.force && cachedMe && now - cachedMe.timestamp < CACHE_TTL_MS) {
+    return Promise.resolve({ user: cachedMe.user });
+  }
+  if (inFlightMe) return inFlightMe;
+  inFlightMe = (getJson("/auth/me") as Promise<{ user: UserProfile }>)
+    .then((res) => {
+      cachedMe = { user: res.user, timestamp: Date.now() };
+      return res;
+    })
+    .finally(() => {
+      inFlightMe = null;
+    });
+  return inFlightMe;
+}
 export function getPublicProfile(username: string) { return getJson(`/profiles/${encodeURIComponent(username)}`) as Promise<{ profile: PublicProfile }>; }
-export function updateProfile(input: { fullName?: string; displayName?: string; theme?: "light" | "dark" | "system"; avatarPreset?: AvatarPreset; presenceVisibility?: "FRIENDS" | "NOBODY"; friendListVisibility?: "PRIVATE"; fullNameVisibility?: "PRIVATE" }) { return requestJson<{ user: UserProfile }>("/profiles/me", { method: "PATCH", body: input }); }
+export function updateProfile(input: { fullName?: string; displayName?: string; theme?: "light" | "dark" | "system"; avatarPreset?: AvatarPreset; presenceVisibility?: "FRIENDS" | "NOBODY"; friendListVisibility?: "PRIVATE"; fullNameVisibility?: "PRIVATE" }) {
+  return requestJson<{ user: UserProfile }>("/profiles/me", { method: "PATCH", body: input })
+    .then((res) => {
+      cachedMe = { user: res.user, timestamp: Date.now() };
+      return res;
+    });
+}

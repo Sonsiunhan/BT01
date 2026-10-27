@@ -474,7 +474,7 @@ export const AuditLogsViewerPage: React.FC<AuditLogsViewerPageProps> = ({
                 id="close-audit-modal-btn"
                 aria-label="Đóng cửa sổ"
               >
-                ✕
+                <UiGlyph name="close" size={16} />
               </button>
             </div>
 

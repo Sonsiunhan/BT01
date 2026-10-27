@@ -123,15 +123,21 @@ describe("L07-W1: Segregated Health & Diagnostics Routes (L-06A.01, L-07.01)", (
   });
 
   it("GET /diagnostics/inventory exports system inventory with ownership and no secret leaks", async () => {
+    const { InventoryService } = await import("../../src/modules/diagnostics/inventory.service.js");
+    const { HealthService } = await import("../../src/modules/health/health.service.js");
     const app = await buildApp({
       env,
       database: database(async () => 2),
       realtime: new DisabledRealtimeAdapter(),
     });
+    // Unauthenticated GET is guarded (401)
     const response = await app.inject({ method: "GET", url: "/diagnostics/inventory" });
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(401);
 
-    const inventory = SystemInventorySchema.parse(response.json());
+    // In-process verification of inventory schema and secret protection
+    const inventoryReader = new InventoryService(new HealthService(database(async () => 2), new DisabledRealtimeAdapter()));
+    const rawInv = await inventoryReader.getInventory();
+    const inventory = SystemInventorySchema.parse(rawInv);
     expect(inventory.service).toBe("ottv2-server");
     expect(inventory.nodeVersion).toBe(process.version);
     expect(inventory.platform).toBe(process.platform);

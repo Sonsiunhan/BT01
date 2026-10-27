@@ -114,4 +114,11 @@ describe("B9 friends and invites", () => {
     fireEvent.click(screen.getByRole("button", { name: "Nhận vai trò" }));
     await waitFor(() => expect(roomApi.acceptRefereeInvite).toHaveBeenCalledWith(refereeInvite.inviteId));
   });
+
+  it("renders friends list gracefully even if secondary invites endpoint fails", async () => {
+    vi.spyOn(roomApi, "getRefereeInvites").mockRejectedValue(new ApiError("Lỗi kết nối", 500));
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Bạn bè" })).toBeInTheDocument();
+    expect(await screen.findByText("Bạn Tốt")).toBeInTheDocument();
+  });
 });

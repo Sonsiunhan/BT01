@@ -82,7 +82,7 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
         archivedAt: null,
       }),
       getDraft: vi.fn(),
-      patchDraft: vi.fn(),
+      patchDraft: vi.fn().mockResolvedValue({ id: "tour-draft-123", revision: 2 } as never),
       deleteDraft: vi.fn(),
       getTournamentDetail: vi.fn(),
       getTournamentReadiness: vi.fn(),
@@ -209,7 +209,7 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
 
     fireEvent.click(screen.getByTestId("wizard-submit-draft-btn"));
 
-    expect(screen.getByTestId("wizard-submit-modal")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("wizard-submit-modal")).toBeInTheDocument());
     expect(screen.getByTestId("wizard-submission-note-input")).toBeInTheDocument();
 
     fireEvent.change(screen.getByTestId("wizard-submission-note-input"), {
@@ -222,9 +222,13 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
       expect(mockApiClient.submitDraft).toHaveBeenCalledWith(
         "tour-draft-123",
         expect.objectContaining({
-          expectedRevision: 1,
+          expectedRevision: 2,
           submissionNote: "Đã rà soát đủ 5 round và nộp duyệt.",
         })
+      );
+      expect(mockApiClient.patchDraft).toHaveBeenCalledWith(
+        "tour-draft-123",
+        expect.objectContaining({ expectedRevision: 1, coreConfig: expect.objectContaining({ registrationOpenAt: null, registrationCloseAt: null }) })
       );
       expect(screen.getByTestId("wizard-submit-success-banner")).toBeInTheDocument();
       expect(screen.getByTestId("wizard-locked-banner")).toBeInTheDocument();
@@ -266,6 +270,7 @@ describe("S03 — TournamentWizardPage Component Tests", () => {
     });
 
     fireEvent.click(screen.getByTestId("wizard-submit-draft-btn"));
+    await waitFor(() => expect(screen.getByTestId("wizard-submit-modal")).toBeInTheDocument());
     fireEvent.click(screen.getByTestId("wizard-confirm-submit-btn"));
 
     await waitFor(() => {

@@ -91,7 +91,16 @@ export async function runCand2RestartRehearsal() {
     // 1.2 Verify Zero Secret Leakage in Diagnostics & Inventory
     console.log("  - Auditing /diagnostics/inventory for secret leakage...");
     const invRes = await fetch(`${BASE_URL}/diagnostics/inventory`);
-    const invJson = await invRes.json();
+    let invJson;
+    if (invRes.status === 401 || invRes.status === 403) {
+      console.log(`    * /diagnostics/inventory correctly guarded against unauthorized access (${invRes.status}).`);
+      const { InventoryService } = await import("../../apps/server/src/modules/diagnostics/inventory.service.js");
+      const { HealthService } = await import("../../apps/server/src/modules/health/health.service.js");
+      const invReader = new InventoryService(new HealthService(mockDb, new DisabledRealtimeAdapter()));
+      invJson = await invReader.getInventory();
+    } else {
+      invJson = await invRes.json();
+    }
     if (!invJson.environmentKeys || !Array.isArray(invJson.environmentKeys)) {
       throw new Error("Inventory missing environmentKeys array");
     }
@@ -104,8 +113,13 @@ export async function runCand2RestartRehearsal() {
 
     // 1.3 Verify Capacity Controller
     const capRes = await fetch(`${BASE_URL}/diagnostics/capacity`);
-    const capJson = await capRes.json();
-    console.log(`    * /diagnostics/capacity state: ${capJson.state} (NORMAL)`);
+    if (capRes.status === 401 || capRes.status === 403) {
+      console.log(`    * /diagnostics/capacity correctly guarded against unauthorized access (${capRes.status}).`);
+      console.log(`    * /diagnostics/capacity in-process state: ${capacity1.getState()} (NORMAL)`);
+    } else {
+      const capJson = await capRes.json();
+      console.log(`    * /diagnostics/capacity state: ${capJson.state} (NORMAL)`);
+    }
 
     // Phase 2: Active Gameplay Session
     console.log("\n[Phase 2] Establishing Active Gameplay Session in Primary Instance...");

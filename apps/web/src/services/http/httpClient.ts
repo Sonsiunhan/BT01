@@ -3,6 +3,7 @@ import type { ErrorSeverity } from "@ottv2/contracts";
 import { env } from "../../config/env";
 import { ApiError } from "./apiError";
 import { trackUiEvent } from "../telemetry/uiTelemetry";
+import { getClientId } from "../session/clientIdentity";
 
 function dispatchWindowEvent(name: string, detail?: Record<string, unknown>): void {
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(name, { detail }));
@@ -40,6 +41,7 @@ export async function getJson(path: string, signal?: AbortSignal, options: { han
       headers: {
         Accept: "application/json",
         "X-OTT-Request": "1",
+        "X-Client-Id": getClientId(),
       },
       signal,
     });
@@ -81,6 +83,7 @@ export async function requestJson<T = unknown>(
   const headers: Record<string, string> = {
     Accept: "application/json",
     "X-OTT-Request": "1",
+    "X-Client-Id": getClientId(),
     ...(options.body === undefined ? {} : { "Content-Type": "application/json" }),
     ...(options.commandId ? { "X-Command-Id": options.commandId } : {}),
     ...options.headers,

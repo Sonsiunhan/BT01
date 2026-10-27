@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { MatchPauseReason, MatchStatus } from "@ottv2/contracts";
-import FocusTrap from "focus-trap-react";
 import { Button } from "../ui";
+import { useFocusTrap } from "../ui/useFocusTrap";
 import { refereePauseCategoryLabels, type RefereePauseCategory } from "./RefereePauseCategories";
 
 function formatElapsed(milliseconds: number): string {
@@ -31,6 +31,7 @@ export function RefereeControlPanel({ status, isReferee, disabled, onStop }: { s
 
 export function RefereePauseOverlay({ status, pauseReason, pauseElapsedMs = 0, pausedAt = null, resumeEndsAt = null, isReferee, onResume, onHold }: { status: MatchStatus; pauseReason?: MatchPauseReason | null; pauseElapsedMs?: number; pausedAt?: number | null; resumeEndsAt?: number | null; isReferee: boolean; onResume: () => void; onHold: () => void }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const dialogRef = useFocusTrap(status === "PAUSED" || status === "RESUMING");
   const [now, setNow] = useState(() => Date.now());
   const paused = status === "PAUSED";
   const resuming = status === "RESUMING";
@@ -45,15 +46,13 @@ export function RefereePauseOverlay({ status, pauseReason, pauseElapsedMs = 0, p
   if (!paused && !resuming) return null;
   const blockedByOtherReason = pauseReason !== undefined && pauseReason !== null && pauseReason !== "REFEREE";
   return <div className="referee-pause-overlay robot-lab-pause-overlay" role="presentation">
-    <FocusTrap focusTrapOptions={{ escapeDeactivates: false, clickOutsideDeactivates: false, fallbackFocus: ".referee-pause-dialog" }}>
-    <section className="referee-pause-dialog" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="referee-pause-title" aria-describedby="referee-pause-description">
+    <section ref={dialogRef} className="referee-pause-dialog" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="referee-pause-title" aria-describedby="referee-pause-description">
       <span className="referee-pause-beacon" aria-hidden="true" />
       <h2 id="referee-pause-title" tabIndex={-1} ref={headingRef}>{resuming ? "Chuẩn bị tiếp tục" : "Trận đấu đã dừng"}</h2>
       <p id="referee-pause-description">{blockedByOtherReason ? pauseReasonLabel(pauseReason) : "Trọng tài đang xử lý trận đấu."}</p>
       <div className="referee-pause-meta"><span>Thời gian dừng</span><strong>{formatElapsed(elapsed)}</strong></div>
       {resuming ? <><strong className="referee-resume-countdown" aria-live="assertive">Tiếp tục sau {remaining}s</strong>{isReferee && <Button className="referee-resume-button" variant="secondary" onClick={onHold}>Giữ dừng</Button>}</> : isReferee && !blockedByOtherReason ? <Button className="referee-resume-button" onClick={onResume}>Tiếp tục</Button> : <p className="referee-wait-copy">{blockedByOtherReason ? "Đang chờ khôi phục điều kiện liên quan." : "Người chơi và khán giả vui lòng chờ trọng tài."}</p>}
     </section>
-    </FocusTrap>
   </div>;
 }
 

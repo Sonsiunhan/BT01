@@ -259,7 +259,7 @@ export class CoreDraftService {
       this.store.tournaments.set(tournament.id, tournament);
       this.store.audit.append({
         actorUserId: actor.userId,
-        actorRole: "TOURNAMENT_ADMIN",
+        actorRole: actor.roles.includes("ADMIN") ? "ADMIN" : "TOURNAMENT_ADMIN",
         action: "TOURNAMENT_DRAFT_CREATED",
         targetType: "TOURNAMENT",
         targetId: tournament.id,
@@ -377,7 +377,7 @@ export class CoreDraftService {
       this.store.tournaments.set(tournamentId, updated);
       this.store.audit.append({
         actorUserId: actor.userId,
-        actorRole: "TOURNAMENT_ADMIN",
+        actorRole: actor.roles.includes("ADMIN") ? "ADMIN" : "TOURNAMENT_ADMIN",
         action: "TOURNAMENT_DRAFT_UPDATED",
         targetType: "TOURNAMENT",
         targetId: tournamentId,
@@ -462,7 +462,7 @@ export class CoreDraftService {
       this.store.tournaments.delete(tournamentId);
       this.store.audit.append({
         actorUserId: actor.userId,
-        actorRole: "TOURNAMENT_ADMIN",
+        actorRole: actor.roles.includes("ADMIN") ? "ADMIN" : "TOURNAMENT_ADMIN",
         action: "TOURNAMENT_DRAFT_DELETED",
         targetType: "TOURNAMENT",
         targetId: tournamentId,
@@ -632,7 +632,7 @@ export class CoreDraftService {
       this.store.tournaments.set(tournamentId, updated);
       this.store.audit.append({
         actorUserId: actor.userId,
-        actorRole: "TOURNAMENT_ADMIN",
+        actorRole: actor.roles.includes("ADMIN") ? "ADMIN" : "TOURNAMENT_ADMIN",
         action: "TOURNAMENT_SUBMITTED_FOR_REVIEW",
         targetType: "TOURNAMENT",
         targetId: tournamentId,

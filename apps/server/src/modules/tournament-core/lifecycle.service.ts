@@ -642,7 +642,7 @@ export class TournamentLifecycleService {
   evaluateReadiness(
     tournamentId: string,
     transactionClient?: Prisma.TransactionClient,
-  ): TournamentReadinessSnapshot {
+  ): TournamentReadinessSnapshot | Promise<TournamentReadinessSnapshot> {
     const tournament = this.store.tournaments.get(tournamentId);
     if (!tournament) {
       throw createTournamentError({
@@ -655,21 +655,12 @@ export class TournamentLifecycleService {
 
     const countsOrPromise = this.readinessSourcesPort.countParticipants(tournament, transactionClient);
     const staffOrPromise = this.readinessSourcesPort.countStaff(tournamentId, transactionClient);
-
     if (countsOrPromise instanceof Promise || staffOrPromise instanceof Promise) {
-      const asyncPromise = (async () => {
-        const counts = await countsOrPromise;
-        const staff = await staffOrPromise;
-        return this.buildReadinessSnapshot(tournament, counts, staff);
-      })();
-      return asyncPromise as any;
+      return Promise.all([countsOrPromise, staffOrPromise]).then(([counts, staff]) =>
+        this.buildReadinessSnapshot(tournament, counts, staff)
+      );
     }
-
-    return this.buildReadinessSnapshot(
-      tournament,
-      countsOrPromise,
-      staffOrPromise
-    );
+    return this.buildReadinessSnapshot(tournament, countsOrPromise, staffOrPromise);
   }
 
   async openScheduled(
@@ -696,7 +687,7 @@ export class TournamentLifecycleService {
       });
       this.assertExpectedRevision(tournament, expectedRevision);
 
-      const readiness = this.evaluateReadiness(tournamentId);
+      const readiness = await this.evaluateReadiness(tournamentId);
       if (!readiness.canOpenScheduled) {
         throw createTournamentError({
           code: "CONFLICT",
@@ -1069,9 +1060,25 @@ export class TournamentLifecycleService {
    * serverNow >= scheduledEndAt, without auto-extending scheduledEndAt.
    */
   async evaluateAutoEndAtWindow(serverNowIso?: string): Promise<TournamentDto[]> {
+    const nowIso = serverNowIso ?? this.store.nowIso();
+    const nowMs = Date.parse(nowIso);
+
+    // Fast-path: Check without lock if any RUNNING or PAUSED tournament has reached scheduled end time
+    let anyNeedEnd = false;
+    for (const t of this.store.tournaments.values()) {
+      if (
+        (t.status === "RUNNING" || t.status === "PAUSED") &&
+        nowMs >= Date.parse(t.coreConfig.scheduledEndAt)
+      ) {
+        anyNeedEnd = true;
+        break;
+      }
+    }
+    if (!anyNeedEnd) {
+      return [];
+    }
+
     return this.store.withLock(() => {
-      const nowIso = serverNowIso ?? this.store.nowIso();
-      const nowMs = Date.parse(nowIso);
       const endedTournaments: TournamentDto[] = [];
 
       for (const [id, tournament] of this.store.tournaments.entries()) {
@@ -1448,9 +1455,22 @@ export class TournamentLifecycleService {
     startedTournaments: TournamentDto[];
     blockedTournaments: TournamentDto[];
   }> {
+    const nowIso = serverNowIso ?? this.store.nowIso();
+    const nowMs = Date.parse(nowIso);
+
+    // Fast-path: Check without lock if any SCHEDULED tournament has reached scheduled start time
+    let anyNeedStart = false;
+    for (const t of this.store.tournaments.values()) {
+      if (t.status === "SCHEDULED" && nowMs >= Date.parse(t.coreConfig.scheduledStartAt)) {
+        anyNeedStart = true;
+        break;
+      }
+    }
+    if (!anyNeedStart) {
+      return { startedTournaments: [], blockedTournaments: [] };
+    }
+
     return this.store.withLock(async () => {
-      const nowIso = serverNowIso ?? this.store.nowIso();
-      const nowMs = Date.parse(nowIso);
       const startedTournaments: TournamentDto[] = [];
       const blockedTournaments: TournamentDto[] = [];
 
@@ -1458,7 +1478,7 @@ export class TournamentLifecycleService {
         if (tournament.status !== "SCHEDULED") continue;
         const startMs = Date.parse(tournament.coreConfig.scheduledStartAt);
         if (nowMs >= startMs) {
-          const readiness = this.evaluateReadiness(id);
+          const readiness = await this.evaluateReadiness(id);
           if (readiness.canStartRunning) {
             const updated = TournamentDtoSchema.parse({
               ...tournament,

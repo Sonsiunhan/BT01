@@ -36,6 +36,28 @@ describe("RuleEditor V1", () => {
     expect(screen.getByRole("spinbutton", { name: "Khoảng goal Xanh" })).toHaveValue(1);
   });
 
+  it("allows replacing a static goal by clearing it first", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    const input = screen.getByRole("textbox", { name: "Ô đích Xanh" });
+    await user.clear(input);
+    expect(input).toHaveValue("");
+    await user.type(input, "b6");
+    expect(input).toHaveValue("b6");
+  });
+
+  it("keeps the in-progress cycle text while a second goal is typed", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    const mode = screen.getByRole("combobox", { name: "Goal mode Xanh" });
+    await user.selectOptions(mode, "CYCLE");
+    const input = screen.getByRole("textbox", { name: "Danh sách goal Xanh" });
+    await user.type(input, ", b6");
+    expect(input).toHaveValue("a5, b6");
+  });
+
   it("renders field errors in both the summary and the related field", () => {
     render(<Harness errors={[{ path: "profile.board.rows", message: "Số hàng không hợp lệ." }]} />);
     expect(screen.getByTestId("rule-editor-error-summary")).toHaveTextContent("Số hàng không hợp lệ.");

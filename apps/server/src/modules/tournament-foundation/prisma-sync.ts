@@ -20,7 +20,8 @@ import {
  */
 export async function syncPrismaToTournamentStore(
   prisma: PrismaClient,
-  store: TournamentStateStore
+  store: TournamentStateStore,
+  options?: { seedDefaultOnEmpty?: boolean }
 ): Promise<{ unitsCount: number; contractsCount: number; tournamentsCount: number }> {
   let unitsCount = 0;
   let contractsCount = 0;
@@ -95,6 +96,10 @@ export async function syncPrismaToTournamentStore(
         store.contracts.set(c.id, contractDto);
         contractsCount++;
       }
+    }
+
+    if (options?.seedDefaultOnEmpty && (store.units.size === 0 || store.contracts.size === 0)) {
+      store.ensureDefaultSeed();
     }
 
     // 3. Tournaments

@@ -67,10 +67,16 @@ function classifyRoute(url: string, method: string): { pool?: AdmissionPoolType;
  * Only truly anonymous traffic without any session falls back to IP.
  */
 function resolveAdmissionPrincipalId(request: FastifyRequest): string {
+  const clientIdHeader = request.headers["x-client-id"];
+  const clientId =
+    typeof clientIdHeader === "string" && clientIdHeader.trim().length > 0
+      ? clientIdHeader.trim()
+      : undefined;
+
   return (
     readCookie(request, SESSION_COOKIE) ||
     readCookie(request, GUEST_SESSION_COOKIE) ||
-    (request.headers["x-client-id"] as string | undefined) ||
+    clientId ||
     request.ip
   );
 }
@@ -127,10 +133,18 @@ export function registerCapacityAdmissionHook(
       });
     }
 
-    (request.raw as { __capacityAcquired?: { pool: AdmissionPoolType; principalId?: string } }).__capacityAcquired = {
+    const rawReq = request.raw as { __capacityAcquired?: { pool: AdmissionPoolType; principalId?: string } };
+    rawReq.__capacityAcquired = {
       pool: classification.pool,
       principalId,
     };
+
+    // Ensure capacity is released even if reply.hijack() bypasses Fastify onResponse hook
+    if (typeof request.raw?.once === "function") {
+      request.raw.once("close", () => {
+        releaseCapacity(request);
+      });
+    }
   });
 
   const releaseCapacity = (request: FastifyRequest) => {

@@ -228,10 +228,13 @@ export function createDefaultCoreConfig(params: {
   maxParticipants?: number;
   minParticipantsToStart?: number;
   timezone?: string;
+  registrationOpenAt?: string | null;
+  registrationCloseAt?: string | null;
   checkinRequired?: boolean;
   checkinOpenAt?: string | null;
   checkinCloseAt?: string | null;
   botDeadlineAt?: string | null;
+  regulationsFull?: string;
   maxMatchesPerPlayer?: number | null;
   maxPairMeetings?: number;
   rematchCooldownMinutes?: number;
@@ -257,8 +260,8 @@ export function createDefaultCoreConfig(params: {
     maxParticipants: params.maxParticipants || 16,
     minParticipantsToStart: params.minParticipantsToStart || 2,
     timezone: params.timezone || "Asia/Ho_Chi_Minh",
-    registrationOpenAt: null as string | null,
-    registrationCloseAt: null as string | null,
+    registrationOpenAt: params.registrationOpenAt || null,
+    registrationCloseAt: params.registrationCloseAt || null,
     checkinRequired: Boolean(params.checkinRequired),
     checkinOpenAt: params.checkinOpenAt || null,
     checkinCloseAt: params.checkinCloseAt || null,
@@ -282,6 +285,7 @@ export function createDefaultCoreConfig(params: {
     kFactor: params.kFactor ?? 32,
     scoreFloor: params.scoreFloor ?? 0,
     botDeadlineAt: params.botDeadlineAt || null,
+    regulationsFull: params.regulationsFull || undefined,
   };
 
   return normalizeTournamentCoreConfig(raw);

@@ -146,7 +146,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     ...(acknowledgementService ? { acknowledgementGuard: new PrismaTournamentAcknowledgementGuard((database as PrismaDatabase).client, acknowledgementService) } : {}),
   });
   if (database instanceof PrismaDatabase) {
-    await syncPrismaToTournamentStore(database.client, tournamentBundle.store);
+    await syncPrismaToTournamentStore(database.client, tournamentBundle.store, { seedDefaultOnEmpty: true });
   }
 
   rooms.setFallbackRoomResolver((roomId: string) => {

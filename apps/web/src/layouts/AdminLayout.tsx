@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Button, Modal, ThemeSwitcher } from "../components/ui";
+import { Button, Modal, ThemeSwitcher, UiGlyph } from "../components/ui";
 import { routes } from "../app/routes";
 import { getHealth, isCoreServiceReady } from "../services/health/healthApi";
 import { getMe, logout, type UserProfile } from "../services/auth/authApi";
@@ -297,7 +297,7 @@ export function AdminLayout() {
                           border: `1px solid ${isSystemAdmin ? "color-mix(in srgb, var(--system-cyan, #06b6d4) 25%, transparent)" : "color-mix(in srgb, var(--system-amber, #f59e0b) 25%, transparent)"}`,
                         }}
                       >
-                        {isSystemAdmin ? "🛡️ Quản trị hệ thống (SA)" : "📋 Quản trị giải đấu (TA)"}
+                        {isSystemAdmin ? <><UiGlyph name="lock" size={14} /> Quản trị hệ thống (SA)</> : <><UiGlyph name="settings" size={14} /> Quản trị giải đấu (TA)</>}
                       </span>
                     </div>
                   </div>
@@ -318,7 +318,7 @@ export function AdminLayout() {
                       fontSize: "0.85rem",
                     }}
                   >
-                    <span>ℹ️</span>
+                    <UiGlyph name="profile" size={16} />
                     <span>Thông tin tài khoản</span>
                   </button>
 
@@ -337,7 +337,7 @@ export function AdminLayout() {
                       marginTop: "0.2rem",
                     }}
                   >
-                    <span>🚪</span>
+                    <UiGlyph name="close" size={16} />
                     <span>Đăng xuất</span>
                   </button>
                 </div>

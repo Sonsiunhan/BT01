@@ -10,7 +10,7 @@ import {
 import type { DatabasePort } from "../../plugins/prisma.js";
 import type { RealtimePort } from "../../realtime/realtime.port.js";
 
-const DATABASE_HEALTH_TIMEOUT_MS = 1_000;
+const DATABASE_HEALTH_TIMEOUT_MS = 5_000;
 
 async function databaseComponent(database: DatabasePort): Promise<HealthComponent> {
   let timeout: NodeJS.Timeout | undefined;

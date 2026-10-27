@@ -169,6 +169,34 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   const isUnderReview = tournamentStatus === "UNDER_REVIEW" || tournamentStatus === "SUBMITTED";
   const isEditableStatus = isDraftEditableStatus(tournamentStatus);
 
+  const [availableContracts, setAvailableContracts] = useState<Array<{ id: string; contractCode: string; unitName?: string }>>([]);
+  const [availableUnits, setAvailableUnits] = useState<Array<{ id: string; unitCode: string; unitName: string }>>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/contracts", { headers: { "X-OTT-Request": "1" }, credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data && Array.isArray(data.contracts)) {
+          setAvailableContracts(data.contracts);
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/admin/units", { headers: { "X-OTT-Request": "1" }, credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data && Array.isArray(data.units)) {
+          setAvailableUnits(data.units);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Restore this account's own local buffer once the session identity is known.
   useEffect(() => {
     if (!bufferReady || isEditMode) return;
@@ -259,7 +287,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   }, []);
 
   // Save draft to server
-  const handleSaveDraft = useCallback(async () => {
+  const handleSaveDraft = useCallback(async (): Promise<{ id: string; revision: number } | null> => {
     setSaving(true);
     setErrorMessage(null);
     setConflictWarning(null);
@@ -272,6 +300,9 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
       tournamentName: formData.name || "Bản nháp giải đấu chưa đặt tên",
       description: formData.description,
       organizersText: formData.organizersText || "Ban Tổ chức Giải đấu",
+      registrationOpenAt: formData.rosterOpenAt || null,
+      registrationCloseAt: formData.rosterCloseAt || null,
+      regulationsFull: formData.regulationsText || undefined,
       competitionMode: formData.competitionMode,
       audienceScope: formData.visibility === "PUBLIC" ? "PUBLIC_REGISTERED" : "INTERNAL_UNIT",
       allowedUnitCodes: formData.allowedUnitCodes,
@@ -313,6 +344,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
         setServerRevision(patched.revision);
         setFormData((prev) => ({ ...prev, expectedRevision: patched.revision }));
         setLastSavedTime(new Date().toLocaleTimeString("vi-VN"));
+        return { id: formData.tournamentId, revision: patched.revision };
       } else {
         // CREATE new draft
         const created = await apiClient.createDraft({
@@ -356,7 +388,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
           scheduleProvisional: true,
         }));
         setFieldErrors((prev) => ({ ...prev, startAt: notice, endAt: notice }));
-        return created.id;
+        return { id: created.id, revision: created.revision };
       }
       if (usedInventedSchedule) {
         const notice =
@@ -430,24 +462,25 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
     setFieldErrors({});
     setSubmitBlockList(null);
     let currentId = formData.tournamentId;
+    // New drafts need an id before the modal can be opened. Existing drafts
+    // are saved once, on confirmation, so opening the modal does not create an
+    // unnecessary revision and submit always uses the latest form state.
     if (!currentId) {
-      const savedId = await handleSaveDraft();
-      if (!savedId) return;
-      currentId = savedId;
+      const saved = await handleSaveDraft();
+      if (saved) currentId = saved.id;
     }
+    if (!currentId) return;
     setShowSubmitModal(true);
   }, [formData, handleSaveDraft]);
 
   // S07: Submit draft for review
   const handleSubmitDraft = useCallback(async () => {
-    let targetId = formData.tournamentId;
+    const saved = await handleSaveDraft();
+    const targetId = saved?.id ?? formData.tournamentId;
+    const expectedRevision = saved?.revision ?? serverRevision;
     if (!targetId) {
-      const savedId = await handleSaveDraft();
-      if (!savedId) {
-        setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
-        return;
-      }
-      targetId = savedId;
+      setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");
+      return;
     }
     setSubmittingDraft(true);
     setErrorMessage(null);
@@ -455,7 +488,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
 
     try {
       const res = await apiClient.submitDraft(targetId, {
-        expectedRevision: serverRevision,
+        expectedRevision,
         submissionNote: submissionNote.trim() || undefined,
       });
       setServerRevision(res.tournament.revision);
@@ -1016,12 +1049,23 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 <input
                   id={contractInputId}
                   type="text"
+                  list="contract-list-options"
                   data-testid="wizard-contract-input"
                   className="input"
                   value={formData.contractId}
                   onChange={(e) => updateField("contractId", e.target.value)}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("contractId") }}
                 />
+                <datalist id="contract-list-options">
+                  {availableContracts.map((c) => (
+                    <option key={c.id} value={c.contractCode || c.id}>
+                      {c.contractCode} ({c.unitName || "Hợp đồng"})
+                    </option>
+                  ))}
+                  {!availableContracts.some((c) => (c.contractCode || c.id) === "HD-2026-CHUNG") && (
+                    <option value="HD-2026-CHUNG">HD-2026-CHUNG (Hợp đồng bảo trợ chuẩn 2026)</option>
+                  )}
+                </datalist>
                 {fieldErrors.contractId ? (
                   <span style={RED_HINT_STYLE}>{fieldErrors.contractId}</span>
                 ) : (
@@ -1038,12 +1082,23 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
                 <input
                   id={unitInputId}
                   type="text"
+                  list="unit-list-options"
                   data-testid="wizard-unit-input"
                   className="input"
                   value={formData.organizerUnitId}
                   onChange={(e) => updateField("organizerUnitId", e.target.value)}
                   style={{ padding: "0.55rem 0.75rem", fontSize: "0.9rem", ...invalidFieldStyle("organizerUnitId") }}
                 />
+                <datalist id="unit-list-options">
+                  {availableUnits.map((u) => (
+                    <option key={u.id} value={u.unitCode || u.id}>
+                      {u.unitName} ({u.unitCode})
+                    </option>
+                  ))}
+                  {!availableUnits.some((u) => (u.unitCode || u.id).toLowerCase() === "unit-fit-vnu") && (
+                    <option value="unit-fit-vnu">Khoa Công nghệ Thông tin - Trường ĐH Công nghệ, ĐHQGHN</option>
+                  )}
+                </datalist>
                 {fieldErrors.organizerUnitId ? (
                   <span style={RED_HINT_STYLE}>{fieldErrors.organizerUnitId}</span>
                 ) : (

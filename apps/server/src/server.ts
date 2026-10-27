@@ -5,9 +5,13 @@ if (existsSync(envFile)) process.loadEnvFile?.(envFile);
 
 import { buildApp } from "./app.js";
 import { loadEnv } from "./config/env.js";
+import { PrismaDatabase } from "./plugins/prisma.js";
+import { bootstrapDatabaseAndAdmin } from "./modules/auth/bootstrap-admin.js";
 
 const env = loadEnv();
-const app = await buildApp({ env });
+const database = new PrismaDatabase();
+await bootstrapDatabaseAndAdmin(database.client);
+const app = await buildApp({ env, database });
 let closing = false;
 
 async function shutdown(signal: NodeJS.Signals): Promise<void> {

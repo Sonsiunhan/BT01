@@ -53,14 +53,14 @@ describe("Capacity Admission Integration Tests (L-07.03)", () => {
     await app.close();
   });
 
-  it("exposes GET /diagnostics/capacity with system status", async () => {
+  it("exposes GET /diagnostics/capacity guarded by admin authentication with system status", async () => {
     const res = await app.inject({
       method: "GET",
       url: "/diagnostics/capacity",
     });
 
-    expect(res.statusCode).toBe(200);
-    const body = res.json();
+    expect(res.statusCode).toBe(401);
+    const body = capacity.getStatus();
     expect(body.state).toBe("NORMAL");
     expect(body.pools.lobby).toBeDefined();
     expect(body.pools.pvp).toBeDefined();
@@ -83,13 +83,12 @@ describe("Capacity Admission Integration Tests (L-07.03)", () => {
     });
     expect(healthRes.statusCode).toBe(200);
 
-    // Diagnostics must also remain accessible
+    // Diagnostics endpoint remains guarded (401) while health continues
     const diagRes = await app.inject({
       method: "GET",
       url: "/diagnostics/capacity",
     });
-    expect(diagRes.statusCode).toBe(200);
-    expect(diagRes.json().state).toBe("PRESSURE");
+    expect(diagRes.statusCode).toBe(401);
   });
 
   it("sheds lobby requests with 503 SERVICE_UNAVAILABLE and Retry-After header during PRESSURE", async () => {
@@ -116,5 +115,49 @@ describe("Capacity Admission Integration Tests (L-07.03)", () => {
     expect(body.code).toBe("SERVICE_UNAVAILABLE");
     expect(body.retryable).toBe(true);
     expect(body.details.reason).toBe("SYSTEM_PRESSURE_LOBBY_SHED");
+  });
+
+  it("allows at least 5 concurrent lobby requests from a single client in NORMAL state", async () => {
+    // A single client opening the page fires parallel requests (friends, requests, invites, rooms, etc.)
+    for (let i = 0; i < 9; i++) {
+      expect(capacity.acquire("lobby", "client-test-concurrent")).toBe(true);
+    }
+    const res = await app.inject({
+      method: "GET",
+      url: "/rooms",
+      headers: {
+        "x-client-id": "client-test-concurrent",
+      },
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("does not treat static X-OTT-Request flag as principal ID", async () => {
+    // Exhaust quota for principal "1" explicitly
+    for (let i = 0; i < 10; i++) {
+      expect(capacity.acquire("lobby", "1")).toBe(true);
+    }
+    expect(capacity.acquire("lobby", "1")).toBe(false);
+
+    // Clients sending X-OTT-Request: 1 with their own client-id must NOT be throttled by quota on "1"
+    const res1 = await app.inject({
+      method: "GET",
+      url: "/rooms",
+      headers: {
+        "x-ott-request": "1",
+        "x-client-id": "client-alpha",
+      },
+    });
+    expect(res1.statusCode).toBe(200);
+
+    const res2 = await app.inject({
+      method: "GET",
+      url: "/rooms",
+      headers: {
+        "x-ott-request": "1",
+        "x-client-id": "client-beta",
+      },
+    });
+    expect(res2.statusCode).toBe(200);
   });
 });

@@ -29,16 +29,14 @@ type SetupEntry = readonly [coordinate: string, type: PieceType];
 
 const LEGACY_BOARD: BoardSpec = Object.freeze({ rows: 9, cols: 9 });
 const BLUE_SETUP: readonly SetupEntry[] = [
-  ["b5", "P"], ["c5", "R"],
-  ["b4", "S"], ["c4", "S"], ["d4", "P"],
-  ["c3", "R"], ["d3", "R"], ["e3", "S"],
-  ["d2", "P"],
+  ["b1", "R"], ["c1", "P"], ["d1", "S"],
+  ["e1", "R"], ["f1", "P"], ["g1", "S"],
+  ["h1", "R"], ["i1", "P"], ["a1", "S"],
 ];
 const RED_SETUP: readonly SetupEntry[] = [
-  ["e8", "P"], ["f8", "S"],
-  ["e7", "R"], ["f7", "S"], ["g7", "R"],
-  ["f6", "P"], ["g6", "R"], ["h6", "P"],
-  ["g5", "S"],
+  ["a9", "P"], ["b9", "R"], ["c9", "S"],
+  ["d9", "P"], ["e9", "R"], ["f9", "S"],
+  ["g9", "P"], ["h9", "R"], ["i9", "S"],
 ];
 const SIDES: readonly Side[] = ["BLUE", "RED"];
 const PIECE_TYPES: readonly PieceType[] = ["R", "P", "S"];

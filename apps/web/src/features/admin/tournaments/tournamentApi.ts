@@ -243,7 +243,7 @@ export class TournamentApiClient implements TournamentApiPort {
     const qs = params.toString();
 
     const [data, capabilities] = await Promise.all([
-      requestJson<{ tournaments: unknown[] }>({
+      requestJson<{ tournaments: unknown[]; capabilities?: TournamentCapabilities }>({
         url: `/api/tournaments${qs ? `?${qs}` : ""}`,
         fallbackMessage: "Không thể tải danh sách giải đấu",
         fallbackCode: "LIST_TOURNAMENTS_FAILED",
@@ -261,7 +261,11 @@ export class TournamentApiClient implements TournamentApiPort {
     }
 
     const items = data.tournaments.map(mapServerTournamentListItem);
-    return applyListQuery(query, items, capabilities);
+    const finalCapabilities: TournamentCapabilities = {
+      ...capabilities,
+      ...(data.capabilities && typeof data.capabilities === "object" ? data.capabilities : {}),
+    };
+    return applyListQuery(query, items, finalCapabilities);
   }
 
   async createDraft(input: CreateTournamentDraftInput): Promise<TournamentDto> {

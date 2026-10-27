@@ -82,11 +82,21 @@ export async function registerTournamentCoreRoutes(
     await lifecycleService.evaluateScheduledStart();
     await lifecycleService.evaluateAutoEndAtWindow();
     const all = coreDraftService.listTournaments(request.query);
+    const isAdmin = actor.roles.includes("ADMIN");
+    const isTa = actor.roles.includes("TOURNAMENT_ADMIN");
     const tournaments = all.filter((t) => {
       if (!UNAPPROVED_STATUSES.has(t.status)) return true;
-      return actor.roles.includes("ADMIN") || t.ownerTaUserId === actor.userId;
+      return isAdmin || t.ownerTaUserId === actor.userId;
     });
-    return reply.status(200).send({ tournaments });
+    return reply.status(200).send({
+      tournaments,
+      capabilities: {
+        canCreate: isAdmin || isTa,
+        canViewAudit: isAdmin || isTa,
+        canManageContracts: isAdmin,
+        isSuperAdmin: isAdmin,
+      },
+    });
   });
 
   app.get<{ Params: { tournamentId: string } }>(

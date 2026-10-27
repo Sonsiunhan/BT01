@@ -109,11 +109,48 @@ export function AppLayout() {
         <NavLink to={routes.profile}>Hồ sơ</NavLink>
       </nav>
       <div className="header-actions">
+        {isAdmin && (
+          <NavLink
+            to={routes.adminTournaments}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.3rem 0.65rem",
+              borderRadius: "0.375rem",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              textDecoration: "none",
+              background: "rgba(6, 182, 212, 0.12)",
+              color: "var(--system-cyan, #06b6d4)",
+              border: "1px solid rgba(6, 182, 212, 0.3)",
+              transition: "all 0.15s ease",
+            }}
+            title="Chuyển đến Console Quản trị"
+          >
+            <UiGlyph name="settings" size={15} />
+            <span>Console Quản trị</span>
+          </NavLink>
+        )}
         <ThemeSwitcher />
         {user ? (
           <details ref={profileDetailsRef} className="profile-menu">
             <summary aria-label="Mở menu hồ sơ">{user.displayName}</summary>
             <div>
+              {isAdmin && (
+                <NavLink
+                  to={routes.adminTournaments}
+                  style={{
+                    color: "var(--system-cyan, #06b6d4)",
+                    fontWeight: 700,
+                    borderBottom: "1px solid var(--border)",
+                    marginBottom: "0.25rem",
+                    paddingBottom: "0.5rem",
+                  }}
+                >
+                  <UiGlyph name="settings" size={15} /> Console Quản trị
+                </NavLink>
+              )}
               <NavLink to={routes.profile}>Xem hồ sơ</NavLink>
               <NavLink to={routes.settings}>Cài đặt</NavLink>
               <button type="button" onClick={signOut}>Đăng xuất</button>

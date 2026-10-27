@@ -25,9 +25,55 @@ export default function FriendsPageR12() {
   const reload = async () => {
     setState("loading");
     try {
-      const values = await Promise.all([getFriends(), getRequests("incoming"), getRequests("sent"), getInvites(), getRefereeInvites()]);
-      setFriends(values[0].friends); setIncoming(values[1].requests); setSent(values[2].requests); setInvites(values[3].invites); setRefereeInvites(values[4].invites); setState("ready");
-    } catch (reason) { if (reason instanceof ApiError && reason.status === 401) navigate(loginReturnPath(location)); else { setError(reason instanceof ApiError ? reason.message : "Không thể tải dữ liệu bạn bè."); setState("error"); } }
+      const results = await Promise.allSettled([
+        getFriends(),
+        getRequests("incoming"),
+        getRequests("sent"),
+        getInvites(),
+        getRefereeInvites(),
+      ]);
+
+      for (const res of results) {
+        if (res.status === "rejected" && res.reason instanceof ApiError && res.reason.status === 401) {
+          navigate(loginReturnPath(location));
+          return;
+        }
+      }
+
+      const [friendsRes, incomingRes, sentRes, invitesRes, refereeRes] = results;
+      let loadedAny = false;
+      if (friendsRes.status === "fulfilled") {
+        setFriends(friendsRes.value.friends);
+        loadedAny = true;
+      }
+      if (incomingRes.status === "fulfilled") {
+        setIncoming(incomingRes.value.requests);
+        loadedAny = true;
+      }
+      if (sentRes.status === "fulfilled") {
+        setSent(sentRes.value.requests);
+        loadedAny = true;
+      }
+      if (invitesRes.status === "fulfilled") {
+        setInvites(invitesRes.value.invites);
+        loadedAny = true;
+      }
+      if (refereeRes.status === "fulfilled") {
+        setRefereeInvites(refereeRes.value.invites);
+        loadedAny = true;
+      }
+
+      if (loadedAny) {
+        setState("ready");
+      } else {
+        const firstError = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
+        setError(firstError?.reason instanceof ApiError ? firstError.reason.message : "Không thể tải dữ liệu bạn bè.");
+        setState("error");
+      }
+    } catch (reason) {
+      if (reason instanceof ApiError && reason.status === 401) navigate(loginReturnPath(location));
+      else { setError(reason instanceof ApiError ? reason.message : "Không thể tải dữ liệu bạn bè."); setState("error"); }
+    }
   };
   useEffect(() => {
     void reload();
