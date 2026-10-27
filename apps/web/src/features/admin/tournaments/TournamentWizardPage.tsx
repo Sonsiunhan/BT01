@@ -332,7 +332,7 @@ export const TournamentWizardPage: React.FC<TournamentWizardPageProps> = ({
   // S07: Submit draft for review
   const handleSubmitDraft = useCallback(async () => {
     const saved = await handleSaveDraft();
-    let targetId = saved?.id ?? formData.tournamentId;
+    const targetId = saved?.id ?? formData.tournamentId;
     const expectedRevision = saved?.revision ?? serverRevision;
     if (!targetId) {
       setErrorMessage("Vui lòng lưu bản nháp lên máy chủ trước khi nộp duyệt.");

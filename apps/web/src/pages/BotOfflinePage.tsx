@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { applyMove, createInitialState, type RuleState, type Side } from "@ottv2/game-rules";
+import { applyMove, createInitialState, type Coordinate, type RuleState, type Side } from "@ottv2/game-rules";
 import { BOT_OFFLINE_RUNTIME_VERSION, BOT_RUNTIME_POLICY_VERSION, DEFAULT_BOT_LIMITS, createBotTurnState, parseBotMemoryCompatibility, validateBotSource, type BotMoveRecord, type LimitDecision } from "@ottv2/bot-sdk";
 import { routes } from "../app/routes";
 import { Button, LoadingState } from "../components/ui";
@@ -49,6 +49,13 @@ const BotSlot = BotSlotWithMemory;
 
 export default function BotOfflinePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [matchMode, setMatchMode] = useState<"HUMAN_BOT" | "BOT_BOT">(() => {
+    const modeParam = searchParams.get("mode");
+    if (modeParam === "human") return "HUMAN_BOT";
+    if (modeParam === "bot") return "BOT_BOT";
+    return "BOT_BOT";
+  });
+  const [humanSide, setHumanSide] = useState<Side>("BLUE");
   const [state, setState] = useState<RuleState>(() => createInitialState());
   const [slots, setSlots] = useState<Record<Side, Slot>>({ BLUE: emptySlot("BLUE"), RED: emptySlot("RED") });
   const [pendingSlots, setPendingSlots] = useState<Partial<Record<Side, Slot>>>({});
@@ -69,6 +76,9 @@ export default function BotOfflinePage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const selectionImport = useRef<AbortController | null>(null);
+  const matchModeRef = useRef(matchMode);
+  const humanSideRef = useRef(humanSide);
+  const botTurnTimer = useRef<number | null>(null);
   const stateRef = useRef(state);
   const slotsRef = useRef(slots);
   const historyRef = useRef(history);
@@ -109,6 +119,8 @@ export default function BotOfflinePage() {
   useEffect(() => { memoriesRef.current = memories; }, [memories]);
   useEffect(() => { clocksRef.current = clocks; }, [clocks]);
   useEffect(() => { speedRef.current = speedMs; }, [speedMs]);
+  useEffect(() => { matchModeRef.current = matchMode; }, [matchMode]);
+  useEffect(() => { humanSideRef.current = humanSide; }, [humanSide]);
 
   useEffect(() => {
     let active = true;
@@ -131,6 +143,8 @@ export default function BotOfflinePage() {
         });
       }
       if (session) {
+        if (session.matchMode) setMatchMode(session.matchMode);
+        if (session.humanSide) setHumanSide(session.humanSide);
         activeComputeMs.current = session.activeComputeMs ?? Math.max(0, 60000 - session.clocks.BLUE - session.clocks.RED);
         endingReason.current = session.endingReason ?? "";
         limitCriteria.current = session.limitCriteria;
@@ -142,12 +156,36 @@ export default function BotOfflinePage() {
         setSpeedMs(session.speedMs); setRunState(session.status === "FINISHED" ? "FINISHED" : "PAUSED"); setRestored(true);
       }
     }).catch(() => setError("Không thể đọc bộ nhớ Offline trên thiết bị này.")).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; activeAbort.current?.abort(); selectionImport.current?.abort(); for (const abort of Object.values(testControllers)) abort?.abort(); };
+    return () => {
+      active = false;
+      activeAbort.current?.abort();
+      selectionImport.current?.abort();
+      for (const abort of Object.values(testControllers)) abort?.abort();
+      if (botTurnTimer.current !== null) {
+        window.clearTimeout(botTurnTimer.current);
+        botTurnTimer.current = null;
+      }
+    };
   }, []);
 
   async function checkpoint(nextStatus: "PAUSED" | "FINISHED" = "PAUSED"): Promise<boolean> {
     try {
-      await setBotOfflineSession({ state: stateRef.current, clocks: clocksRef.current, history: historyRef.current, memories: memoriesRef.current, slots: { BLUE: slotsRef.current.BLUE, RED: slotsRef.current.RED }, status: nextStatus, speedMs: speedRef.current, savedAt: new Date().toISOString(), activeComputeMs: activeComputeMs.current, endingReason: endingReason.current, pendingSlots: pendingSlotsRef.current, limitCriteria: limitCriteria.current });
+      await setBotOfflineSession({
+        state: stateRef.current,
+        clocks: clocksRef.current,
+        history: historyRef.current,
+        memories: memoriesRef.current,
+        slots: { BLUE: slotsRef.current.BLUE, RED: slotsRef.current.RED },
+        status: nextStatus,
+        speedMs: speedRef.current,
+        savedAt: new Date().toISOString(),
+        activeComputeMs: activeComputeMs.current,
+        endingReason: endingReason.current,
+        pendingSlots: pendingSlotsRef.current,
+        limitCriteria: limitCriteria.current,
+        matchMode: matchModeRef.current,
+        humanSide: humanSideRef.current,
+      });
       return true;
     } catch {
       setError("Không đủ bộ nhớ để lưu checkpoint. Hãy Xuất checkpoint rồi Xóa checkpoint cũ trước khi tiếp tục.");
@@ -224,16 +262,82 @@ export default function BotOfflinePage() {
   function clearTerminalMemory(): void { for (const controller of Object.values(testAborts.current)) controller?.abort(); memoriesRef.current = { BLUE: null, RED: null }; pendingSlotsRef.current = {}; setMemories(memoriesRef.current); setPendingSlots({}); }
   function resetCandidates(): void {
     for (const controller of Object.values(testAborts.current)) controller?.abort();
+    if (botTurnTimer.current !== null) {
+      window.clearTimeout(botTurnTimer.current);
+      botTurnTimer.current = null;
+    }
     pendingSlotsRef.current = {}; setPendingSlots({}); limitCriteria.current = undefined;
     activeComputeMs.current = 0; endingReason.current = "";
+  }
+
+  async function handleBoardMove(from: Coordinate, to: Coordinate): Promise<void> {
+    if (activeAbort.current || thinking !== null || runRef.current || runState === "RUNNING" || stateRef.current.status !== "PLAYING") return;
+    const currentSide = stateRef.current.currentTurn;
+    if (!currentSide) return;
+    if (matchMode === "HUMAN_BOT" && currentSide !== humanSide) return;
+
+    const applied = applyMove(stateRef.current, {
+      side: currentSide,
+      from,
+      to,
+    });
+    if (applied.kind !== "accepted") {
+      setError("Nước đi không hợp lệ theo luật chơi.");
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    const defender = stateRef.current.board[to];
+    const record: BotMoveRecord = {
+      side: currentSide,
+      from,
+      to,
+      captured: defender?.type ?? null,
+    };
+    const nextHistory = [...historyRef.current, record];
+    const limit = offlineLimitResult(applied.state, nextHistory.length, activeComputeMs.current);
+    const nextState = limit?.state ?? applied.state;
+
+    stateRef.current = nextState;
+    historyRef.current = nextHistory;
+    if (limit) {
+      endingReason.current = limit.reason;
+      limitCriteria.current = limit.criteria;
+    }
+    setState(nextState);
+    setHistory(nextHistory);
+
+    if (nextState.status === "FINISHED") {
+      clearTerminalMemory();
+      setRunState("FINISHED");
+      await checkpoint("FINISHED");
+      return;
+    }
+
+    if (runState === "SETUP") setRunState("PAUSED");
+    await checkpoint("PAUSED");
+
+    const botSide = humanSide === "BLUE" ? "RED" : "BLUE";
+    if (matchMode === "HUMAN_BOT" && nextState.currentTurn === botSide) {
+      if (botTurnTimer.current !== null) window.clearTimeout(botTurnTimer.current);
+      botTurnTimer.current = window.setTimeout(() => {
+        void executeTurn();
+      }, 350);
+    }
   }
 
   async function executeTurn(): Promise<boolean> {
     if (activeAbort.current) return false;
     if (!runtimeReady) { setError(runtimeMessage); return false; }
+    if (botTurnTimer.current !== null) {
+      window.clearTimeout(botTurnTimer.current);
+      botTurnTimer.current = null;
+    }
     const snapshot = stateRef.current;
     const side = snapshot.currentTurn;
     if (!side || snapshot.status !== "PLAYING") return false;
+    if (matchModeRef.current === "HUMAN_BOT" && side === humanSideRef.current) return false;
     const pending = pendingSlotsRef.current[side];
     if (pending?.ready) {
       const current = slotsRef.current[side];
@@ -278,6 +382,10 @@ export default function BotOfflinePage() {
     if (!runtimeReady) { setError(runtimeMessage); return; }
     if (runRef.current || activeAbort.current || stateRef.current.status === "FINISHED") return;
     if (!kit?.ready) { setError("Hãy tải đủ Offline kit trước khi chạy; không tự chuyển sang máy chủ."); return; }
+    if (matchMode === "HUMAN_BOT") {
+      setError("Chế độ chạy liên tục dành cho Bot – Bot. Ở chế độ Người – Bot, bạn đi quân trực tiếp trên bàn cờ.");
+      return;
+    }
     if (!(["BLUE", "RED"] as const).every(side => slotsRef.current[side].ready || pendingSlotsRef.current[side]?.ready)) { setError("Cả hai bot phải kiểm tra đạt và Sẵn sàng trước khi chạy."); return; }
     runRef.current = true; pauseRequested.current = false; setRunState("RUNNING");
     while (runRef.current && stateRef.current.status === "PLAYING") {
@@ -290,8 +398,28 @@ export default function BotOfflinePage() {
     if (finalState.status !== "FINISHED") { setRunState("PAUSED"); await checkpoint("PAUSED"); }
   }
 
-  function pause(): void { pauseRequested.current = true; if (thinking) setRunState("PAUSING"); else { setRunState("PAUSED"); void checkpoint("PAUSED"); } }
-  async function step(): Promise<void> { if (runRef.current || activeAbort.current || stateRef.current.status === "FINISHED") return; setRunState("PAUSED"); await executeTurn(); }
+  function pause(): void {
+    if (botTurnTimer.current !== null) {
+      window.clearTimeout(botTurnTimer.current);
+      botTurnTimer.current = null;
+    }
+    pauseRequested.current = true;
+    if (thinking) setRunState("PAUSING");
+    else { setRunState("PAUSED"); void checkpoint("PAUSED"); }
+  }
+  async function step(): Promise<void> {
+    if (runRef.current || activeAbort.current || stateRef.current.status === "FINISHED") return;
+    if (botTurnTimer.current !== null) {
+      window.clearTimeout(botTurnTimer.current);
+      botTurnTimer.current = null;
+    }
+    if (matchMode === "HUMAN_BOT" && stateRef.current.currentTurn === humanSide) {
+      setMessage(`Lượt ${humanSide === "BLUE" ? "Xanh" : "Đỏ"} là lượt của bạn; hãy chọn quân trên bàn cờ để đi.`);
+      return;
+    }
+    setRunState("PAUSED");
+    await executeTurn();
+  }
   function resetMatchState(status: "PAUSED" | "SETUP"): void {
     resetCandidates();
     stateRef.current = createInitialState(); setState(stateRef.current);
@@ -304,9 +432,23 @@ export default function BotOfflinePage() {
     if (!runtimeReady) { setError(runtimeMessage); return; }
     if (selectionImport.current || runRef.current || activeAbort.current) return;
     const next = { BLUE: pendingSlotsRef.current.BLUE ?? slotsRef.current.BLUE, RED: pendingSlotsRef.current.RED ?? slotsRef.current.RED };
-    if (!kit?.ready || !next.BLUE.ready || !next.RED.ready) { setError("Tải Offline kit và Ready cả hai bot trước khi bắt đầu."); return; }
+    if (!kit?.ready) { setError("Tải Offline kit và Ready bot trước khi bắt đầu."); return; }
+    if (matchMode === "BOT_BOT" && (!next.BLUE.ready || !next.RED.ready)) {
+      setError("Tải Offline kit và Ready cả hai bot trước khi bắt đầu.");
+      return;
+    }
+    const botSide = humanSide === "BLUE" ? "RED" : "BLUE";
+    if (matchMode === "HUMAN_BOT" && !next[botSide].ready) {
+      setError(`Kiểm tra và Ready Bot ${botSide === "BLUE" ? "Xanh" : "Đỏ"} trước khi bắt đầu.`);
+      return;
+    }
     slotsRef.current = next; setSlots(next);
     resetMatchState("PAUSED"); await checkpoint("PAUSED");
+    if (matchMode === "HUMAN_BOT" && humanSide === "RED") {
+      botTurnTimer.current = window.setTimeout(() => {
+        void executeTurn();
+      }, 400);
+    }
   }
   async function clearSession(): Promise<void> {
     if (runRef.current || activeAbort.current || !window.confirm("Xóa checkpoint Bot Offline trên thiết bị này?")) return;
@@ -314,7 +456,22 @@ export default function BotOfflinePage() {
     setMessage("Đã xóa checkpoint local; không xóa dữ liệu tài khoản.");
   }
   function exportSession(): void {
-    const snapshot = { state: stateRef.current, clocks: clocksRef.current, history: historyRef.current, memories: memoriesRef.current, slots: { BLUE: slotsRef.current.BLUE, RED: slotsRef.current.RED }, status: stateRef.current.status === "FINISHED" ? "FINISHED" as const : "PAUSED" as const, speedMs: speedRef.current, savedAt: new Date().toISOString(), activeComputeMs: activeComputeMs.current, endingReason: endingReason.current, pendingSlots: pendingSlotsRef.current, limitCriteria: limitCriteria.current };
+    const snapshot = {
+      state: stateRef.current,
+      clocks: clocksRef.current,
+      history: historyRef.current,
+      memories: memoriesRef.current,
+      slots: { BLUE: slotsRef.current.BLUE, RED: slotsRef.current.RED },
+      status: stateRef.current.status === "FINISHED" ? "FINISHED" as const : "PAUSED" as const,
+      speedMs: speedRef.current,
+      savedAt: new Date().toISOString(),
+      activeComputeMs: activeComputeMs.current,
+      endingReason: endingReason.current,
+      pendingSlots: pendingSlotsRef.current,
+      limitCriteria: limitCriteria.current,
+      matchMode: matchModeRef.current,
+      humanSide: humanSideRef.current,
+    };
     const url = URL.createObjectURL(new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" }));
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -347,6 +504,17 @@ export default function BotOfflinePage() {
 
   if (loading) return <section className="bot-offline-page"><LoadingState fullPage label="Đang kiểm tra Offline kit và checkpoint…" /></section>;
   const candidates = { BLUE: pendingSlots.BLUE ?? slots.BLUE, RED: pendingSlots.RED ?? slots.RED };
+  const isBoardDisabled =
+    state.status !== "PLAYING" ||
+    runState === "RUNNING" ||
+    thinking !== null ||
+    (matchMode === "HUMAN_BOT" && state.currentTurn !== humanSide);
+
+  const activeInteractionSide =
+    state.status === "PLAYING" && runState !== "RUNNING" && thinking === null
+      ? (matchMode === "HUMAN_BOT" ? (state.currentTurn === humanSide ? humanSide : null) : state.currentTurn)
+      : null;
+
   return <section className="bot-offline-page robot-lab-bot-offline" aria-labelledby="bot-offline-title">
     {!runtimeReady && <div className="form-error" role="alert">{runtimeMessage}</div>}
     <p className="form-intro">Ngân sách mỗi nước 500 ms · tổng tính toán 30 giây · tối đa 60 vòng. Chạm trần phân định N/P/M sau đủ vòng; bằng mọi tiêu chí thì Đỏ đi sau thắng.</p>
@@ -354,11 +522,172 @@ export default function BotOfflinePage() {
     {(["BLUE", "RED"] as const).map(side => pendingSlots[side] && <p key={side} role="status">{side === "BLUE" ? "Xanh" : "Đỏ"}: bản đang chạy {slots[side].revision}; bản chờ {pendingSlots[side]?.revision} chỉ áp dụng khi đã kiểm tra và Sẵn sàng, ở lượt kế tiếp của mình. Bộ nhớ bản mới được đặt lại.</p>)}
     {state.status === "FINISHED" && limitCriteria.current && <p>Kết quả N/P/M: Xanh {limitCriteria.current.BLUE.N}/{limitCriteria.current.BLUE.P}/{limitCriteria.current.BLUE.M} · Đỏ {limitCriteria.current.RED.N}/{limitCriteria.current.RED.P}/{limitCriteria.current.RED.M}. {endingReason.current === "LIMIT_EXACT_TIE" ? "Bằng mọi tiêu chí: Đỏ đi sau thắng theo luật ưu tiên đã công bố." : "Phân định theo thứ tự số quân, tiến độ, độ linh hoạt."}</p>}
     {searchParams.get("botId") && searchParams.get("revisionId") && <section className="bot-workbench-panel" aria-label="Chiến thuật từ Xưởng Bot"><h2>Chiến thuật đã chọn</h2><p>{runState === "SETUP" ? "Chọn slot để nạp. Bot chưa Sẵn sàng; bạn cần kiểm tra lại trước khi chơi." : "Đang giữ checkpoint hiện tại. Không tự ghi đè chiến thuật; hãy xuất và kết thúc phiên trước khi nạp bản đã chọn."}</p><Button disabled={runState !== "SETUP" || importing} onClick={() => void importSelection("BLUE")}>Nạp vào slot Xanh</Button><Button variant="secondary" disabled={runState !== "SETUP" || importing} onClick={() => void importSelection("RED")}>Nạp vào slot Đỏ</Button></section>}
-    <header className="bot-offline-header"><div><p className="eyebrow">ROBOT LAB · ĐẤU CHƯƠNG TRÌNH OFFLINE</p><h1 id="bot-offline-title">Bot Offline</h1><p className="form-intro">Chuẩn bị hai chiến thuật và quản lý checkpoint trên trình duyệt. Chạy trận chỉ được mở khi sandbox thực tế đạt kiểm thử an toàn.</p></div><Link className="button secondary" to={routes.home}>Về sảnh</Link></header>
+    <header className="bot-offline-header">
+      <div>
+        <p className="eyebrow">ROBOT LAB · ĐẤU CHƯƠNG TRÌNH OFFLINE</p>
+        <h1 id="bot-offline-title">Bot Offline</h1>
+        <p className="form-intro">
+          {matchMode === "HUMAN_BOT"
+            ? "Luyện tập trực tiếp với Bot Python chạy cô lập trong trình duyệt. Bạn điều khiển quân trên bàn cờ."
+            : "Chuẩn bị hai chiến thuật và quản lý checkpoint trên trình duyệt. Chạy trận chỉ được mở khi sandbox thực tế đạt kiểm thử an toàn."}
+        </p>
+      </div>
+      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+        <div className="home-tab-list bot-offline-mode-switch" role="tablist" aria-label="Chế độ đấu Offline">
+          <button
+            className={`home-tab ${matchMode === "HUMAN_BOT" ? "active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={matchMode === "HUMAN_BOT"}
+            disabled={runState === "RUNNING" || thinking !== null}
+            onClick={() => {
+              setMatchMode("HUMAN_BOT");
+              const botSide = humanSide === "BLUE" ? "RED" : "BLUE";
+              if (!slotsRef.current[botSide].source) loadSample(botSide);
+            }}
+          >
+            Người – Bot
+          </button>
+          <button
+            className={`home-tab ${matchMode === "BOT_BOT" ? "active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={matchMode === "BOT_BOT"}
+            disabled={runState === "RUNNING" || thinking !== null}
+            onClick={() => setMatchMode("BOT_BOT")}
+          >
+            Bot – Bot
+          </button>
+        </div>
+        <Link className="button secondary" to={routes.home}>Về sảnh</Link>
+      </div>
+    </header>
+    {matchMode === "HUMAN_BOT" && (
+      <div className="bot-offline-side-selector" style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: "0.5rem 0" }}>
+        <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 700 }}>Phe của bạn:</span>
+        <Button
+          variant={humanSide === "BLUE" ? "primary" : "secondary"}
+          disabled={runState === "RUNNING" || thinking !== null || history.length > 0}
+          onClick={() => {
+            setHumanSide("BLUE");
+            if (!slotsRef.current.RED.source) loadSample("RED");
+          }}
+        >
+          Xanh (Đi trước)
+        </Button>
+        <Button
+          variant={humanSide === "RED" ? "primary" : "secondary"}
+          disabled={runState === "RUNNING" || thinking !== null || history.length > 0}
+          onClick={() => {
+            setHumanSide("RED");
+            if (!slotsRef.current.BLUE.source) loadSample("BLUE");
+          }}
+        >
+          Đỏ (Đi sau)
+        </Button>
+      </div>
+    )}
     <section className="bot-offline-kit" aria-label="Offline kit"><div><strong>OFFLINE KIT · {kit?.version ?? "—"}</strong><span>{kit?.message ?? "Chưa kiểm tra"}</span><span className={runtimeReady ? "bot-offline-runtime-ready" : "bot-offline-runtime-pending"} role="status">{runtimeMessage}</span></div><div className="bot-offline-kit-progress" aria-label={`Đã tải ${kitProgress || kit?.cached || 0} trên ${kit?.total ?? 5}`}>{kitProgress || kit?.cached || 0}/{kit?.total ?? 5}</div><Button variant="secondary" onClick={() => void downloadKit()}>{kit?.ready ? "Kiểm tra lại kit" : "Tải Offline kit"}</Button></section>
     {error && <div className="form-error" role="alert"><strong>{error}</strong></div>}{message && <div className="form-success" role="status">{message}</div>}{restored && <div className="bot-offline-restore" role="status">Đã khôi phục checkpoint. Phiên đang TẠM DỪNG để bạn kiểm tra trước khi chạy tiếp.</div>}
-    <div className="bot-offline-layout"><div className="bot-offline-board"><GameBoard state={state} viewSide="BLUE" disabled /><div className="bot-offline-status"><span className={thinking ? "bot-thinking" : ""}>{thinking ? `Đang tính lượt ${thinking === "BLUE" ? "Xanh" : "Đỏ"}…` : runState === "FINISHED" ? "Trận đã kết thúc" : runState === "PAUSING" ? "Đang hoàn tất lượt rồi dừng…" : runState === "RUNNING" ? "Đang chạy" : "Tạm dừng ở ranh giới lượt"}</span><strong>Lượt {state.currentTurn === "BLUE" ? "Xanh" : state.currentTurn === "RED" ? "Đỏ" : "—"}</strong></div><div className="bot-offline-controls"><Button onClick={() => void startMatch()} disabled={!runtimeReady || !kit?.ready || thinking !== null || runState === "RUNNING"}>Ván mới</Button><Button onClick={() => void runLoop()} disabled={!runtimeReady || thinking !== null || runState === "RUNNING" || runState === "FINISHED" || runState === "SETUP"}>Chạy</Button><Button variant="secondary" onClick={pause} disabled={runState !== "RUNNING"}>Tạm dừng</Button><Button variant="secondary" onClick={() => void step()} disabled={!runtimeReady || thinking !== null || runState === "SETUP" || runState === "RUNNING" || runState === "FINISHED" || state.status !== "PLAYING"}>Từng nước</Button><label>Tốc độ<select value={speedMs} onChange={(event) => setSpeedMs(Number(event.target.value))}><option value={100}>Nhanh</option><option value={450}>Chuẩn</option><option value={1000}>Chậm</option></select></label></div><div className="bot-offline-result">{state.status === "FINISHED" ? <strong>Kết quả: {state.winner === "BLUE" ? "Xanh thắng" : "Đỏ thắng"}</strong> : <span>{history.length} lượt đã commit · checkpoint sau mỗi lượt</span>}</div></div>
-      <aside className="bot-offline-slots" aria-label="Hai slot chiến thuật"><BotSlot side="BLUE" slot={candidates.BLUE} onSample={() => loadSample("BLUE")} onTest={() => void testSlot("BLUE")} onReady={() => toggleReady("BLUE")} onFile={(file) => void chooseFile("BLUE", file)} onSource={(source) => updateSlot("BLUE", { source })} onMemoryPolicy={(memoryPolicy) => updateSlot("BLUE", { memoryPolicy })} /><BotSlot side="RED" slot={candidates.RED} onSample={() => loadSample("RED")} onTest={() => void testSlot("RED")} onReady={() => toggleReady("RED")} onFile={(file) => void chooseFile("RED", file)} onSource={(source) => updateSlot("RED", { source })} onMemoryPolicy={(memoryPolicy) => updateSlot("RED", { memoryPolicy })} /><div className="bot-offline-actions"><Button variant="secondary" onClick={exportSession}>Xuất checkpoint</Button><Button variant="danger" onClick={() => void clearSession()} disabled={thinking !== null || runState === "RUNNING" || runState === "PAUSING"}>Xóa checkpoint</Button><span>Pause chỉ dừng sau khi lượt hiện tại commit; Step chạy đúng một lượt.</span></div></aside></div>
+    <div className="bot-offline-layout">
+      <div className="bot-offline-board">
+        <GameBoard
+          state={state}
+          viewSide="BLUE"
+          interactionSide={activeInteractionSide}
+          onMove={(from, to) => void handleBoardMove(from, to)}
+          disabled={isBoardDisabled}
+          thinkingSide={thinking}
+        />
+        <div className="bot-offline-status">
+          <span className={thinking ? "bot-thinking" : ""}>
+            {thinking
+              ? `Đang tính lượt ${thinking === "BLUE" ? "Xanh" : "Đỏ"}…`
+              : runState === "FINISHED"
+              ? "Trận đã kết thúc"
+              : runState === "PAUSING"
+              ? "Đang hoàn tất lượt rồi dừng…"
+              : runState === "RUNNING"
+              ? "Đang chạy"
+              : matchMode === "HUMAN_BOT"
+              ? state.currentTurn === humanSide
+                ? `Lượt của bạn (${humanSide === "BLUE" ? "Xanh" : "Đỏ"}) · Chọn quân trên bàn cờ để đi`
+                : `Lượt của Bot (${humanSide === "BLUE" ? "Đỏ" : "Xanh"})`
+              : "Tạm dừng ở ranh giới lượt"}
+          </span>
+          <strong>
+            {state.status === "FINISHED" || !state.currentTurn
+              ? "Trận đấu kết thúc"
+              : matchMode === "HUMAN_BOT"
+              ? state.currentTurn === humanSide
+                ? `Lượt bạn (${humanSide === "BLUE" ? "Xanh" : "Đỏ"})`
+                : `Lượt Bot (${humanSide === "BLUE" ? "Đỏ" : "Xanh"})`
+              : `Lượt ${state.currentTurn === "BLUE" ? "Xanh" : state.currentTurn === "RED" ? "Đỏ" : "—"}`}
+          </strong>
+        </div>
+        <div className="bot-offline-controls">
+          <Button onClick={() => void startMatch()} disabled={!runtimeReady || !kit?.ready || thinking !== null || runState === "RUNNING"}>Ván mới</Button>
+          <Button onClick={() => void runLoop()} disabled={matchMode === "HUMAN_BOT" || !runtimeReady || thinking !== null || runState === "RUNNING" || runState === "FINISHED" || runState === "SETUP"}>Chạy</Button>
+          <Button variant="secondary" onClick={pause} disabled={runState !== "RUNNING"}>Tạm dừng</Button>
+          <Button variant="secondary" onClick={() => void step()} disabled={!runtimeReady || thinking !== null || runState === "SETUP" || runState === "RUNNING" || runState === "FINISHED" || state.status !== "PLAYING"}>Từng nước</Button>
+          <label>Tốc độ<select value={speedMs} onChange={(event) => setSpeedMs(Number(event.target.value))}><option value={100}>Nhanh</option><option value={450}>Chuẩn</option><option value={1000}>Chậm</option></select></label>
+        </div>
+        <div className="bot-offline-result">{state.status === "FINISHED" ? <strong>Kết quả: {state.winner === "BLUE" ? "Xanh thắng" : "Đỏ thắng"}</strong> : <span>{history.length} lượt đã commit · checkpoint sau mỗi lượt</span>}</div>
+      </div>
+      <aside className="bot-offline-slots" aria-label="Hai slot chiến thuật">
+        {matchMode === "HUMAN_BOT" && humanSide === "BLUE" ? (
+          <section className="bot-offline-slot blue" aria-label="Người chơi Xanh">
+            <div className="bot-slot-heading">
+              <div><p className="eyebrow">SLOT 01 · BẠN</p><h2>Người chơi Xanh</h2></div>
+              <span className="slot-ready">SẴN SÀNG</span>
+            </div>
+            <p className="form-intro" style={{ margin: "0.25rem 0", fontSize: "0.82rem" }}>
+              Bạn điều khiển quân Xanh trực tiếp trên bàn cờ. Chọn quân để xem ô đi hợp lệ và click ô đích.
+            </p>
+            <div className="bot-slot-actions" style={{ gridTemplateColumns: "1fr" }}>
+              <div className="bot-slot-validation" role="status" style={{ minHeight: "auto" }}>
+                {state.status === "FINISHED"
+                  ? (state.winner === "BLUE" ? "Bạn đã thắng ván cờ!" : state.winner === "RED" ? "Bot Đỏ đã thắng ván cờ." : "Ván cờ kết thúc hòa.")
+                  : thinking === "RED"
+                  ? "Bot Đỏ đang suy nghĩ nước đi…"
+                  : state.currentTurn === "BLUE"
+                  ? "● Đang đến lượt bạn đi cờ"
+                  : "Chờ đối thủ Đỏ…"}
+              </div>
+            </div>
+            <small>Điều khiển thủ công qua chuột hoặc bàn phím trên bàn cờ 9×9</small>
+          </section>
+        ) : (
+          <BotSlot side="BLUE" slot={candidates.BLUE} onSample={() => loadSample("BLUE")} onTest={() => void testSlot("BLUE")} onReady={() => toggleReady("BLUE")} onFile={(file) => void chooseFile("BLUE", file)} onSource={(source) => updateSlot("BLUE", { source })} onMemoryPolicy={(memoryPolicy) => updateSlot("BLUE", { memoryPolicy })} />
+        )}
+        {matchMode === "HUMAN_BOT" && humanSide === "RED" ? (
+          <section className="bot-offline-slot red" aria-label="Người chơi Đỏ">
+            <div className="bot-slot-heading">
+              <div><p className="eyebrow">SLOT 02 · BẠN</p><h2>Người chơi Đỏ</h2></div>
+              <span className="slot-ready">SẴN SÀNG</span>
+            </div>
+            <p className="form-intro" style={{ margin: "0.25rem 0", fontSize: "0.82rem" }}>
+              Bạn điều khiển quân Đỏ trực tiếp trên bàn cờ. Chọn quân để xem ô đi hợp lệ và click ô đích.
+            </p>
+            <div className="bot-slot-actions" style={{ gridTemplateColumns: "1fr" }}>
+              <div className="bot-slot-validation" role="status" style={{ minHeight: "auto" }}>
+                {state.status === "FINISHED"
+                  ? (state.winner === "RED" ? "Bạn đã thắng ván cờ!" : state.winner === "BLUE" ? "Bot Xanh đã thắng ván cờ." : "Ván cờ kết thúc hòa.")
+                  : thinking === "BLUE"
+                  ? "Bot Xanh đang suy nghĩ nước đi…"
+                  : state.currentTurn === "RED"
+                  ? "● Đang đến lượt bạn đi cờ"
+                  : "Chờ đối thủ Xanh…"}
+              </div>
+            </div>
+            <small>Điều khiển thủ công qua chuột hoặc bàn phím trên bàn cờ 9×9</small>
+          </section>
+        ) : (
+          <BotSlot side="RED" slot={candidates.RED} onSample={() => loadSample("RED")} onTest={() => void testSlot("RED")} onReady={() => toggleReady("RED")} onFile={(file) => void chooseFile("RED", file)} onSource={(source) => updateSlot("RED", { source })} onMemoryPolicy={(memoryPolicy) => updateSlot("RED", { memoryPolicy })} />
+        )}
+        <div className="bot-offline-actions"><Button variant="secondary" onClick={exportSession}>Xuất checkpoint</Button><Button variant="danger" onClick={() => void clearSession()} disabled={thinking !== null || runState === "RUNNING" || runState === "PAUSING"}>Xóa checkpoint</Button><span>{matchMode === "HUMAN_BOT" ? "Lượt người: click trên bàn cờ. Lượt Bot: tự động chạy hoặc bấm Từng nước." : "Pause chỉ dừng sau khi lượt hiện tại commit; Step chạy đúng một lượt."}</span></div>
+      </aside>
+    </div>
   </section>;
 }
 

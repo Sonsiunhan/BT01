@@ -43,6 +43,8 @@ export type BotOfflineSessionSnapshot = {
   endingReason?: string;
   pendingSlots?: Partial<Record<Side, BotOfflineSlotSnapshot>>;
   limitCriteria?: { BLUE: { N: number; P: number; M: number }; RED: { N: number; P: number; M: number } };
+  matchMode?: "HUMAN_BOT" | "BOT_BOT";
+  humanSide?: Side;
 };
 export type LocalSessionSnapshot = {
   mode: LocalMode;

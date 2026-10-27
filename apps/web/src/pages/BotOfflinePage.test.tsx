@@ -198,4 +198,78 @@ describe("R11 Bot Offline", () => {
     expect(screen.getByRole("button", { name: "Từng nước" })).toBeDisabled();
     expect(runOfflineBotTurn).not.toHaveBeenCalled();
   });
+
+  it("allows interactive piece selection and moving on the board", async () => {
+    await clearBotOfflineSession();
+    renderWithProviders(<BotOfflinePage />, "/dau-chuong-trinh/offline");
+    await screen.findByRole("heading", { name: "Bot Offline" });
+
+    // Initial state: Blue's turn, pieces at row 1
+    const squareA1 = document.querySelector('[data-coordinate="a1"]') as HTMLButtonElement;
+    expect(squareA1).not.toBeNull();
+    expect(squareA1).not.toBeDisabled();
+
+    // Click a1 to select Blue piece
+    fireEvent.click(squareA1);
+    const squareA2 = document.querySelector('[data-coordinate="a2"]') as HTMLButtonElement;
+    expect(squareA2).not.toBeNull();
+    expect(squareA2.getAttribute("data-legal")).toBe("true");
+
+    // Click a2 to make the move
+    fireEvent.click(squareA2);
+
+    // Verify move is applied: piece moved to a2
+    await waitFor(() => {
+      const updatedA2 = document.querySelector('[data-coordinate="a2"]') as HTMLButtonElement;
+      expect(updatedA2.getAttribute("data-piece")).toBe("S");
+      const updatedA1 = document.querySelector('[data-coordinate="a1"]') as HTMLButtonElement;
+      expect(updatedA1.getAttribute("data-piece")).toBe("empty");
+    });
+
+    // Check status updated to Red's turn
+    expect(screen.getByText(/Lượt Đỏ/)).toBeInTheDocument();
+  });
+
+  it("supports switching to Human vs Bot mode and automatically responds to player move", async () => {
+    await clearBotOfflineSession();
+    runtimeGate.ready = true;
+    vi.mocked(runOfflineBotTurn).mockImplementation(async input => ({
+      move: input.state.legalMoves[0]!,
+      memory: null,
+      computeMs: 1,
+    }));
+
+    renderWithProviders(<BotOfflinePage />, "/dau-chuong-trinh/offline");
+    await screen.findByRole("heading", { name: "Bot Offline" });
+
+    // Switch to Human vs Bot mode
+    fireEvent.click(screen.getByRole("tab", { name: "Người – Bot" }));
+    expect(screen.getByRole("region", { name: "Người chơi Xanh" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Bot Đỏ" })).toBeInTheDocument();
+
+    // Prepare Red bot
+    fireEvent.click(screen.getAllByRole("button", { name: "Bot mẫu" })[0]!);
+    fireEvent.click(screen.getAllByRole("button", { name: "Kiểm tra" })[0]!);
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "Sẵn sàng" })[0]).not.toBeDisabled());
+    fireEvent.click(screen.getAllByRole("button", { name: "Sẵn sàng" })[0]!);
+
+    // Start match
+    fireEvent.click(screen.getByRole("button", { name: "Ván mới" }));
+
+    // Blue (Human) plays: select a1 and move to a2
+    const squareA1 = document.querySelector('[data-coordinate="a1"]') as HTMLButtonElement;
+    fireEvent.click(squareA1);
+    const squareA2 = document.querySelector('[data-coordinate="a2"]') as HTMLButtonElement;
+    fireEvent.click(squareA2);
+
+    // Wait for Red bot turn execution
+    await waitFor(() => expect(runOfflineBotTurn).toHaveBeenCalled());
+
+    // Wait for Red bot to finish and turn to return to Blue (Human)
+    await waitFor(() => {
+      expect(screen.getByText(/Lượt bạn \(Xanh\)/)).toBeInTheDocument();
+    });
+
+    await clearBotOfflineSession();
+  });
 });
