@@ -30,6 +30,7 @@ export interface BudgetProfile {
     readonly perPrincipalStreamQuota: BudgetThreshold<number>;
     readonly perPrincipalRoomQuota: BudgetThreshold<number>;
     readonly perPrincipalQueueQuota: BudgetThreshold<number>;
+    readonly perPrincipalLobbyQuota: BudgetThreshold<number>;
   };
 
   // 2. Match Lanes & DB Budgets
@@ -144,6 +145,11 @@ export const BUDGET_METADATA: Record<string, BudgetMetadataEntry> = {
     unit: "queues/principal",
     source: "const: 1",
     rationale: "Strict invariant: a user can only be in one matchmaking queue at any moment",
+  },
+  "admission.perPrincipalLobbyQuota": {
+    unit: "concurrent_requests/principal",
+    source: "const: 10",
+    rationale: "Allows a single client to concurrently load rooms, social state, invites and profile without 503 load shedding",
   },
   "matchLanes.maxQueueDepthPerMatch": {
     unit: "commands",
@@ -349,6 +355,7 @@ export const DEFAULT_BUDGET_PROFILE_V0: BudgetProfile = {
     perPrincipalStreamQuota: 5,
     perPrincipalRoomQuota: 2,
     perPrincipalQueueQuota: 1,
+    perPrincipalLobbyQuota: 10,
   },
 
   matchLanes: {

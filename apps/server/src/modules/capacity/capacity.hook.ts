@@ -77,10 +77,11 @@ export function registerCapacityAdmissionHook(
       return;
     }
 
+    const clientIdHeader = request.headers["x-client-id"];
     const principalId =
-      (request.headers["x-client-id"] as string | undefined) ||
-      (request.headers["x-ott-request"] as string | undefined) ||
-      request.ip;
+      (typeof clientIdHeader === "string" && clientIdHeader.trim().length > 0
+        ? clientIdHeader.trim()
+        : undefined) || request.ip;
 
     const acquired = controller.acquire(
       classification.pool,
@@ -110,10 +111,16 @@ export function registerCapacityAdmissionHook(
       });
     }
 
-    (request.raw as { __capacityAcquired?: { pool: AdmissionPoolType; principalId?: string } }).__capacityAcquired = {
+    const rawReq = request.raw as { __capacityAcquired?: { pool: AdmissionPoolType; principalId?: string } };
+    rawReq.__capacityAcquired = {
       pool: classification.pool,
       principalId,
     };
+
+    // Ensure capacity is released even if reply.hijack() bypasses Fastify onResponse hook
+    request.raw.once("close", () => {
+      releaseCapacity(request);
+    });
   });
 
   const releaseCapacity = (request: FastifyRequest) => {

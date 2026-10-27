@@ -27,7 +27,6 @@ export default defineConfig({
           const normalized = id.replaceAll("\\\\", "/");
           if (normalized.includes("/apps/web/src/features/admin/tournaments/")) return "admin-tournaments";
           if (normalized.includes("/apps/web/src/features/admin/")) return "admin-pages";
-          if (normalized.includes("/apps/web/src/pages/")) return "app-pages";
         },
       },
     },

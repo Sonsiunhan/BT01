@@ -28,6 +28,14 @@ export function login(input: { username: string; password: string; remember: boo
 export function logout() { return requestJson<void>("/auth/logout", { method: "POST" }); }
 export function recover(input: { username: string; recoveryCode: string; newPassword: string }) { return requestJson<{ user: UserProfile }>("/auth/recover", { method: "POST", body: input }); }
 export function changePassword(input: { currentPassword: string; newPassword: string }) { return requestJson<void>("/auth/password", { method: "POST", body: input }); }
-export function getMe() { return getJson("/auth/me") as Promise<{ user: UserProfile }>; }
+let inFlightMe: Promise<{ user: UserProfile }> | null = null;
+
+export function getMe() {
+  if (inFlightMe) return inFlightMe;
+  inFlightMe = (getJson("/auth/me") as Promise<{ user: UserProfile }>).finally(() => {
+    inFlightMe = null;
+  });
+  return inFlightMe;
+}
 export function getPublicProfile(username: string) { return getJson(`/profiles/${encodeURIComponent(username)}`) as Promise<{ profile: PublicProfile }>; }
 export function updateProfile(input: { fullName?: string; displayName?: string; theme?: "light" | "dark" | "system"; avatarPreset?: AvatarPreset; presenceVisibility?: "FRIENDS" | "NOBODY"; friendListVisibility?: "PRIVATE"; fullNameVisibility?: "PRIVATE" }) { return requestJson<{ user: UserProfile }>("/profiles/me", { method: "PATCH", body: input }); }

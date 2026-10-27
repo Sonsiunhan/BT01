@@ -68,7 +68,7 @@ export class CapacityController {
       lobby: new AdmissionPool(
         "lobby",
         resolveBudgetNumber(adm.maxConcurrentLobby, 100),
-        resolveBudgetNumber(adm.perPrincipalRoomQuota, 2),
+        resolveBudgetNumber(adm.perPrincipalLobbyQuota, 10),
         0
       ),
       pvp: new AdmissionPool(

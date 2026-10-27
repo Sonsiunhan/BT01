@@ -17,6 +17,7 @@ const contentTypes: Record<string, string> = {
   ".map": "application/json; charset=utf-8",
   ".png": "image/png",
   ".svg": "image/svg+xml",
+  ".ttf": "font/ttf",
   ".webp": "image/webp",
   ".woff": "font/woff",
   ".woff2": "font/woff2"
@@ -55,6 +56,12 @@ export async function registerWebApp(app: FastifyInstance): Promise<void> {
       return reply.status(503).send({ code: "WEB_BUNDLE_UNAVAILABLE", message: "Frontend bundle chưa được build." });
     }
     const extension = path.extname(candidate).toLowerCase();
+    const isHashedAsset = candidate.includes(`${path.sep}assets${path.sep}`) || candidate.includes(`${path.sep}fonts${path.sep}`);
+    if (isHashedAsset) {
+      reply.header("Cache-Control", "public, max-age=31536000, immutable");
+    } else {
+      reply.header("Cache-Control", "no-cache");
+    }
     return reply.type(contentTypes[extension] ?? "application/octet-stream").send(await readFile(candidate));
   };
 

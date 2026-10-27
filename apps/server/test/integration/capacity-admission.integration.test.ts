@@ -117,4 +117,48 @@ describe("Capacity Admission Integration Tests (L-07.03)", () => {
     expect(body.retryable).toBe(true);
     expect(body.details.reason).toBe("SYSTEM_PRESSURE_LOBBY_SHED");
   });
+
+  it("allows at least 5 concurrent lobby requests from a single client in NORMAL state", async () => {
+    // A single client opening the page fires parallel requests (friends, requests, invites, rooms, etc.)
+    for (let i = 0; i < 9; i++) {
+      expect(capacity.acquire("lobby", "client-test-concurrent")).toBe(true);
+    }
+    const res = await app.inject({
+      method: "GET",
+      url: "/rooms",
+      headers: {
+        "x-client-id": "client-test-concurrent",
+      },
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("does not treat static X-OTT-Request flag as principal ID", async () => {
+    // Exhaust quota for principal "1" explicitly
+    for (let i = 0; i < 10; i++) {
+      expect(capacity.acquire("lobby", "1")).toBe(true);
+    }
+    expect(capacity.acquire("lobby", "1")).toBe(false);
+
+    // Clients sending X-OTT-Request: 1 with their own client-id must NOT be throttled by quota on "1"
+    const res1 = await app.inject({
+      method: "GET",
+      url: "/rooms",
+      headers: {
+        "x-ott-request": "1",
+        "x-client-id": "client-alpha",
+      },
+    });
+    expect(res1.statusCode).toBe(200);
+
+    const res2 = await app.inject({
+      method: "GET",
+      url: "/rooms",
+      headers: {
+        "x-ott-request": "1",
+        "x-client-id": "client-beta",
+      },
+    });
+    expect(res2.statusCode).toBe(200);
+  });
 });
